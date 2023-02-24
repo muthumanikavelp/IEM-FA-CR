@@ -1,0 +1,86 @@
+﻿@model IEM.Areas.MASTERS.Models.ServiceTypeModel
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span>Supplier Service Type  </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="ServiceName" id="txtServiceName" maxlength="128" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;" />
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" style="margin-top:10px;" width="100%">
+        <tr>
+            <td style="width:100%; text-align:right;">
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveServiceName()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnsave").attr('disabled', 'disabled');
+
+        $("#txtServiceName").focus();
+        $("#txtServiceName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#txtServiceName").keyup(function () {
+            var txtSupplierName = $("#txtServiceName").val();
+            CheckFields();
+            $("#txtServiceName").removeClass('required').removeClass('valid');
+            if (txtSupplierName.trim() != "") 
+                $("#txtServiceName").addClass('valid');
+            else
+                $("#txtServiceName").addClass('required');
+        });
+
+    });
+    
+    function SaveServiceName() {
+        var serviceName = $("#txtServiceName").val();
+            var serviceModel = { "serviceName": serviceName.trim() };
+            $.post('../AsmsServiceType/create', serviceModel,
+            function (data) {
+                if (data != null) {
+                    jAlert("Duplicate Record!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+                else {
+                    jAlert("Record Inserted Successfully!", "Message", function (r) {
+                        if (r == true) { location = '../AsmsServiceType/Index'; }
+                    });
+                }
+            }, 'json');
+        }
+   
+    function goToIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFields() {
+        var ErrCount = 0;
+        var _data = $("#txtServiceName").val();
+        if (_data.trim() == "") {
+            ErrCount = 1;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>

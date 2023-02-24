@@ -1,0 +1,118 @@
+﻿@model IEnumerable<IEM.Areas.FLEXIBUY.Models.vendorselection>
+@using IEM.Common;
+@{
+
+    CmnFunctions obj = new CmnFunctions();
+    WebGrid grid = new WebGrid(source: Model, canPage: true, canSort: true, rowsPerPage: 15, selectionFieldName: "custom", ajaxUpdateContainerId: "vendorgrid");
+    int rowNum = 0;
+}
+
+    <div id="gridvendorselection">
+        <div class="well">
+            <div>
+                <div>
+                    <table class="myTableStyleTabNew" align="center">
+                        <tr>
+                            <td>
+                                <span>Vendor Name</span>
+                                <br />
+                                <input type="text" id="txt_vendorname" value="@TempData["name"]"
+                                       class="textboxStyle" />
+                            </td>
+                            <td>
+                                <span>Vendor Code</span>
+                                <br />
+                                <input type="text" id="txt_vendorcode" value="@TempData["code"]"
+                                       class="textboxStyle" />
+                            </td>
+                            <td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearch" value="search" onclick="searchvendor()" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                            </td>
+                            <td>
+                                    <span> </span>
+                                    <br />
+                                    <button class="btn btn-primary" id="btnClear" value="Clear" onclick="webgridrefresh()" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                                </td>
+                        </tr>
+                    </table>
+                </div>
+
+
+                <div id="emplgrid">
+                    @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "vendorgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+
+                  grid.Column("slno",obj.Sorter("slno","Sl",grid)),
+                                    grid.Column("vendorgid", obj.Sorter("vendorgid", "Vendor ID", grid)),
+                                 grid.Column("vendorname", obj.Sorter("vendorname", "Vendor Name", grid), format: @<text><span id="lblvendorname">@item.vendorname</span></text>),
+                                    grid.Column("vendorcode", obj.Sorter("vendorcode", "Vendor Code", grid), format: @<text><span id="lblvendorcode">@item.vendorcode</span></text>),
+                                    grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                        <a><span class="btn btn-link btnselect" id="@item.vendorgid" onclick="vendor(id,this)">Submit</span></a>
+                    </text>)))
+                    @if (@TempData["records"] != null || @TempData["records"] == "")
+                    {
+                        <div class="borderStyle btnCenter">
+                            @TempData["records"]
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <script>
+            $("#vendorgrid td:nth-child(2),#vendorgrid th:nth-child(2)").hide();
+            function vendor(id, element) {
+                var tr = $(element).parents('tr:first');
+                var empid = tr.find("#lblvendorname").text();
+                var vendorgid = tr.find('td:eq(1)').text();
+                var cbfheader_gid = $("#dategid").val();
+
+                $("#txtvendorname").val(empid);
+                $("#hid_vendorgid").val(vendorgid);
+                window.parent.jQuery('#forficcnewven').dialog('close');
+            }
+            function GotoIndex() {
+                window.parent.jQuery('#forficcnewven').dialog('close');
+            }
+            function webgridrefresh() {
+                $('#txt_vendorcode').val("");
+                $('#txt_vendorname').val("");
+                @*location = '@Url.Action("VendorSelection", "poraiser")?  + new Date().getTime();*@
+                $("#gridvendorselection").load('@Url.Action("VendorSelection", "poraiser")?listfor=refresh' + '&' + new Date().getTime());
+            }
+            function searchvendor() {
+                var vendorcode = $('#txt_vendorcode').val();
+                var vendorname = $('#txt_vendorname').val();
+                var listfor = "search";
+                var objsearchfilter = {
+                    "vendorname": vendorname,
+                    "vendorcode": vendorcode
+                };
+                $.ajax({
+                    url: '@Url.Action("searchvendor", "poraiser")?' + new Date().getTime(),
+                    type: 'POST',
+                    data: objsearchfilter,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#gridvendorselection").load('@Url.Action("VendorSelection", "poraiser")?listfor=' + listfor + '&' + new Date().getTime());
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });
+            }
+        </script>
+    </div>
+

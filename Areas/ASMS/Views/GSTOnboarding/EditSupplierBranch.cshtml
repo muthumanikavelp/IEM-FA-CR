@@ -1,0 +1,140 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierBranchDetails
+@using IEM.Areas.ASMS.Models
+@{
+    SupDataModel dm = new SupDataModel();
+    SupplierBranchDetails objSupBranch = new SupplierBranchDetails();
+    objSupBranch.lstCity = new SelectList(dm.GetAllCityBranch(), "_CityID", "_CityName",Model.selectedCityID); 
+}
+<div id="editcustomer">
+
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+        <table class="myTableStyleTabpopup">
+            <tr>
+                <td style="display:none;">
+                    <span>Branch Id</span><br />
+                    <input name="_SupBranchID" class="textboxStyle" id="_SupBranchID" title="Service ID" type="text" value="@Model._SupBranchID" /> 
+                </td>
+                <td style="min-width:250px;">
+                    <span>Branch City</span><br />
+                    @Html.DropDownListFor(j => j.selectedCityID, objSupBranch.lstCity, "--select--", new { @class = "textboxStyle", @id = "selectedCityIDEdit" })
+                    @*<input name="_SupBranchName" class="textboxStyle valid" id="_SupBranchName" title="Customer Name" type="text" value="@Model.selectedCityID" @ViewBag.viewmode1 />*@
+                </td>
+            </tr>
+
+            <tr>
+
+                <td style="text-align:right;padding-right:25px;">
+                    <a name="btnUpdateSupBranch" id="btnUpdateSupBranch" class="btn btn-primary" onclick="UpdateSupBranch()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                    <a id="btnDeleteEditSupBranch" name="btnDeleteEditSupBranch" class="btn btn-danger" onclick="DeleteSupBranchEdit()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</a>
+                    <a id="btnCloseEditSupBranch" name="btnCloseEditSupBranch" class="btn btn-warning"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+                    <a id="btnCloseEditSupBranch1" name="btnCloseEditSupBranch1" class="btn btn-warning"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</a>
+                        
+                </td>
+            </tr>
+
+        </table>
+
+    }
+
+    <script type="text/javascript">
+            var custpagemode;
+            function DisableSupBranchEditDetails() {
+                $("#selectedCityIDEdit").attr("disabled", "disabled");
+            }
+            $(document).ready(function () {
+                custpagemode = '@ViewBag.viewfor';
+               
+                if ($.trim(custpagemode) == "edit") {
+                    $("#btnDeleteEditSupBranch").css("display", "none");
+                    $("#btnCloseEditSupBranch1").css("display", "none");
+                }
+                else if ($.trim(custpagemode) == "view") {
+                    $("#btnUpdateSupBranch").css("display", "none");
+                    $("#btnCloseEditSupBranch").css("display", "none");
+                    $("#btnDeleteEditSupBranch").css("display", "none");
+                    DisableSupBranchEditDetails();
+                }
+                else if ($.trim(custpagemode) == "delete") {
+                    $("#btnUpdateSupBranch").css("display", "none");
+                    $("#btnCloseEditSupBranch1").css("display", "none");
+                    DisableSupBranchEditDetails();
+                }
+                if ($.trim("#selectedCityIDEdit") != "0") {
+                    $("#selectedCityIDEdit").removeClass('required');
+                    $("#selectedCityIDEdit").addClass('valid');
+                }
+                else {
+                    $("#selectedCityIDEdit").removeClass('valid');
+                    $("#selectedCityIDEdit").addClass('required');
+                }
+                $("#selectedCityIDEdit").change(function () {
+                    var SupBranchNameEdit = $("#selectedCityIDEdit").val();
+                    if (SupBranchNameEdit.trim() != "") {
+                        $("#selectedCityIDEdit").removeClass('required');
+                        $("#selectedCityIDEdit").addClass('valid');
+                    }
+                    else {
+                        $("#selectedCityIDEdit").removeClass('valid');
+                        $("#selectedCityIDEdit").addClass('required');
+                    }
+                });
+                //$("#_SupBranchName").keypress(function (event) {
+                //    return isAlphabet(event);
+                //});
+                //$("#_SupBranchName").attr("maxlength", "64");
+            });
+            
+
+        function UpdateSupBranch() {
+            var SupBranchIdEdit = $("#_SupBranchID").val();
+            var SupBranchNameEdit = $("#selectedCityIDEdit").val();
+            if (SupBranchNameEdit == null || SupBranchNameEdit == 0) {
+                jAlert("Please Select Branch Name.", "Error", function () {
+                    $("#selectedCityIDEdit").focus();
+                });
+               
+                return false;
+            }
+            var objSupBranchDetails = {
+                "_SupBranchID": SupBranchIdEdit,
+                "selectedCityID": SupBranchNameEdit
+
+            };
+            $.post('../Onboarding/EditSupplierBranch', objSupBranchDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgSupBranch").load("../onboarding/SupplierBranchDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+
+        }
+        function DeleteSupBranchEdit() {
+            jConfirm("Do you want to delete Branch: ", Title_3, function (e) {
+                if (e == true) {
+                    var id = $("#_SupBranchID").val();
+                    var objSupBranchDetails = { "_SupBranchID": id };
+                    $.post('../Onboarding/DeleteSupplierBranch', objSupBranchDetails,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgSupBranch").load("../onboarding/SupplierBranchDetails?" + new Date().getTime());
+                             }
+                         }, 'json');
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $("#btnCloseEditSupBranch,#btnCloseEditSupBranch1").live('click',function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

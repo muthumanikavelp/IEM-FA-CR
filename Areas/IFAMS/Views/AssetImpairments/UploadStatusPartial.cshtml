@@ -1,0 +1,442 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.Ifams_Propertyx.ImpairmentsModel
+
+<div id="ImpUploadFilesPartialView">
+    <div class="well" style="background-color:white">
+        <div>
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <span>Select file</span><br />
+                        <form id="theuploadformimp">
+                            @Html.AntiForgeryToken()
+                            <input class="textboxStyleSearch" id="fileUploadImpMaker" name="fileUploadImpMaker" type="file" onchange="checkfile(this)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                        </form>
+                    </td>
+                    <td>
+                        <span>Select Sheet</span>
+                        <br />
+                        @Html.DropDownListFor(model => model.ImpairSheetname, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectsheet", @name = "ddlSelectsheet" })
+                    </td>
+
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <div style="font-weight:bold">
+                            <a class="btn" data-modal="" href="../AssetImpairments/Impairdownloadexcel" id="DownloadTemplate">
+                                Download Template
+                            </a>    
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>&nbsp;</span><br />
+                    <button id="btnImpsubmit" class="btn btn-primary" value="Upload" onclick="ImpairMaker()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>&nbsp;
+                    &nbsp;<button id="btnImpclear" class="btn btn-primary" value="Upload" onclick="backtosasummary()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Cancel</button>
+
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+
+    var objDialog1;
+    function ImpairMaker() {
+
+        if ($("#fileUploadImpMaker").val() == null || $("#fileUploadImpMaker").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+
+        }
+
+        var sheet = $("#ddlSelectsheet option:selected").text();
+        //alert(sheet);
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            // alert(sheet);
+            jAlert("Please Select valid File.", "Message");
+            $("#ddlSelectsheet").focus();
+            return false;
+        }
+        else {
+            var objsheet =
+                {
+                    "ImpairSheetname": sheet
+                };
+            //alert(objsheet);
+            $.ajax({
+                url: '@Url.Action("ImpairMakerUpdate", "AssetImpairments")',
+                //url: "../AssetImpairments/ImpairMakerUpdate/",
+                type: 'post',
+                cache: false,
+                data: objsheet,
+                success: function (data) {
+                    if (data == "Success") {
+
+                        window.parent.jQuery('#ForPartialView').dialog('close');
+
+                        $("#fileUploadImpMaker").val("");
+                        $("#theuploadformimp").val('');
+                        // objDialog1 = $("[id$='ForPartialViewRecReports']");
+                        //objDialog1.load('@Url.Action("ImpairUploadstatus", "AssetImpairments")?ddlSelectsheet'=+sheet)
+                        $("#ForPartialViewRecReports").load("../AssetImpairments/ImpLogStatus?ddlSelectsheet=" + sheet + '&' + new Date().getTime());
+                        $("#ForPartialViewRecReports").dialog({
+                            title: 'Upload Summary',
+                            autoOpen: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+                            width: 600,
+                            height: 300,
+                            resizable: false
+                        });
+                        $("#ForPartialViewRecReports").dialog("open");
+
+
+
+                    }
+                    else {
+                        //alert("else");
+                        jAlert("\tInvalid template." + "\n\t\t" + "Please refer template.", "Message");
+                        window.parent.jQuery('#ForPartialView').dialog('close');
+                        objDialog.load('@Url.Action("UploadStatusPartial", "AssetImpairments")?' + new Date().getTime());
+                        objDialog.dialog({ title: 'Impairments Upload' });
+                        objDialog.dialog("open");
+                        $("#fileUploadImpMaker").val("");
+                        return false;
+                    }
+                },
+                error: function () {
+                    // alert("error");
+                    jAlert("Please refer template.", "Message");
+                    window.parent.jQuery('#ForPartialView').dialog('close');
+                    objDialog.load('@Url.Action("UploadStatusPartial", "AssetImpairments")?' + new Date().getTime());
+                    objDialog.dialog({ title: 'Impairments Upload' });
+                    objDialog.dialog("open");
+                    $("#fileUploadImpMaker").val("");
+
+                    return false;
+                }
+            });
+        }
+    }
+
+
+
+    @*$('#fileUploadImpMaker').on('change', function (e) {
+        var ifram = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+        $("body").append(ifram)
+        var form = $('#theuploadformimp');
+        form.attr("action", '@Url.Action("ImpairUploadFilesnew", "AssetImpairments")?' + new Date().getTime());
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe1");
+        form.attr("file", $('#fileUploadImpMaker').val());
+        form.submit();
+        GetSheetNames();
+    });*@
+
+
+
+
+
+    function GetSheetNames() {
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ImpairUploadFiles", "AssetImpairments")?' + new Date().getTime(),
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                $("#ddlSelectsheet").empty();
+                $("#ddlSelectsheet").append("<option value='0'>--Select--</option>");
+                if (result == "undefined" || result == "") {
+                    jAlert("Please Upload File with Data", "Message");
+                    window.parent.jQuery('#ForPartialView').dialog('close');
+                    objDialog.load('@Url.Action("UploadStatusPartial", "AssetImpairments")?' + new Date().getTime());
+                    objDialog.dialog({ title: 'Asset Impairments' });
+                    objDialog.dialog("open");
+                    return false;
+                }
+                else {
+                    if (result.length > 0) {
+                        //alert(result.length);
+                        //alert("hsdfgs");
+                        var stylesSelect = $('#ddlSelectsheet');
+                        //alert(stylesSelect);
+                        stylesSelect.attr('disabled', false);
+                        for (var i = 0; i < result.length; i++) {
+                            $("#ddlSelectsheet").append("<option value=" + result[i].ImpairSheetid + ">" + result[i].ImpairSheetname + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSelectsheet');
+                        stylesSelect.attr('disabled', true);
+                    }
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                //alert(xhr);
+                //alert(status);
+                //alert(p3);
+                //alert(p4);
+                var err = "Error" + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                jAlert(err);
+
+            }
+        });
+    }
+    function backtosasummary() {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+        location = '@Url.Action("AssetImpairmentsSummary", "AssetImpairments")?' + new Date().getTime();
+    }
+
+    function checkfile(sender) {
+        var validExts = new Array(".xlsx", ".xls");
+        var fileExt = sender.value;
+        fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+        if (validExts.indexOf(fileExt) < 0) {
+            jAlert("Invalid file selected, valid files are of " +
+                     validExts.toString() + " types.");
+            window.parent.jQuery('#ForPartialView').dialog('close');
+            //objDialog1 = $("[id$='ForPartialView']");
+            objDialog.load('@Url.Action("UploadStatusPartial", "AssetImpairments")?' + new Date().getTime());
+            objDialog.dialog({ title: 'Make Impairments' });
+            objDialog.dialog("open");
+        }
+        else {
+            var ifram = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+            $("body").append(ifram)
+            var form = $('#theuploadformimp');
+            form.attr("action", '@Url.Action("ImpairUploadFilesnew", "AssetImpairments")?' + new Date().getTime());
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe1");
+            form.attr("file", $('#fileUploadImpMaker').val());
+            form.submit();
+            GetSheetNames();
+
+        }
+    }
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@*@{
+        ViewBag.Title = "UploadStatusPartial";
+    }
+
+    <div id="UploadFilesPartialView">
+            <div class="well" style="background-color:white">
+                <div>
+                    <table class="myTableStyleTabNew" align="center">
+                        <tr>
+                            <td>
+                                <span>Select file</span><br />
+                                <form id="theuploadformimp">
+                                    <input class="textboxStyleSearch" id="fileUploadImpMaker" name="fileUploadImpMaker" type="file">
+                                </form>
+                            </td>
+                            <td>
+                                <span>Select Sheet</span>
+                                <br />
+                                @Html.DropDownListFor(model => model.ImpairSheetname, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectsheet", @name = "ddlSelectsheet" })
+                            </td>
+
+                            <td>
+                                <span>&nbsp;</span><br />
+                                <div style="font-weight:bold">
+                                    <a class="btn" data-modal="" href="../AssetImpairments/Impairdownloadexcel" id="DownloadTemplate">
+                                        Download Template
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+                            <span>&nbsp;</span><br />
+                            <button id="btnImpsubmit" class="btn btn-primary" value="Upload" onclick="ImpairMaker()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>&nbsp;
+                            &nbsp;<button id="btncanpayclear" class="btn btn-primary" value="Upload"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+
+
+
+    <script>
+        function ImpairMaker() {
+            if ($("#fileUploadImpMaker").val() == null || $("#fileUploadImpMaker").val() == "") {
+                jAlert("Please Select a valid file", "Message");
+
+            }
+
+            var sheet = $("#ddlSelectsheet option:selected").text();
+            alert(sheet);
+            if (sheet == null || sheet == "0" || sheet == "--Select--") {
+               // alert(sheet);
+                jAlert("Please Sheet", "Message");
+                $("#ddlSelectsheet").focus();
+                return false;
+            }
+            else {
+                var objsheet =
+                    {
+                        "ImpairSheetname": sheet
+                    };
+                //alert(objsheet);
+                $.ajax({
+                    url: "../AssetImpairments/ImpairMakerUpdate/",
+                    type: 'post',
+                    cache: false,
+                    data: objsheet,
+                    success: function (data) {
+                        if (data == "Success") {
+                            //alert(data);
+                            $("#fileUploadImpMaker").val("");
+                            $("#theuploadformimp").val('');
+                            objDialog.load("../AssetImpairments/ImpairUploadstatus?ddlSelectsheet=" + sheet);
+                            objDialog.dialog({
+                                title: 'Upload Summary',
+                                width: 600,
+                                height: 250});
+                            objDialog.dialog("open");
+                        }
+                        else {
+                            alert("else");
+                            jAlert("\tInvalid template." + "\n\t\t" + "Please refer template.", "Message");
+                            $("#fileUploadImpMaker").val("")
+                            return false;
+                        }
+                    },
+                    error: function () {
+                       // alert("error");
+                        jAlert("Please refer template.", "Message");
+                        $("#fileUploadImpMaker").val("")
+                        return false;
+                    }
+                });
+            }
+        }
+
+
+        $('#fileUploadImpMaker').on('change', function (e) {
+            var iframe = $('<iframe name="postiframeNew" id="postiframeNew" style="display: none"></iframe>');
+            $("body").append(iframe)
+            var form = $('#theuploadformimp');
+            form.attr("action", '@Url.Action("ImpairUploadFilesnew", "AssetImpairments")?' + new Date().getTime());
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframeNew");
+            form.attr("file", $('#fileUploadImpMaker').val());
+            form.submit();
+            getsheets1();
+        });
+
+        function getsheets1() {
+            var data = "Test";
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ImpairUploadFiles", "AssetImpairments")?'+ new Date().getTime(),
+                contentType: false,
+                processData: false,
+                data: data,
+                success: function (result) {
+
+                    $("#ddlSelectsheet").empty();
+                    $("#ddlSelectsheet").append("<option value='0'>--Select--</option>");
+                    var err = result[0].SheetName;
+                    if (err == "Error") {
+                        jAlert("Please Upload Valid File", "Message");
+                        return false;
+                    }
+                    else {
+                        if (result.length > 0) {
+
+                            var stylesSelect = $('#ddlSelectsheet');
+                            stylesSelect.attr('disabled', false);
+                            for (var i = 0; i < result.length; i++) {
+                                $("#ddlSelectsheet").append("<option value=" + result[i].ImpairSheetid + ">" + result[i].ImpairSheetname + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            var stylesSelect = $('#ddlSelectsheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    }
+                },
+                error: function (xhr, status, p3, p4) {
+
+                    var err = "Error" + " " + status + " " + p3 + " " + p4;
+                    if (xhr.responseText && xhr.responseText[0] == "{")
+                        err = JSON.parse(xhr.responseText).Message;
+                    jAlert(err);
+
+                }
+            });
+        }
+        function backtosasummary() {
+            window.parent.jQuery('#objDialog').dialog('close');
+        }
+
+    </script>*@

@@ -1,0 +1,511 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_arfraising
+
+@using IEM.Areas.EOW.Models
+@{
+    ViewBag.Title = "Raising ARF";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    EOW_arfraising sh = (EOW_arfraising)ViewBag.EOW_EmployeeeExpenseheader;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+
+<div>
+        @Html.Partial("ArfTabHeader")
+    </div>
+
+@*<div class="panel panel-default" style=" width: 100%; padding-top: 25px;padding-left: 15px;">
+    <table align="center">
+        <tr>
+
+            <td style="width: 40%;">
+                <span>Remarks</span><br />
+                <textarea id="txtempRemarks" style="width: 455px; height: 65px;" class="textboxStyle"></textarea>
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="width: 40%;">
+                <span>Declaration Note</span><br /><textarea id="txtempDeclarationnote" style="width: 455px; height: 65px;" class="textboxStyle"></textarea>
+            </td>
+        </tr>
+    </table>
+
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <button type="button" id="btnsaveApprove" class="btn btn-success" value="Submit" onclick="SaveApprove()"><span class="glyphicon glyphicon-ok" style="color:white;"></span> Submit</button>
+                &nbsp;&nbsp;  <button type="button" id="_save" value="Save" class="btn btn-primary" onclick=""><span class="glyphicon glyphicon-briefcase" style="color:white;"></span> Draft</button>
+                &nbsp;&nbsp; <button type="buttonApprove" value="Cancel" class="btn btn-warning" onclick="GotoIndexApprove()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+    <br />
+
+</div>*@
+<div id="ForPartialViewforemployee"></div>
+<div id="ForPartialViewforsupplier"></div>
+<div id="ForPartialViewforecfempdetails"></div>
+<div id="ForPartialViewforecfsupdetails"></div>
+<script type="text/javascript">
+    var objDialogforEmployee;
+    var objDialogforSupplier;
+    var objDialogforecfempdetails;
+    var objDialogforecfsupdetails;
+    $(document).ready(function () {
+
+        $('#btnsave').attr('disabled', true);
+        objDialogforEmployee = $("[id$='ForPartialViewforemployee']");
+        objDialogforSupplier = $("[id$='ForPartialViewforsupplier']");
+        objDialogforecfempdetails = $("[id$='ForPartialViewforecfempdetails']");
+        objDialogforecfsupdetails = $("[id$='ForPartialViewforecfsupdetails']");
+
+        objDialogforEmployee.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 500,
+            height: 280
+        });
+        objDialogforSupplier.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 500,
+            height: 280
+        });
+        objDialogforecfempdetails.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 900,
+            height: 580
+        });
+        objDialogforecfsupdetails.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 900,
+            height: 580
+        });
+    });
+
+    $(document).ready(function () {
+        $("#txtecfdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            // dateFormat: 'MM-yy'
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    function SaveApprove() {
+        var empRemarks = $("#txtempRemarks").val();
+        var NewAttmodel = {
+            "arfremark": empRemarks
+        };
+        $.post('../RaisingArf/_EmpARFCreate', NewAttmodel,
+        function (data) {
+            if (data == "Expense") {
+                alert('Please Check Advance Entry Details : The Expense Should Be Equal To ARF Amount');
+                return false;
+            }
+            else if (data == "Payment") {
+                alert('Please Check Other Payment Entry Details : The Payment Should Be Equal To ARF Amount');
+                return false;
+            }
+
+            else if (data == "Error") {
+                alert('Error..........');
+                return false;
+            }
+            else {
+                alert(data);
+                return false;
+                location.reload();
+            }
+        }, 'json');
+    }
+    $("#ddlarftype").change(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "" ) {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#ddlarftype").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ddlarftype").removeClass('required');
+            $("#ddlarftype").addClass('valid');
+        }
+        else {
+            $("#ddlarftype").removeClass('valid');
+            $("#ddlarftype").addClass('required');
+        }
+    });
+    $("#ddlraisermode").change(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#ddlraisermode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ddlraisermode").removeClass('required');
+            $("#ddlraisermode").addClass('valid');
+        }
+        else {
+            $("#ddlraisermode").removeClass('valid');
+            $("#ddlraisermode").addClass('required');
+        }
+    });
+    $("#_Delmatname").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#_Delmatname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Delmatname").removeClass('required');
+            $("#_Delmatname").addClass('valid');
+        }
+        else {
+            $("#_Delmatname").removeClass('valid');
+            $("#_Delmatname").addClass('required');
+        }
+    });
+    $("#txtraisername").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#txtraisername").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtraisername").removeClass('required');
+            $("#txtraisername").addClass('valid');
+        }
+        else {
+            $("#txtraisername").removeClass('valid');
+            $("#txtraisername").addClass('required');
+        }
+    });
+    $("#txtecfdate").change(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#txtecfdate").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtecfdate").removeClass('required');
+            $("#txtecfdate").addClass('valid');
+        }
+        else {
+            $("#txtecfdate").removeClass('valid');
+            $("#txtecfdate").addClass('required');
+        }
+    });
+    $("#txtecfamount").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#txtecfamount").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtecfamount").removeClass('required');
+            $("#txtecfamount").addClass('valid');
+        }
+        else {
+            $("#txtecfamount").removeClass('valid');
+            $("#txtecfamount").addClass('required');
+        }
+    });
+    $("#_grade").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#_grade").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_grade").removeClass('required');
+            $("#_grade").addClass('valid');
+        }
+        else {
+            $("#_grade").removeClass('valid');
+            $("#_grade").addClass('required');
+        }
+    });
+    $("#_txtsupempcode").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#_txtsupempcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_txtsupempcode").removeClass('required');
+            $("#_txtsupempcode").addClass('valid');
+        }
+        else {
+            $("#_txtsupempcode").removeClass('valid');
+            $("#_txtsupempcode").addClass('required');
+        }
+    });
+    $("#_txtsupempname").keyup(function () {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+
+        if (arftype == "" || raisermode == "" || raisercode == "" || raisername == "" || ecfdate == "" || ecfamount == "" || grade == "" || supcode == "" || supname == "") {
+            $('#btnsave').attr('disabled', true);
+        }
+
+        else {
+            $('#btnsave').attr('disabled', false);
+        }
+
+        var txtSupplierName = $("#_txtsupempname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_txtsupempname").removeClass('required');
+            $("#_txtsupempname").addClass('valid');
+        }
+        else {
+            $("#_txtsupempname").removeClass('valid');
+            $("#_txtsupempname").addClass('required');
+        }
+    });
+    function GetEmployeeDetails() {
+        var arftype = $('#ddlarftype').val();
+        vartxtcode = $('#_txtsupempcode').val();
+
+        if (arftype == "select") {
+            jAlert("Please Select ArfType", "Information")
+            return false
+        }
+        else if (vartxtcode == "") {
+            jAlert("Please Enter Emp/Sup Code !", "Information")
+            return false
+        }
+        else if (arftype == "Employee") {
+
+            objDialogforEmployee.load('../RaisingArf/GetEmployeeDetail?vartextcode=' + vartxtcode);
+            objDialogforEmployee.dialog({ title: 'Get Employee Information' });
+            objDialogforEmployee.dialog("open");
+        }
+        else if (arftype == "Supplier") {
+
+            objDialogforSupplier.load('../RaisingArf/GetSupplierDetail?vartextcode=' + vartxtcode );
+            objDialogforSupplier.dialog({ title: 'Get Supplier Information' });
+            objDialogforSupplier.dialog("open");
+        }
+
+    }
+    function GetAdvanceDetails() {
+        var arftype = $('#ddlarftype').val();
+        vartxtcode = $('#_txtsupempcode').val();
+
+        if (arftype == "select") {
+            jAlert("Please Select ArfType", "Information")
+            return false
+        }
+        else if (vartxtcode == "") {
+            jAlert("Please Enter Emp/Sup Code !", "Information")
+            return false
+        }
+        else if (arftype == "Employee") {
+
+            objDialogforecfempdetails.load('../RaisingArf/GetEcfEmployeeDetail?vartextcode=' + vartxtcode);
+            objDialogforecfempdetails.dialog({ title: 'Employee Advance Listing Information' });
+            objDialogforecfempdetails.dialog("open");
+        }
+        else if (arftype == "Supplier") {
+            objDialogforecfsupdetails.load('../RaisingArf/GetEcfSupplierDetail?vartextcode=' + vartxtcode);
+            objDialogforecfsupdetails.dialog({ title: 'Supplier Advance Listing Information' });
+            objDialogforecfsupdetails.dialog("open");
+        }
+
+    }
+    function Savereq() {
+        var arftype = $('#ddlarftype').val();
+        var raisermode = $('#ddlraisermode').val();
+        var raisercode = $('#_Delmatname').val();
+        var raisername = $('#txtraisername').val();
+        var ecfdate = $('#txtecfdate').val();
+        var ecfamount = $('#txtecfamount').val();
+        var grade = $('#_grade').val();
+        var supcode = $('#_txtsupempcode').val();
+        var supname = $('#_txtsupempname').val();
+        if (arftype == "Employee")
+        {
+            arftype = "E";
+        }
+        else if (arftype == "Supplier")
+        {
+            arftype = "S";
+        }
+        else if (arftype == "Petty Cash") {
+            arftype = "P";
+        }
+
+        if (raisermode == "0") {
+            raisermode = "S";
+        }
+        else {
+            raisermode = "P";
+        }
+        var Student = {
+            "arf_type": arftype,
+            "ecf_create_mode": raisermode,
+            "employee_code": raisercode,
+            "employee_name": raisername,
+            "ecf_date": ecfdate,
+            "ecf_amount": ecfamount,
+            "grade": grade,
+            "supplierheader_suppliercode": supcode,
+           "supplierheader_name":supname
+        };
+        $.ajax({
+            url: '../RaisingArf/SaveRequest/',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                if (result == "Exists") {
+                    if (confirm("Duplicate Record !")) {
+                        //InsertPouch();
+                        return;
+                    }
+                }
+                if (result == "NotExists") {
+                    jAlert('Record inserted Successfully !', "Error");
+
+                    location = '../RaisingArf/IndexHeader';
+
+                }
+            },
+        });
+    }
+
+</script>

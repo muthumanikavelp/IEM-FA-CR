@@ -1,0 +1,125 @@
+﻿@model  IEM.Areas.EOW.Models.TravelClassEntity
+@{
+    ViewBag.Title = "Index";
+
+}
+
+@using (Html.BeginForm())
+{
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td style="padding-left:24px">
+                <span>Travel Class</span>
+                <br />
+                <div>
+                    <input type="text"
+                           name="TravelClass"
+                           id="TravelClassIdEdit"
+                           value="@Model.TravelClass"
+                           class="textboxStyle valid"
+                           maxlength="32"
+                           style="display: block;width:250px;height: 30px;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-left:24px">
+                <span>Mode Of Travel</span>
+                <br />
+                <div>
+                    <select name="TravelModeId" id="TravelModeIdEdit" class=" form-control" style="width:250px;margin-top: 5px;height:30px;">
+                        <option value="0">Select</option>
+                        @foreach (var pitem in Model.listofdata)
+                        {
+                            var childitemfilter = Model.listofdata.Where(m => m.Value == pitem.Value);
+                            if (childitemfilter != null)
+                            {
+                                foreach (var citem in childitemfilter)
+                                {
+                                    string selectedValue = "";
+                                    if (Model.TravelModeId.ToString() == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="EditTravel()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+    </table>
+}
+<script>
+    function EditTravel() {
+        var TravelClass = $("#TravelClassIdEdit").val();
+        var ModeOfTravelId = $("#TravelModeIdEdit").val();
+        var ModeOfTravel = $("#TravelModeIdEdit option:selected").text();
+        if (TravelClass == "" || TravelClass == null || ModeOfTravel == "" || ModeOfTravel == null) {
+            jAlert("You Can't Add Empty Values", "Information");
+            return false;
+        }
+        var Student = {
+            "TravelClass": TravelClass,
+            "TravelModeId": ModeOfTravelId,
+            "TravelMode": ModeOfTravel
+        };
+        $.ajax({
+            url: '../TravelClass/TravelEditSubmit',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location.reload();
+                    }
+                });
+                if (result == "Successfully Edited") {
+                    location = '../TravelClass/TravelIndex';
+                }
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewMode').dialog('close');
+        location = '../TravelClass/TravelIndex';
+    }
+    $(document).ready(function () {
+
+        $("#TravelClassIdEdit").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#TravelClassIdEdit").keyup(function () {
+            var txtContractTo = $("#TravelClassIdEdit").val();
+            if (txtContractTo.trim() != "") {
+                $("#btnsave").removeAttr('disabled');
+                $("#TravelClassIdEdit").removeClass('required');
+                $("#TravelClassIdEdit").addClass('valid');
+            }
+            else {
+                $("#btnsave").attr("disabled", true);
+                $("#TravelClassIdEdit").removeClass('valid');
+                $("#TravelClassIdEdit").addClass('required');
+            }
+        });
+    });
+</script>

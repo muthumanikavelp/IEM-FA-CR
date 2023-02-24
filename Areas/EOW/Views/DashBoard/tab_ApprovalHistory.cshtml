@@ -1,0 +1,71 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Payment>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<ApproverHistry> lstaHistory = new List<ApproverHistry>();
+    lstaHistory = (List<ApproverHistry>)TempData["SearchItems"];
+    if (lstaHistory == null)
+    {
+        ViewBag.IsSearched = "no";
+        if (Session["Centralautit"] == "S")
+        {
+            lstaHistory = objd.GetecfappHistory(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+
+        }
+        if (Session["Centralautit"] == "C")
+        {
+            lstaHistory = objd.GetecfappHistory(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+        }
+    }
+    if (lstaHistory.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+<div id="wgaHistory">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridaHistory = new WebGrid(lstaHistory, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgaHistory", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+
+    <div>
+        <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+            @gridaHistory.GetHtml(
+                        htmlAttributes: new { id = "wgaHistory" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                                    gridaHistory.Columns(gridaHistory.Column("#", canSort: false, style: "IdColumn", format: item => rowValPayment = rowValPayment + 1),
+                                                                              gridaHistory.Column("empcode", objCmnFunctions.Sorter("empcode", "Emp Code", gridaHistory), canSort: false, style: "collargeBreak"),
+                                                                                       gridaHistory.Column("empname", objCmnFunctions.Sorter("empname", "Emp Name", gridaHistory), canSort: false, style: "collargeBreak"),
+                                                                                                gridaHistory.Column("statusdate", objCmnFunctions.Sorter("statusdate", "Action Date", gridaHistory), canSort: false, style: "collargeBreak"),
+                                                                                                gridaHistory.Column("status", objCmnFunctions.Sorter("status", "Status", gridaHistory), canSort: false, style: "collargeBreak"),
+                                                                                                  gridaHistory.Column("remarks", objCmnFunctions.Sorter("remarks", "Remarks", gridaHistory), canSort: false, style: "collargeBreak")))
+
+        </div>
+
+    </div>
+    @if (@ViewBag.NoRecordsPayment == "NoRecords")
+    {
+        <div class="borderStyle">
+            <center>
+                @ViewBag.NoRecordsFoundPayment
+            </center>
+        </div>
+    }
+</div>
+@if (Session["NextApprover"] != null)
+{
+    <div>
+        <br />
+        <span style="color:red;">PENDING FOR  @Session["NextApprover"] APPROVAL</span>
+        <br />
+    </div>
+}

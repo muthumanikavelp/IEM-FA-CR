@@ -1,0 +1,353 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupplierTaxDetails> lst = new List<SupplierTaxDetails>();
+    if (TempData["tdsviewmode1"] != null)
+    {
+        ViewBag.tdsviewmode2 = (string)TempData["tdsviewmode"];
+    }
+    lst = (List<SupplierTaxDetails>)Session["TdsSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetTdsDetails().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<style>
+        /*table, th, td {
+            white-space: nowrap;
+        }*/
+        #wgridTds > th > td
+    {
+        white-space:nowrap;
+    }
+</style>
+<div id="wgTDS">
+    @*<center>*@
+
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "wgTDS", ajaxUpdateCallback: "DummyFunction14()");
+        int rowcount = 0;
+    }
+
+    @*<div class="overflowx">*@
+    <div class="table-responsive" style="margin-top:10px; width:100%;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridTds" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_TdsID", objCmnFunctions.Sorter("_TdsID", "ID", grid), canSort: false),
+                grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_TdsServiceTypeSection", objCmnFunctions.Sorter("_TdsServiceTypeSection", "Section", grid), style: "colmedium"),
+                grid.Column("_TdsServiceTypeName", objCmnFunctions.Sorter("_TdsServiceTypeName", "Service Type", grid), style: "colmedium"),
+                grid.Column("_TDSRate", objCmnFunctions.Sorter("_TDSRate", "Rate", grid), style: "colmedium"),
+                grid.Column("_ExemptedRate", objCmnFunctions.Sorter("_ExemptedRate", "Exempted Rate", grid), style: "colmedium"),
+                grid.Column("_ExemptionPeriodFrom", objCmnFunctions.Sorter("_ExemptionPeriodFrom", "Exemption Period From", grid), style: "colmedium"),
+                grid.Column("_ExemptionPeriodTo", objCmnFunctions.Sorter("_ExemptionPeriodTo", "Exemption Period From", grid), style: "colmedium"),
+                grid.Column("_ExemptionThresholdValue", objCmnFunctions.Sorter("_ExemptionThresholdValue", "Threshold Value", grid), style: "colmedium"),
+                grid.Column("_ExemptionCertificateNo", objCmnFunctions.Sorter("_ExemptionCertificateNo", "Exemption Certificate No", grid), style: "colmedium"),
+                //  grid.Column("_ExemptionAttachedFileName", objCmnFunctions.Sorter("_ExemptionAttachedFileName", "File Name", grid), format: @<text> <a href="../Onboarding/DownloadDocument?id=@item._ExemptionAttachedFileName" title='click here to download'> @item._ExemptionAttachedFileName </a></text>),
+                //grid.Column("_ExemptionAttachedFileName", objCmnFunctions.Sorter("_ExemptionAttachedFileName", "Exemption File Name", grid)),
+                grid.Column("_ExemptionDescription", objCmnFunctions.Sorter("_ExemptionDescription", "Description", grid), style: "colmedium"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @if (ViewBag.tdsviewmode2 == "view")
+                    {
+                        <a title='View Attachment' id="view" onclick='AttachDocsTds(this,id)' class="addtdsattachment"> <span class='glyphicon glyphicon-paperclip'> </span> </a>
+                    }
+                    else
+                    {
+                        <a title='Add Attachment' id="edit" onclick='AttachDocsTds(this,id)' class="addtdsattachment"> <span class='glyphicon glyphicon-paperclip'> </span> </a>
+                        @Html.Raw("<a title='Edit' onclick='EditTds(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                        @Html.Raw("<a title='Delete' onclick='DeleteTds(" + item._TdsID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                    }
+
+                </text>)))
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+    </div>
+
+    @*</div>*@
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>*@
+    @*</center>*@
+
+
+</div>
+<div id="divTdsAttachmentPopupNew"></div>
+<script type="text/javascript">
+
+    function EditTds(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#SessionTDSGid").val(ids);
+        var taxsubtype = tds.eq(3).text();
+        var section = tds.eq(2).text();
+        var tdsrate = tds.eq(4).text();
+        var exemptedrate = tds.eq(5).text();
+        var exemptionperiodfrom = tds.eq(6).text();
+        var exemptionperiodto = tds.eq(7).text();
+        var exemptionthresholdvalue = tds.eq(8).text();
+        var exemptioncertificateno = tds.eq(9).text();
+        var exemptiondescription = tds.eq(10).text();
+
+        //var taxsubtype = row.find('td:eq(2)').text();
+        //var taxdetailsid = row.find('td:eq(0)').text();
+        var receiveflag = $("#txtReceivableFlag").val();
+
+        $("#selectedTdsServiceTypeID option").each(function () {
+            if ($(this).text() == taxsubtype) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+
+        $("#_TdsServiceTypeSection").val(section);
+        $("#_TDSRate").val(tdsrate);
+        $("#_ExemptedRate").val(exemptedrate);
+        $("#_ExemptionPeriodFrom").val(exemptionperiodfrom);
+        $("#_ExemptionPeriodTo").val(exemptionperiodto);
+        $("#_ExemptionThresholdValue").val(exemptionthresholdvalue);
+        $("#_ExemptionCertificateNo").val(exemptioncertificateno);
+        $("#_TDSRate").val(tdsrate);
+        $("#_ExemptionDescription").val(exemptiondescription);
+        if ($.trim(receiveflag).toString() == "Y") {
+            $("#rbExemptionYes").attr("disabled", "disabled");
+            $("#rbExemptionNo").attr("disabled", "disabled");
+
+            $('#_TDSRate').val("");
+            //  $('#_TDSRate').removeAttr("disabled");
+            // $('#txtUploadExemptionDoc').val("");
+            $('#_ExemptionCertificateNo').val("");
+            $('#_ExemptionThresholdValue').val("");
+            $('#_ExemptionPeriodTo').val("");
+            $('#_ExemptionPeriodFrom').val("");
+            $('#_ExemptedRate').val("");
+            $("#_ExemptionDescription").val("");
+            //  $('#txtUploadExemptionDoc').attr("disabled", "disabled");
+            $('#_ExemptionThresholdValue').attr("disabled", "disabled");
+            $('#_ExemptionPeriodTo').attr("disabled", "disabled");
+            $('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+            $('#_ExemptedRate').attr("disabled", "disabled");
+            $("#_ExemptionDescription").attr('disabled', 'disabled');
+            $("#_ExemptionCertificateNo").attr('disabled', 'disabled');
+
+            // $('#_TDSRate').removeClass("valid");
+            //  $('#_TDSRate').addClass("required");
+
+            $('#_ExemptionCertificateNo').removeClass("valid");
+            $('#_ExemptionThresholdValue').removeClass("valid");
+            $('#_ExemptionPeriodTo').removeClass("valid");
+            $('#_ExemptionPeriodFrom').removeClass("valid");
+            $('#_ExemptedRate').removeClass("valid");
+            $("#_ExemptionDescription").removeClass("valid");
+            $('#_ExemptionCertificateNo').removeClass("required");
+            $('#_ExemptionThresholdValue').removeClass("required");
+            $('#_ExemptionPeriodTo').removeClass("required");
+            $('#_ExemptionPeriodFrom').removeClass("required");
+            $('#_ExemptedRate').removeClass("required");
+            $("#_ExemptionDescription").removeClass("required");
+        }
+        else {
+            if ($.trim(tdsrate).toString() == "0") {
+                $("#rbExemptionYes").prop("checked", true);
+                $('#_TDSRate').val("");
+                //  $('#_TDSRate').attr("disabled", "disabled");
+                // $('#txtUploadExemptionDoc').removeAttr("disabled");
+                $('#_ExemptionThresholdValue').removeAttr("disabled");
+                $('#_ExemptionPeriodTo').removeAttr("disabled");
+                $('#_ExemptionPeriodFrom').removeAttr("disabled");
+                $('#_ExemptedRate').removeAttr("disabled");
+                $("#_ExemptionDescription").removeAttr("disabled");
+                $("#_ExemptionCertificateNo").removeAttr("disabled");
+
+                // $('#_TDSRate').removeClass("valid");
+                //  $('#_TDSRate').removeClass("required");
+                $("#_ExemptionCertificateNo").removeClass("valid");
+                $('#_ExemptionThresholdValue').removeClass("valid");
+                $('#_ExemptionPeriodTo').removeClass("valid");
+                $('#_ExemptionPeriodFrom').removeClass("valid");
+                $('#_ExemptedRate').removeClass("valid");
+                $("#_ExemptionDescription").removeClass("valid");
+                $("#_ExemptionCertificateNo").removeClass("required");
+                $('#_ExemptionThresholdValue').addClass("required");
+                $('#_ExemptionPeriodTo').addClass("required");
+                $('#_ExemptionPeriodFrom').addClass("required");
+                $('#_ExemptedRate').addClass("required");
+                $("#_ExemptionDescription").addClass("required");
+
+                if ($("#_ExemptedRate").val() != "" && $("#_ExemptedRate").val() != null) {
+                    $("#_ExemptedRate").addClass('valid');
+                    $("#_ExemptedRate").removeClass('required');
+                }
+                else {
+                    $("#_ExemptedRate").addClass('required');
+                    $("#_ExemptedRate").removeClass('valid');
+                }
+                if ($("#_ExemptionPeriodFrom").val() != "" && $("#_ExemptionPeriodFrom").val() != null) {
+                    $("#_ExemptionPeriodFrom").addClass('valid');
+                    $("#_ExemptionPeriodFrom").removeClass('required');
+                }
+                else {
+                    $("#_ExemptionPeriodFrom").addClass('required');
+                    $("#_ExemptionPeriodFrom").removeClass('valid');
+                }
+                if ($("#_ExemptionPeriodTo").val() != "" && $("#_ExemptionPeriodTo").val() != null) {
+                    $("#_ExemptionPeriodTo").addClass('valid');
+                    $("#_ExemptionPeriodTo").removeClass('required');
+                }
+                else {
+                    $("#_ExemptionPeriodTo").addClass('required');
+                    $("#_ExemptionPeriodTo").removeClass('valid');
+                }
+                if ($("#_ExemptionThresholdValue").val() != "" && $("#_ExemptionThresholdValue").val() != null) {
+                    $("#_ExemptionThresholdValue").addClass('valid');
+                    $("#_ExemptionThresholdValue").removeClass('required');
+                }
+                else {
+                    $("#_ExemptionThresholdValue").addClass('required');
+                    $("#_ExemptionThresholdValue").removeClass('valid');
+                }
+                if ($("#_ExemptionCertificateNo").val() != "" && $("#_ExemptionCertificateNo").val() != null) {
+                    $("#_ExemptionCertificateNo").addClass('valid');
+                    $("#_ExemptionCertificateNo").removeClass('required');
+                }
+                else {
+                    $("#_ExemptionCertificateNo").addClass('required');
+                    $("#_ExemptionCertificateNo").removeClass('valid');
+                }
+                if ($("#_ExemptionDescription").val() != "" && $("#_ExemptionDescription").val() != null) {
+                    $("#_ExemptionDescription").addClass('valid');
+                    $("#_ExemptionDescription").removeClass('required');
+                }
+                else {
+                    $("#_ExemptionDescription").addClass('required');
+                    $("#_ExemptionDescription").removeClass('valid');
+                }
+
+            }
+            else {
+                $("#rbExemptionNo").prop("checked", true);
+
+                //  $('#_TDSRate').removeAttr("disabled");
+                // $('#txtUploadExemptionDoc').val("");
+                $('#_ExemptionCertificateNo').val("");
+                $('#_ExemptionThresholdValue').val("");
+                $('#_ExemptionPeriodTo').val("");
+                $('#_ExemptionPeriodFrom').val("");
+                $('#_ExemptedRate').val("");
+                $("#_ExemptionDescription").val("");
+                //  $('#txtUploadExemptionDoc').attr("disabled", "disabled");
+                $('#_ExemptionThresholdValue').attr("disabled", "disabled");
+                $('#_ExemptionPeriodTo').attr("disabled", "disabled");
+                $('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+                $('#_ExemptedRate').attr("disabled", "disabled");
+                $("#_ExemptionDescription").attr('disabled', 'disabled');
+                $("#_ExemptionCertificateNo").attr('disabled', 'disabled');
+
+                //  $('#_TDSRate').removeClass("valid");
+                //  $('#_TDSRate').addClass("required");
+
+                $('#_ExemptionCertificateNo').removeClass("valid");
+                $('#_ExemptionThresholdValue').removeClass("valid");
+                $('#_ExemptionPeriodTo').removeClass("valid");
+                $('#_ExemptionPeriodFrom').removeClass("valid");
+                $('#_ExemptedRate').removeClass("valid");
+                $("#_ExemptionDescription").removeClass("valid");
+                $('#_ExemptionThresholdValue').removeClass("required");
+                $('#_ExemptionPeriodTo').removeClass("required");
+                $('#_ExemptionPeriodFrom').removeClass("required");
+                $('#_ExemptedRate').removeClass("required");
+                $("#_ExemptionDescription").removeClass("required");
+                $('#_ExemptionCertificateNo').removeClass("required");
+                //if ($("#_TDSRate").val() != "" && $("#_TDSRate").val() != null) {
+                //    $("#_TDSRate").addClass('valid');
+                //    $("#_TDSRate").removeClass('required');
+                //}
+                //else {
+                //    $("#_TDSRate").addClass('required');
+                //    $("#_TDSRate").removeClass('valid');
+                //}
+
+            }
+        }
+
+
+        if ($("#selectedTdsServiceTypeID").val() != "0" && $("#selectedTdsServiceTypeID").val() != "") {
+            $("#selectedTdsServiceTypeID").addClass('valid');
+            $("#selectedTdsServiceTypeID").removeClass('required');
+        }
+        else {
+            $("#selectedTdsServiceTypeID").addClass('required');
+            $("#selectedTdsServiceTypeID").removeClass('valid');
+        }
+
+
+    }
+    function DeleteTds(id) {
+        $("#_TdsID").val("0");
+        jConfirm("Do you want to delete this tds : ", Title_3, function (e) {
+            if (e == true) {
+                var objSupplierTaxDetails = { "_TdsID": id }
+                $.post('../Onboarding/DeleteTdsDetails', objSupplierTaxDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgTDS").load("../onboarding/TdsDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    function AttachDocsTds(element, viewmode) {
+
+        $("#divTdsAttachmentPopupNew").dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            async: false,
+            show: 'fade-in',
+            close: 'fade-out',
+            cache: false,
+            open: function (event, ui) {
+                $('.ui-dialog').css('z-index', 1003);
+                $('.ui-widget-overlay').css('z-index', 1002);
+            }
+        });
+
+        var row = $(element).closest('tr');
+        var tdsdetailsid = row.find('td:eq(0)').text();
+
+        $("#divTdsAttachmentPopupNew").load('../Onboarding/TdsAttachmentIndex?tdsdetailsID=' + tdsdetailsid + '&viewtype=' + viewmode + '&' + new Date().getTime());
+        if (viewmode == "view") {
+            $("#divTdsAttachmentPopup").dialog({ title: 'View Tax Subtype Attachments', width: 740, height: 480 });
+        }
+        else if (viewmode == "edit") {
+            $("#divTdsAttachmentPopupNew").dialog({ title: 'Add Tax Subtype Attachments', width: 740, height: 480 });
+        }
+        $("#divTdsAttachmentPopupNew").dialog("open");
+
+    }
+</script>

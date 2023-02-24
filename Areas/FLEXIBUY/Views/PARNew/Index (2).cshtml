@@ -1,0 +1,1991 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<style>
+    .btnStyleNew {
+        font-weight: bold;
+    }
+
+    .resizenone {
+        resize: none;
+    }
+</style>
+
+<span class="pageHeading">Raising PAR</span>
+<div ng-app="PARNewapp">
+
+    <br />
+
+    <div class="well" id="tabs" ng-controller="parnewController" style="padding-bottom:50px;">
+        <ul>
+            <li><a href="#divHeaderPAR">PAR Header</a></li>
+            <li><a href="#divApproversPAR">PAR Approvers</a></li>
+            <li><a href="#divAttachmentMainPAR">Attachments</a></li>
+            <li ng-hide="@ViewBag.viewtype =='0'"><a href="#divAuditPAR">Audit Trail</a></li>
+        </ul>
+        <div style="width:100%;" id="divHeaderPAR">
+            <div style="width:100%;">
+                <fieldset style="padding:10px;background-color:white">
+                    <legend><b style="text-align:left;"><span style="color: rgb(52, 108, 196);padding-top:20px;">PAR Header</span></b></legend>
+                    <div>
+                        <div>
+                            <input type="hidden" name="txtPARHeaderGid" ng-model="PARGid" />
+                            <table class="myTableStyleTabNew" style="width:100%;" ng-disabled="@ViewBag.viewtype =='1'">
+                                <tr>
+                                    <td>
+                                        <span>PAR Ref Number</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{PARRefNumber}}">
+                                    </td>
+                                    <td>
+                                        <span>PAR Date</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{::PARDate}}">
+                                    </td>
+                                    <td>
+                                        <span>Raised By</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{::PARRaiserName}}">
+                                    </td>
+                                    <td>
+                                        <span>Final Approval Date</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{PARFinalApprovalDate}}">
+                                    </td>
+                                    <td>
+                                        <span>Period</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{PARPeriod}}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:bottom;">
+                                        <span>Is Budgeted?</span>
+                                        <br />
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PARBudgetedFlag" value="Y">
+                                        Yes
+                                        &nbsp;
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PARBudgetedFlag" value="N">
+                                        No
+                                    </td>
+                                    <td style="width:20%;vertical-align:bottom;">
+                                        <span>Contigency(%)</span>
+                                        <br />
+                                        <input type="text" ng-disabled="@ViewBag.viewtype !='0'" class="textboxStyle100" id="txtContigency" ng-model="PARContigency">
+                                    </td>
+                                    <td style="width:20%;vertical-align:bottom;">
+                                        <span>Contigency Amount</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" id="txtContigencyAmount" readonly="readonly"  value="{{PARContigencyAmount}}">
+                                    </td>
+                                    <td colspan="2">
+                                        <span>Description</span>
+                                        <br />
+                                        <input type="text" ng-disabled="@ViewBag.viewtype !='0'" class="textboxStyle100" id="txtPARDescription" ng-model="PARDescription">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <br />
+            <div style="width:100%;">
+                <table>
+                    <tr>
+                        <td>
+                            <input type="hidden" id="txtPARAMount" value="{{PARAmount}}" />
+                            <label style="font-size:12px;
+                                   padding-left:5px;"
+                                   class="label label-danger">
+                                SUM Of Details Amount : {{PARDetailsSum}}
+                            </label>
+                            &nbsp;&nbsp;
+                        </td>
+                        <td>
+                            <label style="font-size:12px;
+                                   padding-left:5px;"
+                                   class="label label-danger">
+                                Status : {{Status}}
+                            </label>
+                            &nbsp;
+                        </td>
+                        <td>
+                            <input type="hidden" id="txtPARAMount" value="{{PARDetailsSum}}" />
+                            <label style="font-size:12px;
+                                   padding-left:5px;"
+                                   class="label label-danger">
+                              Total PAR Amount (Inclusive Of Contigency) : <span id="txttotalparamount"></span>
+                            </label>
+                            &nbsp;&nbsp;
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <div style="width:100%;">
+                <div style="width:80%;float:left;">
+                    Search  :  <input ng-model="searchpar.$" class="textboxStyle" placeholder="Enter Search Criteria..." style="width:80%;margin-bottom:5px;" />
+                </div>
+                <div style="width:20%;float:right;font-size:xx-small;" ng-hide="@ViewBag.viewtype !='0'">
+                    <input type="button" style="float:right;" ng-click="AddPARParentDetails()" class="btn btn-sm btn-primary btnStyleNew" value="Add PAR details" />
+                </div>
+            </div>
+
+            <div style="width:100%;">
+                <br />
+                <div style="width:100%;overflow-x:scroll">
+                    <div style="width:118%">
+                        <table class="tableSmall table-bordered table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:3%;">
+                                        S.No
+                                    </th>
+                                    <th style="width:10%;">
+                                        Capex/Opex
+                                    </th>
+                                    <th style="width:15%;">
+                                        Request For
+                                    </th>
+                                    <th style="width:20%;">
+                                       PAR Detail Period
+                                    </th>
+                                    <th style="width:15%;">
+                                       Amount
+                                    </th>
+                                    <th style="width:20%;">
+                                        Description
+                                    </th>
+                                    <th style="width:15%;">
+                                        BOQ
+                                    </th>
+                                    <th style="width:20%;min-width:100px;" ng-hide="@ViewBag.viewtype =='1'">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody ng-show="filteredItemsPAR > 0" ng-repeat="parparentdetail in parparentdetails | filter:searchpar:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                                <tr>
+                                    <td style="width:3%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{parparentdetail.PARExpenseTypeName}}
+                                    </td>
+                                    <td style="width:15%;">
+                                        {{parparentdetail.PARRequestForName}}
+                                    </td>
+                                    <td style="width:20%;">
+                                        {{parparentdetail.PARDetailPeriod}}
+                                    </td>
+                                    <td style="width:15%;">
+                                        {{parparentdetail.PARDetailAmount}}
+                                    </td>
+                                    <td style="width:20%;">
+                                        {{parparentdetail.PARDetailDesc}}
+                                    </td>
+                                    <td style="width:15%;">
+                                        <a ng-click="PARDetailAttachment(parparentdetail.PARDetailGid)" title="Quotation">
+                                            <span ng-show="@ViewBag.viewtype !='0'" style="color:blue;"> View BOQ</span>
+                                            <span ng-show="@ViewBag.viewtype =='0'" style="color:blue;"> Add BOQ</span>
+                                        </a>
+                                    </td>
+                                    <td style="width:20%;min-width:100px;;" align="center" ng-hide="@ViewBag.viewtype =='1'">
+                                        <a ng-click="EditPARParent(parparentdetail.PARDetailGid)" title="Edit">
+                                            <span class="glyphicon glyphicon-edit"></span>
+                                        </a>
+                                        &nbsp;&nbsp;
+                                        <a ng-hide="@ViewBag.viewtype =='2'" ng-click="DeletePARParent(parparentdetail.PARDetailGid,'child')" title="Delete">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot ng-show="filteredItemsPAR < 1">
+                                <tr>
+                                    <td colspan="8" style="text-align:center">
+                                        No Records Found
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="width:100%;">
+                    <div ng-show="filteredItemsPAR > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                        <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" max-size="maxSize" total-items="filteredItemsPAR"
+                                    previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+                    </div>
+                    <div style="float:right;">
+                        Total Records :  {{filteredItemsPAR}}
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div style="display:none;" id="divPAR">
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td>
+                            <input type="hidden" ng-model="PARDetailGid" />
+                            Expense Type(Capex/Opex)<br />
+                            <select ng-model="PARExpenseType" style="min-width:100%;max-width:100%;" 
+                                    class="textboxStyle100">
+                                <option value="C" selected="selected">Capex</option>
+                                <option value="O">Opex</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span>Request For</span><br />
+                            <select ng-model="RequestForGid" style="min-width:100%;max-width:100%;" class="textboxStyle100" id="txtRequestForGid"
+                                    ng-options="reqfor.RequestForGid as reqfor.RequestFor for reqfor in requestforlist"></select>
+                        </td>
+                        <td>
+                            <span>PAR Detail Period</span><br />
+                            <select ng-model="PARDetailPeriod" style="min-width:100%;max-width:100%;" class="textboxStyle100" id="txtPARDetailPeriod"
+                                    ng-options="period.FinYear as period.FinYear for period in periodlist"></select>
+                        </td>
+                        <td>
+                            <span>Detail Amount</span><br />
+                            <input type="text" ng-model="PARDetailAmount" id="txtPARDetailAmount" class="textboxStyle100" />
+                        </td>
+                    </tr>
+                    <tr>
+                        
+                        <td colspan="4">
+                            <span>Description</span><br />
+                            <textarea cols="2" style="width:100%;" id="txtPARDetailDescription" ng-model="PARDetailDescription" maxlength="256" class="resizenone"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align:right;font-size:xx-small">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="SavePARDetails()">
+                                <span class="glyphicon glyphicon-floppy-save" style="color:white;"></span>
+                                Save
+                            </button>
+                            <button type="button" class="btn btn-sm btn-warning" ng-click="CloseChildDialog()">
+                                <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                                Cancel
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div style="width:100%;" id="divApproversPAR">
+            <br />
+            <div style="width:100%;" ng-hide="@ViewBag.viewtype =='1'">
+                <table class="myTableStyleTab">
+                    <tr>
+                        <td>
+                            Approver Name
+                            <br />
+                            <input type="hidden" name="txtApproverGid" />
+                            <input type="text" class="textboxStyle100" id="ddlApproverPAR">
+                        </td>
+                        <td>
+                            Approval Date
+                            <br />
+                            <input type="text" id="txtApprovalDate" class="textboxStyle100" ng-model="PARApproverDate">
+                        </td>
+                        <td style="vertical-align:bottom">
+                            <button type="button"  class="btn btn-sm btn-primary" ng-click="SavePARApprover()">
+                                <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span>
+                                Save
+                            </button>
+                            &nbsp;&nbsp;
+                            <button type="button"  class="btn btn-sm btn-primary" ng-click="ClearPARApprover()">
+                                <span class="glyphicon glyphicon-remove-circle" style="color:white;"></span>
+                                Clear
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <div style="width:100%;">
+                <table class="tableSmall table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width:3%;">
+                                S.No
+                            </th>
+                            <th style="width:60%;">
+                                Approver Name
+                            </th>
+                            <th style="width:17%;">
+                                Approval Date
+                            </th>
+                            <th style="width:20%;min-width:100px;" ng-hide="@ViewBag.viewtype =='1'">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="filteredItemsPARAppr > 0" ng-repeat="parapprdetail in parapprdetails">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{$index+1}}
+                            </td>
+                            <td style="width:60%;">
+                                {{parapprdetail.PARApproverName}}
+                            </td>
+                            <td style="width:17%;">
+                                {{parapprdetail.PARApproverDate}}
+                            </td>
+
+                            <td style="width:20%;min-width:100px;" align="center" ng-hide="@ViewBag.viewtype =='1'">
+                                <a ng-click="DeletePARParent(parapprdetail.PARApproverGid,'approver')" title="Delete">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="filteredItemsPARAppr < 1">
+                        <tr>
+                            <td colspan="4" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+           
+        </div>
+        <div style="width:100%;" id="divAttachmentMainPAR">
+            <div style="width:100%" ng-hide="@ViewBag.viewtype !='0'">
+                <table class="myTableStyleTabpopup">
+                    <tr>
+                        <td style="vertical-align:bottom;max-width:300px;min-width:100px;">
+                            <span>Select File</span><br />
+                            <form id="theuploadform1">
+                                <input type="file" name="UploadFile" id="txtPARAttachmentFile" class="txtPARAttachmentFile" />
+                            </form>
+                        </td>
+                        <td>
+                            <span>File Name</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachedActualFileName" readonly="readonly" ng-model="AttachedActualFileName" />
+                        </td>
+                        <td>
+                            <span>Description</span> <br />
+                            <input type="text" class="textboxStyle100" ng-model="AttachDescription" />
+                        </td>
+                        <td style="text-align:right;padding-right:3%;vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="saveAttachmentPAR('PAR')">
+                                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                                Save
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:28%;cursor:pointer;">
+                            File Name
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Attachment Date
+                        </th>
+                        <th style="width:27%;cursor:pointer">
+                            Description
+                        </th>
+                        <th style="width:20%;cursor:pointer" ng-hide="@ViewBag.viewtype !='0'">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPARAttachment > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="parattachmentlist in parattachment">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:28%;">
+                            <a style="color:blue;cursor:pointer;" ng-click="ViewDocuments(parattachmentlist.TempFileName)" title="Click Here to Download">
+                                {{parattachmentlist.AttachedActualFileName}}
+                            </a>
+                        </td>
+                        <td style="width:22%;">
+                            {{parattachmentlist.AttachDate}}
+                        </td>
+                        <td style="width:27%;">
+                            {{parattachmentlist.AttachDescription}}
+                        </td>
+                        <td style="width:20%;" ng-hide="@ViewBag.viewtype !='0'">
+                            <a ng-click="DeletePARAttachment(parattachmentlist.AttachmentID,'PAR')" title="Delete">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPARAttachment < 1">
+                    <tr>
+                        <td colspan="5" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;display:none" id="divAttachmentPARDetails">
+            <div style="width:100%" ng-hide="@ViewBag.viewtype !='0'">
+                <table class="myTableStyleTabpopup">
+                    <tr>
+                        <td style="vertical-align:bottom;max-width:300px;min-width:100px;">
+                            <input type="hidden" ng-model="AttachmentRefGid" />
+                            <span>Select File</span><br />
+                            <form id="theuploadform2">
+                                <input type="file" name="UploadFile2" id="txtPARAttachmentFile2" class="txtPARAttachmentFile2" />
+                            </form>
+                        </td>
+                        <td>
+                            <span>File Name</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachedActualFileName2" readonly="readonly" />
+                        </td>
+                        <td>
+                            <span>Description</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachDescription" />
+                        </td>
+                        <td style="text-align:right;padding-right:3%;vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="saveAttachmentPAR('PARDET')">
+                                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                                Save
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:28%;cursor:pointer;">
+                            File Name
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Attachment Date
+                        </th>
+                        <th style="width:27%;cursor:pointer">
+                            Description
+                        </th>
+                        <th style="width:20%;cursor:pointer" ng-hide="@ViewBag.viewtype !='0'">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPARAttachment1 > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="parattachmentlist in parattachment1">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:28%;">
+                            <a style="color:blue;cursor:pointer;" ng-click="ViewDocuments(parattachmentlist.TempFileName)" title="Click Here to Download">
+                                {{parattachmentlist.AttachedActualFileName}}
+                            </a>
+                        </td>
+                        <td style="width:22%;">
+                            {{parattachmentlist.AttachDate}}
+                        </td>
+                        <td style="width:27%;">
+                            {{parattachmentlist.AttachDescription}}
+                        </td>
+                        <td style="width:20%;" ng-hide="@ViewBag.viewtype !='0'">
+                            <a ng-click="DeletePARAttachment(parattachmentlist.AttachmentID,'PARDET')" title="Delete">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPARAttachment1 < 1">
+                    <tr>
+                        <td colspan="5" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;" id="divAuditPAR">
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:20%;cursor:pointer;">
+                            Action By
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Action Date
+                        </th>
+                        <th style="width:25%;cursor:pointer">
+                            Approval Stage
+                        </th>
+                        <th style="width:10%;cursor:pointer">
+                            Status
+                        </th>
+                        <th style="width:20%;cursor:pointer">
+                            Remarks
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPARAuditTrail > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="paraudittraillist in paraudittrail">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:20%;">
+                            {{paraudittraillist.employee_code}}
+                        </td>
+                        <td style="width:22%;">
+                            {{paraudittraillist.action_date}}
+                        </td>
+                        <td style="width:25%;">
+                            {{paraudittraillist.queue_to_type}}
+                        </td>
+                        <td style="width:10%;">
+                            {{paraudittraillist.action_status}}
+                        </td>
+                        <td style="width:20%;">
+                            {{paraudittraillist.action_remarks}}
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPARAuditTrail < 1">
+                    <tr>
+                        <td colspan="6" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <br />
+        <div style="width:100%;text-align:center;font-size:xx-small;" class="myTableStyleTabNew">
+            <button type="button" ng-hide="@ViewBag.viewtype !='0'" class="btn btn-sm btn-primary" ng-click="SaveAsDraft('draft')">
+                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                Save As Draft
+            </button>
+            <button type="button" ng-hide="@ViewBag.viewtype !='0'" class="btn btn-sm btn-success" ng-click="SaveAsDraft('submit')">
+                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                Submit
+            </button>
+            <button type="button" ng-show="@ViewBag.deleteflag =='1'" class="btn btn-sm btn-danger" ng-click="DeletePAR()">
+                <span class="glyphicon glyphicon-trash" style="color:white;"></span>
+                Delete
+            </button>
+            <button type="button" class="btn btn-sm btn-warning" ng-hide="@ViewBag.isapprovalMode =='1'" ng-click="CancelPARDetails()">
+                <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                Cancel
+            </button>
+        </div>
+        <div style="width:100%;text-align:center" ng-show="@ViewBag.isapprovalMode =='1'">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td style="text-align:left">
+                        <span>Remarks</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <textarea id="txtApprovalRemarks"
+                                  ng-model="PARApprovalRemarks"
+                                  name="txtApprovalRemarks"
+                                  style="resize:none ;width: 400px; height: 75px;"
+                                  maxlength="250"
+                                  class="textareaStyle"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;font-size:xx-small;">
+                        <button type="button" class="btn btn-sm btn-success" ng-click="ApprovePAR()">
+                            <span class="glyphicon glyphicon-thumbs-up" style="color:white;"></span>
+                            Approve
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" ng-click="RejectPAR()">
+                            <span class="glyphicon glyphicon-thumbs-down" style="color:white;"></span>
+                            Reject
+                        </button>
+                        <button type="button" class="btn btn-sm btn-warning" ng-click="CancelPARDetailsDashboard()">
+                            <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var objADDPARParent;
+    var objPARAttachments;
+    $(document).ready(function () {
+        objADDPARParent = $("[id$='divPAR']");
+        objADDPARParent.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 350,
+            duration: 300
+            //  resizable:false
+        });
+        objPARAttachments = $("[id$='divAttachmentPARDetails']");
+        objPARAttachments.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 350,
+            duration: 300
+            //  resizable:false
+        });
+
+        $('#txtContigency').attr("maxlength", "6");
+        $('#txtPARDetailAmount').attr("maxlength", "15");
+        $('#txtPARDescription').attr("maxlength", "256");
+        $('#txtPARDetailDescription').attr("maxlength", "256");
+        var currentTab = 0;
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+        $("#tabs").css("display", "block");
+
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        var MinYear = parseInt(Presentyear) - 50;
+        var MaxYear = parseInt(Presentyear) + 50;
+        $("#txtApprovalDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            yearRange: Presentyear + ':' + MaxYear,
+            currentText: "Now",
+            maxDate: 0,
+            dateFormat: "dd-mm-yy"
+        });
+
+        $("#ddlApproverPAR").keyup(function (e) {
+            if (e.which != 13) {
+                $("[name=txtApproverGid]").val("0");
+            }
+
+            $("#ddlApproverPAR").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetEmployeeAutoComplete", "WONew")?' + new Date().getTime(),
+                        data: "{ 'searchtext' : '" + $("#ddlApproverPAR").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }));
+                        },
+                        error: function (response) {
+                        },
+                        failure: function (response) {
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("[name=txtApproverGid]").val(i.item.val);
+                    $("#ddlApproverPAR").val(i.item.label);
+                },
+                minLength: 1
+            });
+
+        });
+
+        $("#ddlApproverPAR").focusout(function () {
+            var hdfId = $("[name=txtApproverGid]").val();
+            var txtCurName = $("#ddlApproverPAR").val();
+            if (txtCurName.trim() != "" && (hdfId.trim() == "" || hdfId.trim() == "0")) {
+                $("#ddlApproverPAR").val("");
+            }
+        });
+
+        $("#AttachDescription").attr("maxlength", "128");
+        $(".txtPARAttachmentFile").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform1');
+            form1.attr("action", "../PARNew/UploadedFiles/?uploadfor=PAR");
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe1");
+            form1.attr("file", $('#txtPARAttachmentFile').val());
+
+            var fname = $('#txtPARAttachmentFile').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#AttachedActualFileName").val(fname);
+            form1.submit();
+            return false;
+        });
+        $(".txtPARAttachmentFile2").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe2" id="postiframe2" style="display: none"></iframe>');
+
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform2');
+            form1.attr("action", "../PARNew/UploadedFiles/?uploadfor=PARDET");
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe2");
+            form1.attr("file", $('#txtPARAttachmentFile2').val());
+
+            var fname = $('#txtPARAttachmentFile2').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#AttachedActualFileName2").val(fname);
+            form1.submit();
+            return false;
+        });
+    });
+
+    var myAppPAR = angular.module('PARNewapp', ['ui.bootstrap']);
+    myAppPAR.service("parnewservice", function ($http) {
+        this.GetPARHeaderDetails = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPARHeaderDetails", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetRequestFor = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetRequestFor", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetPeriodList = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPeriodList", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.AddPARParentDetailsList = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("AddPARParentDetailsList", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetPARHeaderDetailsAll = function (pargid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPARHeaderDetailsAll", "PARNew")?pargid=' + pargid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.AddPARParentDetailsListNew = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("AddPARParentDetailsListNew", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.UpdatePARParentList = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("UpdatePARParentList", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetPARDetailParent = function (pardetgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPARDetailParent", "PARNew")?pardetailgid=' + pardetgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.AddPARApprover = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("AddPARApprover", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetPARApprover = function (pargid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPARApprover", "PARNew")?pargid=' + pargid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetAttachment = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("GetAttachment", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.CreatePARAttachment = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("CreatePARAttachment", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.DeletePARParentDetails = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("DeletePARParentDetails", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.DeletePARAttachment = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("DeletePARAttachment", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.SaveAsDraft = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("SaveAsDraft", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetAuditTrail = function (parheadergid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetAuditTrail", "WONew")?wogid=' + parheadergid + '&refname=PAR&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.SubmitApprover = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("SubmitApprover", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.RejectApprover = function (PARParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PARParentDetailsInsert),
+                url: '@Url.Action("RejectApprover", "PARNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+    });
+    myAppPAR.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+    myAppPAR.controller('parnewController', function ($scope, parnewservice) {
+        $scope.filteredItemsPAR = 0;
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 5;
+        $scope.currentPage = 1;
+        GetPARHeaderDetails();
+        function GetPARHeaderDetails() {
+            var pargid = '@ViewBag.pargid';
+            if (pargid != "0")
+                $scope.PARGid = pargid;
+            else if ($scope.PARGid != null && $scope.PARGid != "" && $scope.PARGid != "0")
+                pargid = $scope.PARGid;
+            if (pargid == null || pargid == "" || pargid == 0) {
+                var getData = parnewservice.GetPARHeaderDetails();
+                getData.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Raising PAR", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    var Data0 = "", Data1 = "", ErrorMsg = "";
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.parparentdetails = Data1;
+                    $scope.filteredItemsPAR = 0;
+                    $scope.PARRaiserName = Data0[0].PARRaiserName;
+                    $scope.PARDate = Data0[0].PARDate;
+                    //Init Values
+                    $scope.PARBudgetedFlag = 'Y';
+                    $scope.PARAmount = 0;
+                    $scope.Status = "";
+                    $("#txttotalparamount").html("0");
+
+                }, function () {
+                    alert('Error in adding record');
+                });
+            }
+            else {
+                
+                var getData2 = parnewservice.GetPARHeaderDetailsAll($scope.PARGid);
+                getData2.then(function (response) {
+                    var Data0 = "", Data1 = "", Data2 = "";
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Loading PAR Details", "Error", function () {
+                            return false;
+                        });
+                    }
+                    else {
+                        Data0 = JSON.parse(response.data.data0);
+                        Data1 = JSON.parse(response.data.data1);
+                        $scope.parparentdetails = Data1;
+                        $scope.PARRefNumber = Data0[0].PARRefNumber;
+                        $scope.PARAmount = Data0[0].PARAmount;
+                        $scope.PARDetailsSum = Data0[0].PARDetailsSum;
+                        $scope.Status = Data0[0].Status;
+                        $scope.PARGid = Data0[0].PARGid;
+                        $scope.PARDate = Data0[0].PARDate;
+                        $scope.PARBudgetedFlag = Data0[0].PARBudgetedFlag;
+                        $scope.PARRaiserName = Data0[0].PARRaiserName;
+                        $scope.PARFinalApprovalDate = Data0[0].PARFinalApprovalDate;
+                        $scope.PARPeriod = Data0[0].PARPeriod;
+                        $scope.PARContigencyAmount = Data0[0].PARContigencyAmount;
+                        $scope.PARContigency = Data0[0].PARContigency;
+                        $scope.PARDescription = Data0[0].PARDescription;
+                        $scope.filteredItemsPAR = $scope.parparentdetails.length;
+
+                        var currentval = $("#txtContigencyAmount").val();
+                        var testDecimal = testDecimals1(currentval);
+                        if (testDecimal.length > 1) {
+                            currentval = currentval.slice(0, -1);
+                        }
+                        $("#txtContigencyAmount").val(replaceCommas1(currentval));
+                        $("#txttotalparamount").html($scope.PARAmount);
+                        currentval = $("#txttotalparamount").text();
+                        testDecimal = testDecimals1(currentval);
+                        if (testDecimal.length > 1) {
+                            currentval = currentval.slice(0, -1);
+                        }
+                        $("#txttotalparamount").html(replaceCommas1(currentval));
+
+                        var getData4 = parnewservice.GetPARApprover($scope.PARGid);
+                        getData4.then(function (response) {
+                            var Data02 = "";
+                            var ErrorMsg12 = response.data.ErrorMsg;
+                            if (ErrorMsg12 == "1") {
+                                jAlert("Error While Loading Approver Details", "Error", function () {
+                                    return false;
+                                });
+                            }
+                            else {
+                                Data02 = JSON.parse(response.data.data0);
+                                $scope.parapprdetails = Data02;
+                                $scope.filteredItemsPARAppr = $scope.parapprdetails.length;
+                            }
+                        }, function () {
+                            alert('Error in adding record');
+                        });
+                        $scope.AttachmentRefGid = $scope.PARGid;
+                        var PARParentDetailsInsert = {
+                            "AttachmentRefGid": $scope.PARGid,
+                            "AttachmentFor": "PAR"
+                        };
+                        var getData5 = parnewservice.GetAttachment(PARParentDetailsInsert);
+                        getData5.then(function (response) {
+                            Data0 = "";
+                            var ErrorMsg1 = response.data.ErrorMsg;
+                            if (ErrorMsg1 == "1") {
+                                jAlert("Error While Fetching Attachment", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                                    Data0 = JSON.parse(response.data.data0);
+                                $scope.parattachment = Data0;
+                                $scope.filteredItemsPARAttachment = $scope.parattachment.length;
+                            }
+                        }, function () {
+                            alert('Error While Fetching Attachment');
+                        });
+
+                        var getData6 = parnewservice.GetAuditTrail($scope.PARGid);
+                        getData6.then(function (response) {
+                            $scope.paraudittrail = response.data;
+                            $scope.filteredItemsPARAuditTrail = $scope.paraudittrail.length;
+
+                        }, function () {
+                            alert('Error');
+                        });
+                    }
+                }, function () {
+                    alert('Error while Loading Record');
+                });
+            }
+        }
+        $scope.AddPARParentDetails = function () {
+            $scope.PARDetailGid = 0;
+            if ($scope.PARGid == null || $scope.PARGid == "" || $scope.PARGid == "0") {
+                $scope.PARExpenseType = "C";
+            }
+            if ($scope.PARBudgetedFlag == null || $scope.PARBudgetedFlag == "" || $scope.PARBudgetedFlag == "0" || $scope.PARBudgetedFlag == 0) {
+                jAlert("Ensure Budget Flag", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var getdata = parnewservice.GetRequestFor();
+            getdata.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Loading Request For", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                $scope.requestforlist = JSON.parse(response.data.data0);
+                $scope.RequestForGid = 0;
+            }, function () {
+                jAlert("Error While Binding Request For", "Error", function () {
+                    return false;
+                });
+                return false;
+            });
+            var getdata1 = parnewservice.GetPeriodList();
+            getdata1.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Loading Period", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                $scope.periodlist = JSON.parse(response.data.data0);
+                $scope.PARDetailPeriod = "-- Select One --";
+            }, function () {
+                jAlert("Error While Binding Period", "Error", function () {
+                    return false;
+                });
+                return false;
+            });
+            $("#divPAR").css("display", "");
+            objADDPARParent.dialog({ title: 'Add PAR Details', width: '780', height: '300' });
+            objADDPARParent.dialog("open");
+        }
+        $scope.CloseChildDialog = function () {
+            objADDPARParent.dialog("close");
+            $("#divPAR").css("display", "none");
+        }
+        $scope.EditPARParent = function (pardetailgid) {
+            $scope.PARDetailGid = pardetailgid;
+            var getdata = parnewservice.GetRequestFor();
+            getdata.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Loading Request For", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                $scope.requestforlist = JSON.parse(response.data.data0);
+            }, function () {
+                jAlert("Error While Binding Request For", "Error", function () {
+                    return false;
+                });
+                return false;
+            });
+            var getdata1 = parnewservice.GetPeriodList();
+            getdata1.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Loading Period", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                $scope.periodlist = JSON.parse(response.data.data0);
+            }, function () {
+                jAlert("Error While Binding Period", "Error", function () {
+                    return false;
+                });
+                return false;
+            });
+            var getData2 = parnewservice.GetPARDetailParent(pardetailgid);
+            getData2.then(function (response) {
+                var Data0 = "", ErrorMsg1 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Fetching Details", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.PARExpenseType = Data0[0].PARExpenseType;
+                    $scope.RequestForGid = Data0[0].RequestForGid;
+                    $scope.PARDetailPeriod = Data0[0].PARDetailPeriod;
+                    $scope.PARDetailAmount = Data0[0].PARDetailAmount;
+                    $scope.PARDetailDescription = Data0[0].PARDetailDescription;
+                    //$("[id=PARDetailTotalAmount]").val(Data0[0].PRDetailTotalAmount);
+                  
+                    //$("#txtPARDetailPeriod").val($scope.PARDetailPeriod);
+                    $("#txtPARDetailPeriod option:contains(" + $scope.PARDetailPeriod + ")").attr('selected', 'selected');
+                    $("#divPAR").css("display", "");
+                    objADDPARParent.dialog({ title: 'Edit PAR Details', width: '780', height: '350' });
+                    objADDPARParent.dialog("open");
+                }
+            }, function () {
+                alert('Error in Edit PAR');
+            });
+        }
+        $scope.DeletePARParent = function (pardetgid, deletefor) {
+            var err = "";
+            var successmsg = "";
+            if (deletefor == 'approver') {
+                err = "Are you sure want to delete this PAR Approver";
+                successmsg = "PAR Approver Deleted Successfully";
+            }
+            else {
+                err = "Are you sure want to delete this PAR detail";
+                successmsg = "PAR Detail Deleted Successfully";
+            }
+            jConfirm(err, "Warning", function (e) {
+                if (e == true) {
+                    var PARParentDetailsInsert = {
+                        PARDetailGid: pardetgid,
+                        DeleteFor: deletefor
+                    };
+
+                    var getData = parnewservice.DeletePARParentDetails(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Delete Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+
+                            Data0 = JSON.parse(response.data.data0);
+                            if (response.data.data1 != null && response.data.data1 != "" && response.data.data1 !='undefined')
+                                Data1 = JSON.parse(response.data.data1);
+                            $scope.parparentdetails = Data1;
+                            $scope.PARRefNumber = Data0[0].PARRefNumber;
+                            $scope.PARAmount = Data0[0].PARAmount;
+                            $scope.PARDetailsSum = Data0[0].PARDetailsSum;
+                            $scope.Status = Data0[0].Status;
+                            $scope.PARGid = Data0[0].PARGid;
+                            $scope.PARDate = Data0[0].PARDate;
+                            $scope.PARRaiserName = Data0[0].PARRaiserName;
+                            $scope.PARBudgetedFlag = Data0[0].PARBudgetedFlag;
+                            $scope.PARFinalApprovalDate = Data0[0].PARFinalApprovalDate;
+                            $scope.PARPeriod = Data0[0].PARPeriod;
+                            $scope.PARContigencyAmount = Data0[0].PARContigencyAmount;
+                            $scope.PARContigency = Data0[0].PARContigency;
+                            $scope.PARDescription = Data0[0].PARDescription;
+                            $scope.filteredItemsPAR = $scope.parparentdetails.length;
+
+                            var currentval = $("#txtContigencyAmount").val();
+                            var testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txtContigencyAmount").val(replaceCommas1(currentval));
+                            $("#txttotalparamount").html($scope.PARAmount);
+                            currentval = $("#txttotalparamount").text();
+                            testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txttotalparamount").html(replaceCommas1(currentval));
+
+                            var getData4 = parnewservice.GetPARApprover($scope.PARGid);
+                            getData4.then(function (response) {
+                                var Data02 = "";
+                                var ErrorMsg12 = response.data.ErrorMsg;
+                                if (ErrorMsg12 == "1") {
+                                    jAlert("Error While Loading Approver Details", "Error", function () {
+                                        return false;
+                                    });
+                                }
+                                else {
+                                    if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != 'undefined')
+                                         Data02 = JSON.parse(response.data.data0);
+                                    $scope.parapprdetails = Data02;
+                                    $scope.filteredItemsPARAppr = $scope.parapprdetails.length;
+                                }
+                            }, function () {
+                                alert('Error in adding record');
+                            });
+
+                            jAlert(successmsg, "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in delete record');
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+        }
+        $scope.DeletePAR = function () {
+            jConfirm("Are you sure want to delete this PAR", "Warning", function (e) {
+                if (e == true) {
+                    var PARParentDetailsInsert = {
+                        PARDetailGid: $scope.PARGid,
+                        DeleteFor: "parent"
+                    };
+
+                    var getData = parnewservice.DeletePARParentDetails(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Delete PAR", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+                            jAlert("PAR Deleted Successfully", "Success", function () {
+                                location = '@Url.Action("Index", "ParSummary")?' + new Date().getTime();
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+        }
+        $scope.SavePARDetails = function () {
+            if ($scope.PARExpenseType == 0 || $scope.PARExpenseType == null) {
+                jAlert("Ensure Expense Type", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.RequestForGid == 0 || $scope.RequestForGid == null) {
+                jAlert("Ensure Request For", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PARDetailPeriod == 0 || $scope.PARDetailPeriod == null) {
+                jAlert("Ensure PAR Detail Period", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PARDetailAmount == 0 || $scope.PARDetailAmount == "" || $scope.PARDetailAmount == null) {
+                jAlert("Ensure PAR Detail Amount", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PARDetailDescription == "" || $scope.PARDetailDescription == null) {
+                jAlert("Ensure PAR Detail Description", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var contigenamnt = $("#txtContigencyAmount").val();
+            var PARParentDetailsInsert = {
+                //for header
+                PARGid: $scope.PARGid,
+                PARBudgetedFlag: $scope.PARBudgetedFlag,
+                PARContigency: $scope.PARContigency,
+                PARContigencyAmount: contigenamnt,
+                PARDescription: $scope.PARDescription,
+                //for details
+                PARDetailGid: $scope.PARDetailGid,
+                PARExpenseType: $scope.PARExpenseType,
+                RequestForGid: $scope.RequestForGid,
+                PARDetailPeriod: $scope.PARDetailPeriod,
+                PARDetailAmount: $scope.PARDetailAmount,
+                PARDetailDescription: $scope.PARDetailDescription
+            };
+
+            // var reqforname = $("[id=ddlRequestForGid]").text();
+            if ($scope.PARGid == null || $scope.PARGid == "" || $scope.PARGid == 0 || $scope.PARGid == "0") {
+                var getData = parnewservice.AddPARParentDetailsList(PARParentDetailsInsert);
+                getData.then(function (response) {
+                    var Data0 = "", Data1 = "", Data2 = "";
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Save Details", "Error", function () {
+                            return false;
+                        });
+                    }
+                    else {
+
+                        Data0 = JSON.parse(response.data.data0);
+                        Data1 = JSON.parse(response.data.data1);
+                        $scope.parparentdetails = Data1;
+                        $scope.PARRefNumber = Data0[0].PARRefNumber;
+                        $scope.PARAmount = Data0[0].PARAmount;
+                        $scope.PARDetailsSum = Data0[0].PARDetailsSum;
+                        $scope.Status = Data0[0].Status;
+                        $scope.PARGid = Data0[0].PARGid;
+                        $scope.PARDate = Data0[0].PARDate;
+                        $scope.PARRaiserName = Data0[0].PARRaiserName;
+                        $scope.PARBudgetedFlag = Data0[0].PARBudgetedFlag;
+                        $scope.PARFinalApprovalDate = Data0[0].PARFinalApprovalDate;
+                        $scope.PARPeriod = Data0[0].PARPeriod;
+                        $scope.PARContigencyAmount = Data0[0].PARContigencyAmount;
+                        $scope.PARContigency = Data0[0].PARContigency;
+                        $scope.PARDescription = Data0[0].PARDescription;
+                        $scope.filteredItemsPAR = $scope.parparentdetails.length;
+
+                        var currentval = $("#txtContigencyAmount").val();
+                        var testDecimal = testDecimals1(currentval);
+                        if (testDecimal.length > 1) {
+                            currentval = currentval.slice(0, -1);
+                        }
+                        $("#txtContigencyAmount").val(replaceCommas1(currentval));
+                        $("#txttotalparamount").html($scope.PARAmount);
+                        currentval = $("#txttotalparamount").text();
+                        testDecimal = testDecimals1(currentval);
+                        if (testDecimal.length > 1) {
+                            currentval = currentval.slice(0, -1);
+                        }
+                        $("#txttotalparamount").html(replaceCommas1(currentval));
+
+                        objADDPARParent.dialog("close");
+                        $("#divPAR").css("display", "none");
+
+                        jAlert("PAR Detail Added Successfully", "Success", function () {
+                            return false;
+                        });
+                    }
+                }, function () {
+                    alert('Error in adding record');
+                });
+            }
+            else {
+                if ($scope.PARDetailGid == 0 || $scope.PARDetailGid == null || $scope.PARDetailGid == "" || $scope.PARDetailGid == "0") {
+                    var getData = parnewservice.AddPARParentDetailsListNew(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Save Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+                            Data0 = JSON.parse(response.data.data0);
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.parparentdetails = Data1;
+                            $scope.PARRefNumber = Data0[0].PARRefNumber;
+                            $scope.PARAmount = Data0[0].PARAmount;
+                            $scope.PARDetailsSum = Data0[0].PARDetailsSum;
+                            $scope.Status = Data0[0].Status;
+                            $scope.PARGid = Data0[0].PARGid;
+                            $scope.PARDate = Data0[0].PARDate;
+                            $scope.PARRaiserName = Data0[0].PARRaiserName;
+                            $scope.PARBudgetedFlag = Data0[0].PARBudgetedFlag;
+                            $scope.PARFinalApprovalDate = Data0[0].PARFinalApprovalDate;
+                            $scope.PARPeriod = Data0[0].PARPeriod;
+                            $scope.PARContigencyAmount = Data0[0].PARContigencyAmount;
+                            $scope.PARContigency = Data0[0].PARContigency;
+                            $scope.PARDescription = Data0[0].PARDescription;
+                            $scope.filteredItemsPAR = $scope.parparentdetails.length;
+
+                            var currentval = $("#txtContigencyAmount").val();
+                            var testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txtContigencyAmount").val(replaceCommas1(currentval));
+                            $("#txttotalparamount").html($scope.PARAmount);
+                            currentval = $("#txttotalparamount").text();
+                            testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txttotalparamount").html(replaceCommas1(currentval));
+
+                            objADDPARParent.dialog("close");
+                            $("#divPAR").css("display", "none");
+
+                            jAlert("PAR Detail Added Successfully", "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+                else {
+                    var getData = parnewservice.UpdatePARParentList(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Update Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+
+                            Data0 = JSON.parse(response.data.data0);
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.parparentdetails = Data1;
+                            $scope.PARRefNumber = Data0[0].PARRefNumber;
+                            $scope.PARAmount = Data0[0].PARAmount;
+                            $scope.PARDetailsSum = Data0[0].PARDetailsSum;
+                            $scope.Status = Data0[0].Status;
+                            $scope.PARGid = Data0[0].PARGid;
+                            $scope.PARDate = Data0[0].PARDate;
+                            $scope.PARRaiserName = Data0[0].PARRaiserName;
+                            $scope.PARBudgetedFlag = Data0[0].PARBudgetedFlag;
+                            $scope.PARFinalApprovalDate = Data0[0].PARFinalApprovalDate;
+                            $scope.PARPeriod = Data0[0].PARPeriod;
+                            $scope.PARContigencyAmount = Data0[0].PARContigencyAmount;
+                            $scope.PARContigency = Data0[0].PARContigency;
+                            $scope.PARDescription = Data0[0].PARDescription;
+                            $scope.filteredItemsPAR = $scope.parparentdetails.length;
+
+                            var currentval = $("#txtContigencyAmount").val();
+                            var testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txtContigencyAmount").val(replaceCommas1(currentval));
+                            $("#txttotalparamount").html($scope.PARAmount);
+                            currentval = $("#txttotalparamount").text();
+                            testDecimal = testDecimals1(currentval);
+                            if (testDecimal.length > 1) {
+                                currentval = currentval.slice(0, -1);
+                            }
+                            $("#txttotalparamount").html(replaceCommas1(currentval));
+
+                            objADDPARParent.dialog("close");
+                            $("#divPAR").css("display", "none");
+
+                            jAlert("PAR Detail Updated Successfully", "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+            }
+
+
+        }
+        $scope.SavePARApprover = function () {
+            if ($scope.PARGid == null || $scope.PARGid == "" || $scope.PARGid == 0 || $scope.PARGid == "0") {
+                jAlert("Ensure PAR Header Details", "Warning", function () {
+                    return false;
+                });
+                return false;
+            }
+            var parapprgid = $("[name=txtApproverGid]").val();
+            if (parapprgid == null || parapprgid == "" || parapprgid == 0 || parapprgid == "0") {
+                jAlert("Ensure Valid PAR Approver", "Warning", function () {
+                    return false;
+                });
+                return false;
+            }
+            var apprname = $("#ddlApproverPAR").val();
+            if (apprname == null || apprname == "" || apprname == 0 || apprname == "0") {
+                jAlert("Ensure PAR Approver", "Warning", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PARApproverDate == null || $scope.PARApproverDate == "" || $scope.PARApproverDate == 0 || $scope.PARApproverDate == "0") {
+                jAlert("Ensure PAR Approver Date", "Warning", function () {
+                    return false;
+                });
+                return false;
+            }
+            var apprgid = parseInt(parapprgid);
+            var PARParentDetailsInsert = {
+                //for header
+                PARGid: $scope.PARGid,
+                PARApproverGid: apprgid,
+                PARApproverDate: $scope.PARApproverDate
+            };
+            var getData = parnewservice.AddPARApprover(PARParentDetailsInsert);
+            getData.then(function (response) {
+                var Data0 = "", Data1 = "", Data2 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Adding Approver Details", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.parapprdetails = Data0;
+                    $scope.PARApproverDate = "";
+                    $("#ddlApproverPAR").val("");
+                    $("[name=txtApproverGid]").val("0");
+                    $scope.filteredItemsPARAppr = $scope.parapprdetails.length;
+                    var finalapprdate = response.data.finalapprdate;
+                    $scope.PARFinalApprovalDate = finalapprdate;
+                    jAlert("PAR Approver Added Successfully", "Success", function () {
+                        return false;
+                    });
+                }
+            }, function () {
+                alert('Error in adding record');
+            });
+        }
+        $scope.saveAttachmentPAR = function (attachmentfor) {
+            var PARAttachFileName = "";
+            if (attachmentfor == "PARDET") {
+                $scope.AttachDescription = $("#AttachDescription").val();
+                PARAttachFileName = $("#AttachedActualFileName2").val();
+            }
+            else {
+                PARAttachFileName = $("#AttachedActualFileName").val();
+                $scope.AttachmentRefGid = $scope.PARGid;
+            }
+            if ($.trim(PARAttachFileName) == "" || $.trim(PARAttachFileName) == null) {
+                jAlert("Please Select Valid File", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var PARParentDetailsInsert = {
+                "AttachedActualFileName": PARAttachFileName,
+                "AttachDescription": $scope.AttachDescription,
+                "AttachmentRefGid": $scope.AttachmentRefGid,
+                "AttachmentFor": attachmentfor
+            };
+            var getData = parnewservice.CreatePARAttachment(PARParentDetailsInsert);
+            getData.then(function (response) {
+                var Data0 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Attaching Document", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                        Data0 = JSON.parse(response.data.data0);
+                    if (attachmentfor == "PAR") {
+                        $scope.parattachment = Data0;
+                        $scope.filteredItemsPARAttachment = $scope.parattachment.length;
+                    }
+                    else {
+                        $scope.parattachment1 = Data0;
+                        $scope.filteredItemsPARAttachment1 = $scope.parattachment1.length;
+                    }
+                    jAlert("Attachment Added Successfully", "Success", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }, function () {
+                alert('Error');
+            });
+        }
+        $scope.ViewDocuments = function (filename) {
+            $.ajax({
+                url: '@Url.Action("CheckFileExists", "PRNew")?id=' + filename + '&' + new Date().getTime(),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data == "0") {
+                        jAlert("File Not Found", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        location = "../PRNew/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                    }
+                },
+                error: function (result) {
+                    jAlert("Error While Fetching File", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            });
+        }
+        $scope.PARDetailAttachment = function (pardetgid) {
+            $scope.AttachmentRefGid = pardetgid;
+            var PARParentDetailsInsert = {
+                "AttachmentRefGid": pardetgid,
+                "AttachmentFor": "PARDET"
+            };
+            var getData = parnewservice.GetAttachment(PARParentDetailsInsert);
+            getData.then(function (response) {
+                Data0 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Fetching Attachment", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                        Data0 = JSON.parse(response.data.data0);
+                    $scope.parattachment1 = Data0;
+                    $scope.filteredItemsPARAttachment1 = $scope.parattachment1.length;
+                }
+            }, function () {
+                alert('Error While Fetching Attachment');
+            });
+
+            $("#divAttachmentPARDetails").css("display", "");
+            objPARAttachments.dialog({ title: 'BOQ Details', width: '780', height: '300' });
+            objPARAttachments.dialog("open");
+        }
+        $scope.DeletePARAttachment = function (attachmentgid, attachmentfor) {
+            jConfirm("Are you sure want to Delete this Attachment", "Warning", function (e) {
+                if (e == true) {
+                    if (attachmentfor == "PAR")
+                        $scope.AttachmentRefGid = $scope.PARGid;
+
+                    var PARParentDetailsInsert = {
+                        "AttachmentRefGid": $scope.AttachmentRefGid,
+                        "AttachmentFor": attachmentfor,
+                        "AttachmentID": attachmentgid
+                    };
+                    var getData = parnewservice.DeletePARAttachment(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Deleting Document", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                                Data0 = JSON.parse(response.data.data0);
+                            if (attachmentfor == "PAR") {
+                                $scope.parattachment = Data0;
+                                $scope.filteredItemsPARAttachment = $scope.parattachment.length;
+                            }
+                            else {
+                                $scope.parattachment1 = Data0;
+                                $scope.filteredItemsPARAttachment1 = $scope.parattachment1.length;
+                            }
+                            jAlert("Attachment Deleted Successfully", "Success", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                    }, function () {
+                        alert('Error');
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+        $scope.SaveAsDraft = function (reqforname) {
+           
+            var parlen = $scope.parparentdetails.length;
+            if (parlen == 0 || parlen == null) {
+                jAlert("Please Add atleast one record in PAR Detail", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PARBudgetedFlag == null || $scope.PARBudgetedFlag == "" || $scope.PARBudgetedFlag == "0" || $scope.PARBudgetedFlag == 0) {
+                jAlert("Ensure Budget Flag", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if (reqforname == "submit") {
+                if ($scope.filteredItemsPARAttachment == 0 || $scope.filteredItemsPARAttachment == null || $scope.filteredItemsPARAttachment == "") {
+                    jAlert("Please Add Atleast One Attachment(Attachments Tab)", "Warning", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }
+            var contigenamnt = $("#txtContigencyAmount").val();
+            showProgress();
+            var PARParentDetailsInsert = {
+                //for header
+                PARGid: $scope.PARGid,
+                PARBudgetedFlag: $scope.PARBudgetedFlag,
+                PARContigency: $scope.PARContigency,
+                PARContigencyAmount: contigenamnt,
+                PARDescription: $scope.PARDescription,
+                DeleteFor: reqforname
+            }
+            var getData = parnewservice.SaveAsDraft(PARParentDetailsInsert);
+            getData.then(function (response) {
+                hideProgress();
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Processing PAR", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else if (ErrorMsg1 == "404") {
+                    jAlert("PAR Needs Final Approver", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    if (reqforname == "submit") {
+                        jAlert("PAR Submitted Successfully", "Success", function () {
+                            location = '@Url.Action("Index", "ParSummary")?' + new Date().getTime();
+                        });
+                    }
+                    else {
+                        jAlert("PAR Saved Successfully", "Success", function () {
+                            location = '@Url.Action("Index", "ParSummary")?' + new Date().getTime();
+                        });
+                    }
+                }
+            }, function () {
+                hideProgress();
+                alert('Error');
+            });
+        }
+        $scope.ApprovePAR = function () {
+            var approvedby = '@ViewBag.isapproval';
+            var pargid = $scope.PARGid;
+            var PARParentDetailsInsert = {
+                PARGid: $scope.PARGid,
+                PARApprovedBy: approvedby,
+                PARApprovalRemarks: $scope.PARApprovalRemarks
+            }
+            var getData = parnewservice.SubmitApprover(PARParentDetailsInsert);
+            getData.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "0") {
+                    jAlert("PAR Approved Successfully", "Success", function () {
+                        location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();
+                    });
+                }
+                else {
+                    jAlert(ErrorMsg1, "Error", function () {
+                        return false;
+                    });
+                }
+            }, function () {
+                alert('Error');
+            });
+        }
+        $scope.RejectPAR = function () {
+            jConfirm("Are you sure want to Reject this PAR", "Warning", function (e) {
+                if (e == true) {
+                    var approvedby = '@ViewBag.isapproval';
+                    if ($scope.PARApprovalRemarks == "" || $scope.PARApprovalRemarks == null) {
+                        jAlert("Ensure Remarks", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    var PARParentDetailsInsert = {
+                        PARGid: $scope.PARGid,
+                        PARApprovedBy: approvedby,
+                        PARApprovalRemarks: $scope.PARApprovalRemarks
+                    }
+                    var getData = parnewservice.RejectApprover(PARParentDetailsInsert);
+                    getData.then(function (response) {
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Rejecting PAR", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            jAlert("PAR Rejected Successfully", "Success", function () {
+                                location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();
+                            });
+                        }
+                    }, function () {
+                        jAlert("Error while prcessing your request", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+        $scope.CancelPARDetails = function () {
+            location = '@Url.Action("Index", "ParSummary")?' + new Date().getTime();
+        }
+        $scope.CancelPARDetailsDashboard = function () {
+            location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();
+        }
+    });
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    $("#txtContigency,#txtPARDetailAmount").on("keypress", function (evt) {
+        var $txtBox = $(this);
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 46)
+            return false;
+        else {
+            var len = $txtBox.val().length;
+            var index = $txtBox.val().indexOf('.');
+
+            if (index > 0 && charCode == 46) {
+                return false;
+            }
+            if (index > 0) {
+                var charAfterdot = (len + 1) - index;
+                if (charAfterdot > 3) {
+                    return false;
+                }
+            }
+        }
+        return $txtBox; //for chaining
+    });
+    $("#txtContigency").keyup(function (event) {
+        var contigencypercentage = $("#txtContigency").val();
+        var paramnt = $("#txtPARAMount").val();
+        if (contigencypercentage != null && contigencypercentage != "" && contigencypercentage != "0") {
+            if (parseFloat(contigencypercentage) > 100) {
+                jAlert("Percentage should be Less than or equal to 100", "Error", function () {
+                    $("#txtContigencyAmount").val("0");
+                    $("#txtContigency").val("0");
+                    $("#txttotalparamount").html(paramnt);
+                    return false;
+                });
+                return false;
+            }
+            if (paramnt != null && paramnt != "" && paramnt != "0") {
+
+                var percentamnt = parseFloat(paramnt) * (parseFloat(contigencypercentage) / 100);
+                percentamnt = parseFloat(percentamnt).toFixed(2);
+                var tot = parseFloat(paramnt) + parseFloat(percentamnt);
+                if (isNaN(tot) == false) {
+                    tot = parseFloat(tot).toFixed(2);
+                    $("#txtContigencyAmount").val(percentamnt);
+                    $("#txttotalparamount").html(tot);
+                }
+                else {
+                    $("#txtContigency").val("0");
+                    $("#txtContigencyAmount").val("0");
+                    $("#txttotalparamount").html(paramnt);
+                }
+            }
+            else {
+                jAlert("Invalid PAR Amount", "Error", function () {
+                    $("#txtContigencyAmount").val("0");
+                    $("#txtContigency").val("0");
+                    $("#txttotalparamount").html("0");
+                    return false;
+                });
+                return false;
+            }
+        }
+        else {
+            $("#txtContigencyAmount").val("0");
+            $("#txttotalparamount").html(paramnt);
+        }
+        var currentval = $("#txtContigencyAmount").val();
+        var testDecimal = testDecimals1(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtContigencyAmount").val(replaceCommas1(currentval));
+
+        currentval = $("#txttotalparamount").text();
+        testDecimal = testDecimals1(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txttotalparamount").html(replaceCommas1(currentval));
+
+    });
+    function testDecimals1(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+
+    function replaceCommas1(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+</script>

@@ -1,0 +1,432 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poRaising
+@using IEM.Common;
+@using IEM.Areas.FLEXIBUY.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table.table-bordered > tbody > tr > td, table.table-bordered > thead > tr > th
+    {
+        white-space:nowrap !important;
+    }
+</style>
+
+<div id="posummary">
+    @{
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        var grid = new WebGrid();
+        CmnFunctions obj = new CmnFunctions();
+
+        if (Session["FlexiDash"] != null)
+        {
+            flexibuydashboard dash = new flexibuydashboard();
+            List<flexibuydashboard> lst = new List<flexibuydashboard>();
+            lst = (List<flexibuydashboard>)Session["FlexiDash"];
+            grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 15, ajaxUpdateContainerId: "poheadergrid");
+        }
+        else
+        {
+            grid = new WebGrid(source: Model.objposummary, canSort: true, canPage: true, rowsPerPage: 15, ajaxUpdateContainerId: "poheadergrid");
+        }
+    }
+
+    <input type="hidden" id="hid_pogroup" value="@Model.groupRes" />
+    <div class="pageHeadingLayout">
+        <span class="pageHeading">PO Summary</span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="width:15%">
+                        <span>PO Date</span>
+                        <br />
+                        <input type="text"
+                               name="podate"
+                               id="podate"
+                               value="@ViewBag.podate"
+                               class="textboxStyle" />
+
+                    </td>
+                    <td style="width:15%">
+                        <span>PO Ref No</span>
+                        <br />
+                        <input type="text"
+                               name="porefno"
+                               id="porefno"
+                               value="@ViewBag.porefno"
+                               class="textboxStyle" />
+
+                    </td>
+                    <td style="width:20%">
+                        <span>Vendor Name</span>
+                        <br />
+                        <input type="text"
+                               name="vendorname"
+                               id="vendorname"
+                               value="@ViewBag.vendorname"
+                               class="textboxStyle" />
+
+                    </td>
+                    <td style="width:15%">
+                        <span>Status</span>
+                        <br />
+                        <select name="ddlStatus" id="statusgid" class="textboxStyle">
+                            <option value="0">Select Status</option>
+                            @foreach (var pitem in Model.statusList)
+                            {
+                                var childitemfilter = Model.statusList.Where(m => m.Value == pitem.Value);
+                                if (childitemfilter != null)
+                                {
+                                    foreach (var citem in childitemfilter)
+                                    {
+                                        string selectedValue = "";
+                                        if (Model.statusgid == Convert.ToInt32(citem.Value))
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+
+                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td style="width:35%; vertical-align:bottom;">
+                        <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+                        <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear
+                        </button>
+                        @if (@grid.TotalRowCount != 0)
+                        {
+                            <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                        }
+                        <button type="button" id="raisepo" value="RAISE PO" class="btn btn-success cursorpointer">
+                            <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> RAISE PO
+                        </button>
+                    </td>
+                </tr>
+            </table>
+            <div id="pogrid"></div>
+            <div id="pogrid1" class="table-responsive" style="margin-top:10px;">
+                    @if (Session["FlexiDash"] != null)
+                    {
+                        @grid.GetHtml(
+                        tableStyle: "tableSmall table-bordered table-hover",
+                        htmlAttributes: new { id = "poheadergrid" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns
+                        (
+                                  grid.Column("poslno", obj.Sorter("poslno", "SlNo", grid), style: "slno", canSort: false),
+                             grid.Column("poDate", obj.Sorter("poDate", "PO Date", grid), style: "colSmallCenter"),
+                             grid.Column("poRefNo", obj.Sorter("poRefNo", "PO Ref No", grid), style: "numcolumn"),
+                                  grid.Column("poVersion", obj.Sorter("poVersion", "PO Version", grid), style: "centerAlign"),
+                             grid.Column("povendorName", obj.Sorter("povendorName", "Vendor Name", grid), style: "collargeBreak"),
+                             grid.Column("postatus", obj.Sorter("postatus", "Status", grid), style: "colmedium"),
+                             //grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), style: "colamountlarge"),
+                            grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", obj.GetINRAmount(Convert.ToString(@item.poAmount)))) </text>, canSort: true, style: "colamountlarge"),
+                             grid.Column(header: "Action", canSort: false, style: "actionlarge",
+                     format: @<text>
+                @if (@item.postatus == "Draft" || @item.postatus == "Rejected")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPo(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" id="@item.poDetgid" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" id="@item.poDetgid" name="command" title="Cancel" type="button"></button>
+                }
+                else if (@item.postatus == "Approved")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPoAmendment(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" name="command" id="@item.poDetgid" title="Cancel" type="button"></button>
+                }
+                else if (@item.postatus == "Amended")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPoAmendment(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" name="command" id="@item.poDetgid" title="Cancel" type="button"></button>
+                }
+                else
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPo(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" id="@item.poDetgid" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" id="@item.poDetgid" name="command" title="Cancel" type="button"></button>
+                }
+                <a title="Raise Tickets" id="@item.poRefNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+                    </text>)))
+                    }
+                    else
+                    {
+                        @grid.GetHtml(
+                        tableStyle: "tableSmall table-bordered table-hover",
+                        htmlAttributes: new { id = "poheadergrid" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns
+                        (
+                        grid.Column("slno", obj.Sorter("slno", "SlNo", grid), style: "slno", canSort: false),
+                             grid.Column("poDate", obj.Sorter("poDate", "PO Date", grid), style: "colSmallCenter"),
+                             grid.Column("poRefNo", obj.Sorter("poRefNo", "PO Ref No", grid), style: "numcolumn"),
+                                  grid.Column("poVersion", obj.Sorter("poVersion", "PO Version", grid), style: "centerAlign"),
+                             grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid), style: "collargeBreak"),
+                             grid.Column("status", obj.Sorter("status", "Status", grid), style: "colmedium"),
+                            //grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), style: "colamountlarge"),
+                            grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", obj.GetINRAmount(Convert.ToString(@item.poAmount)))) </text>, canSort: true, style: "colamountlarge"),
+               grid.Column(header: "Action", canSort: false, style: "actionlarge",
+                     format: @<text>
+                @if (@item.status == "Draft" || @item.status == "Rejected")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPo(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" id="@item.poDetgid" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" id="@item.poDetgid" name="command" title="Cancel" type="button"></button>
+                }
+                else if (@item.status == "Approved")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" name="command" id="@item.poDetgid" title="Cancel" type="button"></button>
+                }
+                else if (@item.status == "Amended")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPoAmendment(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" name="command" id="@item.poDetgid" title="Cancel" type="button"></button>
+                }
+                else
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPo(id)" id="@item.poDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditPo(id)" id="@item.poDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="DeletePo(id)" id="@item.poDetgid" title="Delete" type="button"></button>
+                    <button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelPo(id)" id="@item.poDetgid" name="command" title="Cancel" type="button"></button>
+                }
+                <a title="Raise Tickets" id="@item.poRefNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+                    </text>)))
+                    }
+
+                @if (@ViewBag.records != null && @ViewBag.records != "") {
+                <div class="gridMessage" style="width:100%">
+                    @ViewBag.records
+                </div>
+                } else {
+                <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@Model.objposummary.Count</b></div>
+                }
+                @{
+                    Session["FlexiDash"] = null;
+                }
+            </div>
+        </div>
+
+    }
+    <input hidden="hidden" id="hidPopUp" value="" />
+    <div id="ForPopUpRT"></div>
+    <script type="text/javascript">
+        var tr = $("#poheadergrid").find('tr');
+        $("#poheadergrid tr .Color").click(function () {
+            $('#poheadergrid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+        $(document).ready(function () {
+            $("#statusgid").removeClass('required');
+            $("#statusgid").removeClass('valid');
+            $("#podate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd-mm-yy'
+            });
+
+            var group = $("#hid_pogroup").val();
+            if (group == "notExists") {
+                $("#raisepo").attr("disabled", true);
+            }
+        });
+        $("#btnsearch,#btnrefresh").live('click', function () {
+            var group = $("#hid_pogroup").val();
+            if (group == "notExists") {
+                $("#raisepo").attr("disabled", true);
+            }
+        });
+
+        $('#raisepo').click(function () {
+
+            location = '@Url.Action("CBFSelection", "PO")';
+        });
+        function EditPo(id) {
+            location = '@Url.Action("RaisePO", "PO")/' + id;
+            @*var viewfor = "edit";
+            var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+            *@
+        }
+        function ViewPo(id) {
+            location = '@Url.Action("RaisePO", "PO")/' + id + '/0';
+            @*var viewfor = "view";
+            var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+        }
+        //function PoSummaryRefresh()
+        //{
+        //    location = '/poheader/Index?viewfor=' + refresh;
+        //}
+        function CancelPo(id) {
+            location = '@Url.Action("POChecker", "PO")/' + id + '/4';
+            @*var viewfor = "cancel";
+            var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+        }
+        function DeletePo(id) {
+            @*var viewfor = "delete";
+            var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+            location = '@Url.Action("RaisePO", "PO")/' + id + '/2';
+        }
+        function EditPoAmendment(id) {
+            var viewfor = "amend";
+            var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+
+        var objRT;
+        function RaiseTicket(pono) {
+            var refflagname = "PO";
+            var itemrefno = pono;
+            if ($('#hidPopUp').val() == "") {
+                $("#hidPopUp").val("iem");
+                objRT = $("[id$='ForPopUpRT']");
+                objRT.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    cache: false
+                    //show: 'fade-in',
+                    //close: 'fade-out'
+                });
+            }
+           
+            objRT.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+            objRT.dialog({
+                title: 'Raise Ticket',
+                width: 1100,
+                height: 500
+            });
+            objRT.dialog("open");
+        }
+        function Download() {
+            location = "../poheader/downloadsexcel";
+        }
+    </script>
+</div>

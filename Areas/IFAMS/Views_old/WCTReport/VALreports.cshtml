@@ -1,0 +1,331 @@
+﻿@using IEM.Areas.IFAMS.Models
+@model IEM.Areas.IFAMS.Models.valreport
+@{
+    ViewBag.Title = "FAreport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //var Session["saexcel"] = "";
+    var grid = new WebGrid(source: Model.valrep, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "salrepgridid", ajaxUpdateCallback: "salrepgridid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+    int rowval = 0;
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"> </script>
+<b>
+    <span style="color: rgb(52,108,196);">
+        VAL Report
+    </span>
+</b>
+@using (Html.BeginForm())
+{
+    <div id="_gridfullre">
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                        <tr>
+
+                            <td>
+                                <div>
+                                    <span>From Date </span>
+                                    <br />
+                                    @*<select name="depfd" class="textboxStyleSearch" id="FinancialYear">
+
+                                            <option value="0">--Select--</option>
+                                        </select>*@
+                                    <input type="text" name="depfd" id="txtdepfd" maxlength="25" onchange="Fromdatechange(), checkRequiredfields()" value="@ViewBag.depfd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span>To Date </span>
+                                    <br />
+                                    <input type="text" name="deptd" id="txtdeptd" maxlength="25" onchange="Todatechange(), checkRequiredfields()" value="@ViewBag.deptd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearchreport" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="submit" id="btnclear" value="Clear" name="command" onclick="STclear()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                @if (ViewBag.Message == null)
+                                {
+                                    <button class="btn btn-primary" type="button" id="btnexport" value="Export" name="command" onclick="VALExport()"><span style="color:white;" class="glyphicon glyphicon-export"></span> Export</button>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="fagridid" style="overflow-x:scroll;  margin-top:17px; " class=" ">
+                @grid.GetHtml(htmlAttributes: new { id = "salrepgridid" },
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered ",
+                mode: WebGridPagerModes.All,
+               columns: grid.Columns(
+                    grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+                    grid.Column("ECF NO", "ECF NO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                        <span class="editsmv">
+                            <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfno</label>
+                        </span>
+                    </text>),
+                                                              grid.Column("ECF STATUS", "ECF STATUS", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfstatus</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("EMP CODE", "EMP CODE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.empcode</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("EMPLOYEE NAME", "EMPLOYEE NAME", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.empname</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("VENODR CODE", "VENODR CODE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vendorcode</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("VENDOR NAME", "VENDOR NAME", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vendorname</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("ECF PROCESSAMOUNT", "ECF PROCESSAMOUNT", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfprosamt</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("ECF AMOUNT", "ECF AMOUNT", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfamount</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("PAYMENTTRAN AMOUNT", "PAYMENTTRAN AMOUNT", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.paymenttranamt</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("ECF NET", "ECF NET", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfnet</label>
+                    </span>
+                    </text>),
+                                                      grid.Column("PAURUNVOUCHER DATE", "PAURUNVOUCHER DATE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.prundate</label>
+                    </span>
+                    </text>), grid.Column("TDS", "TDS", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.TDS</label>
+                    </span>
+                    </text>), grid.Column("WCT", "WCT", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.WCT</label>
+                    </span>
+                    </text>), grid.Column("PAYMODE", "PAYMODE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ptranpaymode</label>
+                    </span>
+                    </text>), grid.Column("CHQ NO", "CHQ NO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.chqno</label>
+                    </span>
+                    </text>), grid.Column("PVNO", "PVNO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.pvno</label>
+                    </span>
+                    </text>), grid.Column("PAYRUNVOUCHER NET", "PAYRUNVOUCHER NET", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.pvouchernet</label>
+                    </span>
+                    </text>), grid.Column("VOCHER CLAIM TYPE", "VOCHER CLAIM TYPE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vclaim</label>
+                    </span>
+                    </text>), grid.Column("CHQ DATE", "CHQ DATE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.chqdate</label>
+                    </span>
+                    </text>), grid.Column("VOUCHER MEMO", "VOUCHER MEMO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vmemo</label>
+                    </span>
+                    </text>), grid.Column("PAYBANK GL", "PAYBANK GL", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.paybankgl</label>
+                    </span>
+                    </text>), grid.Column("REMARKS", "REMARKS", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.remarks</label>
+                    </span>
+                    </text>),grid.Column("OracleBatchNumber", "OracleBatchNumber", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.oraclebatch</label>
+                    </span>
+                    </text>)
+                                  ))
+                @if (ViewBag.Message != null)
+                {
+                    <div class="borderStyle" style="width:1630px" align="left">
+                       <b> @ViewBag.Message</b>
+                    </div>
+                }
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records: @grid.TotalRowCount</span>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    function checkRequiredfields() {
+
+        var frmdat = $("#txtdepfd").val();
+        var tdat = $("#txtdeptd").val();
+        if (frmdat != "" ) {
+            $("#txtdepfd").removeClass('required');
+            $("#txtdepfd").addClass('valid');
+           // CheckFieldcount();
+        }
+        else {
+            $("#txtdepfd").removeClass('valid');
+            $("#txtdepfd").addClass('required');
+            //CheckFieldcount();
+        }
+
+
+        if (tdat != "") {
+            $("#txtdeptd").removeClass('required');
+            $("#txtdeptd").addClass('valid');
+            // CheckFieldcount();
+        }
+        else {
+            $("#txtdeptd").removeClass('valid');
+            $("#txtdeptd").addClass('required');
+            //CheckFieldcount();
+        }
+    }
+    $(document).ready(function () {
+
+        checkRequiredfields();
+       // $('#btnsearchreport').click(function () {
+       //     showProgress();
+       //});
+
+        $("#btnexport").show();
+
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+        @*if ('@Model.ReportModel.Count' != 0)
+        { hideProgress(); }*@
+    });
+    function STclear() {
+        $("#txtdepfd").val("");
+        $("#txtdeptd").val("");
+       }
+
+    function VALExport() {
+
+        location = '@Url.Action("VALExport", "WCTReport")?' + new Date().getTime();
+    }
+
+    function Todatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+    function Fromdatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (fromdate != "") { $("#txtdepfd") }
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+
+    $("#txtinwfd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwtd").datepicker("option", "minDate", selected)
+        }
+    });
+    $("#txtinwtd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwfd").datepicker("option", "maxDate", selected)
+        }
+    });
+
+
+    var tdate = new Date();
+        $("#txtdepfd, #txtdeptd").datepicker ({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: false,
+        dateFormat: 'dd-mm-yy ',
+        minDate: '',
+        maxDate: new Date(),
+        onClose: function (dateText, inst) {
+            var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+            var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+           },
+        beforeShow: function (input, inst) {
+            if ((datestr = $(this).val()).length > 0) {
+                year = datestr.substring(datestr.length - 4, datestr.length);
+                month = jQuery.inArray(datestr.substring(0, datestr.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker('option', 'defaultDate', 'maxDate', new Date(year, month, Date));
+               // $(this).datepicker('setDate', new Date(year, month, 1));
+            }
+            var other = this.id == "from" ? "#txtdeptd" : "#txtdepfd";
+            var option = this.id == "from" ? "maxDate" : "minDate";
+
+            if ((selectedDate = $(other).val()).length > 0) {
+                year = selectedDate.substring(selectedDate.length - 4, selectedDate.length);
+                month = jQuery.inArray(selectedDate.substring(0, selectedDate.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker("option", option,  new Date(year, month, Date));
+            }
+        }
+    });
+</script>
+

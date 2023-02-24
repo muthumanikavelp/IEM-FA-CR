@@ -1,0 +1,156 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.WoSummary
+@using IEM.Common;
+<div id="posummary">
+    <link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+    @{
+        ViewBag.Title = "Index";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        var grid = new WebGrid(source: Model.objWoSummary, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+        CmnFunctions obj = new CmnFunctions();
+    }
+    <b>
+        <span style="color: rgb(52, 108, 196);">WO Checker Summary</span>
+    </b>
+    <br /><br />
+
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-10">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>WO Date</span>
+                                <br />
+                                <input type="text"
+                                       name="wodate"
+                                       id="wodate"
+                                       value="@ViewBag.wodate"
+                                       class="textboxStyleSearch"
+                                       @*placeholder="Enter Date"*@ />
+
+                            </td>
+                            <td></td>
+                            <td>
+                                <span>WO Ref No</span>
+                                <br />
+                                <input type="text"
+                                       name="worefno"
+                                       id="worefno"
+                                       value="@ViewBag.worefno"
+                                       class="textboxStyleSearch"
+                                       @*placeholder="Enter POref No"*@ />
+
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span>
+                                    <br />
+                                    <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                        <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                                    </button>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="pogrid">
+
+            </div>
+            <div style="margin-top:17px" id="pogrid1">
+                <div>
+
+                    @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "wocheckergrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                  grid.Column("slno", obj.Sorter("slno", "Sl", grid)),
+                  grid.Column("woDate", obj.Sorter("woDate", "WO Date", grid)),
+                  grid.Column("woRefNo", obj.Sorter("woRefNo", "WO Ref No", grid)),
+                  grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid)),
+            //   grid.Column("status", obj.Sorter("status", "Status", grid)),
+                  grid.Column("woAmount", obj.Sorter("woAmount", "WO Amount", grid)),
+                  grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                    @*<button class="btn btn-link" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewPoforCancel(id)"
+                                id="@item.poDetgid" title="View" type="button">
+                            Review
+                        </button>*@
+                    <button class="btn btn-link" name="command" onclick="ViewWoforChecker(id)"
+                            id="@item.woDetgid" title="View" type="button">
+                        Review
+                    </button>
+                    @*<button id="Color" class="glyphicon glyphicon-eye-open" title="View" onclick="ViewProduct(@item.poDetgid)"></<button>
+                        <button  id="Color" class="glyphicon glyphicon-edit" title="Edit" onclick="EditProduct(@item.poDetgid)"></<button >
+                        <button  id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteProduct(@item.poDetgid)"></button>
+                        <button  id="Color" class="glyphicon glyphicon-remove" disabled="disabled" title="Cancel" onclick="CancelProduct(@item.poDetgid)"></button>*@
+                    @*<span class="glyphicon glyphicon-search" onclick="ViewProduct(@item.poRefNo)"></span>
+                        <span class="glyphicon glyphicon-trash" onclick="EditProduct(@item.poRefNo)"></span>
+                        <span class="glyphicon glyphicon-remove" onclick="DeleteProduct(@item.poRefNo)"></span>*@
+                    </text>)))
+                </div>
+
+                @if (@ViewBag.records != null || @ViewBag.records == "")
+                {
+                    <div class="borderStyle btnCenter">
+                        @ViewBag.records
+                    </div>
+                }
+                <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.objWoSummary.Count</label>
+            </div>
+        </div>
+
+    }
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#wodate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd-mm-yy'
+            });
+        });
+        function ViewWoforChecker(id) {
+            var viewfor = "checker";
+            var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor,
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+    </script>
+</div>
+

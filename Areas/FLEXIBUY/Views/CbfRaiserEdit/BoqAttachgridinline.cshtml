@@ -1,0 +1,93 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid");
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "delmat")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+
+}
+<div class="panel panel-default" id="gridattachmentinline">
+
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("S.no", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="button" value="Delete" class="btn btn-link" onclick="attachmentcbfdelete(id)" id="@item.attachGid" title="Delete" />
+                </text>)))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.attachment.Count</label>
+
+
+</div>
+<script>
+    if ('@ViewBag.viewmode' == 'disabled') {
+        $("#gridattachment td:nth-child(5),#gridattachment th:nth-child(5)").hide();
+    }
+
+    function DownloadSupAttachment(filename) {
+
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../CbfRaiser/DownloadDocument', supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../CbfRaiser/Download' }
+        }, 'json');
+
+    }
+    function attachmentcbfdelete(id1) {
+    
+        id = "";
+        var supattachmentmodel =
+                {
+                    "attachment1": id1
+                };
+
+        $.post('../CbfRaiser/DeleteInlineAttachment', supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+               // location = location.href;
+            }
+            else {
+                alert(data);
+                $('#gridattachmentinline').load('../CbfRaiser/BoqAttachgridinline');
+            }
+        }, 'json');
+
+    }
+</script>

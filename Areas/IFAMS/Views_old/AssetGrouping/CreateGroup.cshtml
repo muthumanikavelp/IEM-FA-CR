@@ -1,0 +1,441 @@
+﻿@model IEM.Areas.IFAMS.Models.GroupModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    var alert = (string)Session["alert"];
+    if (alert == "success")
+    {
+        <script>
+            jAlert("Group Id generated successfully", "Information")
+            window.parent.jQuery('#PartialView').dialog('close');
+            location = '@Url.Action("GMSummary", "AssetGrouping")';
+        </script>
+
+        Session["alert"] = null;
+    }
+    var grp = "";
+    Session["grp"] = Model._group_id;
+}
+<div id="dvgridcreate">
+    @if (Model._group_id != null)
+    {
+        grp = Model._group_id;
+        <div class="myTableStyleTabpopup well-sm" style="font-size: 12px;">
+            <span> Gourp Id:</span>
+            <label>@grp</label>
+        </div>
+    }
+    <div>
+        <div id="tabgroup" style="font-size: 12px;">
+            @if (Model._group_id != null)
+            { <ul>
+                <li><a href="#tabs-1">Add to Group [<label id="tabs1Id">@Model.GModel.Count()</label>]</a></li>
+                <li><a href="#tabs-2">Details [<label id="tabs2Id"></label>]</a></li>
+                <li><a href="#tabs-3">Audit Trail [<label id="tabs3Id"></label>]</a></li>
+            </ul>
+                <div id="tabs-2">
+                    @if (Model._group_id != null)
+                    {
+                        @Html.Partial("GroupView")
+
+                    }
+                </div>
+                <div id="tabs-3">
+                    <div>
+                        @Html.Partial("GOAAuditTrial")
+                    </div>
+                </div>}
+            <div style="font-size: 12px;" id="tabs-1">
+                <div class="col-sm-12">
+                    <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                        <tr>
+                            <td style="padding-left:20px;padding-top:10px;padding-bottom:10px;">
+                                <div>
+                                    <span> Location Code </span>
+                                    <br />
+                                    <input type="text"
+                                           name="location"
+                                           id="txtlocation"
+                                           value="@ViewBag.location"
+                                           class="textboxStyleSearch" maxlength="8" />
+                                </div>
+                            </td>
+                            <td style="padding-left:20px;padding-top:10px;padding-bottom:10px;">
+                                <div>
+                                    <span> Capitalization Date </span>
+                                    <br />
+                                    <input type="text"
+                                           name="capdate"
+                                           id="txtcapdate"
+                                           value="@ViewBag.capdate"
+                                           class="textboxStyleSearch" readonly="readonly"
+                                           placeholder="dd-mm-yyyy" />
+                                </div>
+                            </td>
+                            <td style="padding-left:20px;padding-top:10px;padding-bottom:10px;">
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary SEARCH" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search "></span> Search</button>
+                            </td>
+                            <td style="padding-left:20px;padding-top:10px;padding-bottom:10px;">
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary BTNclear" id="btnclear" value="CLEAR" ><span style="color:white;" onclick="refreshpage()" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="gridsearch" style="overflow-y:scroll; height:200px">
+                    @{
+                        var grid = new WebGrid(
+                        source: Model.GModel,
+                        canPage: false,
+                        canSort: false,
+                        ajaxUpdateContainerId: "gridnew",
+                        ajaxUpdateCallback: "dummyhidefunctionnew()"
+                        );
+                        @grid.GetHtml(
+                    htmlAttributes: new { id = "grpgridnew" },
+                    fillEmptyRows: false,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                    columns: grid.Columns(
+                            grid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                            + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage)
+                            * grid.RowsPerPage * grid.PageIndex),
+                            grid.Column("_asset_id", "Asset ID", style: "MidColumn50"),
+                            grid.Column("_asset_cat", "Category", style: "MidColumn50"),
+                            grid.Column("_asset_subcat", "Subcategory Code", style: "MidColumn30"),
+                            grid.Column("_asset_subcat_name", "Subcategory", style: "MidColumn50"),
+                                     grid.Column("_loc", "Location Code", style: "MidColumn20"),
+                            grid.Column(format: @<text>
+                                        <input type="checkbox" value="@item._assetdet_gid" name="ids" />
+                            </text>, style: "MidColumn20", header: "{checkall}")))
+                    }
+                    <div class="table-bordered btnCenter" align="center">
+                        <b> @ViewBag.RecordMessage </b>
+                    </div>
+                </div>
+                @if (Model._group_id == null)
+                {  <div class="myTableStyleTabNew">
+                    <span>  Total No Of Records : @Model.GModel.Count()</span>
+                </div>}
+            </div>
+        </div>
+    </div>
+    <table align="center" class="myTableStyleTabpopup">
+        <tr>
+            @if (Model._group_id == null)
+            {
+                <td>
+                    <span> </span>
+                    <br />
+                    <button class="btn btn-primary " id="btnSubmit" value="SUBMIT" type="submit"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</button>
+                </td>}
+            @if (Model._group_id != null)
+            {
+                <td>
+                    <span> </span>
+                    <br />
+                    <button class="btn btn-primary " id="btnAdd" value="ADD" type="submit"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</button>
+                </td>
+            }
+            <td>
+
+                <span> </span>
+                <br />
+                <button class="btn btn-warning " id="btnCancel" value="CANCEL" type="button"><span style="color:white;" onclick="backtosummary()" class="glyphicon glyphicon-remove-circle"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+
+<script>
+    var currentTab = 0;
+    $(function () {
+        $("#tabgroup").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $("#txtcapdate").datepicker(
+         {
+             changeMonth: true,
+             changeYear: true,
+             dateFormat: 'dd-mm-yy',
+             maxdate: new Date()
+         });
+
+    $(".SEARCH").click(function () {
+        var location = $('#txtlocation').val();
+        var date = $('#txtcapdate').val();
+        var model = {
+            "_loc": location,
+            "_cap_date": date
+        };
+        showProgress();
+
+        @*$.ajax({
+            url: '../AssetGrouping/CreateGroup?command=SEARCH',
+            data: JSON.stringify(model),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+
+            success: function (result) {
+                if ('@grp' != "") {
+                    $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&grpid=' + '@grp' + '&' + new Date().getTime());
+                }
+                else {
+                    $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&' + new Date().getTime());
+                }
+            }
+
+        });
+        hideProgress();*@
+        $.post('../AssetGrouping/CreateGroup?command=SEARCH', model,
+       function (data) {
+          //   $("#dvgridcreate").load('../AssetGrouping/CreateGroup?command=SEARCH&' + new Date().getTime());
+             if ('@grp' != "") {
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&grpid=' + '@grp' + '&' + new Date().getTime());
+             }
+             else {
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&' + new Date().getTime());
+             }
+            
+             setTimeout(function () {
+                 hideProgress();
+                 $("#txtlocation").val(location);
+                 $("#txtcapdate").val(date);
+             },50);
+            
+        }, 'json');
+    });
+    function refreshpage() {
+       
+        var location = $('#txtlocation').val();
+        var date = $('#txtcapdate').val();
+        var model = {
+            "_loc": location,
+            "_cap_date": date
+        };
+        showProgress();
+        $.post('../AssetGrouping/CreateGroup?command=SEARCH', model,
+         function (data) {
+           
+             if ('@grp' != "") {
+                
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&grpid=' + '@grp' + '&' + new Date().getTime());
+             }
+             else {
+                
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?listfor=SEARCH&' + new Date().getTime());
+             }
+             
+             setTimeout(function () {
+                 $("#txtlocation").val(location);
+                 $("#txtcapdate").val(date);
+             }, 500);
+             hideProgress();
+         }, 'json');
+    }
+    $(".BTNclear").click(function () {
+        $('#txtlocation').val("");
+        $('#txtcapdate').val("");
+        var model = {};
+        $.post('../AssetGrouping/CreateGroup?command=CLEAR', model,
+         function (data) {
+             if ('@grp' != "") {
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?' + new Date().getTime());
+             } else {
+                 $("#dvgridcreate").load('../AssetGrouping/CreateGroup?' + new Date().getTime());
+             }
+         }, 'json');
+    });
+
+
+    $("#btnAdd").click(function () {
+        var ids = "";
+        $("#grpgridnew").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                var checked = $("#grpgridnew td :checkbox:checked").length;
+                if (checked == 1) {
+                    ids = $(this).val();
+                }
+                else {
+                    ids = $(this).val() + "," + ids;
+                }
+            }
+        });
+        showProgress();
+        $.ajax({
+            url: '@Url.Action("SubmitasGroup", "AssetGrouping")?ids=' + ids + '&grpid=' + '@grp' + '&' + new Date().getTime(),
+            data: JSON.stringify(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "success") {
+                    hideProgress();
+                    jAlert("Group ID Created Successfully!", "Information", function (r) {
+                        if (r == true) {
+                            window.parent.jQuery('#PartialView').dialog('close');
+                            location = '@Url.Action("GMSummary", "AssetGrouping")';
+                        }
+                    });
+                }
+
+                if (data == "Unauthorized User!") {
+                    hideProgress();
+                    jAlert("Unauthorized User!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+
+                }
+                if (data == "location") {
+                    hideProgress();
+                    jAlert("Location Mismatch among the Asset Ids Selcted!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+            },
+            error: function (result) {
+                hideProgress();
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });
+
+    $("#btnSubmit").click(function () {
+        var ids = "";
+        $("#grpgridnew").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                var checked = $("#grpgridnew td :checkbox:checked").length;
+                if (checked == 1) {
+                    ids = $(this).val();
+                }
+                else {
+                    ids = $(this).val() + "," + ids;
+                }
+            }
+        });
+       showProgress();
+        $.ajax({
+            url: '@Url.Action("SubmitasGroup", "AssetGrouping")?ids=' + ids + '&' + new Date().getTime(),
+            data: JSON.stringify(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "success") {
+                    hideProgress();
+                    jAlert("Group ID Created Successfully!", "Information", function (r) {
+                        if (r == true) {
+                            window.parent.jQuery('#PartialView').dialog('close');
+                            location = '@Url.Action("GMSummary", "AssetGrouping")';
+                        }
+                    });
+                }
+
+                if (data == "Unauthorized User!") {
+                    hideProgress();
+                    jAlert("Unauthorized User!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+
+                }
+                if (data == "location") {
+                    hideProgress();
+                    jAlert("Location Mismatch among the Asset Ids Selcted!", "Information", function (r) {
+                        if (r == true) {
+                            window.parent.jQuery('#PartialView').dialog('close');
+                            location = '@Url.Action("GMSummary", "AssetGrouping")';
+                        }
+                    });
+                }
+            },
+            error: function (result) {
+                hideProgress();
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });
+
+    $("#btnCancel").click(function () {
+        window.parent.jQuery('#PartialView').dialog('close');
+    });
+    // 1st replace first column header text with checkbox
+
+    $("#grpgridnew th").each(function () {
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+            $(this).text('');
+            $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+            $(this).append("<span>Select All</span>");
+        }
+    });
+
+    //2nd click event for header checkbox for select /deselect all
+    $("#cbSelectAll").live("click", function () {
+        var ischecked = this.checked;
+        $('#grpgridnew').find("input:checkbox").each(function () {
+            this.checked = ischecked;
+        });
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+    });
+
+
+    //3rd click event for checkbox of each row
+    $("input[name='ids']").click(function () {
+        var totalRows = $("#grpgridnew td :checkbox").length;
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if (checked == totalRows) {
+            $("#grpgridnew").find("input:checkbox").each(function () {
+                this.checked = true;
+            });
+        }
+        else {
+            $("#cbSelectAll").removeAttr("checked");
+        }
+    });
+
+</script>

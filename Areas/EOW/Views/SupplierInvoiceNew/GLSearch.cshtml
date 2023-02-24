@@ -1,0 +1,173 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_Supplierinvoice>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchglgrid", ajaxUpdateCallback: "DummyFunctinforglNewseacrh()");
+    int rowVal = 0;
+}
+<div id="searchglgrid">
+
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew tblstyles" align="center">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> GL Code </span>
+                            <input name="EmployeeCode"
+                                   id="txtinwardcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> GL Name </span>
+                            <input name="EmployeeName"
+                                   id="txtinwardempname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeName"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btncensearch" value="Search" name="command" type="button" onclick="SearchGLCode()" style="margin-top:6px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="refreshGLCode()" style="margin-top:6px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 8px 15px -3px 0px;" onclick="Gotorefrefinward()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+            htmlAttributes: new { id = "wgridGLSearch" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("expcat_code", Sorter("expcat_code", "GL Code", grid)),
+                grid.Column("expcat_name", Sorter("expcat_name", "GL Name", grid)),
+            // grid.Column("RaiserCode", Sorter("RaiserCode", "Raiser Code", grid)),
+            // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="RaiserCodeFind_@item.expcat_code" name="RaiserCode" value="@item.expcat_code" />
+                    <input type="hidden" id="RaiserNameFind_@item.expcat_code" name="RaiserName" value="@item.expcat_name" />
+                    <a><span class="btn btn-link btnsearch" id="EmployeeSearch" onclick="Select(@item.expcat_code)">Select</span></a>
+                </text>)
+)))
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#txtinwardcode").keyup(function () {
+            var txtSupplierName = $("#txtinwardcode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtinwardcode").removeClass('required');
+                $("#txtinwardcode").addClass('valid');
+            }
+            else {
+                $("#txtinwardcode").removeClass('valid');
+                $("#txtinwardcode").addClass('required');
+            }
+        });
+        $("#txtinwardempname").keyup(function () {
+            var txtSupplierName = $("#txtinwardempname").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtinwardempname").removeClass('required');
+                $("#txtinwardempname").addClass('valid');
+
+            }
+            else {
+                $("#txtinwardempname").removeClass('valid');
+                $("#txtinwardempname").addClass('required');
+
+            }
+        });
+    });
+    
+    function refreshGLCode() {
+        $('#txtinwardcode').val('');
+        $('#txtinwardempname').val('');
+        //$('#searchglgrid').load('SupplierInvoiceNew/GLSearch');
+        //$('#searchglgrid').load('../SupplierInvoiceNew/GLSearch?' + new Date().getTime());
+        var url = "@(Html.Raw(Url.Action("GLSearch", "SupplierInvoiceNew")))";
+        $('#searchglgrid').load(url + '?' + new Date().getTime());
+    }
+    function SearchGLCode() {
+        var empcode = $('#txtinwardcode').val();
+        var empname = $('#txtinwardempname').val();
+        var objownersearch =
+            {
+                "GLName": empname,
+                "GLCode": empcode
+            };
+
+        $.post('../SupplierInvoiceNew/GLSearchWithParam', objownersearch,
+        function (data) {
+            //$("#searchglgrid").load('SupplierInvoiceNew/GLSearch?listfor=search');
+            //$("#searchglgrid").load('../SupplierInvoiceNew/GLSearch?listfor=search&' + new Date().getTime());
+            var url = "@(Html.Raw(Url.Action("GLSearch", "SupplierInvoiceNew")))";
+            $("#searchglgrid").load(url + '?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtinwardempname").val(empname);
+            }, 50);
+
+        }, 'json');
+    }
+    function Select(id) {
+        var RefNoName = $("#RaiserNameFind_" + id + "").val();
+        var RefException = $("#RaiserCodeFind_" + id + "").val();
+        $("#ddlRefNo option:selected").text(RefException);
+        //$("#arfamont").val(RefException);
+        $("#ddlRefNo").addClass('valid');
+
+        // $("#txtPaymentAmount").val(RefException);
+        $("#txtPaymentAmount").addClass('valid');
+        GotoIndexPaymentmodepopupd();
+
+    }
+    function Gotorefrefinward() {
+
+        objDialogpolicypopup.dialog("close");
+        objDialogpolicypopup.remove();
+    }
+    function DummyFunctinforglNewseacrh() {
+        $("#wgridGLSearch td:nth-child(2),#wgridGLSearch th:nth-child(2)").show();
+    }
+</script>

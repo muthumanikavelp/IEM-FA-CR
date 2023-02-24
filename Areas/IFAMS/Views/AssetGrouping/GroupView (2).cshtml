@@ -1,0 +1,196 @@
+﻿@model IEM.Areas.IFAMS.Models.GroupModel
+@using IEM.Areas.IFAMS.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    DataModel idm = new DataModel();
+    var gridview = new WebGrid();
+    var grpid = (string)Session["grp"];    
+    if (grpid !=null )
+    {
+        GroupModel gm = new GroupModel();
+        gm.GModelView = idm.GetDetailForView(grpid);
+        Model.GModelView = gm.GModelView;        
+       // Session["gid"] = idm.GetGroupGid(grpid);
+        gridview = new WebGrid(
+                    source: Model.GModelView, canPage: false, canSort: false,
+                    ajaxUpdateContainerId: "gridDETAILS"
+                    , ajaxUpdateCallback: "dummyhidefunctionDETAILS()"
+                    );  
+    }
+    else
+    {
+        gridview = new WebGrid(
+                   source: Model.GModelView, canPage: false, canSort: false,
+                   ajaxUpdateContainerId: "gridDETAILS"
+                   , ajaxUpdateCallback: "dummyhidefunctionDETAILS()"
+                   );
+    }
+    var grp = "";
+}
+@if (grpid == null)
+{    grp = Model._group_id;
+    <div class="myTableStyleTabpopup well-sm" style="font-size: 12px;">
+        <span> Gourp Id:</span>
+        <label>@grp</label>
+    </div>
+}
+<div id="tabaudit" style="font-size: 12px;">
+    @if (grpid == null)
+    {  <ul>
+        <li><a href="#ta-1">Details [<label id="tabsin1Id">@Model.GModelView.Count()</label>]</a></li>
+        <li><a href="#ta-2">Audit Trail [<label id="tabsin2Id"></label>]</a></li>
+    </ul>}
+    <div id="ta-1">
+        <div class="" style="overflow-y:scroll; height:250px;">
+            @{
+               
+                    @gridview.GetHtml(
+                    htmlAttributes: new { id = "grpgrid" },
+                    fillEmptyRows: false,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                             columns: gridview.Columns(
+                             gridview.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                                                  + Math.Round(Convert.ToDouble(gridview.TotalRowCount / gridview.PageCount) / gridview.RowsPerPage)
+                                                  * gridview.RowsPerPage * gridview.PageIndex),
+                                      gridview.Column("_asset_id", "Asset ID", style: "MidColumn50"),
+                                      gridview.Column("_asset_cat", "Category", style: "MidColumn50"),
+                                      gridview.Column("_asset_subcat", "Subcategory Code", style: "MidColumn30"),
+                                      gridview.Column("_asset_subcat_name", "Subcategory", style: "MidColumn50"),
+                                      gridview.Column("_loc", "Location Code", style: "MidColumn30"),
+                                      gridview.Column("_cap_date", "Capitalization Date", style: "MidColumn30"),
+                                      gridview.Column("_qty", "Quantity", style: "MidColumn20"),
+                                      gridview.Column("_is5K", "5000 case", style: "MidColumn10"),
+                                      gridview.Column("_asset_value", "Asset value", style: "MidColumn30"),
+                                      gridview.Column("_asset_status", "Status", style: "MidColumn50")
+             ))
+            }
+            <div class="table-bordered btnCenter" align="center">
+                <b> @ViewBag.Message </b>
+            </div>
+        </div>        
+            @*<span>  Total No Of Records :@Model.GModelView.Count() </span>*@        
+    </div>
+    @if (grpid == null)
+    {
+        <div id="ta-2">
+            <div>
+                @Html.Partial("GOAAuditTrial")
+            </div>
+        </div>
+    }
+</div>
+@if (ViewBag.viewfor == "checkerView")
+{
+    <div class="myTableStyleTabNew" align="left">
+        <span>Remarks</span>
+        <input type="text" autofocus="" id="txtRemaks" name="remarks" onkeyup="check()" class=" textboxStyleSearch required" maxlength="256" width="150px" height="100px" />
+    </div>
+}
+<div class="myTableStyleTabNew">
+    <table align="center">
+        <tr>
+            @if (ViewBag.viewfor == "checkerView")
+            {
+                <td class="form-group" nowrap="nowrap">
+                    <div style="float:right;padding-right:20px;">
+                        <span class="input-group-btn">
+                            <button class="btn btnApprove btn-success" type="submit" name="command" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                        </span>
+                    </div>
+                </td>
+
+                <td class="form-group" nowrap="nowrap">
+                    <div style="float:right;padding-right:20px;">
+                        <span class="input-group-btn">
+                            <button class="btn btnReject btn-danger" type="submit" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                        </span>
+                    </div>
+                </td>
+            }
+            @if (grpid == null)
+            {
+            <td class="form-group" nowrap="nowrap">
+                <div style="float:right;padding-right:20px;">
+                    <span class="input-group-btn">
+                        <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                    </span>
+                </div>
+            </td>
+            }
+        </tr>
+    </table>
+</div>
+<script>
+
+    
+    $("#tabs2Id").text('@Model.GModelView.Count()');
+    
+    function check() {
+        var txtRemaks = $('#txtRemaks').val();
+        if (txtRemaks.trim() != "") {
+            $('.btnReject').removeAttr('disabled');
+            $('.btnApprove').removeAttr('disabled');
+            $('#txtRemaks').removeClass('required');
+            $('#txtRemaks').addClass('valid');
+        }
+        else {
+            $('.btnReject').attr("disabled", true);
+            $('.btnApprove').attr("disabled", true);
+            $('#txtRemaks').removeClass('valid');
+            $('#txtRemaks').addClass('required');
+        }
+    }
+    var currentTab = 0;
+    $(function () {
+        $("#tabaudit").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $('.btnReject').on("click", function () {
+        var remark = $('#txtRemaks').val();
+        var no = '@grp';
+        $.post('../AssetGrouping/GroupView?no=' + no + '&command=Reject&remark=' + remark + '&' + new Date().getTime(),
+   function (data) {
+       if (data == 0) {
+           location = location.href;
+       }
+       else {
+           window.parent.jQuery('#PartialView').dialog('close');
+           location = '@Url.Action("GCSummary", "AssetGrouping")?' + new Date().getTime();
+           jAlert("Group rejected sucessfully", "Inforamtion");
+       }
+   }, 'json');
+
+
+    });
+    $('.backbtn').on("click", function () {
+        window.parent.jQuery('#PartialView').dialog('close');
+        $('#groupViewGridM').find('tr').css('background', 'none');
+        $('#groupViewGridM').find('tr').css('background', 'none');
+    });
+
+    $('.btnApprove').on("click", function () {
+        var no = '@grp';
+       var remark= $('#txtRemaks').val();
+        //alert(no);
+       $.post('../AssetGrouping/GroupView?no=' + no + '&command=Approve&remark=' + remark + '&' + new Date().getTime(),
+   function (data) {
+       if (data == 0) {
+           location = location.href;
+       }
+       else {
+           window.parent.jQuery('#PartialView').dialog('close');
+           location = '@Url.Action("GCSummary", "AssetGrouping")?' + new Date().getTime();
+           jAlert("Group approved sucessfully", "Inforamtion");
+       }
+   }, 'json');
+    });
+
+    $(".ui-icon-closethick").click(function () {
+        $('#groupViewGridM').find('tr').css('background', 'none');
+        $('#groupViewGridM').find('tr').css('background', 'none');
+    });
+</script>

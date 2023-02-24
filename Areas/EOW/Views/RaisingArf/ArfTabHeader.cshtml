@@ -1,0 +1,255 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_arfraising
+@using IEM.Areas.EOW.Models
+@{
+    EOW_EmployeeeExpense sh = new EOW_EmployeeeExpense();
+    if (@ViewBag.process == "datapost" && @ViewBag.message == "datapost")
+    {
+        sh = (EOW_EmployeeeExpense)ViewBag.EOW_EmployeeeExpenseheader;
+        ViewBag.remark = sh.ecfremark;
+    }
+    ViewBag.Title = "RaisingArf";
+    if (Session["Ecfdeclaratonnote"] != null)
+    {
+        ViewBag.decnote = Session["Ecfdeclaratonnote"].ToString();
+
+    }
+    var hg = ViewBag.viewprocess;
+}
+@using IEM.Areas.EOW.Models
+@{
+}
+<script type="text/javascript">
+    var currentTab = 0;
+    $(function () {
+
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+</script>
+@if (@ViewBag.process == "Postdata" && @ViewBag.message != "" || @ViewBag.process == "datapost" && @ViewBag.message == "datapost")
+{
+    <div id="tabs" style="height:300px; margin-top:0px;font-size:12px;">
+        <ul>
+            <li><a href="#tabs-0">Advance Listing </a></li>
+            <li><a href="#tabs-1">Advance Entry </a></li>
+            <li><a href="#tabs-2">Payment Entry </a></li>
+            <li><a href="#tabs-3">Attachment Entry </a></li>
+            @if (Session["QueueGide"].ToString() != "")
+            {
+                <li><a href="#tabs-4">Audit Trail </a></li>
+            }
+
+        </ul>
+        <div id="tabs-0">
+            <div id="ssd">
+                @Html.Partial("GetEcfEmployeeDetail")
+            </div>
+        </div>
+        <div id="tabs-1">
+            <div id="ss">
+                @Html.Partial("ArfAdvance")
+            </div>
+        </div>
+
+        <div id="tabs-2">
+            @Html.Partial("ArfPayment")
+        </div>
+
+        <div id="tabs-3">
+            @Html.Partial("ArfAttachement")
+        </div>
+        @if (Session["QueueGide"].ToString() != "")
+        {
+            <div id="tabs-4">
+                @Html.Partial("_EmpAuditTraile")
+            </div>
+        }
+    </div>
+    
+    <table align="left" class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td>
+                <span><b>Remarks</b></span>
+                <br />
+                @*length fixed by selva*@
+                <textarea id="txtempRemarks" maxlength="255" style="width: 60%; height:60px;" class="textboxStyle">@ViewBag.remark</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span><b>Declaration Note</b></span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <td style="vertical-align:middle;"><input type="checkbox" id="comfirm" /></td>
+                        <td style="vertical-align:middle;"><label id="txtempDeclarationnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>  
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <button type="button" id="btnsaveApprove" class="btn btn-success" value="Submit" onclick="SaveApprove()" style="padding-right:5px;"><span class="glyphicon glyphicon-ok" style="color:white;"></span> Submit</button>
+                @if (Session["QueueGide"].ToString() == "")
+                {
+                    <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="SaveDraftfinal()" style="padding-right:5px;"><span class="glyphicon glyphicon-briefcase" style="color:white;"></span> Draft</button>
+                }
+                <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndexApprove()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+    <div>
+        @if (ViewBag.message != "datapost" && @ViewBag.message != "")
+        {
+            <div>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        hideProgress();
+                    });
+                </script>
+            </div>
+        }
+    </div>
+}
+<script type="text/javascript">
+    function SaveDraftfinal() {
+        jConfirm("Do you want to Save Draft Mode This ARF...? ", "Message", function (u) {
+            if (u == true) {
+                var empRemarks = $("#txtempRemarks").val();
+                var NewAttmodel = {
+                    "arfremark": empRemarks
+                };
+                $.post('../RaisingArf/_EmpARFCreatedraft', NewAttmodel,
+                function (data) {
+                    location.reload();
+                });
+            }
+        })
+    };
+    function GotoIndexApprove() {
+        jConfirm("Do you want  Cancel This ARF...? ", "Message", function (u) {
+            if (u == true) {
+                @*location.href = '@Url.Action("index", "DashBoard")';*@
+                window.localStorage.previousurlflag = "-1";
+                location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+               
+            }
+        })
+    };
+    //$(document).ready(function () {
+    //    var arftype = $('#ddlarftype').val();
+    //    vartxtcode = $('#_txtsupempcode').val();
+    //    if (arftype == "select") {
+    //        jAlert("Please Select ArfType", "Information")
+    //        return false
+    //    }
+    //    else if (vartxtcode == "") {
+    //        jAlert("Please Enter Emp/Sup Code !", "Information")
+    //        return false
+    //    }
+    //    else if (arftype == "Employee") {
+
+    //        location = ('../RaisingArf/GetEcfEmployeeDetail?vartextcode=' + vartxtcode);
+    //    }
+    //    else if (arftype == "Supplier") {
+    //        location = ('../RaisingArf/GetEcfSupplierDetail?vartextcode=' + vartxtcode);
+
+    //    }
+    //  $('#ss').val('');
+    //});
+    function SaveApprove() {
+        $('#btnsaveApprove').attr('disabled', true);
+        var empRemarks = $("#txtempRemarks").val();
+        var NewAttmodel = {
+            "arfremark": empRemarks
+        };
+        var status = $('#comfirm').is(':checked');
+        if (status == false) {
+            $('#btnsaveApprove').attr('disabled', false);
+            jAlert("Please select the Declaration Note", "Message");
+            return false;
+        }
+        else {
+            jConfirm("Do you want to Submit This ARF...? ", "Message", function (u) {
+                if (u == true) {
+                    showProgress();
+                    $.post('../RaisingArf/_EmpARFCreate', NewAttmodel,
+                    function (data) {
+                        if (data == "Expense") {
+                            hideProgress();
+                            $('#btnsaveApprove').attr('disabled', false);
+                            jAlert('Please Check Advance Entry Details : The Advance Should Be Equal To ARF Amount', "Information");
+                            //alert('Please Check Advance Entry Details : The Advance Should Be Equal To ARF Amount');
+                            return false;
+                        }
+                        else if (data == "BankAcc") {
+                            hideProgress();
+                            $('#btnsaveApprove').attr('disabled', false);
+                            jAlert('Please Check Bank Details at Econnect System: Bank Details are not Updated Properly at IEM', "Message");
+                            return false;
+                        }
+                        else if (data == "Payment") {
+                            hideProgress();
+                            $('#btnsaveApprove').attr('disabled', false);
+                            jAlert('Please Check Other Payment Entry Details : The Payment Should Be Equal To ARF Amount', "Information");
+                            //alert('Please Check Other Payment Entry Details : The Payment Should Be Equal To ARF Amount');
+                            return false;
+                        }
+                        else if (data == "Delmat") {
+                            hideProgress();
+                            $('#btnsaveApprove').attr('disabled', false);
+                            jAlert("Delmat has not been created.Contact functional IEM SPOC", "Message");
+                            return false;
+                        }
+                        else if (data != "Success") {
+
+                            if (data != "ARF Number is : ") {
+                                hideProgress();
+                                jAlert(data, "Information", function (u) {
+                                    if (u == true) {
+                                        $('#btnsaveApprove').attr('disabled', false);
+                                        if (data != "Please save Request and Advance & Payment Entries and Than Proceed" && data != "Delmat" && data != "Payment" && data != "Expense") {
+                                            @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                                            window.localStorage.previousurlflag = "-1";
+                                            location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                           
+                                        }
+                                    }
+                                })
+                            }
+                            else if (data == "ARF Number is : ") {
+                                hideProgress();
+                                jAlert("Saved Successfully", "Information", function (u) {
+                                    if (u == true) {
+                                        @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                                        window.localStorage.previousurlflag = "-1";
+                                        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                       
+                                    }
+                                })
+                            }
+                        }
+                        else {
+                            hideProgress();
+                            $('#btnsaveApprove').attr('disabled', false);
+                            jAlert(data, "Message");
+                            return false;
+                        }
+                    }, 'json');
+                }
+                else {
+                    hideProgress();
+                    $('#btnsaveApprove').attr('disabled', false);
+                }
+            });
+        }
+    }
+</script>

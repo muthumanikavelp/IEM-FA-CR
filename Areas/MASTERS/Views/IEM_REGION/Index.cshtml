@@ -1,0 +1,142 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_region>
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Region </span>
+    </div>
+
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span> Region Name  </span>
+                        <br />
+                        <input type="text"
+                               name="filter"
+                               id="txtFilter"
+                               value="@ViewBag.filter"
+                               maxlength="30"
+                               class="fstextbox" />
+
+                    </td>
+                    <td style="width:75%; padding:0px 10px 0px 3px;">
+
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit"
+                                style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-export"></span> Export Excel
+                        </button>
+                        <button type="button" value="New Region" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span> New Region
+                        </button>
+
+
+                    </td>
+                </tr>
+            </table>
+
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+       htmlAttributes: new { id = "gridregion" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+             grid.Column(header: "Region Name", columnName: "region_name"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.region_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.region_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteRegion(" + item.region_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+          
+        </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+            $('#gridregion tr th:nth-child(3)').addClass("nosort");
+            $('#gridregion').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            $(function () {
+                $("#txtFilter").focus();
+            });
+
+            $("#txtFilter").focus();
+            $("#txtFilter").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+            objDialog = $("[id$='ForPartialView']");
+
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 340,
+                height: 150
+            });
+        });
+
+        function NewType() {
+            objDialog.load('../IEM_REGION/Create');
+            objDialog.dialog({ title: 'Add Region' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_REGION/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit Region' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_REGION/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View Region' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteRegion(id) {
+            objDialog.load('../IEM_REGION/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete Region' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=21&FileName=Region&' + new Date().getTime());
+        }
+
+        function refresh() {
+            location = '../IEM_REGION/Index';
+        }
+
+    </script>

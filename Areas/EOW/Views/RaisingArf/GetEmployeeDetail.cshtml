@@ -1,0 +1,219 @@
+﻿@using System.Data
+@using IEM.Areas.EOW.Models
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_arfraising>
+@{
+    if (Session["EmployeeCode"] != null)
+    {
+        //DataTable getemployee = new DataTable();
+        //List<EOW_arfraising> list = new List<EOW_arfraising>();
+        //ArfRaising get = new ArfRaising();
+        //if (Convert.ToString(Session["Search"]) == "")
+        //{
+        //    getemployee = get.GetarfEmployeedetails(Session["EmployeeCode"].ToString());
+        //    foreach (DataRow dr in getemployee.Rows)
+        //    {
+        //        list.Add(
+        //        new EOW_arfraising
+        //        {
+        //            employee_code = dr["employee_code"].ToString(),
+        //            employee_name = dr["employee_name"].ToString(),
+
+        //        });
+        //    };
+        //}
+        //else
+        //{
+
+        //}
+        // WebGrid grid = new WebGrid(source: list, canPage: true, canSort: true);
+        WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "getemp", ajaxUpdateCallback: "DummyFunction201();");
+        grid.Pager(WebGridPagerModes.All);
+        <div id="getemp">
+            @using (Html.BeginForm())
+            {
+                <table class="myTableStyleTabNew">
+
+                    <tr>
+                        <td>
+                            <span> Employee Name </span>
+                            <input name="EmployeeName"
+                                   id="EmployeeName"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeName" />
+                        </td>
+                        <td>
+                            <span> EmployeeCode </span>
+                            <input name="EmployeeCode"
+                                   id="EmployeeCode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeCode" />
+                        </td>
+                        <td>
+                            <span class="input-append">
+
+                                <a id="btnsearch"><span class="glyphicon glyphicon-search cursorpointer" onclick="btnsearch()" style="margin: 26px  -55px 12px  -25px;"></span></a>
+                            </span>
+                        </td>
+                        <td>
+                            <a id="btnrefresh"><span class="glyphicon glyphicon-refresh cursorpointer" onclick="refresh()" style="margin:26px   0px 0px -9px;"></span></a>
+                        </td>
+                    </tr>
+
+                </table>
+                <div class="well">
+                    <div id="gridemp" style="margin-top:17px;">
+                        @functions {
+                            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                            {
+                                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                    "▼" : string.Empty);
+                            }
+                        }
+                        @grid.GetHtml(
+                     htmlAttributes: new { id = "gridempvl" },
+                    mode: WebGridPagerModes.All,
+        tableStyle: "table table-bordered table-hover table-responsive",
+        columns: grid.Columns
+            (
+
+                //grid.Column("creditline_gid ", Sorter("creditline_gid ", "SNo", grid), canSort: false),
+grid.Column("employee_code", Sorter("employee_code", "Employee Code", grid), canSort: false),
+grid.Column("employee_name", Sorter("employee_name", "Employee Name", grid), canSort: false),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                 format: @<text>
+                    @*<input type="hidden" id="empname" name="empname" value="@item.employee_name" />
+                    <input type="hidden" id="empcode" name="empcode" value="@item.employee_code" />
+                    <a><span class="btn btn-link btn" id="EmployeeSearch">Select</span></a>*@
+                        <input type="hidden" id="empname_@item.employee_code" name="empname" value="@item.employee_name" />
+                        <input type="hidden" id="empcode_@item.employee_code" name="empcode" value="@item.employee_code" />
+                        <a><span class="btn btn-link btn-link" onclick="SelectEcfdetails(@item.employee_code)">Select</span></a>                
+                </text>)))
+                    </div>
+                </div>
+            }
+
+            <div>
+
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+                            <div>
+
+                                <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    }
+}
+<script type="text/javascript">
+    //$('.btn').click(function () {
+
+    //    var tr = $(this).parents('tr:first');
+    //    var EmployeeName = tr.find('#empname').val();
+    //    var Employeecede = tr.find('#empcode').val();
+    //    $('#_txtsupempname').val(EmployeeName);
+    //    $('#_txtsupempcode').val(Employeecede);
+    //    var txtSupplierName = $("#_txtsupempname").val();
+    //    if (txtSupplierName.trim() != "") {
+    //        $("#_txtsupempname").removeClass('required');
+    //        $("#_txtsupempname").addClass('valid');
+    //    }
+    //    else {
+    //        $("#_txtsupempname").removeClass('valid');
+    //        $("#_txtsupempname").addClass('required');
+    //    }
+    //    var txtSupplierName = $("#_txtsupempcode").val();
+    //    if (txtSupplierName.trim() != "") {
+    //        $("#_txtsupempcode").removeClass('required');
+    //        $("#_txtsupempcode").addClass('valid');
+    //    }
+    //    else {
+    //        $("#_txtsupempcode").removeClass('valid');
+    //        $("#_txtsupempcode").addClass('required');
+    //    }
+    //    GotoIndex();
+    //});
+
+    function SelectEcfdetails(id) {     
+        var EmployeeName = $("#empname_" + id + "").val();
+        var Employeecede = $("#empcode_" + id + "").val();      
+        $('#_txtsupempname').val(EmployeeName);
+        $('#_txtsupempcode').val(Employeecede);
+        var txtSupplierName = $("#_txtsupempname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_txtsupempname").removeClass('required');
+            $("#_txtsupempname").addClass('valid');
+        }
+        else {
+            $("#_txtsupempname").removeClass('valid');
+            $("#_txtsupempname").addClass('required');
+        }
+        var txtSupplierName = $("#_txtsupempcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_txtsupempcode").removeClass('required');
+            $("#_txtsupempcode").addClass('valid');
+        }
+        else {
+            $("#_txtsupempcode").removeClass('valid');
+            $("#_txtsupempcode").addClass('required');
+        }
+        GotoIndex();
+
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewforemployee').dialog('close');
+    }
+    function DummyFunction201() {
+        $("#gridempvl td:nth-child(2),#gridempvl th:nth-child(2)").show();
+    }
+    function btnsearch() {
+
+        var RaiserName = $('#EmployeeName').val();
+        var RaiserCode = $('#EmployeeCode').val();
+        var pouchmdl = {
+            "employee_name": RaiserName,
+            "employee_code": RaiserCode
+        };
+        
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetEmployeeDetailvl", "RaisingArf")',
+            data: pouchmdl,
+            success: function (data) {
+                $("#getemp").empty().append(data);
+            },
+            error: function () {
+            }
+        });
+    }
+
+    function refresh() {
+
+        var RaiserName = "0";
+        var RaiserCode = "0";
+        var pouchmdl = {
+            "employee_name": RaiserName,
+            "employee_code": RaiserCode
+        };
+        
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetEmployeeDetailvlref", "RaisingArf")',
+            data: pouchmdl,
+            success: function (data) {
+                $("#getemp").empty().append(data);
+            },
+            error: function () {
+            }
+        });
+    }
+</script>
+

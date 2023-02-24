@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "ApproversDocs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">Vendor Selection Opex</span>
+<div ng-app="VSOApp">
+    <div class="well" ng-controller="VSOController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            <div style="width:45%;float:left;">
+                Search&nbsp;
+                <input type="text" ng-model="searchVSO.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right;vertical-align:bottom">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+                @*<input style="float:right" type="button" value="Export" ng-click="ExportDoc()" />*@
+                @*<button class="btn-sm btn-primary" style="float:right" ng-click="ExportDocVS()">
+                        <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                        Export to Excel
+                    </button>*@
+            </div>
+        </div>
+        <div style="width:100%" id="divData">
+            <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                <thead>
+                    <tr class="SortText">
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:7%;" class="cursorpointer" ng-click="SortVSData('DocType')">
+                            Doc Mode
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocType'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                        </th>
+                        <th style="width:15%;" class="cursorpointer" ng-click="SortVSData('DocNumber')">
+                            Ref Number
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocNumber'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                        </th>
+                        <th style="width:15%;" class="cursorpointer" ng-click="SortVSData('DocDate')">
+                            Doc Date
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocDate'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                        </th>
+                        <th style="width:15%;" class="cursorpointer" ng-click="SortVSData('DocAmount')">
+                            Doc Amount
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocAmount'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                        </th>
+                        <th style="width:30%;" class="cursorpointer" ng-click="SortVSData('DocDesc')">
+                            Description
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocDesc'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                        </th>
+                        <th style="width:15%;">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="FilteredItemsQ > 0" ng-repeat="myapproval in myapprovals |orderBy:sortKey:reverse | filter:searchVSO:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:7%;">
+                            {{myapproval.DocType}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocNumber}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocDate}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocAmount}}
+                        </td>
+                        <td style="width:30%;">
+                            {{myapproval.DocDesc}}
+                        </td>
+                        <td style="width:15%;" align="center">
+                            <a ng-click="ViewDoc(myapproval.DocGid)" title="View">
+                                <span class="glyphicon glyphicon-eye-open"></span>
+                            </a>
+                            <a ng-click="VendorSelection(myapproval.DocGid,myapproval.DocType)" title="Proceed">
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="FilteredItemsQ < 1">
+                    <tr>
+                        <td colspan="7" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItemsQ > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItemsQ"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItemsQ}}
+            </div>
+        </div>
+    </div>
+    @*<iframe id="txtArea1" style="display:none"></iframe>
+        <button id="btnExport" onclick="fnExcelReport();"> EXPORT </button>*@
+</div>
+<script type="text/javascript">
+    var queryApp = angular.module('VSOApp', ['ui.bootstrap']);
+    queryApp.service("vsservice", function ($http) {
+        this.VendorSelectionOpexData = function () {
+            var url = '@Url.Action("VendorSelectionOpexData", "Print")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    queryApp.controller('VSOController', function ($scope, vsservice) {
+
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        VendorSelectionOpexData();
+
+        function VendorSelectionOpexData() {
+            var getData = vsservice.VendorSelectionOpexData();
+            getData.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "")
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.myapprovals = Data0;
+                $scope.FilteredItemsQ = $scope.myapprovals.length;
+
+            }, function () {
+                alert('Error While Loading record');
+            });
+        }
+        $scope.ViewDoc = function (docgid) {
+            var url = '@Url.Action("Edit", "CBF")/' + docgid + '/0';
+            window.open(url, "_blank");
+        }
+        $scope.VendorSelection = function (docgid, doctype) {
+           
+            //location = '../CBFVendorSelection/CBFVendorselection?lnid=' + id;
+            if (doctype == "PR"){
+                location = '@Url.Action("VendorSelectionOpexDetails", "Print")?docgid=' + docgid + '&' + new Date().getTime();
+            }
+            else if (doctype == "PAR") {
+                location = '@Url.Action("VendorSelectionOpexDetailsPAR", "Print")?docgid=' + docgid + '&' + new Date().getTime();
+            }
+           
+
+          //  window.open(url, "_blank");
+        }
+        $scope.SortVSData = function (keyname) {
+            $scope.sortKey = keyname;   //set the sortKey to the param passed
+            $scope.reverse = !$scope.reverse; //if true make it false and vice versa
+        }
+        $scope.ExportDocVS = function () {
+            location = '@Url.Action("DTtoExcellVS", "Print")?' + new Date().getTime();
+        }
+    });
+    queryApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

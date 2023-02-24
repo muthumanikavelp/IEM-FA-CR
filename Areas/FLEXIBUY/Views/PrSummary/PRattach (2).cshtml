@@ -1,0 +1,161 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@{
+    ViewBag.Title = "PRattach";
+
+}
+<div>
+    <div >
+        <div id="createsupattachment" class="panel panel-default">
+
+            <table class="myTableStyleTab" style="width:100%;" align="center">
+                <tr>
+                    <td style="padding:10px; width:15%;">
+                        <span>Document Date</span> <br />
+                        <input type="text" name="_AttachDate" id="_AttachDate" value="@System.DateTime.Now.ToShortDateString()"disabled="disabled" maxlength="10" title="Document Date" style="width:100%;" class="textboxStyle " />
+                    </td>
+                    <td style="padding:10px; width:25%;">
+                        <span>Select File</span><br />
+                        <form id="frmDeactivation">
+                            @Html.TextBoxFor(m => m.MyFile, new { @id = "fileupsupplier", type = "file", @class = "textboxStyle", @style ="width:100%;" })
+                        </form>
+                    </td>
+                    <td style="padding:10px; width:15%;">
+                        <span>File Name</span> <br />
+                        <input name="_AttachedFileName" readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" style="width:100%;" value="@Model.attachName" />
+                    </td>
+                    <td style="padding:10px; width:30%;">
+                        <span>Description</span> <br />
+                        <input name="_AttachDescription" id="_AttachDescription" class="textboxStyle" title="Description" type="text" style="width:100%;" value="@Model.attachmentDesc" />
+                    </td>
+                    <td style="padding:10px; width:15%;">
+                        <input type="button" class="btn btn-primary" id="btnSavePRAttachment" value="Save" name="command" style="margin:0px; font-size: 12px;" onclick="SavePRAttachment()" />
+                        <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" style="margin:0px; font-size: 12px;" value="Clear" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel panel-default" style="width:100%;height:100%;">
+        @Html.Partial("BoqAttachgrid")
+    </div>
+</div>
+
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    function back() {
+        objDialog3.dialog('close');
+       // $('#_AttachDate').hide();
+    }
+    function refresh() {
+
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+      //  $('#_AttachDate').val("");
+    }
+
+    //$('#_AttachDate').datepicker({
+    //    dateFormat: 'dd-mm-yy'
+    //});
+   
+
+    function SavePRAttachment() {
+
+            var AttachDate = $("#_AttachDate").val();
+            var AttachFileName = $("#_AttachedFileName").val();
+            var AttachDescription = $("#_AttachDescription").val();
+            var prrefno = $("#txtprrefno").val();
+            var attachmodel = {
+                "attachment1": AttachFileName,
+                "attachmentDesc": AttachDescription,
+                "attachmentdate": AttachDate,
+                "prRefNo": prrefno,
+                "MyFile": "PR"
+            };
+
+            if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+                jAlert("Please Select Attachment Date.", "Error");
+                return false;
+            }
+
+            if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+                jAlert("Please Select Attachmnet.", "Error");
+                return false;
+            }
+            if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+                jAlert("Please Enter Descritption.", "Error");
+                return false;
+            }
+            $.post('@Url.Action("EditPRAttachment", "PrSummary")?' + new Date().getTime(), attachmodel,
+            function (data) {
+                if (data == 0) {
+                    //location = location.href;
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                } else {
+                 
+                    jAlert("Inserted Successfully", "Message", function ()
+                   {
+                        $('#gridattachmenteditnew').load('@Url.Action("BoqAttachgrid", "PrSummary")?' + new Date().getTime());
+                    });
+                   
+                    refresh();
+
+                }
+            }, 'json');
+        }
+
+   
+
+
+
+    var jqXHRData;
+
+    $(document).ready(function () {
+
+
+        initAutoFileUpload();
+
+
+    });
+    function initAutoFileUpload() {
+        'use strict';
+
+        $('#fileupsupplier').fileupload({
+
+            autoUpload: true,
+            url: '@Url.Action("UploadedFiles", "PRRaiser")?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+
+                        }
+                        //alert(data.message);
+                        //  $("#gridattachment").load('../PRRaiser/PRattachgrid?' + new Date().getTime());
+
+                        $("#_AttachedFileName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            alert(textStatus + errorThrown + data);
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    alert(data.files[0].error);
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,74 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_RefNo>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_RefNo> lstPayment = new List<EOW_RefNo>();
+    lstPayment = (List<EOW_RefNo>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.EmployeeePaymenteft(Session["SupplierGid"].ToString(), "S").ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempEmployeeeefds" class="overflowy" style="max-height: 350px;">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPaymentfg = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 100, ajaxUpdateContainerId: "wgempEmployeeeefds", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+    @gridPaymentfg.GetHtml(
+                                                   htmlAttributes: new { id = "wgempEmployeeeefds" },
+                                          tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                  gridPaymentfg.Columns(gridPaymentfg.Column("#", style: "IdColumn", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                                            gridPaymentfg.Column("Beneficiary Name",
+                                                    format: @<text>
+                                                                <label style="font-weight:normal;display:none;" id="RefDescription">@item.RefDescription</label>
+                                                                <label style="font-weight:normal;display:none;" id="RefLiquidationdate">@item.RefLiquidationdate</label>
+                                                                <label style="font-weight:normal;" id="RefNoName">@item.RefNoName</label>
+                                                    </text>, canSort: false, style: "MidColumn20"),
+    gridPaymentfg.Column("RefDescription", objCmnFunctions.Sorter("Bank Account No", "Bank Account No", gridPaymentfg), canSort: false, style: "MidColumn20"),
+    gridPaymentfg.Column("RefLiquidationdate", objCmnFunctions.Sorter("Bank IFSC Code", "Bank IFSC Code", gridPaymentfg), canSort: false, style: "MidColumn20"),
+                                              gridPaymentfg.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                                <span class="btn btn-link btnselect">Select</span>
+                    </text>)))
+
+    @if (@ViewBag.NoRecordsPayment == "NoRecords")
+    {
+        <div class="borderStyle">
+            <b>
+                @ViewBag.NoRecordsFoundPayment
+            </b>
+        </div>
+    }
+</div>
+<br />
+<div align="center" style="width:100%">
+    <input type="button" id="btncanpay" class="btn btn-warning" value="Close" onclick="GotoIndexPaymentmodepopupd()" />
+</div>
+<script>
+    $('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var RefNoName = tr.find("#RefNoName").text();
+        var RefException = tr.find("#RefDescription").text();
+        $("#ddlRefNo option:selected").text(RefException);
+        $("#txtpayBeneficiary").val(RefNoName);
+        $("#ddlRefNo").addClass('valid');
+
+        //$("#txtPaymentAmount").val(RefException);
+        //$("#txtPaymentAmount").addClass('valid');
+        GotoIndexPaymentmodepopupd();
+
+    });
+</script>
+

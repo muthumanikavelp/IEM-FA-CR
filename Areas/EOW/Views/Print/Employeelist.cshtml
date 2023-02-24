@@ -1,0 +1,98 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Employeelst>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_Employeelst> lstPayment = new List<EOW_Employeelst>();
+    lstPayment = (List<EOW_Employeelst>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.GetEmployeeelist(Session["EcfGid"].ToString()).ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempEmployeee">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempEmployeee", ajaxUpdateCallback: "DummyFunction()");
+    //int rowValPayment = 0;
+    }
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+        htmlAttributes: new { id = "wgriEmployeee" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        gridPayment.Columns(
+                //gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                gridPayment.Column("empCode", objCmnFunctions.Sorter("empCode", "Employee Code", gridPayment), canSort: false, style: "ae"),
+                gridPayment.Column("empName", objCmnFunctions.Sorter("empName", "Employee Name", gridPayment), canSort: false, style: "ae"),
+                gridPayment.Column("sign", objCmnFunctions.Sorter("sign", "Employee Signatures", gridPayment), canSort: false, style: "ce")))
+    </div>
+    @if (@ViewBag.NoRecordsPayment == "NoRecords")
+    {
+        <div class="gridMessage" style="width:100%">
+            @ViewBag.NoRecordsFoundPayment
+        </div>
+    }
+</div>
+<style>
+    .ce {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 350px;
+        word-wrap: break-word;
+    }
+
+    .ae {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .de {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .ee {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 50px;
+        word-wrap: break-word;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $("#wgriEmployeee tr #id").click(function () {
+            $('#wgriEmployeee').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+    $(document).ready(function () {
+        var lblDirectorCountemp = $("#lblDirectorCountemp").text();
+        var txtnoofperson = $("#txtnoofperson").val();
+        var val1 = parseFloat(lblDirectorCountemp);
+        var val2 = parseFloat(txtnoofperson);
+
+        if (val1 == val2) {
+            var stylesSelect = $('#addnooffemp');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            var stylesSelect = $('#addnooffemp');
+            stylesSelect.attr('disabled', false);
+        }
+        $("#nooffperson").val(lblDirectorCountemp);
+    });
+</script>

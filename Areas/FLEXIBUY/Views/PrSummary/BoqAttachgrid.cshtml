@@ -1,0 +1,155 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+@{
+    ViewBag.Title = "PRattachgrid";
+    ViewBag.Title = "Index";
+    PrSumEntity objMAttachment = new PrSumEntity();
+    prsummodel objRep = new prsummodel();
+    if ((string)Session["prgid"] != "") {
+        objMAttachment.attachid = Convert.ToString(Session["prgid"]);
+    }
+    Session["cbfdetails"] = objMAttachment.attachid;
+    objMAttachment.attachment = objRep.getattachmentdetails(Convert.ToString(Session["prgid"]), "PR");
+    //objMAttachment = objRep.Attachmentname(objMAttachment);
+    Session["cbfdetails"] = objMAttachment;
+    Model.attachment = objMAttachment.attachment;
+    Session["editattachment"] = objMAttachment;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachmenteditnew", ajaxUpdateCallback: "gridattachmentpr()");
+    int rowcount = 0;
+
+    grid.Pager(WebGridPagerModes.All);
+
+}
+<div id="gridattachmenteditnew">
+    <div class="borderStyle" style="overflow-y: scroll; max-height: 100px; " @*class="overflowy OverflowVisible"*@>
+
+
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment1234pr" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                        grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadPREditAttachments("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+        <input type="button" value="Delete" class="btn btn-link" onclick='DeletePREditAttachment(@item.attachGid)' id="@item.attachGid" title="Delete" />
+                   @* <input type="button" value="Delete" class="btn btn-link" onclick="attachmentDeteleforedit(id)" id="@item.attachGid" title="Delete" />*@
+                </text>)))
+        <div class="borderStyle btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+        <label style="margin-top: 5px;">Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label style="margin-top: 5px;"> - Total No Of Records:@Model.attachment.Count</label>
+    </div>
+</div>
+
+<script>
+    function DownloadPREditAttachments(filename) {
+       
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "PrSummary")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+
+                    location = "@Url.Action("DownloadAttachedFilesNew", "PrSummary")?filename=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function DownloadSupAttachment(filename) {
+        alert(filename);
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../PRRaiser/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../PRRaiser/Download' }
+        }, 'json');
+
+    }
+    function attachmentDeteleforedit(id) {
+        //alert("pr EDIT");
+        //alert(id);
+        var supattachmentmodel =
+                {
+                    "attachment1": id
+                };
+
+        $.post('@Url.Action("DeleteAttachment", "PRRaiser")?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error While Deleting", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+                $('#gridattachmenteditnew').load('@Url.Action("BoqAttachgrid", "PrSummary")?' + new Date().getTime());
+            }
+        }, 'json');
+
+    }
+    function DeletePREditAttachment(id) {
+        alert(id);
+        $.ajax({
+            url: '@Url.Action("DeletePREditAttachment", "PrSummary")?AttachmentGid=' + id + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("Error While Deleting", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    jAlert("Deleted Successfully", "Message", function () {
+                        $('#gridattachmenteditnew').load('@Url.Action("BoqAttachgrid", "PrSummary")?' + new Date().getTime());
+                    });
+
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function gridattachmentpr() {
+
+    }
+</script>
+
+

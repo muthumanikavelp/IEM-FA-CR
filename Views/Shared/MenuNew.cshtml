@@ -1,0 +1,302 @@
+﻿
+<link href="~/Content/cssmenu.css" rel="stylesheet" />
+<script src="~/Scripts/script.js"></script>
+@*<script src="~/Scripts/mootools-core.js"></script>*@
+<link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+@using IEM.Models
+@{
+    List<IEM.Models.MenuModel> menuList = new List<IEM.Models.MenuModel>();
+    IEMDataModel dtm = new IEMDataModel();
+    menuList = dtm.GetMenu().ToList();
+
+    ViewBag.linkimg = "~" + (string)Session["Link"];
+    string path = HttpContext.Current.Request.Url.AbsolutePath;
+    //Uri urlreferrer = HttpContext.Current.Request.UrlReferrer;
+    //ViewBag.Path = path;
+    //ViewBag.urlreferrer = urlreferrer;
+    if (path.ToLower().Contains("/eow/ecf/index") || path.ToLower().Contains("flexispend/ecfstatus/viewecf") || path.ToLower().Contains("/grninward_viewpodetails")) //Pandiaraj 10-05-2019
+    {
+        ViewBag.urlmenu = "N";
+    }
+    else
+    {
+        ViewBag.urlmenu = "Y";
+
+    }
+}
+
+<style>
+    .HeaderImgLeft
+    {
+        margin-top:2.5px !important;
+        margin-right:7.5px !important;
+    }
+</style>
+
+<div id="cssmenu">
+    @*<div  id="menu-line"></div><div id="menu-button">Menu</div>*@
+    @if (ViewBag.urlmenu != "N")
+    {
+        <ul style="display: block;">
+            @foreach (var mp in menuList.Where(p => p.ParentId == 1))
+            {
+                if (Session["loginraisemode"] != null)
+                {
+                    if (@mp.Name == "E-Claims")
+                    {
+                        <li class="has-sub">
+                            <span class="submenu-button"></span>
+                            @if (@mp.url.Trim().ToLower().Contains("/eow/ecf/index"))
+                            {
+                                <a href="@mp.url" target="_blank">@mp.Name</a>
+                            }
+                            else if (!@mp.url.Trim().ToLower().Contains("/eow/ecf/index") && @mp.url.Trim().ToLower().Contains("/eow/"))
+                            {
+                                <a onclick="openwindow('@mp.url',1)" style=" cursor: pointer;">@mp.Name</a>
+                            }
+                            else
+                            {
+                                <a onclick="openwindow('@mp.url',0)" style=" cursor: pointer;">@mp.Name</a>
+                            }
+                            @if (menuList.Count(p => p.ParentId == mp.Id) > 0)
+                            {
+                                @:<ul>
+                 }
+
+                        @RenderMenuItem(menuList, mp)
+
+                        @if (menuList.Count(p => p.ParentId == mp.Id) > 0)
+                        {
+                            @:</ul>
+                        }
+
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="has-sub">
+                        <span class="submenu-button"></span>
+                        @*@if (!@mp.url.Trim().ToLower().Contains("/eow/"))
+                            {
+                                <a href="@mp.url">@mp.Name</a>
+                            }
+                            else*@
+                        @if (@mp.url.Trim().ToLower().Contains("/eow/ecf/index"))
+                        {
+                            <a href="@mp.url" target="_blank">@mp.Name</a>
+                        }
+                        else if (!@mp.url.Trim().ToLower().Contains("/eow/ecf/index") && @mp.url.Trim().ToLower().Contains("/eow/"))
+                        {
+                            <a onclick="openwindow('@mp.url',1)" style=" cursor: pointer;">@mp.Name</a>
+                        }
+                        else
+                        {
+                            <a onclick="openwindow('@mp.url',0)" style=" cursor: pointer;">@mp.Name</a>
+                        }
+                        @if (menuList.Count(p => p.ParentId == mp.Id) > 0)
+                        {
+                            @:<ul>
+                 }
+
+                    @RenderMenuItem(menuList, mp)
+
+                    @if (menuList.Count(p => p.ParentId == mp.Id) > 0)
+                    {
+                        @:</ul>
+                    }
+
+                </li>
+            }
+        }
+    </ul>
+    @helper RenderMenuItem(List<IEM.Models.MenuModel> menuList, IEM.Models.MenuModel mi)
+{
+    foreach (var cp in menuList.Where(p => p.ParentId == mi.Id))
+    {
+        if (Session["loginraisemode"] != null)
+        {
+            if (@cp.Name == "Own Claims" || @cp.Name == "Travel Claim" || @cp.Name == "Non Travel Claim")
+            {
+                @:<li>
+                    <span class="submenu-button"></span>
+
+                    @*if (!@cp.url.Trim().ToLower().Contains("/eow/"))
+                        {
+                            <a href="@cp.url">@cp.Name</a>
+                        }
+                        else*@
+                if (@cp.url.Trim().ToLower().Contains("/eow/ecf/index"))
+                {
+                    <a href="@cp.url" target="_blank">@cp.Name</a>
+                }
+                else if (!@cp.url.Trim().ToLower().Contains("/eow/ecf/index") && @cp.url.Trim().ToLower().Contains("/eow/"))
+                {
+                    <a onclick="openwindow('@cp.url',1)" style=" cursor: pointer;">@cp.Name</a>
+                }
+                else
+                {
+                    <a onclick="openwindow('@cp.url',0)" style=" cursor: pointer;">@cp.Name</a>
+                }
+                if (menuList.Count(p => p.ParentId == cp.Id) > 0)
+                {
+                    @:<ul style="display: block;">
+        }
+
+        @RenderMenuItem(menuList, cp)
+                if (menuList.Count(p => p.ParentId == cp.Id) > 0)
+                {
+                    @:</ul>
+                }
+                else
+                {
+                    @:</li>
+                }
+            }
+        }
+        else
+        {
+            @:<li>
+                <span class="submenu-button"></span>
+            if (@cp.url.Trim().ToLower().Contains("/eow/ecf/index"))
+            {
+                <a href="@cp.url" target="_blank">@cp.Name</a>
+            }
+            else if (!@cp.url.Trim().ToLower().Contains("/eow/ecf/index") && @cp.url.Trim().ToLower().Contains("/eow/"))
+            {
+                <a onclick="openwindow('@cp.url',1)" style=" cursor: pointer;">@cp.Name</a>
+            }
+            else
+            {
+                <a onclick="openwindow('@cp.url',0)" style=" cursor: pointer;">@cp.Name</a>
+            }
+            if (menuList.Count(p => p.ParentId == cp.Id) > 0)
+            {
+                @:<ul style="display: block;">
+        }
+
+        @RenderMenuItem(menuList, cp)
+            if (menuList.Count(p => p.ParentId == cp.Id) > 0)
+            {
+                @:</ul>
+            }
+            else
+            {
+                @:</li>
+            }
+        }
+    }
+}
+    }
+    <div style="position: absolute;top: 4px;right: 0%;">
+        <a style="margin-bottom: 15px;" href="/Loginpage/empLoginPage?pagefor=logoff" onclick="reverturlflag();" class="HeaderImgRight">
+            <span style="color:#fff;" title="Logout" class="glyphicon glyphicon-off"></span>
+        </a>
+        <a class="GenderIconLink" onclick="ShowMyProfile()" title="My Profile"> <img src="@Url.Content(ViewBag.linkimg)" alt="Image" /></a>&nbsp;
+        @*<img src="@ViewBag.linkimg" width="150" height="60" style="margin-top:-4px" />*@
+        <label style="color:#fff;font-family:Verdana;font-size:small;" class="HeaderImgRight">@Session["employee_name"]</label>
+        @if (@Session["login-mode"].ToString() == "Proxy")
+        {
+            <div><label style="margin: -16px 0px 0px 40px;font-family:initial;color: #1c6c92;font-size:small;">@Session["Pto"]-<span>@Session["Proassuser"]</span></label></div>
+        }
+        
+        <a style="margin-bottom: 12px;" href="~/Dashboard/Dashboard/Index" onclick="RedirectToDashboard();" class="HeaderImgLeft">
+            <span style="color:#fff;" title="Dashboard" class="glyphicon glyphicon-th"></span>
+        </a>
+
+
+    </div>
+</div>
+@*<br />*@
+<div style="padding:2px;" id="divMyMenu">
+    @*<input type="hidden" id="currentURL" value="@ViewBag.Path"/>
+    <input type="hidden" id="URLRefferrer" value="@ViewBag.urlreferrer" />*@
+
+</div>
+
+ 
+
+<script type="text/javascript">
+ 
+    
+    
+    function RedirectToDashboard() {
+       @*location = '@Url.Action("index", "DashBoard")';*@
+       //location = "../EOW/DashBoard/index";
+        //window.localStorage.previousurlflag = "-1";       
+
+    }
+    function reverturlflag() {
+        //localStorage.setItem("previousurlflag", "0");
+        window.localStorage.previousurlflag = "-1";
+    }
+
+    function openwindow(url, increment) {
+        debugger;
+        //window.localStorage.menuclick = 'S';
+        var existingURL = location.href.toLowerCase().indexOf('/eow/');
+        //var CurrentURL = $("#currentURL").val();
+        //var URLRefferrer = $("#URLRefferrer").val();
+         if (window.localStorage.previousurlflag == "-1" && increment == 0) {
+            window.open(url, '_self');
+        }
+        else if (window.localStorage.previousurlflag == "-1" && increment == 1) {
+            //localStorage.setItem("previousurlflag", "1");
+            window.localStorage.previousurlflag = "1";            
+            window.open(url, '_self');
+        }
+        else if (window.localStorage.previousurlflag == "1" && increment == 0 && existingURL > 0) {
+            //localStorage.setItem("previousurlflag", "0");
+            window.localStorage.previousurlflag = "-1";
+            window.open(url, '_self');
+        }
+        else if (window.localStorage.previousurlflag == "1" && increment == 1 && existingURL < 0) {
+            //window.open(url, '_self');
+            jAlert('Already a Tab opened with E-Claims Module', 'Warning');
+            return;
+        }       
+        else {
+            window.open(url, '_self');
+        } 
+
+        //localStorage.openpages = Date.now();
+        //var onLocalStorageEvent = function (e) {
+        //    if (e.key == "openpages") {
+        //        // Listen if anybody else opening the same page!
+        //        localStorage.page_available = Date.now();
+        //    }
+        //    if (e.key == "page_available") {
+        //        alert("One more page already open");
+        //    }
+        //};
+        //window.addEventListener('storage', onLocalStorageEvent, false);
+    }
+
+    var objDialogMyMenu1;
+    $(document).ready(function () {
+
+        //CheckingURLReferrer(); 
+        objDialogMyMenu1 = $("[id$='divMyMenu']");
+        objDialogMyMenu1.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            async: false,
+            cache: false
+
+        });
+
+    });
+    function ShowMyProfile() {
+        objDialogMyMenu1.load('/../MASTERS/MyProfile/Index?' + new Date().getTime());
+        objDialogMyMenu1.dialog({
+            title: 'My Profile',
+            width: 1117,
+            height: 570
+        });
+        objDialogMyMenu1.dialog("open");
+    }
+
+</script>

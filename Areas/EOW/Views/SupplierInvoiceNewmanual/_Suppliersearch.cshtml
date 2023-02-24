@@ -1,0 +1,235 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_Employeelst>
+
+@{
+    ViewBag.Title = "Index";
+    var grid = new WebGrid(source: Model, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "searchgrid", ajaxUpdateCallback: "fb_employee();");
+    int rowValAttachment = 0;
+}
+<div id="searchgrid">
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-10" style="width:96%">
+                <table class="myTableStyle">
+                    <tr>
+                        <td style="width:25%">
+                            <span> Supplier Code </span>
+                            <input type="text"
+                                   name="supcode"
+                                   id="supcode"
+                                   value="@ViewBag.suppcode"
+                                   class="textboxStyle" style="width:96%" />
+                        </td>
+                        <td style="width:35%">
+                            <span> Supplier Name </span>
+                            <input type="text"
+                                   name="supname"
+                                   id="supname"
+                                   value="@ViewBag.suppliername"
+                                   class="textboxStyle" style="width:96%" />
+                        </td>
+                        <td>
+                            <span class="input-append">
+                                <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="Selectsearch()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-search"></span> Search</button>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="input-append">
+                                <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="RefreshEmployee()" style="margin-top:20px;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="input-append">
+                                <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="GotoIndexaddemps()"><span style="color:white;font-size:12px" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="emplgrid" class="overflowy" style="max-height: 380px;">
+
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "?" :
+                        "?" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+             grid.Column("#", canSort: false, format: item => rowValAttachment = rowValAttachment + 1),
+             grid.Column("Employee Code", format: @<text>
+                <input type="hidden" id="lblempgid_@item.employeeGid" name="EmployeeId" value="@item.employeeGid" />
+                <input type="hidden" id="lblempcode_@item.employeeGid" name="Employeename" value="@item.empCode" />
+                <input type="hidden" id="lblempname_@item.employeeGid" name="EmployeeId" value="@item.empName" />
+
+                <label style="font-weight:normal;" id="lblempcode">@item.empCode</label>
+                <label style="display:none" id="lblempgid">@item.employeeGid</label>
+            </text>),
+                           grid.Column("Employee Name", format:@<text><label style="font-weight:normal;" id="lblempname">@item.empName</label></text>),
+                  grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                    <a><span class="btn btn-link btn-link" onclick="Selectemp(@item.employeeGid)">Select</span></a>
+                    </text>)))
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#supcode").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNewmanual/AutoCompletecodes",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.SupplierCode, value: item.SupplierCode };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#supname").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNewmanual/AutoCompletenames",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.SupplierName, value: item.SupplierName };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    function Selectbtnclear() {
+        @*var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNewmanual")?' + new Date().getTime() + '&listfor=new';
+        $("#searchgrid").load(url);*@
+        $('#supcode').val('');
+        $('#supname').val('');
+        $("#searchgrid").load('../SupplierInvoiceNewmanual/_Suppliersearch?' + new Date().getTime());
+    }
+    @*$('#btnclearf').click(function () {
+        var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNewmanual")?' + new Date().getTime() + '&listfor=new';
+        $("#searchgrid").load(url);
+        //$("#searchgrid").load('../SupplierInvoiceNewmanual/_Suppliersearch?listfor=new');
+    });*@
+    function Selectsearch() {
+        var empcode = $('#supcode').val();
+        var empname = $('#supname').val();
+        var objownersearch = {
+            "empName": empname,
+            "empCode": empcode
+        };
+        @*$.ajax({
+            type: 'POST',
+            url: '@Url.Action("SupplierSearchnew", "SupplierInvoiceNewmanual")',
+            data: objownersearch,
+            success: function (data) {
+                var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNewmanual")?' + new Date().getTime() + '&listfor=search';
+                $("#searchgrid").load(url);
+                //$("#searchgrid").load('../SupplierInvoiceNewmanual/_Suppliersearch?listfor=search');
+            },
+            error: function () {
+            }
+        });*@
+        $.post('../SupplierInvoiceNewmanual/SupplierSearchnew', objownersearch,
+     function (data) {
+         //$("#searchgrid").load('../SupplierInvoiceNewmanual/_Suppliersearch?listfor=search&' + new Date().getTime());
+         var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNewmanual")?' + new Date().getTime() + '&listfor=search';
+         $("#searchgrid").load(url);
+         setTimeout(function () {
+             $("#supname").val(empname);
+         }, 50);
+
+     }, 'json');
+
+    }
+
+    function Selectemp(id) {
+        var empid = $("#lblempgid_" + id + "").val();
+        var empcode = $("#lblempcode_" + id + "").val();
+        var empname = $("#lblempname_" + id + "").val();
+
+        var objownersearchnew = {
+            "employeeGid": empid,
+            "empCode": empcode,
+            "empName": empname
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("Getsupplier", "SupplierInvoiceNewmanual")',
+            data: objownersearchnew,
+            success: function (data) {
+                $('#txtSuppliercode').val(empcode);
+                $('#txtSuppliercodegid').val(empid);
+                $('#txtSuppliername').val(empname);
+                $("#txtSuppliercode").addClass('valid');
+                $("#txtSuppliername").addClass('valid');
+                GotoIndexaddemps();
+            },
+            error: function () {
+            }
+        });
+    }
+
+    @*$('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var empid = tr.find("#lblempgid").text();
+        var empcode = tr.find("#lblempcode").text();
+        var empname = tr.find('#lblempname').text();
+
+        var objownersearchnew = {
+            "employeeGid": empid,
+            "empCode": empcode,
+            "empName": empname
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("Getsupplier", "SupplierInvoiceNewmanual")',
+            data: objownersearchnew,
+            success: function (data) {
+                $('#txtSuppliercode').val(empcode);
+                //$('#employeeGid').val(empid);
+                $('#txtSuppliername').val(empname);
+                $("#txtSuppliercode").addClass('valid');
+                $("#txtSuppliername").addClass('valid');
+                GotoIndexaddemps();
+            },
+            error: function () {
+            }
+        });
+    });*@
+
+    function GotoIndexaddemps() {
+        objDialogEmployeeadd.dialog("close");
+        objDialogEmployeeadd.remove();
+        window.parent.jQuery('#ForPartialViewsupplieradd').dialog('close');
+    }
+    $('.btnClear').click(function () {
+        $('#supcode').val('');
+        $('#supname').val('');
+    });
+    function fb_employee() {
+        $("#grid td:nth-child(2),#grid th:nth-child(2)").show();
+    }
+</script>

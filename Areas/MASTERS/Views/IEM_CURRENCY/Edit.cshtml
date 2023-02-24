@@ -1,0 +1,223 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_currency
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display:none ;">
+                <input name="CategoryID" id="_Currencygid" type="text" class="fstextbox required" data-val="true" value="@Model.currency_gid" />
+            </td>
+        </tr>
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Currency Code</span>
+                <input name="CategoryeName" id="_Currencycode" maxlength="8" class="fstextbox valid"
+                       type="text" data-val="true" value="@Model.currency_code" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Currency Name</span>
+                <input name="CategoryeName" id="_Currencyname" maxlength="32" type="text"
+                       class="fstextbox valid" data-val="true" value="@Model.currency_name" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;text-align:center;">
+               
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()" style="margin-top:10px;  color:white;">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                        </button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                    }
+            
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                        </button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                        </button>
+                    }
+            </td>
+        </tr>
+    </table>
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_Currencycode").focus();
+        $("#_Currencycode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Currencyname").focus();
+        $("#_Currencyname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Currencycode").keyup(function () {
+            var txtSupplierName = $("#_Currencycode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Currencycode").removeClass('required');
+                $("#_Currencycode").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_Currencycode").removeClass('valid');
+                $("#_Currencycode").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+
+        $("#_Currencyname").keyup(function () {
+            var txtSupplierName = $("#_Currencyname").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Currencyname").removeClass('required');
+                $("#_Currencyname").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_Currencyname").removeClass('valid');
+                $("#_Currencyname").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    function Update() {
+        var currencycode = $("#_Currencycode").val().trim();
+        var currencyname = $("#_Currencyname").val().trim();
+        var currencygid = $("#_Currencygid").val();
+
+        if (currencycode == "") {
+            jAlert("Please Enter Currency Code.", "Information")
+            $("#_Currencycode").focus();
+            return false;
+
+        }
+        if (currencyname == "") {
+            jAlert("Please Enter Currency Name.", "Information", function (r) {
+                if (r == true) {
+                    $("#_Currencyname").focus();
+                    return false;
+                }
+            });
+        }
+
+        var CategoryModel = { "currency_gid": currencygid, "currency_code": currencycode, "currency_name": currencyname };
+
+        $.post('../IEM_CURRENCY/UpdateCurrencyDetails', CategoryModel,
+            function (data) {
+                if (data != "success") {
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    jAlert("Record Updated Successfully !", "Information", function (r) {
+                        if (r == true) {
+                            window.parent.jQuery('#ForPartialView').dialog('close');
+                            location = '../IEM_CURRENCY/Index';
+                        }
+                    });
+
+                }
+            }
+        , 'json');
+
+    }
+    $(".ui-icon-closethick").click(function () {
+        //  $('#gridcurrency').find('tr').css('background', 'none');
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    });
+
+    function goToIndex() {
+      //  $('#gridcurrency').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+
+    }
+
+
+    function DeleteType() {
+        var currencygid = $('#_Currencygid').val();
+        jConfirm("Do you want to delete this Currency ? ", "Delete Currency", function (j) {
+            if (j == true) {
+                var model = { "currency_gid": currencygid }
+                $.post('../IEM_CURRENCY/DeleteCurrencyDetails', model,
+                     function (data) {
+                         if (data == "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_CURRENCY/Index'; }
+                             });
+                         }
+                         else {
+                             jAlert(data, "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_CURRENCY/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+
+    }
+
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#_Currencycode").val().trim() == "" || $("#_Currencycode").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#_Currencyname").val().trim() == "" || $("#_Currencyname").val() == null) {
+            ErrCount = 1;
+        }
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+</script>

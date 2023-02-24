@@ -1,0 +1,219 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.GRNInward
+@using IEM.Common;
+<div id="posummary">
+    <link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+    @{
+        ViewBag.Title = "Index";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        var grid = new WebGrid(source: Model.objInwardList, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+        CmnFunctions obj = new CmnFunctions();
+    }
+    <input type="hidden" id="hid_grngroup" value="@Model.result" />
+    <h2>@*GRN Inward For CWIP Summary*@</h2>
+    <b>
+        <span style="color: rgb(52, 108, 196);">GRN Inward For CWIP Summary</span>
+    </b>
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-10">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>GRN Date</span>
+                                <br />
+                                <input type="text"
+                                       name="grndate"
+                                       id="grndate"
+                                       value="@ViewBag.grndate"
+                                       class="textboxStyle"
+                                       @*placeholder="Enter Date"*@ />
+
+                            </td>
+                            <td>
+                                <span>GRN Ref No</span>
+                                <br />
+                                <input type="text"
+                                       name="grnrefno"
+                                       id="grnrefno"
+                                       value="@ViewBag.grnrefno"
+                                       class="textboxStyle"
+                                       @*placeholder="Enter POref No"*@ />
+
+                            </td>
+                            <td>
+                                <span>Vendor Name</span>
+                                <br />
+                                <input type="text"
+                                       name="vendorname"
+                                       id="vendorname"
+                                       value="@ViewBag.vendorname"
+                                       class="textboxStyle"
+                                       @*placeholder="Enter Vendor Name"*@ />
+
+                            </td>
+                            <td>
+                                <span>Status</span>
+                                <br />
+                                @*@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class="textboxStyleSearch" })*@
+                                @*@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class = "textboxStyle valid" })*@
+                                @*//@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class ="textboxStyleSearch valid" })*@
+
+                                <select name="ddlStatus" id="statusgid" class="textboxStyle">
+                                    <option value="0">Select</option>
+                                    @foreach (var pitem in Model.statusList)
+                                    {
+                                        var childitemfilter = Model.statusList.Where(m => m.Value == pitem.Value);
+                                        if (childitemfilter != null)
+                                        {
+                                            foreach (var citem in childitemfilter)
+                                            {
+                                                string selectedValue = "";
+                                                if (Model.statusgid == Convert.ToInt32(citem.Value))
+                                                {
+                                                    selectedValue = "selected='selected'";
+                                                }
+
+                                                <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                @*<span class="glyphicon glyphicon-search" onclick="searchpo()"></span>*@
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                        type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                                @*<button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(245, 245, 245);" name="command" type="submit"></button>*@
+                            </td>
+                            <td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                                </button>
+                                @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                            </td>
+                            @*<td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnrefresh" value="Clear" onclick="ProdServrefresh()" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                                @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                            @*</td>*@
+                        </tr>
+                    </table>
+                </div>
+                <table class="myTableStyleTabNew" style="float:right;padding-right:20px;margin-top: 20px;">
+                    <tr>
+                        <td>
+                            <div style="float:right;padding-right:20px;" class="myTableStyle">
+                                <button type="button" id="grn_add" value="RAISE GRN" class="btn btn-primary cursorpointer">
+                                    <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> ADD GRN
+                                </button>
+                                @*<input type="button" value="RAISE PO" id="raisepo" class="btn btn-primary" />*@
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="grnGrid">
+
+            </div>
+            <div style="margin-top:17px" id="pogrid1">
+                <div>
+
+                    @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grnheadergrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+            grid.Column("slno", obj.Sorter("slno", "Sl", grid)),
+       grid.Column("grnDate", obj.Sorter("poDate", "GRN Date", grid)),
+       grid.Column("grnRefNo", obj.Sorter("grnRefNo", "GRN Ref No", grid)),
+       grid.Column("poRefNo", obj.Sorter("poRefNo", "PO Ref No", grid)),
+       grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid)),
+       grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), style: "rightAlign"),
+       grid.Column("grnStatus", obj.Sorter("grnStatus", "Status", grid)),
+
+          grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+            @if (@item.grnStatus == "Draft" || @item.grnStatus == "Reject")
+            {
+                <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewGrn(id)" id="@item.grnheadgid" title="View" type="button"></button>
+                <button class="glyphicon glyphicon-edit Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditGrn(id)" id="@item.grnheadgid" title="Edit" type="button"></button>
+            }
+            else
+            {
+                <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewGrn(id)" id="@item.grnheadgid" title="View" type="button"></button>
+                <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="EditGrn(id)" id="@item.grnheadgid" title="Edit" type="button"></button>
+            }
+            @*<button id="Color" class="glyphicon glyphicon-eye-open" title="View" onclick="ViewProduct(@item.poDetgid)"></<button>
+                <button  id="Color" class="glyphicon glyphicon-edit" title="Edit" onclick="EditProduct(@item.poDetgid)"></<button >
+                <button  id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteProduct(@item.poDetgid)"></button>
+                <button  id="Color" class="glyphicon glyphicon-remove" disabled="disabled" title="Cancel" onclick="CancelProduct(@item.poDetgid)"></button>*@
+            @*<span class="glyphicon glyphicon-search" onclick="ViewProduct(@item.poRefNo)"></span>
+                <span class="glyphicon glyphicon-trash" onclick="EditProduct(@item.poRefNo)"></span>
+                <span class="glyphicon glyphicon-remove" onclick="DeleteProduct(@item.poRefNo)"></span>*@
+                    </text>)))
+                </div>
+
+                @if (@ViewBag.records != null || @ViewBag.records == "")
+                {
+                    <div class="borderStyle btnCenter">
+                        @ViewBag.records
+                    </div>
+                }
+                <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.objInwardList.Count</label>
+            </div>
+        </div>
+
+    }
+
+    <script type="text/javascript">
+        var tr = $("#grnheadergrid").find('tr');
+        $("#grnheadergrid tr .Color").click(function () {
+            $('#grnheadergrid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+        $(document).ready(function () {
+            $("#statusgid").removeClass('required');
+            $("#statusgid").removeClass('valid');
+            $("#grndate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd-mm-yy'
+            });
+            var group = $("#hid_grngroup").val();
+            if(group=="IT" || group=="PIP")
+            {
+                $("#grn_add").attr("disabled", false);
+            }
+            else {
+                $("#grn_add").attr("disabled", true);
+            }
+        });
+        $('#grn_add').click(function () {
+         
+            var grnType = 'cwip';
+            location = '@Url.Action("GrnSelectionForPo", "GrnSelectionPo")?grnType=' + grnType;
+        });
+        function ViewGrn(id)
+        {
+            var viewfor = "view";
+            var grnType = "cwip";
+            location = '@Url.Action("GrnInwardViewDetails", "GrnSelectionPo")?grnheadGid=' + id + '&viewfor=' + viewfor + '&grnType=' + grnType;
+        }
+        function EditGrn(id) {
+            var viewfor = "edit";
+            var grnType = "cwip";
+            location = '@Url.Action("GrnInwardViewDetails", "GrnSelectionPo")?grnheadGid=' + id + '&viewfor=' + viewfor + '&grnType=' +grnType;
+        }
+    </script>
+</div>

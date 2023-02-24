@@ -1,0 +1,694 @@
+﻿@using IEM.Areas.ASMS.Models
+@model IEM.Areas.ASMS.Models.SupActivity
+@{
+    SupDataModel dm = new SupDataModel();
+    SupActivity sa = new SupActivity();
+    SupplierHeader sh1 = (SupplierHeader)ViewBag.supplierheader;
+    if (sh1.selectedServiceID == 0 || sh1.selectedServiceID == null)
+    {
+        if (Session["ServiceTypeId"] != null)
+        {
+            sh1.selectedServiceID = (int)Session["ServiceTypeId"];
+        }
+
+    }
+    sa.lstActivity = new SelectList(dm.GetActivityName(), "_ActivityNameID", "_ActivityName", sh1.selectedServiceID);
+    sa.lstBidding = new SelectList(dm.GetBidding(), "_BiddingID", "_BiddingName");
+    //sa.lstCategory = new SelectList(Enumerable.Empty<SelectListItem>());
+    //sa.lstSubCategory = new SelectList(Enumerable.Empty<SelectListItem>());
+
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<table class="myTableStyleTabNew" width="100%">
+    <tr>
+        <td style="width:32%">
+            <input type="hidden" name="_ActivityID" id="_ActivityID" />
+            <span>Activity Type</span><br />
+            <div style="height:27px;padding-top:5px;font-weight:normal;">
+                <input type="radio" id="rbActivityProduct" name="IsProductService" value="P" checked="checked" /> Product
+                &nbsp;<input type="radio" id="rbActivityService" name="IsProductService" value="S" tabindex="5" /> Service
+            </div>
+        </td>
+        <td style="width:32%">
+            <span>Activity Name</span><br />
+            @Html.DropDownListFor(j => j.selectedActivityNameID, sa.lstActivity, "--select--", new { @class = "textboxStyle", @id = "selectedActivityNameID" })
+        </td>
+        <td style="width:34%" colspan="2">
+            <span>Description Of Service/Product</span><br />
+            <input type="text" name="_DescOfActivityType" id="_DescOfActivityType" class="textboxStyle" />
+        </td>
+    </tr>
+    <tr>
+        @*<td>
+              <span>Category</span><br />
+                @Html.DropDownListFor(j => j.selectedcategoryID, sa.lstCategory, "--select--", new { @class = "textboxStyle", @id = "selectedcategoryID"})
+            </td>
+            <td>
+                <span>Sub Category</span><br />
+                @Html.DropDownListFor(j => j.selectedSubcategoryID, sa.lstSubCategory, "--select--", new { @class = "textboxStyle", @id = "selectedSubcategoryID" })
+            </td>*@
+        <td style="width:32%">
+            <span>Activity Start Date</span><br />
+            <input type="text" name="_ActivityStartDate" id="_ActivityStartDate" class="textboxStyle" placeholder="dd-MM-yyyy" />
+
+        </td>
+        <td style="width:32%">
+            <span>Activity End Date</span><br />
+            <input type="text" name="_ActivityEndDate" id="_ActivityEndDate" class="textboxStyle" placeholder="dd-MM-yyyy" />
+        </td>
+        <td style="width:17%">
+            <span>Projected Contract Spend</span><br />
+            <input type="text" name="_ProjectContractSpend" id="_ProjectContractSpend" class="textboxStyle" />
+        </td>
+        <td style="width:17%">
+            <span>Saves</span><br />
+            <input type="text" name="_Saves" id="_Saves" class="textboxStyle" />
+        </td>
+    </tr>
+    <tr>
+        <td style="width:32%">
+            <span>@System.Configuration.ConfigurationManager.AppSettings["CompanyName"] Officer Incharge</span><br />
+            <input type="hidden" name="_OIC" id="_OIC" tabindex="6" />
+            <input type="text" class="textboxStyle90" name="_OICName" id="_OICName" />
+            <a class="InlineIconStyle" onclick="GetEmployeeOIC('oic')"><span class="glyphicon glyphicon-search"></span></a>
+        </td>
+        <td style="width:32%">
+            <span>Supplier Contact Person</span><br />
+            <input type="hidden" name="_ContactPerson" id="_ContactPerson" tabindex="6" />
+            <input type="text" class="textboxStyle90" name="_ContactPersonName" id="_ContactPersonName" />
+            <a class="InlineIconStyle" onclick="GetEmployeeOIC('contactperson')"><span class="glyphicon glyphicon-search"></span></a>
+        </td>
+        <td style="width:17%">
+            <span title="This provides indemnity against loss or damage to property following forcible or violent entry or exit from the insured’s premises. This covers assets such as office equipment, stock in trade, furniture, fixtures and fittings">Fidelity Insurance Reqd.</span><br />
+            <div style="height:27px;padding-top:5px;font-weight:normal;">
+                <input type="radio" id="rbFidelityYes" name="IsFidelity" value="Y" checked="checked" /> Yes
+                &nbsp;<input type="radio" id="rbFidelityNo" name="IsFidelity" value="N" /> No
+            </div>
+        </td>
+        <td style="width:17%">
+            <span>Bidding</span><br />
+            @Html.DropDownListFor(j => j.selectedBiddingID, sa.lstBidding, "--select--", new { @class = "textboxStyle", @id = "selectedBiddingID" })
+        </td>
+    </tr>
+    <tr>
+        <td style="width:64%" colspan="2">
+            <span>Reason</span><br />
+            <input type="text" class="textboxStyle100" name="_Reason" id="_Reason" />
+        </td>
+        <td style="width:35%" style="text-align:right;" colspan="2">
+            <div class="divforbutton" style="vertical-align:bottom; margin-top:20px;">
+                <button style="color:white;font-size: 13px;" onclick="SaveActivityDetails()" id="btnSaveActivityDetails" class="btn btn-primary"><span style="color:white;font-size: 13px;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                <button style="color:white;font-size: 13px;" id="btnClearActivityDetails" onclick="ClearActivityDetails()" class="btn btn-primary"><span style="color:white;font-size: 13px;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    var pageMode;
+    $(document).ready(function () {
+        var pickerOpts2 = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+        pageMode = '@ViewBag.PageMode';
+        if (pageMode == 2 || pageMode == 3 || pageMode == 4 || pageMode == 5 || pageMode == 6) {
+            var ownerCode = '@sh1._OwnerCode';
+            var ownerName = '@sh1._OwnerName';
+            var ownerGid = parseInt(@sh1._OwnerId);
+            var oicname = ownerCode + "-" + ownerName;
+            $("#_OIC").val(ownerGid);
+            $("#_OICName").val(oicname);
+
+        }
+
+        $("#selectedActivityNameID,#selectedBiddingID").chosen({});
+        $("#selectedActivityNameID_chosen,#selectedBiddingID_chosen").css("width", "99%");
+
+        $("#_OICName").attr("disabled", "disabled");
+        $("#_ContactPersonName").attr("disabled", "disabled");
+        $("#_ActivityStartDate").datepicker(pickerOpts2);
+        $("#_ActivityEndDate").datepicker(pickerOpts2);
+
+        $("#_ActivityID").val("0");
+        $("#_DescOfActivityType").attr("maxlength", "128");
+        $("#_ProjectContractSpend").attr("maxlength", "19");
+        $("#_Saves").attr("maxlength", "19");
+        $("#_Reason").attr("disabled", "disabled");
+        $("#_DescOfActivityType").addClass('required');
+        $("#selectedBiddingID_chosen").addClass('required');
+        // $("#_ActivityStartDate").addClass('required');
+        //  $("#_ActivityEndDate").addClass('required');
+        $("#selectedActivityNameID_chosen").addClass('required');
+        //$("#selectedcategoryID").addClass('required');
+        //$("#selectedSubcategoryID").addClass('required');
+        // $("#_Saves").addClass('required');
+        //  $("#_ProjectContractSpend").addClass('required');
+        $("#_OICName").addClass('required');
+        $("#_ContactPersonName").addClass('required');
+        $("#_Reason").removeClass('valid');
+        $("#_Reason").removeClass('required');
+        var activitytype1 = $('input:radio[name=IsProductService]:checked').val();
+        @*var objSupActivity =
+      {
+          "_Activitytype": activitytype1
+      };
+        $.ajax({
+            url: '@Url.Action("GetCategory", "Onboarding")',
+            data: JSON.stringify(objSupActivity),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedcategoryID").empty();
+                if (data.length > 0) {
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedcategoryID').attr('disabled', false);
+                        $("#selectedcategoryID").append("<option value=" + data[i]._CategoryID + " >" + data[i]._CategoryName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedcategoryID").empty();
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    $('#selectedcategoryID').val('0');
+                    $('#selectedcategoryID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });*@
+
+        if ($("#selectedBiddingID").val() != "0" && $("#selectedBiddingID").val() != "") {
+            $("#selectedBiddingID_chosen").addClass('valid');
+            $("#selectedBiddingID_chosen").removeClass('required');
+        }
+        else {
+            $("#selectedBiddingID_chosen").addClass('required');
+            $("#selectedBiddingID_chosen").removeClass('valid');
+        }
+        if ($("#selectedActivityNameID").val() != "0" && $("#selectedActivityNameID").val() != "") {
+            $("#selectedActivityNameID_chosen").addClass('valid');
+            $("#selectedActivityNameID_chosen").removeClass('required');
+        }
+        else {
+            $("#selectedActivityNameID_chosen").addClass('required');
+            $("#selectedActivityNameID_chosen").removeClass('valid');
+        }
+        //if ($("#selectedcategoryID").val() != "0" && $("#selectedcategoryID").val() != "") {
+        //    $("#selectedcategoryID").addClass('valid');
+        //    $("#selectedcategoryID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedcategoryID").addClass('required');
+        //    $("#selectedcategoryID").removeClass('valid');
+        //}
+        //if ($("#selectedSubcategoryID").val() != "0" && $("#selectedSubcategoryID").val() != "") {
+        //    $("#selectedSubcategoryID").addClass('valid');
+        //    $("#selectedSubcategoryID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedSubcategoryID").addClass('required');
+        //    $("#selectedSubcategoryID").removeClass('valid');
+        //}
+        if ($("#_DescOfActivityType").val() != "" && $("#_DescOfActivityType").val() != null) {
+            $("#_DescOfActivityType").addClass('valid');
+            $("#_DescOfActivityType").removeClass('required');
+        }
+        else {
+            $("#_DescOfActivityType").addClass('required');
+            $("#_DescOfActivityType").removeClass('valid');
+        }
+        //if ($("#_ActivityStartDate").val() != "" && $("#_ActivityStartDate").val() != null) {
+        //    $("#_ActivityStartDate").addClass('valid');
+        //    $("#_ActivityStartDate").removeClass('required');
+        //}
+        //else {
+        //    $("#_ActivityStartDate").addClass('required');
+        //    $("#_ActivityStartDate").removeClass('valid');
+        //}
+        //if ($("#_ActivityEndDate").val() != "" && $("#_ActivityEndDate").val() != null) {
+        //    $("#_ActivityEndDate").addClass('valid');
+        //    $("#_ActivityEndDate").removeClass('required');
+        //}
+        //else {
+        //    $("#_ActivityEndDate").addClass('required');
+        //    $("#_ActivityEndDate").removeClass('valid');
+        //}
+        //if ($("#_Saves").val() != "" && $("#_Saves").val() != null) {
+        //    $("#_Saves").addClass('valid');
+        //    $("#_Saves").removeClass('required');
+        //}
+        //else {
+        //    $("#_Saves").addClass('required');
+        //    $("#_Saves").removeClass('valid');
+        //}
+        //if ($("#_ProjectContractSpend").val() != "" && $("#_ProjectContractSpend").val() != null) {
+        //    $("#_ProjectContractSpend").addClass('valid');
+        //    $("#_ProjectContractSpend").removeClass('required');
+        //}
+        //else {
+        //    $("#_ProjectContractSpend").addClass('required');
+        //    $("#_ProjectContractSpend").removeClass('valid');
+        //}
+        if ($("#_OICName").val() != "" && $("#_OICName").val() != null) {
+            $("#_OICName").addClass('valid');
+            $("#_OICName").removeClass('required');
+        }
+        else {
+            $("#_OICName").addClass('required');
+            $("#_OICName").removeClass('valid');
+        }
+        if ($("#_ContactPersonName").val() != "" && $("#_ContactPersonName").val() != null) {
+            $("#_ContactPersonName").addClass('valid');
+            $("#_ContactPersonName").removeClass('required');
+        }
+        else {
+            $("#_ContactPersonName").addClass('required');
+            $("#_ContactPersonName").removeClass('valid');
+        }
+
+        $("#_ProjectContractSpend").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#_ProjectContractSpend").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#_ProjectContractSpend").val(replaceCommas(currentval));
+            //return isAmount(event, this);
+            //IsMandatoryActivityDetails(this);
+        });
+
+        $("#_Saves").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#_Saves").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#_Saves").val(replaceCommas(currentval));
+            //IsMandatoryActivityDetails(this);
+        });
+
+        $("#_DescOfActivityType,#_Reason").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+
+    });
+
+    
+    @*$('input:radio[name=IsProductService]').live('change',function () {
+        var activitytype2 = $('input:radio[name=IsProductService]:checked').val();
+        var objSupActivity =
+        {
+            "_Activitytype": activitytype2
+        };
+        $.ajax({
+            url: '@Url.Action("GetCategory", "Onboarding")',
+            data: JSON.stringify(objSupActivity),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedcategoryID").empty();
+                if (data.length > 0) {
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedcategoryID').attr('disabled', false);
+                        $("#selectedcategoryID").append("<option value=" + data[i]._CategoryID + " >" + data[i]._CategoryName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedcategoryID").empty();
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    $('#selectedcategoryID').val('0');
+                    $('#selectedcategoryID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+
+    });*@
+    @*$("#selectedcategoryID").change(function () {
+
+        var CategoryID = $(this).val();
+        var objSupActivity =
+       {
+           "selectedcategoryID": CategoryID
+       };
+        $.ajax({
+            url: '@Url.Action("GetSubcategory", "Onboarding")',
+            data: JSON.stringify(objSupActivity),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedSubcategoryID").empty();
+                if (data.length > 0) {
+                    $("#selectedSubcategoryID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedSubcategoryID').attr('disabled', false);
+                        $("#selectedSubcategoryID").append("<option value=" + data[i]._SubCategoryID + " >" + data[i]._SubCategoryName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedSubcategoryID").empty();
+                    $("#selectedSubcategoryID").append("<option value='0' >--Select--</option>");
+                    $('#selectedSubcategoryID').val('0');
+                    $('#selectedSubcategoryID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong","Error");
+            }
+        });
+    });*@
+
+    $("#selectedBiddingID").change(function () {
+        //IsMandatoryActivityDetails(this);
+        var txtval = $("#selectedBiddingID").val();
+        if (txtval.trim() != "") {
+            $("#selectedBiddingID_chosen").removeClass('required');
+            $("#selectedBiddingID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedBiddingID_chosen").removeClass('valid');
+            $("#selectedBiddingID_chosen").addClass('required');
+        }
+        if ($("#selectedBiddingID option:selected").text().toUpperCase().substring(0, 2) == "NA") {
+            $("#_Reason").removeAttr("disabled");
+            $("#_Reason").removeClass('valid');
+            $("#_Reason").addClass('required');
+        }
+        else {
+            $("#_Reason").val("");
+            $("#_Reason").attr("disabled", "disabled");
+            $("#_Reason").removeClass('valid');
+            $("#_Reason").removeClass('required');
+
+        }
+
+    });
+    //$("#selectedcategoryID").change(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    //$("#selectedSubcategoryID").change(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    $("#selectedActivityNameID").change(function () {
+        //IsMandatoryActivityDetails(this);
+        var txtval = $("#selectedActivityNameID").val();
+        if (txtval.trim() != "") {
+            $("#selectedActivityNameID_chosen").removeClass('required');
+            $("#selectedActivityNameID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedActivityNameID_chosen").removeClass('valid');
+            $("#selectedActivityNameID_chosen").addClass('required');
+        }
+    });
+    $("#_DescOfActivityType").keyup(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    //$("#_ActivityStartDate").change(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    //$("#_ActivityEndDate").change(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    //$("#_ProjectContractSpend").keyup(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    //$("#_Saves").keyup(function () {
+    //    IsMandatoryActivityDetails(this);
+    //});
+    $("#_Reason").keyup(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    $("#_OICName").change(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    $("#_OICName").keyup(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    $("#_ContactPersonName").keyup(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    $("#_ContactPersonName").change(function () {
+        IsMandatoryActivityDetails(this);
+    });
+    function IsMandatoryActivityDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function SaveActivityDetails() {
+        var activitytype = $('input:radio[name=IsProductService]:checked').val();
+        var descofactivitytype = $("#_DescOfActivityType").val();
+        //var categorygid = $("#selectedcategoryID").val();
+        //var subcategorygid = $("#selectedSubcategoryID").val();
+        var fidelityinsurancereqd = $('input:radio[name=IsFidelity]:checked').val();
+        var oic = $("#_OIC").val();
+        var contactperson = $("#_ContactPerson").val();
+        var projectcontractspend = $("#_ProjectContractSpend").val().replace(",", "");
+        var saves = $("#_Saves").val().replace(",", "");
+        var activitynamegid = $("#selectedActivityNameID").val();
+        var activitystartdate = $("#_ActivityStartDate").val();
+        var activityenddate = $("#_ActivityEndDate").val();
+        var biddinggid = $("#selectedBiddingID").val();
+        var reason = $("#_Reason").val();
+        var ids = parseInt($("#_ActivityID").val());
+        if (saves == '' || saves == null || saves == 0) {
+            saves = 0;
+        }
+        if ($.trim(descofactivitytype) == "" || $.trim(descofactivitytype) == "0") {
+            jAlert("Please Enter Description Of Activity", "Error", function () {
+                $("#_DescOfActivityType").focus();
+            });
+            return false;
+        }
+        if ($.trim(biddinggid) == "" || $.trim(biddinggid) == "0") {
+            jAlert("Please Select Bidding", "Error", function () {
+                $("#selectedBiddingID").focus();
+            });
+            return false;
+        }
+        //if ($.trim(categorygid) == "" || $.trim(categorygid) == "0") {
+        //    jAlert("Please Select Category", "Error", function () {
+        //        $("#selectedcategoryID").focus();
+        //    });
+        //    return false;
+        //}
+        //if ($.trim(subcategorygid) == "" || $.trim(subcategorygid) == "0") {
+        //    jAlert("Please Select Sub Category", "Error", function () {
+        //        $("#selectedSubcategoryID").focus();
+        //    });
+        //    return false;
+        //}
+        //if ($.trim(projectcontractspend) == "" || $.trim(projectcontractspend) == "0" || $.trim(projectcontractspend) == null) {
+        //    jAlert("Please Enter Projected Contract Spend", "Error", function () {
+        //        $("#_ProjectContractSpend").focus();
+        //    });
+        //    return false;
+        //}
+        //if ($.trim(saves) == "" || $.trim(saves) == "0" || $.trim(saves) == null) {
+        //    jAlert("Please Enter Saves", "Error", function () {
+        //        $("#_Saves").focus();
+        //    });
+        //    return false;
+        //}
+        if ($.trim(activitynamegid) == "" || $.trim(activitynamegid) == "0") {
+            jAlert("Please Select Activity", "Error", function () {
+                $("#selectedActivityNameID").focus();
+            });
+            return false;
+        }
+        //if ($.trim(activitystartdate) == "" || $.trim(activitystartdate) == "0") {
+        //    jAlert("Please Enter Actiity Start Date", "Error", function () {
+        //        $("#_ActivityStartDate").focus();
+        //    });
+        //    return false;
+        //}
+        //if ($.trim(activityenddate) == "" || $.trim(activityenddate) == "0") {
+        //    jAlert("Please Enter Activity End Date", "Error", function () {
+        //        $("#_ActivityEndDate").focus();
+        //    });
+        //    return false;
+        //}
+        if ($.trim(oic) == "" || $.trim(oic) == "0") {
+            jAlert("Please Select Valid OIC", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if ($.trim(contactperson) == "" || $.trim(contactperson) == "0") {
+            jAlert("Please Select valid Contact Person", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if ($("#selectedBiddingID option:selected").text().toUpperCase().substring(0, 2) == "NA") {
+            if ($.trim(reason) == "" || $.trim(reason) == "0") {
+                jAlert("Please Enter Reason", "Error", function () {
+                    $("#_Reason").focus();
+                });
+                return false;
+            }
+        }
+
+        var objSupActivity = {
+            "_ActivityID": ids,
+            "_Activitytype": activitytype,
+            "_FidelityInsuranceReqd": fidelityinsurancereqd,
+            "_DescOfActivityType": descofactivitytype,
+            //"selectedcategoryID": categorygid,
+            //"selectedSubcategoryID": subcategorygid,
+            "_OIC": oic,
+            "_ContactPerson": contactperson,
+            "_ProjectContractSpend": projectcontractspend,
+            "_Saves": saves,
+            "selectedActivityNameID": activitynamegid,
+            "_ActivityStartDate": activitystartdate,
+            "_ActivityEndDate": activityenddate,
+            "selectedBiddingID": biddinggid,
+            "_ActivityEndDate": activityenddate,
+            "_Reason": reason
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateActivityDetails", objSupActivity, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "Message");
+                    ClearActivityDetails();
+                    $("#wgActivity").load("../onboarding/SupActivityDetails?" + new Date().getTime());
+                }
+            }, 'json');
+
+        }
+        else {
+            $.post("../Onboarding/EditActivityDetailsSave", objSupActivity, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "Message");
+                    ClearActivityDetails();
+                    $("#wgActivity").load("../onboarding/SupActivityDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearActivityDetails() {
+        $("#rbActivityProduct").prop("checked", true);
+        $("#rbActivityService").prop("checked", false);
+        $("#rbFidelityYes").prop("checked", true);
+        $("#rbFidelityNo").prop("checked", false);
+        $("#_DescOfActivityType").val("");
+        //$("#selectedcategoryID").val("0");
+        //$("#selectedSubcategoryID").val("0");
+        $("#_OICName").val("");
+        $("#_ContactPersonName").val("");
+        $("#_OIC").val("0");
+        $("#_ContactPerson").val("0");
+        $("#_ProjectContractSpend").val("");
+        $("#_Saves").val("");
+        $("#selectedActivityNameID").val("").trigger('chosen:updated');
+        $("#_ActivityStartDate").val("");
+        $("#_ActivityEndDate").val("");
+        $("#selectedBiddingID").val("").trigger('chosen:updated');
+        $("#_ActivityID").val("0");
+        $("#rbActivityProduct").focus();
+        $("#_Reason").val("");
+
+        $("#_DescOfActivityType").removeClass('valid');
+        $("#selectedBiddingID_chosen").removeClass('valid');
+        //  $("#_ActivityStartDate").removeClass('valid');
+        //  $("#_ActivityEndDate").removeClass('valid');
+        $("#selectedActivityNameID_chosen").removeClass('valid');
+        //$("#selectedcategoryID").removeClass('valid');
+        //$("#selectedSubcategoryID").removeClass('valid');
+        $("#_Saves").removeClass('valid');
+        //   $("#_ProjectContractSpend").removeClass('valid');
+        $("#_OICName").removeClass('valid');
+        $("#_ContactPersonName").removeClass('valid');
+        $("#_Reason").removeClass('valid');
+        $("#_Reason").removeClass('required');
+        $("#_Reason").attr("disabled", "disabled");
+        $("#_DescOfActivityType").addClass('required');
+        $("#selectedBiddingID_chosen").addClass('required');
+        // $("#_ActivityStartDate").addClass('required');
+        // $("#_ActivityEndDate").addClass('required');
+        $("#selectedActivityNameID_chosen").addClass('required');
+        //$("#selectedcategoryID").addClass('required');
+        //$("#selectedSubcategoryID").addClass('required');
+        // $("#_Saves").addClass('required');
+        //  $("#_ProjectContractSpend").addClass('required');
+        $("#_OICName").addClass('required');
+        $("#_ContactPersonName").addClass('required');
+
+        @*var activitytype3 = $('input:radio[name=IsProductService]:checked').val();
+        var objSupActivity =
+        {
+            "_Activitytype": activitytype3
+        };
+        $.ajax({
+            url: '@Url.Action("GetCategory", "Onboarding")',
+            data: JSON.stringify(objSupActivity),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedcategoryID").empty();
+                if (data.length > 0) {
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedcategoryID').attr('disabled', false);
+                        $("#selectedcategoryID").append("<option value=" + data[i]._CategoryID + " >" + data[i]._CategoryName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedcategoryID").empty();
+                    $("#selectedcategoryID").append("<option value='0' >--Select--</option>");
+                    $('#selectedcategoryID').val('0');
+                    $('#selectedcategoryID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });*@
+    }
+
+
+</script>

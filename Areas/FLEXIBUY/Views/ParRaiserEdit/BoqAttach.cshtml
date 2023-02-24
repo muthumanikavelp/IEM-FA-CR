@@ -1,0 +1,196 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Index";
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "checker" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+
+}
+<div id="createsupattachment" class="borderstyle panel panel-default">
+
+    <table class="myTableStyleTab" style="width:100%;" id="tableid">
+        <tr>
+            <td style="width:15%; padding: 10px;">
+                <span>Document Date</span> <br />
+                <input type="text" name="Cbf_AttachDate" @ViewBag.viewmode id="_AttachDate" value="@System.DateTime.Now.ToShortDateString()" disabled="disabled" maxlength="10" title="Document Date" class="textboxStyle valid" style="width:100%;" />
+            </td>
+            <td style="width:25%; padding: 10px;">
+                <span>Select File</span><br />
+                <form id="frmDeactivation">
+                    @Html.TextBoxFor(m => m.boqfile, new { @id = "txtUploadFile", type = "file", @class = "txtUploadSupAttachmentFile textboxStyleBig" })
+                </form>
+            </td>
+            <td style="width:15%; padding: 10px;">
+                <span>File Name</span> <br />
+                <input name="_AttachedFileName" @ViewBag.viewmode readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" value="@Model.attachment1" style="width:100%;" />
+            </td>
+            <td style="width:30%; padding: 10px;">
+                <span>Description</span> <br />
+                <input name="_AttachDescription" @ViewBag.viewmode id="_AttachDescription" class="textboxStyle" title="Description" type="text" value="@Model.des" style="width:100%;" />
+            </td>
+            <td style="width:15%; padding: 10px; text-align:left;">
+                <input type="button" name="btnSaveSupAttachment  @ViewBag.viewmode" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+                <input type="button" class="btn btn-primary" @ViewBag.viewmode id="btnclear" onclick="refresh()" name="command" value="Clear" />
+            </td>
+        </tr>
+    </table>
+
+    
+</div>
+<div>
+    @Html.Partial("boqattachgrid")
+</div>
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    function back() {
+        window.parent.jQuery('#boqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+    }
+
+    //$('#txtUploadFile').on('change', function (e) {
+    //    var files = e.target.files;
+    //    if (files.length > 0) {
+    //        if (window.FormData !== undefined) {
+    //            var data = new FormData();
+    //            for (var x = 0; x < files.length; x++) {
+
+    //                data.append("temp_" + x, files[x]);
+    //            }
+    //            var fname = $("#_AttachedFileName").val();
+    //            $.ajax({
+    //                type: "POST",
+    //                url: '../ParRaiserEdit/UploadedFiles/?fname=' + fname,
+    //                contentType: false,
+    //                processData: false,
+    //                data: data,
+    //                success: function (result) {
+
+    //                    $("#_AttachedFileName").val(result);
+    //                },
+    //                error: function (xhr, status, p3, p4) {
+    //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+    //                    if (xhr.responseText && xhr.responseText[0] == "{")
+    //                        err = JSON.parse(xhr.responseText).Message;
+    //                    console.log(err);
+    //                }
+    //            });
+    //        } else {
+    //            jAlert("This browser doesn't support HTML5 file uploads!");
+    //        }
+    //    }
+    //});
+    function SaveSupAttachment() {
+        var AttachDate = $("#_AttachDate").val();
+        var AttachFileName = $("#_AttachedFileName").val();
+        var AttachDescription = $("#_AttachDescription").val();
+        var parrefno = $("#txtpar_no").val();
+        var attachmodel = {
+            "attachment1": AttachFileName,
+            "attachmentDesc": AttachDescription,
+            "attachmentdate": AttachDate,
+            "prRefNo": parrefno,
+            "MyFile": "PAR"
+        };
+        if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+            jAlert("Please Select Attachment Date.", "Error");
+            return false;
+        }
+
+        if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+            jAlert("Please Select Attachmnet.", "Error");
+            return false;
+        }
+        if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+            jAlert("Please Enter Descritption.", "Error");
+            return false;
+        }
+        //$.post('../ParRaiserEdit/BoqAttachgrid?' + new Date().getTime(), attachmodel,
+        //function (data) {
+        //    if (data == 0) {
+        //        //location = location.href;
+        //        jAlert("Error Occured", "Error", function () {
+        //            return false;
+        //        });
+        //        return false;
+        //    } else {
+        //        $('#gridattachment').load('../ParRaiserEdit/BoqAttachgrid?' + new Date().getTime());
+        //        jAlert("Inserted Successfully", "Message"); refresh();
+        //    }
+        //}, 'json');
+        $.post('@Url.Action("EditPRAttachment", "PrSummary")?' + new Date().getTime(), attachmodel,
+           function (data) {
+               if (data == 0) {
+                   //location = location.href;
+                   jAlert("Error Occured", "Error", function () {
+                       return false;
+                   });
+                   return false;
+               } else {
+
+                   jAlert("Inserted Successfully", "Message", function () {
+                       $('#gridattachment').load('@Url.Action("BoqAttachgrid", "ParRaiserEdit")?' + new Date().getTime());
+                   });
+
+                   refresh();
+
+               }
+           }, 'json');
+    }
+    var jqXHRData;
+
+    $(document).ready(function () {
+
+
+        initAutoFileUpload();
+        if ('@ViewBag.viewmode' == "disabled") {
+            $("#tableid").hide(0);
+        }
+
+    });
+    function initAutoFileUpload() {
+        'use strict';
+
+        $('#txtUploadFile').fileupload({
+
+            autoUpload: true,
+            url: '../ParRaiser/UploadedFiles?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+
+                        }
+                        //  $("#gridattachment").load('../PRRaiser/PRattachgrid?' + new Date().getTime());
+
+                        $("#_AttachedFileName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                           
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                   
+                }
+            }
+        });
+    }
+</script>

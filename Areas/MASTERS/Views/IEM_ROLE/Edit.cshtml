@@ -1,0 +1,228 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_role
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+    //@Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="display:none;">
+                <input name="DocNameID" id="_role_gid" type="text" @ViewBag.viewmode placeholder="DocName ID" data-val="true" value="@Model.role_gid" />
+                <input name="role_rolegroup_gid12" id="role_rolegroup_gid12" type="text" @ViewBag.viewmode placeholder="DocName ID" data-val="true" value="@Model.role_rolegroup_gid" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0px 10px 0px 10px;">
+                <span> Role Code </span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 10px 5px 10px;">
+                    <input  id="_role_code" maxlength="8" @ViewBag.viewmode type="text" data-val="true" value="@Model.role_code" class="fstextbox valid" style="display: block;" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0px 10px 0px 10px;">
+                <span> Role Name </span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 10px 5px 10px;">
+                    <input id="_role_name" maxlength="32" @ViewBag.viewmode type="text" data-val="true" value="@Model.role_name" class="fstextbox valid" style="display: block;" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0px 10px 0px 10px;">
+                <span>Role Group Name</span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 10px 5px 10px;">
+                    <input id="_rolegroup_name" type="text" data-val="true" disabled value="@Model.rolegroup_name" class="fstextbox valid" style="display: block;" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 10px 5px 10px;">
+                <div style="border:solid 1px black; padding:10px; width:100%; background-color:#FAFAFA; display:block">
+                    <div id="divTreeview" class="treeview" style="overflow:scroll;overflow-x: hidden; disabled:disabled; height:200px; ">
+
+                        @if (Model.menu != null && Model.menu.Count() > 0)
+                        {
+                            @Treeview.GetTreeView(Model.menu, Model.menu.FirstOrDefault().menu_parent_gid);
+                        }
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 10px 5px 10px;">
+                <span>Assign To</span>
+                <div class="layoutStyle" style="font-weight:normal;">  @*style="display:block"*@
+                    <input type="radio" id="rbFiccEdit" name="rblassigntoEdit" @ViewBag.viewmode value="F"  /> Fullerton Employees
+                    <br /><input type="radio" id="rbOthersEdit" name="rblassigntoEdit" @ViewBag.viewmode value="E" /> Except Fullerton Employees
+                    <br /><input type="radio" id="rbAllEdit" name="rblassigntoEdit" @ViewBag.viewmode value="A" /> All Employees
+                    <br /><input type="radio" id="rbNoneEdit" name="rblassigntoEdit" @ViewBag.viewmode value="N" /> None
+                </div>
+            </td>
+        </tr>
+        
+    </table>
+}
+<table class="myTableStyleTabNew" width="100%">
+    <tr>
+        <td style="padding: 5px 10px 5px 10px; text-align:right;" class="divforbutton">
+
+            <button name="btnsave" @ViewBag.viewmode class="btn btn-primary" onclick="UpdateDoc()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            <button class="btn btn-warning" id="btnCancelRoleEdit"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+
+            @*<input type="button" class="btn btn-primary" name="btnsave" @ViewBag.viewmode onclick="UpdateDoc()" value="Save" />
+                <a class="btn btn-warning whitecolor" id="btnCancelRoleEdit"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>*@
+        </td>
+    </tr>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $(".treeview li>ul").css('display', 'none'); // Hide all 2-level ul
+        $(".collapsible1").click(function (e) {
+            e.preventDefault();
+            $(this).toggleClass("collapse1 expand1");
+            $(this).closest('li').children('ul').slideToggle();
+        });
+
+        var assto = '@Model.role_assignedto';
+       
+        if (assto == "F") {
+            $("#rbFiccEdit").prop("checked", true);
+        }
+        else if (assto == "E") {
+            $("#rbOthersEdit").prop("checked", true);
+        }
+        else if (assto == "A") {
+            $("#rbAllEdit").prop("checked", true);
+        }
+        else if (assto == "N") {
+            $("#rbNoneEdit").prop("checked", true);
+        }
+
+        $("#_role_name, #_role_code").keyup(function (e) {
+            var _data = $(this).val();
+            $(this).removeClass('required').removeClass('valid');
+            if (_data.trim() != "") {
+                $(this).addClass('valid');
+            }
+            else {
+                $(this).addClass('required');
+            }
+        });
+
+        $("#btnCancelRoleEdit").live('click', function () {
+            window.parent.jQuery('#ForPartialView12').dialog('close');
+            //window.parent.jQuery('#ForPartialView12').dialog('close');
+            //window.parent.jQuery('#ForPartialView12').dialog('close');
+        });
+    });
+
+    function UpdateDoc() {
+        var studentListVal = null;
+        studentListVal = [];
+
+        var notchecked = null;
+        notchecked = [];
+
+        $(".treeview input").each(
+        function () {
+            //alert(this.name + ';' + this.checked);
+            if (this.checked == true) {
+                studentListVal.push(this.name);
+            }
+            else {
+                notchecked.push(this.name);
+            }
+        })
+
+        var rolecode = $("#_role_code").val();
+
+        var rolename = $("#_role_name").val();
+        var rolegroupgid = $("#role_rolegroup_gid12").val();
+        
+        if (rolecode == "" || rolename == "" || rolegroupgid == 0 || studentListVal == null || studentListVal.length == 0) {
+            jAlert("All fields are required","Error");
+            return false;
+        }
+        else {
+            var DocNameModel = { "role_code": rolecode, "role_name": rolename, "rolegroup_gid": rolegroupgid };
+        }
+        
+        var assigntoedit = "N";
+        if ($('input[name=rblassigntoEdit]:checked').length > 0) {
+            assigntoedit = $('input:radio[name=rblassigntoEdit]:checked').val();
+        }
+        var Student = {
+            "role_code": rolecode,
+            "role_name": rolename,
+            "rolegroup_gid": rolegroupgid,
+            "Selectedrole": studentListVal,
+            "unselectedrole": notchecked,
+            "role_assignedto": assigntoedit
+
+        };
+        $.ajax({
+            url: '../IEM_ROLE/UpdateHolidayNewAdd',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+               
+                if (result == "Record Update Successfully") {
+                    jAlert("Record Updated Successfully!!!", "Message", function () {
+                        window.parent.jQuery('#ForPartialView12').dialog('close');
+                        location = '../IEM_ROLE/Index';
+                    });
+                }
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+        })
+    }
+
+    function DeleteType() {
+        var countrygid = $('#_role_gid').val();
+        jConfirm("Do you want to delete this Role ? ", "Message", function (j) {
+            if (j == true) {
+                var model = { "#role_gid": countrygid }
+                $.post('../IEM_ROLE/DeleteRole', model,
+                     function (data) {
+                         if (data == "success") {
+                             jAlert("Record Deleted Successfully!!!", "Message", function (r) {
+                                 if (r = true) { location = '../IEM_ROLE/Index'; }
+                             });
+                         }
+                         else {
+                             jAlert(data, "Information", function (r) {
+                                 if (r = true) { location = '../IEM_ROLE/Index'; }
+                             });
+                         }
+                     }
+                     , 'json');
+            }
+        });
+    }
+
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>
+

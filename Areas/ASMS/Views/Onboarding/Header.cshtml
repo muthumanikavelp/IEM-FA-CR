@@ -1,0 +1,1314 @@
+﻿@model  IEM.Areas.ASMS.Models.SupplierHeader
+@using IEM.Areas.ASMS.Models
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            var pickerOpts = {
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '1950:2100',
+                currentText: "Now",
+                dateFormat: "dd-mm-yy"
+            };
+            $("#txtContractFrom").datepicker(pickerOpts);
+            $("#txtContractTo").datepicker(pickerOpts);
+            $("#txtRenewalDate").datepicker(pickerOpts);
+
+            //  $("#txtContractFrom,#txtContractTo,#txtRenewalDate").WaterMark();
+        });
+    </script>*@
+
+
+
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            $('#txtContractFrom').change(function () {
+                var s = $('#txtContractFrom').val();
+                var dateRegex = '/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/';
+                if (dateRegex.match(s)) {
+                    alert('Please check contract FROM date');
+                }
+            });
+        });
+        $(document).ready(function () {
+            $('#txtContractTo').change(function () {
+                var s = $('#txtContractTo').val();
+                var dateRegex = '^(0[1-9]|1[012])[\/\-](0[1-9]|[12][0-9]|3[01])[\/\-](19|20)\d\d$';
+                if (!dateRegex.match(s)) {
+                    alert('Please check contract to date');
+                }
+            });
+        });
+    </script>*@
+
+
+@{
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    if (Session["SupCode"] != null)
+    {
+        ViewBag.SupCode1 = (string)Session["SupCode"];
+    }
+    ViewBag.SupplierHeaderGid = Convert.ToInt64(System.Web.HttpContext.Current.Session["SupplierHeaderGid"]);
+    SupplierHeader sh = (SupplierHeader)ViewBag.supplierheader;
+    ViewBag.OwnerGid = sh._OwnerId;
+    ViewBag.ispermanent = sh._SupplierType;
+    ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+}
+<div class="borderStyle" id="divHeaderContent">
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:25%">
+                <input type="hidden" id="SessionSupplierGid" name="SessionSupplierGid" />
+                <span>Supplier Code</span><br />
+                <input type="text" class="textboxStyle" disabled name="txtSupplierCode" id="txtSupplierCode" value="@sh._SupplierCode" />
+            </td>
+            <td style="width:45%">
+                <span>Supplier Name</span><br />
+                <input type="text" class="textboxStyleMedium80 required" name="txtSupplierName" id="txtSupplierName" value="@sh._SupplierName" />
+                <a onclick="GetSupplierNames()" id="btnSupplierNameSearchHeader"><span class="glyphicon glyphicon-search"></span></a>
+            </td>
+            <td style="width:25%">
+                <span>Pan Number</span><br />
+                <input type="text" class="textboxStyleMedium80" name="txtSupplierPanNo" id="txtSupplierPanNo" value="@sh._PanNo" />
+                <a onclick="GetSupplierPanNo()" id="btnSupplierPanNoSearchHeader"><span class="glyphicon glyphicon-search"></span></a>
+            </td>
+            <td style="width:25%">
+                <span>Supplier Category</span><br />
+                @Html.DropDownListFor(n => n.SelectedSupplierCategoryID, sh.lstSupplierCategory, "-- Select --", new { @class = "textboxStyle", @id = "SelectedSupplierCategoryID" })
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%">
+                <span>Website</span><br />
+                <input type="text" class="textboxStyle" placeholder="www.example.com" name="txtWebsite" id="txtWebsite" value="@sh._website" />
+            </td>
+            <td style="width:25%">
+                <span>Email ID</span><br />
+                <input type="text" class="textboxStyle" placeholder="example@domain.com" name="txtEmailID" id="txtEmailID" value="@sh._EmailID" />
+            </td>
+            <td style="width:25%">
+                <span>Active Contract?</span><br />
+                <div style="height:27px;font-weight:normal;">
+                    <input type="radio" id="rbYes" name="rblActiveContract" value="Y" checked="checked" /> Yes
+                    &nbsp;<input type="radio" id="rbNo" name="rblActiveContract" value="N" /> No
+                </div>
+            </td>
+            <td style="width:25%">
+                <span>Reason For No Contract</span><br />
+                <input type="text" class="textboxStyle" name="txtReasonForNoContract" id="txtReasonForNoContract" value="@sh._ReasonForNoContract" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%">
+                <span>Contract Type</span><br />
+                @Html.DropDownListFor(n => n.SelectedSupContactTypeID, sh.lstSupContactType, "--select--", new { @class = "textboxStyle", @id = "SelectedSupContactTypeID" })
+            </td>
+            <td style="width:25%">
+                <span>Contract From</span><br />
+                <input type="text" class="textboxStyle required" placeholder="dd-mm-yyyy" title="dd-mm-yyyy" name="txtContractFrom" id="txtContractFrom" value="@sh._ContractFrom" />
+            </td>
+            <td style="width:25%">
+                <span>Contract To</span><br />
+                <input type="text" class="textboxStyle required" placeholder="dd-mm-yyyy" title="dd-mm-yyyy" name="txtContractTo" id="txtContractTo" value="@sh._ContractTo" />
+            </td>
+            <td style="width:25%">
+                <span>Renewal  Date</span><br />
+                <input type="text" class="textboxStyle" placeholder="dd-mm-yyyy" title="dd-mm-yyyy" name="txtRenewalDate" id="txtRenewalDate" value="@sh._RenewalDate" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%; max-width:250px;">
+                <span>Organization Type</span><br />
+                @Html.DropDownListFor(n => n.selectedOrganizationID, sh.lstOrganizationType, "-- Select --", new { @class = "textboxStyle", @id = "selectedOrganizationID" })
+            </td>
+            <td style="width:25%">
+                <span>Company Reg No</span><br />
+                <input type="text" class="textboxStyle" placeholder="Mandatory for Ltd Co." name="txtCompanyRegNo" id="txtCompanyRegNo" value="@sh._CompanyRegNo" />
+            </td>
+            <td style="width:25%">
+                <span>No.of Directors/Partners</span><br />
+                <input type="text" class="textboxStyleMedium50 " disabled value="@sh._NoOfDirectors" name=" txtnoofdirectors" id="txtNoofDirectors" />
+                <input type="button" value="Add/View" onclick="NewDirector()" name="btnDirectors" id="btnDirectors" class="btn btn-xs btn-primary" tabindex="7" />
+            </td>
+            <td style="width:25%; max-width:250px;">
+                <span>Service Type</span><br />
+                @Html.DropDownListFor(n => n.selectedServiceID, sh.lstServiceType, "-- Select --", new { @class = "textboxStyle", @id = "selectedServiceID" })
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%">
+                <span>Owner ID</span><br />
+                <input type="hidden" id="SessionOwnerGid" name="SessionOwnerGid" />
+                <input type="text" class="textboxStyleMedium" name="txtOwnerID" id="txtOwnerID" value="@sh._OwnerCode" required />
+                <a onclick="GetOwner()" id="btnEmployeeSearchHeader"><span class="glyphicon glyphicon-search"></span></a>
+            </td>
+            <td style="width:25%">
+                <span>Owner Name</span><br />
+                <input type="text" class="textboxStyle" name="txtOwnerName" id="txtOwnerName" value="@sh._OwnerName" />
+            </td>
+            <td style="width:25%">
+                <span>Approx Spend</span><br />
+                <input type="text" class="textboxStyle" name="txtApproxSpend" id="txtApproxSpend" value="@sh._ApproxSpend" />
+            </td>
+            <td style="width:25%">
+                <span>Actual Spend</span><br />
+                <input type="text" class="textboxStyle" name="txtActualSpend" id="txtActualSpend" value="@sh._ActualSpend" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%">
+                <span>Supplier Type</span>
+                <br />
+                <div style="height:27px;font-weight:normal;">
+                    <input type="radio" id="rbPermanent" name="IsPermanent" value="P" checked="checked" /> Permanent
+                    &nbsp;<input type="radio" id="rbOneTime" name="IsPermanent" value="O" /> One Time
+                </div>
+            </td>
+            <td colspan="3" style="width:75%">
+                <span>Remarks</span><br />
+                <input type="text" class="textboxStyle100" name="txtSupTypeRemarks" id="txtSupTypeRemarks" value="@sh._SupplierTypeRemarks" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <span>Is the Supplier classified under MSMED?</span><br />
+                    <div>
+                        <input type="radio" id="rbMSMEDYes" name="IsMSMED" value="Y" tabindex="26" /> Yes
+                        &nbsp;<input type="radio" id="rbMSMEDNo" name="IsMSMED" value="N" tabindex="27" /> No
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+    <div style="text-align:right; padding-right:30px; margin-top:10px;" class="divforbutton">
+        <button id="btnNextHeader" class="btn btn-primary">Next <span style="color:white;" class="glyphicon glyphicon-forward"></span></button>
+        <button id="btnClearHeader" onclick="ClearHeaderFields()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+    </div>
+</div>
+<div id="ForPartialView1"></div>
+<div id="ForPartialViewX"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialogtd;
+    $(document).ready(function () {
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+        $("#txtContractFrom").datepicker(pickerOpts);
+        //$("#txtContractTo").datepicker(pickerOpts);
+        $("#txtRenewalDate").datepicker(pickerOpts);
+        var intervalcontractto = 0;
+        if ('@ViewBag.RenewalDateInterval' != null && '@ViewBag.RenewalDateInterval' != '')
+            intervalcontractto = parseInt('@ViewBag.RenewalDateInterval');
+        var dtinterval = new Date();
+        if ($("#txtContractFrom").val() != "") {
+            var s = $('#txtContractFrom').val();
+            s = s.split('-');
+            dtinterval = new Date(s[2] + "-" + s[1] + "-" + s[0]);
+        }
+        dtinterval.setMonth(dtinterval.getMonth() + intervalcontractto);
+        $("#txtContractTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            dateFormat: "dd-mm-yy",
+            minDate: dtinterval
+        });
+        //var pickerOpts1 = {
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    yearRange: '1950:2100',
+        //    // currentText: "Now",
+        //    minDate : '',
+        //    dateFormat: "dd-mm-yy"
+        //};
+
+        //ViewBag.RenewalDateInterval
+        objDialog = $("[id$='ForPartialView1']");
+        objDialog.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            async: false,
+            cache: false
+        });
+        objDialogtd = $("[id$='ForPartialViewX']");
+        objDialogtd.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            async: false,
+            cache: false
+        });
+    });
+
+    function NewDirector() {
+
+        objDialog.load('../Onboarding/FindDirectorsIndex?' + new Date().getTime());
+        objDialog.dialog({ title: 'Directors List', width: '660', height: '470' });
+        objDialog.dialog("open");
+
+    }
+    function GetOwner() {
+        objDialog.load('../Onboarding/SearchEmployee?listfor=new&formname=owner&' + new Date().getTime());
+        objDialog.dialog({ title: 'Search Owner', width: '760', height: '510' });
+        objDialog.dialog("open");
+    }
+
+    function GetSupplierNames() {
+        objDialog.load('../Onboarding/SearchSupplierName?listfor=new&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Name List', width: '660', height: '470' });
+        objDialog.dialog("open");
+    }
+    function GetSupplierPanNo() {
+        objDialog.load('../Onboarding/SearchSupplierPanNo?listfor=new&' + new Date().getTime());
+        objDialog.dialog({ title: 'PAN Number List', width: '660', height: '470' });
+        objDialog.dialog("open");
+    }
+</script>
+
+<script type="text/javascript">
+    var pageMode;
+    var supHeadGid;
+    var isalloweditapprover;
+
+    $(document).ready(function () {
+
+        $("#SelectedSupplierCategoryID,#SelectedSupContactTypeID,#selectedOrganizationID,#selectedServiceID").chosen({});
+        $("#SelectedSupplierCategoryID_chosen,#SelectedSupContactTypeID_chosen,#selectedOrganizationID_chosen,#selectedServiceID_chosen").css("width", "99%");
+
+        supHeadGid = parseInt(@ViewBag.SupplierHeaderGid);
+        $("#SessionSupplierGid").val(supHeadGid);
+        pageMode = parseInt(@ViewBag.pageMode);
+        isalloweditapprover = parseInt(@ViewBag.IsAllowApproverToEdit);
+        if (isalloweditapprover == 1) {
+            pageMode = 2;
+        }
+        if (pageMode == 6 || isalloweditapprover == 1) {
+            $("#txtSupplierName").removeAttr("disabled", "disabled");
+            $("#rbPermanent").removeAttr("disabled", "disabled");
+            $("#rbOneTime").removeAttr("disabled", "disabled");
+        }
+        else {
+            $("#txtSupplierName").removeAttr("disabled");
+            $("#rbPermanent").removeAttr("disabled");
+            $("#rbOneTime").removeAttr("disabled");
+        }
+
+        if (pageMode == 2 || pageMode == 3 || pageMode == 4 || pageMode == 5 || pageMode == 6) {
+            ownergid = parseInt(@ViewBag.OwnerGid);
+            $("#SessionOwnerGid").val(ownergid);
+            $("#btnClearHeader").prop("disabled", true);
+            $("#btnClearHeader").css("display", "none");
+            var ispermanent = '@sh._SupplierType';
+            if (ispermanent == "P") {
+                $("#rbPermanent").prop("checked", true);
+            }
+            else {
+                $("#rbOneTime").prop("checked", true);
+            }
+            var isactive = '@sh._IsActiveContract';
+            if (isactive == "Y") {
+                $("#rbYes").prop("checked", true);
+            }
+            else {
+                $("#rbNo").prop("checked", true);
+            }
+            //Dhasarathan
+            var ismsmed = '@sh._TaxisMSMED';
+
+            if (ismsmed == "Y") {
+                $("#rbMSMEDYes").prop("checked", true);
+            }
+            else if (ismsmed == "N") {
+                $("#rbMSMEDNo").prop("checked", true);
+            }
+            //Dhasarathan
+        }
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+        if (pageMode == 1) {
+            $("#tabs").tabs({ disabled: [1, 2, 3, 4, 5, 6, 7, 8] });
+            var ownergid = parseInt(@ViewBag.OwnerGid);
+            $("#SessionOwnerGid").val(ownergid);
+
+            if (($("#SessionSupplierGid").val() != "0") && ($("#SessionSupplierGid").val() != null) && ($.trim($("#SessionSupplierGid").val()) != "")) {
+                $("#divSubmitButton1").css("display", "block");
+                $("#tabs").tabs({ disabled: [10] });
+            }
+            $("#txtContractFrom").attr("disabled", "disabled");
+            $("#txtContractTo").attr("disabled", "disabled");
+            $("#txtRenewalDate").attr("disabled", "disabled");
+        }
+        else if (pageMode == 2 || pageMode == 4) {
+            if (isalloweditapprover == 1) {
+                $("#divSubmitButton1").css("display", "none");
+            }
+            else {
+                $("#divSubmitButton1").css("display", "block");
+            }
+
+        }
+        else if (pageMode == 3) {
+            $("#tabs").tabs({ enabled: [1, 2, 3, 4, 5, 6, 7, 8] });
+            $("#divHeaderContent :input").attr("disabled", true);
+            IsDiableDropDown(true);
+            $("#btnDirectors").attr("value", "View");
+            $("#btnDirectors").removeAttr("disabled");
+            $("#divSubmitButton1").css("display", "none");
+            $("#btnEmployeeSearchHeader").css("display", "none");
+            $('#txtReasonForNoContract').attr("disabled", "disabled");
+        }
+        else if (pageMode == 5) {
+            $("#tabs").tabs({ enabled: [1, 2, 3, 4, 5, 6, 7, 8] });
+            $("#divHeaderContent :input").attr("disabled", true);
+            IsDiableDropDown(true);
+            $("#btnDirectors").attr("value", "View");
+            $("#btnDirectors").removeAttr("disabled");
+            $("#btnEmployeeSearchHeader").css("display", "none");
+            $('#txtReasonForNoContract').attr("disabled", "disabled");
+        }
+        $("#selectedServiceID_chosen").addClass('required');
+        $("#txtActualSpend").attr("disabled", "disabled");
+        $('#txtReasonForNoContract').attr("disabled", "disabled");
+        if ($("#selectedOrganizationID").val().trim() != "") {
+            $("#selectedOrganizationID_chosen").removeClass('required');
+            $("#selectedOrganizationID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedOrganizationID_chosen").removeClass('valid');
+            $("#selectedOrganizationID_chosen").addClass('required');
+        }
+
+        if ($("#SelectedSupplierCategoryID").val().trim() != "") {
+            $("#SelectedSupplierCategoryID_chosen").removeClass('required');
+            $("#SelectedSupplierCategoryID_chosen").addClass('valid');
+        }
+        else {
+            $("#SelectedSupplierCategoryID_chosen").removeClass('valid');
+            $("#SelectedSupplierCategoryID_chosen").addClass('required');
+        }
+
+        if ($("#SelectedSupContactTypeID").val().trim() != "") {
+            $("#SelectedSupContactTypeID_chosen").removeClass('required');
+            $("#SelectedSupContactTypeID_chosen").addClass('valid');
+        }
+        else {
+            $("#SelectedSupContactTypeID_chosen").removeClass('valid');
+            $("#SelectedSupContactTypeID_chosen").addClass('required');
+        }
+        if ($("#selectedServiceID").val().trim() != "") {
+            $("#selectedServiceID_chosen").removeClass('required');
+            $("#selectedServiceID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedServiceID_chosen").removeClass('valid');
+            $("#selectedServiceID_chosen").addClass('required');
+        }
+
+        //if ($("#txtCompanyRegNo").val().trim() !="") {
+        //    $("#txtCompanyRegNo").removeClass('required');
+        //    $("#txtCompanyRegNo").addClass('valid');
+        //}
+        //else {
+        //    $("#txtCompanyRegNo").removeClass('valid');
+        //    $("#txtCompanyRegNo").addClass('required');
+        //}
+        //if ($("#txtSupplierPanNo").val().trim() != "") {
+        //    $("#txtSupplierPanNo").removeClass('required');
+        //    $("#txtSupplierPanNo").addClass('valid');
+        //}
+        //else {
+        //    $("#txtSupplierPanNo").removeClass('valid');
+        //    $("#txtSupplierPanNo").addClass('required');
+        //}
+        if ($("#txtRenewalDate").val().trim() != "") {
+            $("#txtRenewalDate").removeClass('required');
+            $("#txtRenewalDate").addClass('valid');
+        }
+        else {
+            $("#txtRenewalDate").removeClass('valid');
+            $("#txtRenewalDate").addClass('required');
+        }
+        //if ($("#txtNoofDirectors").val().trim() != "") {
+        //    $("#txtNoofDirectors").removeClass('required');
+        //    $("#txtNoofDirectors").addClass('valid');
+        //}
+        //else {
+        //    $("#txtNoofDirectors").removeClass('valid');
+        //    $("#txtNoofDirectors").addClass('required');
+        //}
+
+        if ($("#txtSupplierName").val().trim() != "") {
+            $("#txtSupplierName").removeClass('required');
+            $("#txtSupplierName").addClass('valid');
+        }
+        else {
+            $("#txtSupplierName").removeClass('valid');
+            $("#txtSupplierName").addClass('required');
+        }
+        if ($("#txtContractFrom").val().trim() != "") {
+            $("#txtContractFrom").removeClass('required');
+            $("#txtContractFrom").addClass('valid');
+        }
+        else {
+            $("#txtContractFrom").removeClass('valid');
+            $("#txtContractFrom").addClass('required');
+        }
+
+        if ($("#txtContractTo").val().trim() != "") {
+            $("#txtContractTo").removeClass('required');
+            $("#txtContractTo").addClass('valid');
+        }
+        else {
+            $("#txtContractTo").removeClass('valid');
+            $("#txtContractTo").addClass('required');
+        }
+        //if ($("#txtApproxSpend").val().trim() != "") {
+        //    $("#txtApproxSpend").removeClass('required');
+        //    $("#txtApproxSpend").addClass('valid');
+        //}
+        //else {
+        //    $("#txtApproxSpend").removeClass('valid');
+        //    $("#txtApproxSpend").addClass('required');
+        //}
+        if ($('input:radio[name=rblActiveContract]:checked').val() == "N") {
+            if (pageMode == "1" || pageMode == "2" || pageMode == "4" || pageMode == "6") {
+                $('#txtReasonForNoContract').removeAttr("disabled");
+            }
+            else {
+                $('#txtReasonForNoContract').attr("disabled", "disabled");
+            }
+        }
+        else {
+            $('#txtReasonForNoContract').attr("disabled", "disabled");
+        }
+        CheckFieldsHeader();
+
+        $('#txtOwnerID').attr("disabled", "disabled");
+        $('#txtOwnerName').attr("disabled", "disabled");
+
+        $('#txtNoofDirectors').attr("maxlength", "2");
+        $('#txtSupplierName').attr("maxlength", "128");
+        $('#txtCompanyRegNo').attr("maxlength", "64");
+        $('#txtWebsite').attr("maxlength", "64");
+        $('#txtEmailID').attr("maxlength", "128");
+        $('#txtActualSpend').attr("maxlength", "19");
+        $('#txtApproxSpend').attr("maxlength", "9"); //Modified length 22-01-2020 by selva
+        $("#txtSupplierPanNo").attr("maxlength", "10");
+        $("#txtSupTypeRemarks").attr("maxlength", "512"); //Modified length 22-01-2020 by selva
+
+
+        $("#txtSupplierCode").attr("tabindex", "1");
+        $("#txtSupplierName").attr("tabindex", "2");
+        $("#txtSupplierPanNo").attr("tabindex", "3");
+        $("#SelectedSupplierCategoryID").attr("tabindex", "4");
+        $("#txtWebsite").attr("tabindex", "5");
+        $("#txtEmailID").attr("tabindex", "6");
+        $("#rbYes").attr("tabindex", "7");
+        $("#rbNo").attr("tabindex", "8");
+        $("#txtReasonForNoContract").attr("tabindex", "9");
+        $("#SelectedSupContactTypeID").attr("tabindex", "10");
+        $("#txtContractFrom").attr("tabindex", "11");
+        $("#txtContractTo").attr("tabindex", "12");
+        $("#txtRenewalDate").attr("tabindex", "13");
+        $("#selectedOrganizationID").attr("tabindex", "14");
+        $("#txtCompanyRegNo").attr("tabindex", "15");
+        $("#txtNoofDirectors").attr("tabindex", "16");
+        $("#btnDirectors").attr("tabindex", "17");
+        $("#selectedServiceID").attr("tabindex", "18");
+        $("#btnEmployeeSearchHeader").attr("tabindex", "19");
+        $("#txtOwnerName").attr("tabindex", "20");
+        $("#txtApproxSpend").attr("tabindex", "21");
+        $("#txtActualSpend").attr("tabindex", "22");
+        $("#btnNextHeader").attr("tabindex", "23");
+        $("#rbPermanent").attr("tabindex", "24");
+        $("#rbOneTime").attr("tabindex", "25");
+
+        $("#txtRenewalDate").attr("disabled", "disabled");
+
+        $("#txtSupplierPanNo").css('text-transform', 'uppercase');
+        // $("#txtSupplierPanNo").css('text-transform', 'uppercase');
+
+        $('input:radio[name=rblActiveContract]').change(function () {
+            if ($(this).val() == "N") {
+                $('#txtReasonForNoContract').removeAttr("disabled");
+            }
+            else {
+                $('#txtReasonForNoContract').attr("disabled", "disabled");
+            }
+        });
+        //Dhasarathan
+        $('input:radio[name=IsMSMED]').change(function () {
+            if ($(this).val() == "Y") {
+                jAlert("MSME vendors are those registered under Micro, Small and Medium Enterprises Development Act, 2006. Please ensure MSME registration certificate is available & uploaded for such vendors", "Message", function () {
+                });
+            }
+            CheckFieldsHeader();
+        });
+
+        //Dhasarathan
+
+        $("#txtNoofDirectors").keypress(function (event) {
+            return isNumber(event);
+        });
+        $("#txtActualSpend").keyup(function (event) {
+            //return isAmount(event, this);
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#txtActualSpend").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtActualSpend").val(replaceCommas(currentval));
+        });
+        $(" #txtApproxSpend").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+            var currentval = $("#txtApproxSpend").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtApproxSpend").val(replaceCommas(currentval));
+        });
+        $("#txtSupplierName").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#txtCompanyRegNo,#txtSupplierPanNo").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+
+        $("#txtWebsite").keypress(function (event) {
+            return isAlphaNumericWithDot(event);
+        });
+        $("#txtSupTypeRemarks").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#txtEmailID").change(function () {
+            if (isValidEmail($("#txtEmailID").val()) == false) {
+                jAlert("Invalid Email Id", "Error", function () {
+                    $("#txtEmailID").focus();
+                });
+
+                return false;
+            }
+        });
+
+        $("#selectedOrganizationID").change(function () {
+            //IsMandatory(this);
+            var txtval = $("#selectedOrganizationID").val();
+            if (txtval.trim() != "") {
+                $("#selectedOrganizationID_chosen").removeClass('required');
+                $("#selectedOrganizationID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedOrganizationID_chosen").removeClass('valid');
+                $("#selectedOrganizationID_chosen").addClass('required');
+            }
+            CheckFieldsHeader();
+        });
+
+        $("#SelectedSupplierCategoryID").change(function () {
+            //IsMandatory(this);
+            var txtval = $("#SelectedSupplierCategoryID").val();
+            if (txtval.trim() != "") {
+                $("#SelectedSupplierCategoryID_chosen").removeClass('required');
+                $("#SelectedSupplierCategoryID_chosen").addClass('valid');
+            }
+            else {
+                $("#SelectedSupplierCategoryID_chosen").removeClass('valid');
+                $("#SelectedSupplierCategoryID_chosen").addClass('required');
+            }
+            CheckFieldsHeader();
+        });
+
+        $("#SelectedSupContactTypeID").change(function () {
+            //IsMandatory(this);
+            var txtval = $("#SelectedSupContactTypeID").val();
+            if (txtval.trim() != "") {
+                $("#SelectedSupContactTypeID_chosen").removeClass('required');
+                $("#SelectedSupContactTypeID_chosen").addClass('valid');
+            }
+            else {
+                $("#SelectedSupContactTypeID_chosen").removeClass('valid');
+                $("#SelectedSupContactTypeID_chosen").addClass('required');
+            }
+            CheckFieldsHeader();
+        });
+
+        $("#selectedServiceID").change(function () {
+            //IsMandatory(this);
+            var txtval = $("#selectedServiceID").val();
+            if (txtval.trim() != "") {
+                $("#selectedServiceID_chosen").removeClass('required');
+                $("#selectedServiceID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedServiceID_chosen").removeClass('valid');
+                $("#selectedServiceID_chosen").addClass('required');
+            }
+            CheckFieldsHeader();
+        });
+
+        //$("#txtCompanyRegNo").keyup(function () {
+        //    IsMandatory(this);
+        //    CheckFieldsHeader();
+        //});
+
+        $("#txtRenewalDate").change(function () {
+            IsMandatory(this);
+            CheckFieldsHeader();
+        });
+        //$("#txtNoofDirectors").keyup(function () {
+        //    IsMandatory(this);
+        //    CheckFieldsHeader();
+        //});
+
+        $("#txtSupplierName").keyup(function () {
+            IsMandatory(this);
+            CheckFieldsHeader();
+        });
+        //$("#txtSupplierPanNo").keyup(function () {
+        //    IsMandatory(this);
+        //    CheckFieldsHeader();
+        //});
+        $("#txtContractFrom").change(function () {
+            IsMandatory(this);
+            CheckFieldsHeader();
+        });
+
+        $("#txtContractTo").change(function () {
+            IsMandatory(this);
+            CheckFieldsHeader();
+        });
+
+        //$("#txtApproxSpend").keyup(function () {
+        //    IsMandatory(this);
+        //    CheckFieldsHeader();
+        //});
+
+    });
+    $("#txtApproxSpend").ready(function () {
+        var currentval = $("#txtApproxSpend").val();
+        $("#txtApproxSpend").val(replaceCommas(currentval));
+    });
+
+    $("#txtActualSpend").ready(function () {
+        var currentval = $("#txtActualSpend").val();
+        $("#txtActualSpend").val(replaceCommas(currentval));
+    });
+
+    function IsMandatory(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+
+    function IsDiableDropDown(value) {
+        if (value == true) {
+            $('#SelectedSupplierCategoryID,#SelectedSupContactTypeID,#selectedOrganizationID,#selectedServiceID').data('chosen').search_field_disabled();
+            $('#SelectedSupplierCategoryID,#SelectedSupContactTypeID,#selectedOrganizationID,#selectedServiceID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#SelectedSupplierCategoryID,#SelectedSupContactTypeID,#selectedOrganizationID,#selectedServiceID').removeAttr('disabled');
+            $('#SelectedSupplierCategoryID,#SelectedSupContactTypeID,#selectedOrganizationID,#selectedServiceID').trigger("chosen:updated");
+        }
+    }
+
+    function ClearHeaderFields() {
+        $("#rbPermanent").prop('checked', true);
+        $("#rbOneTime").prop('checked', false);
+        $("#rbYes").prop('checked', true);
+        $("#rbNo").prop('checked', false);
+        //Dhasarathan
+        $("#rbMSMEDYes").prop('checked', false);
+        $("#rbMSMEDNo").prop('checked', false);
+        //Dhasarathan
+
+        $("#SessionOwnerGid").val("");
+        $("#txtSupplierPanNo").val("");
+        $("#txtSupplierName").val("");
+        $("#txtCompanyRegNo").val("");
+        $("#txtApproxSpend").val("");
+        $("#txtActualSpend").val("");
+        $("#txtContractFrom").val("");
+        $("#txtContractTo").val("");
+        $("#txtWebsite").val("");
+        $("#txtNoofDirectors").val("");
+        $("#txtEmailID").val("");
+        $("#txtReasonForNoContract").val("");
+
+        $("#txtRenewalDate").val("");
+
+        //$("#selectedServiceID").val('0');
+        $("#selectedServiceID").val("").trigger("chosen:updated");
+        //$("#selectedOrganizationID").val('0');
+        $("#selectedOrganizationID").val("").trigger("chosen:updated");
+        //$("#SelectedSupplierCategoryID").val('0');
+        $("#SelectedSupplierCategoryID").val("").trigger("chosen:updated");
+        //$("#SelectedSupContactTypeID").val('0');
+        $("#SelectedSupContactTypeID").val("").trigger("chosen:updated");
+
+        $("#selectedServiceID_chosen").removeClass('valid');
+        $("#SelectedSupContactTypeID_chosen").removeClass('valid');
+        $("#selectedOrganizationID_chosen").removeClass('valid');
+        $("#SelectedSupplierCategoryID_chosen").removeClass('valid');
+        //$("#txtCompanyRegNo").removeClass('valid');
+        $("#txtRenewalDate").removeClass('valid');
+        //  $("#txtNoofDirectors").removeClass('valid');
+        //  $("#txtNoofDirectors").removeClass('valid');
+        $("#txtSupplierName").removeClass('valid');
+        $("#txtContractFrom").removeClass('valid');
+        $("#txtContractTo").removeClass('valid');
+        // $("#txtApproxSpend").removeClass('valid');
+
+        $("#selectedServiceID_chosen").addClass('required');
+        $("#SelectedSupContactTypeID_chosen").addClass('required');
+        $("#selectedOrganizationID_chosen").addClass('required');
+        $("#SelectedSupplierCategoryID_chosen").addClass('required');
+        //$("#txtCompanyRegNo").addClass('required');
+        $("#txtRenewalDate").addClass('required');
+        //$("#txtNoofDirectors").addClass('required');
+        //$("#txtNoofDirectors").addClass('required');
+        $("#txtSupplierName").addClass('required');
+        $("#txtContractFrom").addClass('required');
+        $("#txtContractTo").addClass('required');
+        // $("#txtApproxSpend").addClass('required');
+        $("#txtRenewalDate").attr("disabled", "disabled");
+        $("#rbPermanent").focus();
+    }
+
+    function CheckFieldsHeader() {
+        var ErrCount = 0;
+        if ($("#txtSupplierName").val().trim() == "" || $("#txtSupplierName").val() == null) {
+            ErrCount = 1;
+        }
+        //if ($("#txtSupplierPanNo").val().trim() == "" || $("#txtSupplierPanNo").val() == null) {
+        //    ErrCount = 2;
+        //}
+        //if ($("#txtNoofDirectors").val().trim() == "" || $("#txtNoofDirectors").val() == null) {
+        //    ErrCount = 3;
+        //}
+        if ($("#txtContractFrom").val().trim() == "" || $("#txtContractFrom").val() == null) {
+            ErrCount = 4;
+        }
+        if ($("#txtContractTo").val().trim() == "" || $("#txtContractTo").val() == null) {
+            ErrCount = 5;
+        }
+        //if ($("#txtApproxSpend").val().trim() == "" || $("#txtApproxSpend").val() == null) {
+        //    ErrCount = 6;
+        //}
+        if ($("#txtRenewalDate").val().trim() == "" || $("#txtRenewalDate").val() == null) {
+            ErrCount = 7;
+        }
+        if ($("#selectedOrganizationID").val() == "" || $("#selectedOrganizationID").val() == "0" || $("#selectedOrganizationID").val() == null) {
+            ErrCount = 8;
+        }
+        if ($("#SelectedSupplierCategoryID").val() == "" || $("#SelectedSupplierCategoryID").val() == "0" || $("#SelectedSupplierCategoryID").val() == null) {
+            ErrCount = 9;
+        }
+        if ($("#SelectedSupContactTypeID").val() == "" || $("#SelectedSupContactTypeID").val() == "0" || $("#SelectedSupContactTypeID").val() == null) {
+            ErrCount = 10;
+        }
+        if ($("#selectedServiceID").val() == "" || $("#selectedServiceID").val() == "0" || $("#selectedServiceID").val() == null) {
+            ErrCount = 11;
+        }
+        if ($('input:radio[name=IsMSMED]:checked').val() == "" || $('input:radio[name=IsMSMED]:checked').val() == null) {
+            ErrCount = 12;
+        }
+        if (ErrCount == 0) {
+            $("#btnNextHeader").removeAttr('disabled');
+        }
+        else {
+            $("#btnNextHeader").attr('disabled', 'disabled');
+        }
+    }
+    $("#SelectedSupContactTypeID").change(function () {
+        $("#txtContractFrom").val("");
+        $("#txtContractTo").val("");
+        $("#txtRenewalDate").val("");
+        var SupContractTypeValue = $("#SelectedSupContactTypeID").val();
+        if (SupContractTypeValue != "0" && SupContractTypeValue != "" && SupContractTypeValue != null) {
+            $("#txtContractFrom").removeAttr("disabled");
+            $("#txtContractTo").removeAttr("disabled");
+            if ($.trim($("#SelectedSupContactTypeID option:selected").text()).toUpperCase().substring(0, 7) == "REGULAR") {
+                $("#txtRenewalDate").attr("disabled", "disabled");
+            }
+            else if ($.trim($("#SelectedSupContactTypeID option:selected").text()).toUpperCase().substring(0, 7) == "PERPETU") {
+                $("#txtRenewalDate").removeAttr("disabled");
+            }
+
+        }
+        else {
+            $("#txtContractFrom").attr("disabled", "disabled");
+            $("#txtContractTo").attr("disabled", "disabled");
+            $("#txtRenewalDate").attr("disabled", "disabled");
+        }
+
+    });
+    $("#txtContractFrom").change(function () {
+        if ($("#SelectedSupContactTypeID option:selected").text().toUpperCase().substring(0, 7) == "PERPETU") {
+            var supContractFrom1 = $("#txtContractFrom").val();
+            var newdate1 = supContractFrom1.split('-');
+            var year1 = newdate1[2];
+            var daystoadd1 = 0;
+            if (((year1 % 4 == 0) && (year1 % 100 != 0)) || (year1 % 400 == 0)) {
+                daystoadd1 = 364;
+            }
+            else {
+                daystoadd1 = 365;
+            }
+
+            var dat1 = new Date(newdate1[2], newdate1[1], newdate1[0]);
+            var format1 = 0;
+            dat1.setDate(dat1.getDate() + daystoadd1);
+            //format1 = roundNumbers1(dat1.getDate()) + "-" + roundNumbers1(dat1.getMonth()) + "-" + dat1.getFullYear();
+            var mm = roundNumbers1(dat1.getMonth())
+            if (mm == 0) {
+                var mm = "0" + "1";
+            }
+            format1 = roundNumbers1(dat1.getDate()) + "-" + mm + "-" + dat1.getFullYear();
+
+            $("#txtRenewalDate").val(format1);
+            $("#txtRenewalDate").removeAttr("disabled");
+            $("#txtRenewalDate").removeClass("required");
+            $("#txtRenewalDate").addClass("valid");
+        }
+        else {
+            $("#txtRenewalDate").attr("disabled", "disabled");
+        }
+
+    });
+    $("#txtContractTo").change(function () {
+        if ($("#SelectedSupContactTypeID option:selected").text().toUpperCase().substring(0, 7) == "REGULAR") {
+            $("#txtRenewalDate").val($("#txtContractTo").val());
+            $("#txtRenewalDate").removeClass("required");
+            $("#txtRenewalDate").addClass("valid");
+        }
+    });
+    function roundNumbers1(numbers) {
+        return parseInt(numbers) > 9 ? "" + numbers : "0" + numbers;
+    }
+    $("#btnNextHeader").live("click", function () {
+        var supcode = '@ViewBag.SupCode1';
+
+        if (supcode != "" && supcode != null) {
+            $("#txtSupplierCode").val(supcode);
+        }
+        var supheadermodel;
+
+        var SupHeaderGid = $("#SessionSupplierGid").val();
+
+        if (SupHeaderGid == "" || SupHeaderGid == "0" || SupHeaderGid == null) {
+
+            var supType;
+            supType = $('input:radio[name=IsPermanent]:checked').val();
+            var supIsActiveContract;
+            supIsActiveContract = $('input:radio[name=rblActiveContract]:checked').val();
+            //Dhasarathan
+            var ismsmed;
+            ismsmed = $('input:radio[name=IsMSMED]:checked').val();
+            if (ismsmed == null || ismsmed == "") {
+                jAlert("Please select Supplier classified under MSMED", "Error", function () {
+                    $("#IsMSMED").focus();
+                });
+                return false;
+            }
+            //Dhasarathan
+
+            var supCode = $("#txtSupplierCode").val();
+            var supName = $("#txtSupplierName").val();
+            var supCompanyRegNo = $("#txtCompanyRegNo").val();
+            var supApproxSpend = $("#txtApproxSpend").val().replace(",", "");
+            var supActualSpend = $("#txtActualSpend").val().replace(",", "");
+            var supContractFrom = $("#txtContractFrom").val();
+            var supContractTo = $("#txtContractTo").val();
+            var supWebsite = $("#txtWebsite").val();
+            var supNoOfDirectors = $("#txtNoofDirectors").val();
+            var supEmailID = $("#txtEmailID").val();
+            var supReasonForNoContract = $("#txtReasonForNoContract").val();
+            var supOrganizationTypeID = $("#selectedOrganizationID").val();
+            var supServiceTypeID = $("#selectedServiceID").val();
+            var supCategoryID = $("#SelectedSupplierCategoryID").val();
+            var supContactTypeID = $("#SelectedSupContactTypeID").val();
+            var supRenewalDate = $("#txtRenewalDate").val();
+            var supPanNo = $("#txtSupplierPanNo").val();
+            var supTypeRemarks = $("#txtSupTypeRemarks").val();
+
+            if ($("#txtSupplierName").val().trim() == "" || $("#txtSupplierName").val() == null) {
+                jAlert("Please Enter Supplier Name", "Error", function () {
+                    $("#txtSupplierName").focus();
+                });
+                return false;
+            }
+
+            if ($("#txtSupplierPanNo").val().trim() == "" || $("#txtSupplierPanNo").val() == null) {
+                //jAlert("Please Enter Supplier Pan Number", "Error", function () {
+                //    $("#txtSupplierName").focus();
+                //});
+                //return false;
+            }
+            else {
+
+                var txtPanNum = $("#txtSupplierPanNo").val();
+                var panval = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+                var code1 = /([C,P,H,F,A,T,B,L,J,G])/;
+                var code_chk = txtPanNum.substring(3, 4);
+                if (txtPanNum.search(panval) == -1) {
+                    jAlert("Invalid Pan Number", "Error", function () {
+                        $("#txtSupplierPanNo").focus();
+                    });
+                    return false;
+                }
+                //if (code1.test(code_chk) == false) {
+                //    jAlert("Invalid Pan Number", "Error", function () {
+                //        $("#txtSupplierPanNo").focus();
+                //    });
+                //    return false;
+                //}
+            }
+            //if ($("#txtCompanyRegNo").val().trim() == "" || $("#txtCompanyRegNo").val() == null) {
+            //    ErrCount = 2;
+            //}
+            var supnameCount = 0;
+            var suppannoCount = 0;
+            var objSupHeader1 =
+              {
+                  "_SupplierName": supName,
+                  "_PanNo": supPanNo
+              };
+            //  setTimeout(function () {
+
+
+            $.ajax({
+                url: '@Url.Action("CheckSupplierName", "Onboarding")',
+                data: JSON.stringify(objSupHeader1),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (parseInt(data) > 0) {
+                        supnameCount = data;
+                        jAlert("Supplier Name Already Exists with the Same PAN Number.", "Error", function () {
+                            $("#txtSupplierName").focus();
+                        });
+                        return false;
+                    }
+                    else {
+                        var objSupHeader1 =
+                           {
+                               "_PanNo": supPanNo
+                           };
+                        $.ajax({
+                            url: '@Url.Action("CheckSupplierPanNo", "Onboarding")',
+                            data: JSON.stringify(objSupHeader1),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                if (data > 0) {
+                                    suppannoCount = data;
+                                    jAlert("Supplier Pan Number Already Exists.", "Error", function () {
+                                        $("#txtSupplierPanNo").focus();
+                                    });
+                                    return false;
+                                }
+                                else {
+                                    //if ($("#txtNoofDirectors").val().trim() == "0" || $("#txtNoofDirectors").val().trim() == "" || $("#txtNoofDirectors").val() == null) {
+                                    //    jAlert("Please add atleast one Director/Partner", "Error", function () {
+                                    //        $("#btnDirectors").focus();
+                                    //    });
+                                    //    return false;
+                                    //}
+                                    if ($("#txtContractFrom").val().trim() == "" || $("#txtContractFrom").val() == null) {
+                                        jAlert("Please Enter Contract From Date", "Error", function () {
+                                            $("#txtContractFrom").focus();
+                                        });
+                                        return false;
+                                    }
+                                    if ($("#txtContractTo").val().trim() == "" || $("#txtContractTo").val() == null) {
+                                        jAlert("Please Enter Contract To Date", "Error", function () {
+                                            $("#txtContractTo").focus();
+                                        });
+                                        return false;
+                                    }
+                                    //if ($("#txtApproxSpend").val().trim() == "" || $("#txtApproxSpend").val() == null) {
+                                    //    jAlert("Please Enter Approx Spend", "Error", function () {
+                                    //        $("#txtApproxSpend").focus();
+                                    //    });
+                                    //    return false;
+                                    //}
+                                    if ($("#txtRenewalDate").val().trim() == "" || $("#txtRenewalDate").val() == null) {
+                                        jAlert("Please Enter Renewal Date", "Error", function () {
+                                            $("#txtRenewalDate").focus();
+                                        });
+                                        return false;
+                                    }
+                                    if ($("#selectedOrganizationID").val() == "" || $("#selectedOrganizationID").val() == "0" || $("#selectedOrganizationID").val() == null) {
+                                        jAlert("Please Select Organization Type", "Error", function () {
+                                            $("#selectedOrganizationID").focus();
+                                        });
+                                        return false;
+                                    }
+                                    if ($("#SelectedSupplierCategoryID").val() == "" || $("#SelectedSupplierCategoryID").val() == "0" || $("#SelectedSupplierCategoryID").val() == null) {
+                                        jAlert("Please Select Supplier Category", "Error", function () {
+                                            $("#SelectedSupplierCategoryID").focus();
+                                        });
+                                        return false;
+                                    }
+                                    if ($("#SelectedSupContactTypeID").val() == "" || $("#SelectedSupContactTypeID").val() == "0" || $("#SelectedSupContactTypeID").val() == null) {
+                                        jAlert("Please Select Supplier Contract Type", "Error", function () {
+                                            $("#SelectedSupContactTypeID").focus();
+                                        });
+                                        return false;
+                                    }
+                                    if ($("#selectedServiceID").val() == "" || $("#selectedServiceID").val() == "0" || $("#selectedServiceID").val() == null) {
+                                        jAlert("Please Select Supplier Service", "Error", function () {
+                                            $("#selectedServiceID").focus();
+                                        });
+                                        return false;
+                                    }
+                                    //kavitha
+                                    if ($("#txtOwnerID").val().trim() == "" || $("#txtOwnerID").val() == null) {
+                                        jAlert("Please Select Supplier OWner", "Error", function () {
+                                            $("#txtOwnerID").focus();
+                                        });
+                                        return false;
+                                    }
+
+                                    var job_start_date = supContractFrom.split('-');
+                                    var job_end_date = supContractTo.split('-');
+
+                                    var new_supContractFrom = new Date(job_start_date[2], job_start_date[1], job_start_date[0]);
+                                    var new_end_date = new Date(job_end_date[2], job_end_date[1], job_end_date[0]);
+                                    if (new_end_date <= new_supContractFrom) {
+                                        jAlert("Contract To Date Should be greater than Contract From Date.", "Error");
+                                        return false;
+                                    }
+
+
+                                    //var directorsCnt = parseInt($("#txtNoofDirectors").val()) - (parseInt($("#wgridDirectors tr").length) - 1);
+                                    //if (parseInt(directorsCnt) != 0) {
+                                    //    jAlert(ErrMsg_H2, Title_1)
+                                    //    return false;
+                                    //}
+
+                                    if ($("#selectedOrganizationID option:selected").text().toUpperCase().substring(0, 7) == "PRIVATE" || $("#selectedOrganizationID option:selected").text().toUpperCase().substring(0, 6) == "PUBLIC") {
+                                        if (supCompanyRegNo == "" || supCompanyRegNo == null) {
+                                            jAlert("Please Enter Company Registration Number", "Error", function () {
+                                                $("#txtCompanyRegNo").focus();
+                                            });
+                                            return false;
+                                        }
+                                    }
+                                    //$("#selectedActivityNameID").val(supServiceTypeID);
+                                    supPanNo = supPanNo.toUpperCase();
+                                    var ownergid;
+                                    if ($("#SessionOwnerGid").val() == null || $("#SessionOwnerGid").val() == "") {
+                                        ownergid = 0;
+                                    }
+                                    else {
+                                        ownergid = $("#SessionOwnerGid").val();
+                                    }
+
+                                    supheadermodel = {
+                                        "_SupplierType": supType,
+                                        "_SupplierCode": supCode,
+                                        "_SupplierName": supName,
+                                        "_CompanyRegNo": supCompanyRegNo,
+                                        "_NoOfDirectors": supNoOfDirectors,
+                                        "_website": supWebsite,
+                                        "_IsActiveContract": supIsActiveContract,
+                                        "_ReasonForNoContract": supReasonForNoContract,
+                                        "_ContractFrom": supContractFrom,
+                                        "_ContractTo": supContractTo,
+                                        "_ApproxSpend": supApproxSpend,
+                                        "_ActualSpend": supActualSpend,
+                                        "_EmailID": supEmailID,
+                                        "SelectedSupContactTypeID": supContactTypeID,
+                                        "_RenewalDate": supRenewalDate,
+                                        "_OwnerId": ownergid,
+                                        "selectedServiceID": supServiceTypeID,
+                                        "selectedOrganizationID": supOrganizationTypeID,
+                                        "SelectedSupplierCategoryID": supCategoryID,
+                                        "_PanNo": supPanNo,
+                                        "_SupplierTypeRemarks": supTypeRemarks
+                                    };
+
+                                    $.post('../Onboarding/InsertSupplierHeader', supheadermodel,
+                                   function (data) {
+                                       setActivityName(supServiceTypeID);
+                                       if (data.length > 0) {
+                                           var supgid = data[0]._HeaderID;
+                                           var supcode = data[0]._SupplierCode;
+                                           $("#SessionSupplierGid").val(supgid);
+                                           $("#txtSupplierCode").val(supcode);
+                                           $("#divSubmitButton1").css("display", "block");
+                                           $("#tabs").tabs({ disabled: [10] });
+                                           $('#tabs').tabs('select', 1);
+                                       }
+                                       if (data.length == 0) {
+                                           jAlert(ErrMsg_1, Title_1);
+                                       }
+                                       //if (data == 0) {
+                                       //    jAlert(ErrMsg_1, Title_1);
+                                       //    return false;
+                                       //}
+                                       //else {
+                                       //    $("#SessionSupplierGid").val(data);
+                                       //    //location.reload();
+                                       //    $("#divSubmitButton1").css("display", "block");
+                                       //    $("#tabs").tabs({ disabled: [9] });
+                                       //    $('#tabs').tabs('select', 1);
+                                       //}
+                                   }, 'json');
+
+
+                                }
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+            //   }, 100);
+
+            //if (suppannoCount.toString() != "0") {
+
+            //}
+            //else {
+            //    jAlert("Supplier Pan Number Already Exists.", "Error", function () {
+            //        $("#txtSupplierPanNo").focus();
+            //    });
+            //    return false;
+            //}
+
+            //if (supnameCount.toString() != "0") {
+
+            //}
+            //else {
+            //    jAlert("Supplier Name Already Exists.", "Error", function () {
+            //        $("#txtSupplierName").focus();
+            //    });
+            //    return false;
+            //}
+
+            //if (supnameCount.toString() != "0") {
+            //    jAlert("Supplier Name Already Exists.", "Error", function () {
+            //        $("#txtSupplierName").focus();
+            //        return false;
+            //    });
+            //    return false;
+            //}
+            //if (suppannoCount.toString() != "0") {
+            //    jAlert("Supplier Pan Number Already Exists.", "Error", function () {
+            //        $("#txtSupplierPanNo").focus();
+            //        return false;
+            //    });
+            //    return false;
+            //}
+
+        }
+        else {
+            $("#tabs").tabs({ disabled: [10] });
+            $('#tabs').tabs('select', 1);
+        }
+
+    });
+
+    @*$("#txtSupplierName").change(function () {
+        var SupName = $(this).val();
+
+        var objSupHeader1 =
+       {
+           "_SupplierName": SupName
+       };
+        $.ajax({
+            url: '@Url.Action("CheckSupplierName", "Onboarding")',
+            data: JSON.stringify(objSupHeader1),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (parseInt(data) > 0) {
+                    jAlert("Supplier Name Already Exists with the Same PAN Number.", "Error", function () {
+                        $("#txtSupplierName").focus();
+                    });
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });*@
+    @*$("#txtSupplierPanNo").change(function () {
+        var SupPanNo = $(this).val();
+        var objSupHeader1 =
+       { "_SupplierName": SupName   ,
+           "_PanNo": SupPanNo
+       };
+        //setTimeout(function () {
+        $.ajax({
+            url: '@Url.Action("CheckSupplierPanNo", "Onboarding")',
+            data: JSON.stringify(objSupHeader1),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == 1) {
+                    jAlert("Supplier Pan Number Already Exists.", "Error", function () {
+                        $("#txtSupplierPanNo").focus();
+                    });
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+        // }, 20);
+
+
+    });*@
+</script>

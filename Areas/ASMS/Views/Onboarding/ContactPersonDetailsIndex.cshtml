@@ -1,0 +1,147 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.SupplierContactPersonDetails>
+@{
+    SupDataModel dm = new SupDataModel();
+    List<SupplierContactPersonDetails> lst = new List<SupplierContactPersonDetails>();
+    lst = (List<SupplierContactPersonDetails>)Session["ContactPersonSearchItems"];
+    if (lst == null || lst.Count == 0)
+    {
+        lst = dm.GetSupContactPersonDetails().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "ForContactPersonDetails", ajaxUpdateCallback: "DummyFunction999()");
+    int rowcount = 0;
+}
+<div id="ForContactPersonDetails">
+        <div class="table-responsive" style="width:100%; margin-top:10px;">
+                @grid.GetHtml(
+                htmlAttributes: new { id = "wgridContactPersonDetails" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                mode: WebGridPagerModes.All,
+                columns:
+                grid.Columns(
+                    grid.Column("_SupContactPersonID", objCmnFunctions.Sorter("_SupContactPersonID", "ID", grid), canSort: false),
+                    grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                    grid.Column("_SupContactPersonName", objCmnFunctions.Sorter("_SupContactPersonName", "Name", grid), style: "colmediumBreak"),
+                    grid.Column("_DesignationName", objCmnFunctions.Sorter("_DesignationName", "Designation", grid), style: "colmediumBreak"),
+                    grid.Column("_SupContactPersonLocation", objCmnFunctions.Sorter("_SupContactPersonLocation", "Location", grid), style: "colmediumBreak"),
+                    grid.Column("_SupContactPersonMobileNo", objCmnFunctions.Sorter("_SupContactPersonMobileNo", "Mobile No", grid), style: "colmediumBreak"),
+                    grid.Column("_SupContactPersonPhoneNo", objCmnFunctions.Sorter("_SupContactPersonPhoneNo", "Phone No", grid), style: "colmediumBreak"),
+                    grid.Column("_SupContactPersonEmailId", objCmnFunctions.Sorter("_SupContactPersonEmailId", "Email Id", grid), style: "colmediumBreak"),
+                    grid.Column(header: "Action", canSort: false, style: "action",
+                    format: @<text>
+                        @*@Html.Raw("<a title='view' onclick='ViewContact(" + item._SupContactDetailsID + ")' > <span class='glyphicon glyphicon-search'> </span> </a>")*@
+                        @Html.Raw("<a title='Edit' style='text-decoration:none' onclick='EditContactPerson(this)' id='btnEditContactPerson' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                        @Html.Raw("<a title='Delete' style='text-decoration:none' onclick='DeleteContactPerson(" + item._SupContactPersonID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                    </text>)))
+        </div>
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage" style="width:100%;">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+</div>
+<script type="text/javascript">
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridContactPersonDetails td:nth-child(1),#wgridContactPersonDetails th:nth-child(1)").hide();
+        $("#wgridContactPersonDetails td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridContactPersonDetails td:nth-child(9),#wgridContactPersonDetails th:nth-child(9)").hide();
+        }
+     
+    });
+    function DummyFunction999() {
+        $("#wgridContactPersonDetails td:nth-child(1),#wgridContactPersonDetails th:nth-child(1)").hide();
+        $("#wgridContactPersonDetails td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridContactPersonDetails td:nth-child(9),#wgridContactPersonDetails th:nth-child(9)").hide();
+        }
+       
+    }
+    function DeleteContactPerson(id) {
+        $("#SessionSupplierContactPersonGid").val("0");
+        jConfirm("Do you want to delete this Contact Person", Title_3, function (e) {
+            if (e == true) {
+
+                var objContactPersonDetails = { "_SupContactPersonID": id }
+                $.post('../Onboarding/DeleteContactPersonDetails', objContactPersonDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#ForContactPersonDetails").load("../onboarding/ContactPersonDetailsIndex?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    function EditContactPerson(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#SessionSupplierContactPersonGid").val(ids);
+        var name = tds.eq(2).text();
+        var designation = tds.eq(3).text();
+        //$("#selectedDesignationID option").each(function () {
+        //    if ($(this).text() == designation) {
+        //        $(this).attr('selected', 'selected');
+        //    }
+        //});
+
+        var locat = tds.eq(4).text();
+        var mobileno = tds.eq(5).text();
+        var phoneno = tds.eq(6).text();
+        var emailid = tds.eq(7).text();
+        $("#_DesignationName").val(designation);
+        $("#_SupContactPersonName").val(name);
+        $("#_SupContactPersonLocation").val(locat);
+        $("#_SupContactPersonMobileNo").val(mobileno);
+        $("#_SupContactPersonPhoneNo").val(phoneno);
+        $("#_SupContactPersonEmailId").val(emailid);
+
+        //if ($("#selectedDesignationID").val().trim() != "") {
+        //    $("#selectedDesignationID").removeClass('required');
+        //    $("#selectedDesignationID").addClass('valid');
+        //}
+        //else {
+        //    $("#selectedDesignationID").removeClass('valid');
+        //    $("#selectedDesignationID").addClass('required');
+        //}
+        if ($("#_SupContactPersonName").val().trim() != "") {
+            $("#_SupContactPersonName").removeClass('required');
+            $("#_SupContactPersonName").addClass('valid');
+        }
+        else {
+            $("#_SupContactPersonName").removeClass('valid');
+            $("#_SupContactPersonName").addClass('required');
+        }
+
+    }
+</script>
+

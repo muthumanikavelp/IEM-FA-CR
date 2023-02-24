@@ -1,0 +1,221 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@model IEM.Areas.IFAMS.Models.AssetSplitModel
+@{
+    
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowval = 0;
+    var grid = new WebGrid(source: Model.SplitModel, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "spgridid", ajaxUpdateCallback: "spgridid");
+    int id = @grid.PageIndex;
+}
+
+<b>
+    <span style="color: rgb(52,108,196);"> Spliting of Asset - Maker</span>
+</b>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+
+        <div class="row">
+
+            <div class="col-sm-9">
+
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+
+                    <tr>
+                        @*<td>
+
+                            <div>
+
+                                <span> Aset Description </span>
+                                <br />
+                                <input type="text" name="spfilter" id="txtSpFilter" value="@ViewBag.spfilter" class="textboxStyleSearch" maxlength="20" />
+
+                            </div>
+
+                        </td>*@
+                        <td>
+
+                            <div>
+
+                                <span> Asset ID </span>
+                                <br />
+                                <input type="text" name="spfilter1" id="txtSpFilter1" maxlength="25" value="@ViewBag.spfilter1" class="textboxStyleSearch" style="width:230px" />
+                            </div>
+
+                        </td>
+                        <td>
+
+                            <span></span>
+                            <br />
+
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+                        <td>
+
+                            <span></span>
+                            <br />
+
+                            <button class="btn btn-primary" type="submit" id="btnclear" value="Clear" name="command"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />@if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                        </td>
+                    </tr>
+
+                </table>
+
+            </div>
+
+            <table class="myTableStyleTabNew" style="float:right; margin-right:4px">
+                <tr>
+                    <td>
+                        <div style="float:right; padding-right:8px;">
+                            <span> </span>
+                            <br />
+                           
+                            <button class="btn btn-primary" type="button" onclick="splitasset()"  value="Split"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Split </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+
+        <div style="margin-top:17px; " class="overflowx overflowy">
+
+            @grid.GetHtml(htmlAttributes: new {id = "spgridid"}, fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive", mode: WebGridPagerModes.All,
+        columns: grid.Columns( 
+        grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+        grid.Column("assetdetDetid", "Asset Id", style: "col-lg-3 MidColumn20",format: @<text>
+                <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small;font-weight:normal" id="lblsnonew2">@item.assetdetDetid</label>
+                </span>
+            </text>),
+        grid.Column("assetcategory", "Category", style: "col-lg-3 MidColumn20",format: @<text>
+                <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small;font-weight:normal" id="lblsnonew2">@item.assetcategory</label>
+                </span>
+            </text>),
+        //grid.Column("assetdetDescription", "Asset Description", style: "col-lg-3"),
+        grid.Column("assetsubcategory", "Sub-Category Name", style: "col-lg-3 MidColumn20",format: @<text>
+                <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small;font-weight:normal" id="lblsnonew2">@item.assetsubcategory</label>
+                </span>
+            </text>),
+        //grid.Column("assetdetCode", "Asset Code", style: "col-lg-3"),
+        grid.Column("assetdetCode", "Sub-Category Code", style: "col-lg-1 MidColumn20",format: @<text>
+                <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small;font-weight:normal" id="lblsnonew2">@item.assetdetCode</label>
+                </span>
+            </text>),
+            grid.Column("assetdetAssetvalue", "Asset Value", style: "rig col-lg-3",format: @<text>
+    <span class="editsmv">
+        <label style="word-wrap: break-word;font-size:small;font-weight:normal" id="lblsnonew2">@item.assetdetAssetvalue</label>
+    </span>
+            </text>),
+        //grid.Column("assetsmStatus", "Status", style: "col-lg-3"),
+       // grid.Column("Tdpreciation", "Total Depreciation", style: "col-lg-3"),
+        grid.Column(header: "Action", canSort: false, style: "action",
+        format: @<text>
+            @Html.Raw("<a onclick ='viewSplitMak(" + item.assetdetId + ")' title='View'> <span id = 'color'  class='glyphicon glyphicon-eye-open'> </span> </a>")
+        </text>)
+                  ))
+            @if (ViewBag.Mesage != null)
+            {
+                <div class="table-bordered" align="center">
+                    <b> @ViewBag.Mesage</b>
+                </div>
+            }
+        </div>
+
+        <br /><br />
+
+        <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount@*</span> <span class="myTableStyleTabNew">*@ - Total No of Records: @grid.TotalRowCount</span>
+</div>
+    <input type="hidden" id="hhide" />
+
+}
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+
+    .wid {
+        width: 250%;
+    }
+</style>
+<div id="ForMakerView"></div>
+<script type="text/javascript">
+
+
+    var tr = $("#spgridid").find('tr');
+    $("#spgridid tr #Color").click(function () {
+        $('#spgridid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#CEECF5');
+    });
+
+
+    var objDialogMak;
+    $(document).ready(function () {
+        objDialogMak = $("[id$='ForMakerView']");
+    });
+
+    function splitasset() {
+       // alert('split');
+        location = '@Url.Action("SplitSummary","AssetSplit")?' + new Date().getTime();
+
+    }
+
+    function viewSplitMak(id) {
+
+            objDialogMak.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 950,
+                height: 550,
+                resizable: false
+            });
+            objDialogMak.load('@Url.Action("splitChkView", "AssetSplit")?viewfor=view&id=' + id + '&' + new Date().getTime());
+            objDialogMak.dialog({ title: 'Split Details' });
+            objDialogMak.dialog("open");
+
+
+    }
+
+    $("#txtSpFilter1").autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: '@Url.Action("splitautoassetid","AssetSplit")?' + '&' + new Date().getTime(),
+                //url: "../AssetValueReduction/locautosearch",
+                type: "POST",
+                dataType: "json",
+                data: { term: request.term },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return { label: item.assetdetDetid, value: item.assetdetDetid };
+                    }))
+                }
+            })
+        },
+        messages: {
+            noResults: "", results: ""
+        }
+    });
+    function Download() {
+   
+        location = '@Url.Action("SplitExceldownload", "AssetSplit")';
+    }
+</script>

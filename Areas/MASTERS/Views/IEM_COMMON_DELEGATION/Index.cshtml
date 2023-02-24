@@ -1,0 +1,511 @@
+﻿@using IEM.Areas.MASTERS.Models
+@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_common_delegation>
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, rowsPerPage: 15, canSort: true);
+    int id = @grid.PageIndex;
+    CmnFunctions cmn = new CmnFunctions();
+    int rowVal = 0;
+    iem_common_delegation delmat = (iem_common_delegation)ViewBag.DelmatypeName;
+    CmnFunctions cmnfun = new CmnFunctions();
+    ViewBag.LoginId = cmnfun.GetLoginUserGid();
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<b>
+    <span style="color: rgb(52, 108, 196);"> Common Delegation </span>
+</b>
+<br />
+<br />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" style="margin-left:-3px;">
+                    <tr>
+                        <td>
+                            <div id="txtTypeName">
+                                <span>Delegate By ID</span>
+                                <br />
+                                <input name="DelegationByID" id="txtdelegationbyid" class="textboxStyle" maxlength="16" type="text" style="width:107px;height:30px;" readonly="readonly" data-val="true" value="" />
+                                <input type="text" name="DelegateBygid" id="getdelegationbyid" style="display:none" />
+                            </div>
+                        </td>
+                        <td style="padding-left:15px;">
+                            <div id="txtTypeName">
+                                <span> Delegate By Name</span>
+                                <br />
+                                <input name="DelegationByName" class="textboxStyle" id="txtdelegationbyname" type="text" readonly="readonly" style="width:223px;height:30px;" maxlength="64" data-val="true" value="" />
+                            </div>
+                        </td>
+                        <td><a title="Search"><span class="glyphicon glyphicon-search" style="margin:30px 0px 0px 0px;" id="Searchicon" onclick="SearchDelFrom()"></span></a></td>
+
+
+                        <td style="display:none">
+                            <div id="txtTypeName">
+                                <span>Delegate To ID</span>
+                                <br />
+                                <input name="DelegationToID" id="txtdelegationtoid" class="textboxStyle" maxlength="16" type="text" style="width:107px;height:30px;" readonly="readonly" data-val="true" value="" />
+                                <input type="text" id="getdelegationtoid" style="display:none" />
+                            </div>
+                        </td>
+                        <td style="padding-left:15px;display:none">
+
+                            <span> Delegate To Name</span>
+                            <br />
+                            <input name="DelegationToName" class="textboxStyle" id="txtdelegationtoname" type="text" readonly="readonly" style="width:223px;height:30px;" maxlength="64" data-val="true" value="" />
+
+                        </td>
+                        <td style="display:none"><a title="Search"><span class="glyphicon glyphicon-search" style="margin:30px 0px 0px 0px;" id="Searchiconto" onclick="SearchDelTo()"></span></a></td>
+
+                        <td>
+                            <button type="button" id="_save" disabled="disabled" value="Save" class="btn btn-primary" onclick="SaveDelegateItems()" style="margin-top:20px;color:white;display:none">
+                                <span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;">
+                                <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                            </button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                          <td>
+
+                            <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                                <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                            </button>
+                        </td>
+
+                         
+                    </tr>
+                </table>
+                <div style=" display:none;">
+             <table>
+                 <tr>
+                     <td style=" display:none;">
+                         <span> Period From</span>
+                         <br />
+                         <input type="text"
+                                name="period_from"
+                                id="txtperiodfromdel"
+                                onchange="checkperiodfrom()"
+                                data-val="true" value=""
+                                class="form-control"
+                                style="display: block;width:109px; "
+                                autocomplete="off" />
+
+                     </td>
+                     <td style="display:none;">
+
+                         <span> Period To</span>
+                         <br />
+                         <input type="text"
+                                name="period_to"
+                                id="txtperiodtodel"
+                                onchange="checkperiodto()"
+                                data-val="true" value=""
+                                class="form-control"
+                                style="display: block;width:109px;"
+                                autocomplete="off" />
+
+                     </td>
+                     <td style=" display:none">
+
+                         <span>Delmat Type</span>
+                         <br />
+                         <select name="Delmat" id="Delmatgid1" class="form-control" style="width: 225px;" onchange="checkdelmat()">
+                             <option value=" ">
+                                 -----Select----
+                             </option>
+                             @foreach (var pitem in delmat.GetDelmattype)
+                             {
+                                 string selectedValue = "";
+                                 if (ViewBag.delmatype == pitem.Text)
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                 <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                             }
+                         </select>
+
+                     </td>
+                 </tr>
+</table>
+
+                    @*<button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+
+                </div>
+
+            </div>
+
+
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:70px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:9px;" class="myTableStyle">
+                            <button type="button" value="New" onclick="NewType()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Delegation</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:5px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+                      htmlAttributes: new { id = "gridelegateion" },
+                      tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                      columns: grid.Columns
+                        (
+                            grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+                             grid.Column("delegate_byempcode", cmn.Sorter("delegate_byempcode", "DelegateBy ID", grid)),
+                            grid.Column("delegate_byempname", cmn.Sorter("delegate_byempname", "Delegate By", grid)),
+                            grid.Column("delegate_toempcode", cmn.Sorter("delegate_toempcode", "DelegateTo ID", grid)),
+                            grid.Column("delegate_toempname", cmn.Sorter("delegate_toempname", "Delegate To", grid)),
+                            grid.Column("delegate_period_from", cmn.Sorter("delegate_period_from", "Period From", grid)),
+                            grid.Column("delegate_period_to", cmn.Sorter("delegate_period_to", "Period To", grid)),
+                            grid.Column("temp_delegate_delmattype", cmn.Sorter("temp_delegate_delmattype", "Delmat Type", grid)),
+                            grid.Column("delegate_active", cmn.Sorter("delegate_active", "Active", grid)),
+                            grid.Column(header: "Action", canSort: false, style: "action",
+                            format: @<text>
+                                @Html.Raw("<a title='View' onclick='ViewType(" + item.delegate_gid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+
+                                @Html.Raw("<a title='Edit' onclick='EditType(" + item.delegate_gid + ")'> <span class='glyphicon glyphicon-edit' id='Color'> </span> </a>")
+
+                                @Html.Raw("<a title='Delete' onclick='DeleteDelegate(" + item.delegate_gid + ")'> <span class='glyphicon glyphicon-trash' id='Color'> </span> </a> ")
+                            </text>))))
+
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+        <br />
+        @if (ViewBag.Message == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+        }
+    </div>
+
+    <input type="hidden" id="hdnDelegatetype" name="DelegateType" />
+    <input type="hidden" id="hdnSearch" name="SearchType" />
+}
+
+<div id="ForPartialViewfordelegation"></div>
+<div id="ForPartialViewdelegation"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialogdelegation;
+
+    objDialogdelegation = $("[id$='ForPartialViewdelegation']");
+    objDialogdelegation.dialog({
+        autoOpen: false,
+        modal: true,
+        show: 'fade-in',
+        close: 'fade-out',
+    });
+
+
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtdelegationbyid").focus();
+        });
+
+        $("#txtdelegationbyid").focus();
+        $("#txtdelegationbyid").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtdelegationbyname").focus();
+        $("#txtdelegationbyname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#txtdelegationtoid").focus();
+        $("#txtdelegationtoid").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#txtdelegationtoname").focus();
+        $("#txtdelegationtoname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        var tr = $("#gridelegateion").find('tr');
+        $("#gridelegateion tr #Color").click(function () {
+            $('#gridelegateion').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+    });
+
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialViewfordelegation']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 450,
+            resizable: false
+        });
+
+    });
+
+    $(document).ready(function () {
+
+        $("#txtperiodfromdel").datepicker({
+
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy'
+        });
+
+        $("#txtperiodtodel").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+
+
+
+    function NewType1() {
+
+        objDialog.load('../IEM_COMMON_DELEGATION/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Deleagtion' });
+        objDialog.dialog("open");
+    }
+
+    function NewType() {
+
+        //$("#hdnSearch").val("Y");
+        objDialog.load('../IEM_COMMON_DELEGATION/Create?id=' + @ViewBag.LoginId + '&viewfor=create&' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Deleagtion' });
+        objDialog.dialog("open");
+    }
+
+    function EditType(id) {
+
+        objDialog.load('../IEM_COMMON_DELEGATION/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Delegation' });
+        objDialog.dialog("open");
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_COMMON_DELEGATION/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Delegation' });
+        objDialog.dialog("open");
+    }
+    function DeleteDelegate(id) {
+        objDialog.load('../IEM_COMMON_DELEGATION/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Delegation' });
+        objDialog.dialog("open");
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_COMMON_DELEGATION")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=Delegation&' + new Date().getTime());
+    }
+
+    function refresh() {
+        location = '../IEM_COMMON_DELEGATION/Index';
+    }
+
+
+    function SearchDelFrom() {
+
+        $("#hdnDelegatetype").val("0");
+        @*var url = "@(Html.Raw(Url.Action("EmployeeSearch", "IEM_COMMON_DELEGATION")))";*@
+        var url = '@Url.Action("IEmployeeSearch", "IEM_COMMON_DELEGATION")?SearchType=Search';
+        objDialogdelegation.load(url);
+        objDialogdelegation.dialog({
+            title: 'Delegation Search  Employee', 'width': 830, show: 'fade-in', close: 'fade-out', modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        objDialogdelegation.dialog("open");
+
+    }
+    function SearchDelTo() {
+
+        $("#hdnDelegatetype").val("1");
+        var url = "@(Html.Raw(Url.Action("EmployeeSearch", "IEM_COMMON_DELEGATION")))";
+        objDialogdelegation.load(url);
+        objDialogdelegation.dialog({
+            title: 'Delegation Employee Search ', 'width': 830, show: 'fade-in', close: 'fade-out', modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        objDialogdelegation.dialog("open");
+    }
+
+
+    function SaveDelegateItems() {
+
+        var delegateByID = $("#getdelegationbyid").val().trim();
+        var delegateToID = $("#getdelegationtoid").val().trim();
+        //var delegateto = $("#getdelegatioid").val().trim();
+        var delmatflag;
+        var superflag = "N";
+        var periodfrom = $("#txtperiodfromdel").val().trim();
+        var periodto = $("#txtperiodtodel").val();
+        var active = "Y"
+        //var remark = $("#delegationrem").val();
+        var delmattpe = $("#Delmatgid1").val();
+        var curloginid = parseInt(@ViewBag.LoginId);
+        if (delegateToID == curloginid) {
+            jAlert("You Can't Select This Employee", "Message");
+            return false;
+        }
+        if (delmattpe == "-----Select----") {
+            delmatflag = "N";
+        }
+        else {
+            delmatflag = "Y";
+        }
+
+        var CategoryModel = {
+            "delegate_bygid": delegateByID, "delegate_togid": delegateToID, "delegate_delmat_flag": delmatflag, "delegate_supervisory_flag": superflag,
+            "delegate_period_from": periodfrom, "delegate_period_to": periodto, "delegate_delmattype": delmattpe, "delegate_active": active
+        };
+        $.post('../IEM_COMMON_DELEGATION/Insert', CategoryModel,
+            function (data) {
+                if (data != "success") {
+                    jAlert(data, "Information", function (r) {
+                        if (r = true) { return false; }
+                    });
+                }
+                else {
+                    jAlert("Record Inserted Successfully!!!", "Information", function (r) {
+                        if (r = true) { location = '../IEM_COMMON_DELEGATION/Index'; }
+                    });
+
+                }
+            }
+        , 'json');
+
+    }
+
+    function checkdelmat() {
+
+        if ($("#Delmatgid1").val() == 0) {
+            CheckFieldsHeader();
+            $("#Delmatgid1").removeClass('valid');
+            $("#Delmatgid1").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#Delmatgid1").removeClass('required');
+            $("#Delmatgid1").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+
+    function checkperiodfrom() {
+
+        var txtSESubCategoryName = $("#txtperiodfromdel").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#txtperiodfromdel").removeClass('required');
+            $("#txtperiodfromdel").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#txtperiodfromdel").removeClass('valid');
+            $("#txtperiodfromdel").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+    function checkperiodto() {
+
+        var txtSESubCategoryName = $("#txtperiodtodel").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#txtperiodtodel").removeClass('required');
+            $("#txtperiodtodel").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#txtdelegationpto").removeClass('valid');
+            $("#txtdelegationpto").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+
+
+
+
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        //var val = $("#Delmatgid1").val();
+
+        if ($("#txtdelegationbyid").val() == "" || $("#txtdelegationbyid").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#txtdelegationbyname").val().trim() == "" || $("#txtdelegationbyname").val() == null) {
+            ErrCount = 2;
+        }
+        if ($("#txtperiodfromdel").val() == "-----Select----" || $("#txtperiodfromdel").val() == 0) {
+            ErrCount = 3;
+        }
+        if ($("#txtperiodtodel").val() == "-----Select----" || $("#txtperiodtodel").val() == 0) {
+            ErrCount = 4;
+        }
+        if ($("#txtdelegationtoid").val() == "" || $("#txtdelegationtoid").val() == null) {
+            ErrCount = 5;
+        }
+        if ($("#txtdelegationtoname").val().trim() == "" || $("#txtdelegationtoname").val() == null) {
+            ErrCount = 6;
+        }
+        if ($("#Delmatgid1").val() == "-----Select----" || $("#Delmatgid1").val() == 0) {
+            ErrCount = 7;
+        }
+        //if ($("#CreateCityGid").val() == "-----Select----" || $("#CreateCityGid").val() == 0) {
+        //    ErrCount = 4;
+        //}
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr("disabled");
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+
+    $('.ui-dialog-titlebar-close').click(function () {
+        //
+        //window.parent.jQuery("#EForPartialViewdelegation").remove();
+        //window.parent.jQuery("#ForPartialViewfordelegation").remove();
+        //window.parent.jQuery("#ForPartialViewdelegation").remove();
+
+    });
+
+    //function clear()
+    //{
+    //    $('#ForPartialViewdelegation').remove();
+
+    //}
+
+
+</script>

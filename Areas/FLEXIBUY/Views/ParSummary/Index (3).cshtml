@@ -1,0 +1,343 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var grid = new WebGrid();
+    int rowNum = 0;
+    if (Session["FlexiDash"] != null)
+    {
+        flexibuydashboard dash = new flexibuydashboard();
+        List<flexibuydashboard> lst = new List<flexibuydashboard>();
+        lst = (List<flexibuydashboard>)Session["FlexiDash"];
+       // grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridContent", selectionFieldName: "SelectedRow");
+      
+        grid = new WebGrid(lst, canPage: false, canSort: false);
+        int id = @grid.PageIndex;
+    }
+    else
+    {
+      //  grid = new WebGrid(Model.ListParHeader, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridContent", selectionFieldName: "SelectedRow");
+        grid = new WebGrid(Model.ListParHeader, canPage: false, canSort: false);
+        int id = @grid.PageIndex;
+    }
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">PAR Summary</span>
+</div>
+
+<div class="well">
+    @using (Html.BeginForm())
+    {
+        @*<table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%;">
+                    <span>PAR No</span>
+                    <br />
+                    <input type="text"
+                           name="txtparno"
+                           value="@ViewBag.txtparno"
+                           class="textboxStyle" />
+                </td>
+                <td style="width:20%;">
+                    <span>PAR Date</span>
+                    <br />
+                    <input type="text"
+                           id="txtpardate"
+                           name="txtpardate"
+                           value="@ViewBag.txtpardate"
+                           class="textboxStyle" onkeypress="return isEvent(this);" />
+                </td>
+                <td style="width:20%;">
+                    <span>Status</span>
+                    <br />
+                    <select name="txtstatus" id="ddlstatus" class="textboxStyle">
+                        <option value="0">Select Status</option>
+                        @foreach (var pitem in Model.statuslist)
+                        {
+                            var childitemfilter = Model.statuslist.Where(m => m.Value == pitem.Value);
+                            if (childitemfilter != null)
+                            {
+                                foreach (var citem in childitemfilter)
+                                {
+                                    string selectedValue = "";
+                                    if (@Model.statusgid == Convert.ToInt32(citem.Value))
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </td>
+                
+
+
+                <td style="vertical-align:bottom; width:40%;">
+                    <button class=" btn btn-primary" id="btnsearch" value="search" name="command"
+                            type="submit">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                    </button>
+                   
+                    @if (@grid.TotalRowCount != 0)
+                    {
+                        <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" ><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                    }
+                    <button type="button" id="raisepo" value="RAISE PAR" onclick="submit12()" class="btn btn-success cursorpointer">
+                        <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> RAISE PAR
+                    </button>
+                </td>
+        </table>*@
+
+        @*if (ViewBag.Message != null)
+        {
+            <div align="center">
+                <label class="control-label">@ViewBag.Message</label>
+            </div>
+        }
+        if (@ViewBag.Error != null)
+        {
+            <div align="center">
+                <label>@ViewBag.Error</label>
+            </div>
+        }*@
+        <div style="float:right;">
+            <button type="button" id="raisepo" value="RAISE PAR" onclick="submit12()" class="btn btn-success cursorpointer">
+                <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> RAISE PAR
+            </button>
+        </div>
+        <br />
+    <div id="gridContent" style="overflow-x:scroll; width:100%">
+
+        @if (Session["FlexiDash"] != null)
+        {
+            @grid.GetHtml(
+                            tableStyle: "tableSmall table-bordered",
+                            htmlAttributes: new { id = "grid" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid.Columns
+                            (
+                            grid.Column("SlNo", format: a => rowNum = rowNum + 1, style: "slno", canSort: false),
+                            grid.Column("ParNo", "PAR No"),
+                            grid.Column("ParDate","PAR Date"),
+                            grid.Column("pardescription", "Description"),
+                            grid.Column("parstatus", "PAR Status"),
+                            grid.Column(header: "Action", style: "actionlarge",
+                            format: @<text>
+                                @if (item.parStatus == "Draft" || item.parStatus == "Rejected")
+                                {
+                                    <button class="glyphicon glyphicon-eye-open" name="command" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                    <button class="glyphicon glyphicon-edit" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                    if (item.parStatus == "Rejected")
+                                    {
+                                        <button class="glyphicon glyphicon-trash" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+                                    }
+                                    else
+                                    {
+                                        <button class="glyphicon glyphicon-trash" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" id="@item.ParHeader_Gid" type="button"></button>
+                                    }
+                                }
+                                else if (item.parStatus == "Approved")
+                                {
+                                    <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                    <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                    <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+                                }
+                                else
+                                {
+                                    <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                    <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                    <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+                                }
+                                <a title="Raise Tickets" id="@item.ParNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+                            </text>)))
+        }
+        else
+        {
+            @grid.GetHtml(
+                            tableStyle: "tableSmall table-bordered",
+                            htmlAttributes: new { id = "grid" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid.Columns
+                            (
+                            grid.Column("SlNo", format: a => rowNum = rowNum + 1, style: "slno", canSort: false),
+                            grid.Column("ParNo","PAR No"),
+                            grid.Column("ParDate", "PAR Date"),
+                            grid.Column("pardescription", "Description"),
+                            grid.Column("status", "PAR Status"),
+                            grid.Column(header: "Action", style: "actionlarge",
+                            format: @<text>
+                                    @if (item.status == "Draft" || item.status == "Rejected")
+                                    {
+                                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                        <button class="glyphicon glyphicon-edit" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                        if (item.status == "Rejected")
+                                        {
+                                            <button class="glyphicon glyphicon-trash" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" disabled="disabled" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+                                        }
+                                        else
+                                        {
+                                            <button class="glyphicon glyphicon-trash" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" id="@item.ParHeader_Gid" type="button"></button>
+                                        }
+                                    }
+
+                                    else if (item.status == "Approved")
+                                    {
+                                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                        <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                        <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+
+                                    }
+                                    else
+                                    {
+                                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="viewpardetails(id)" id="@item.ParHeader_Gid" title="View" type="button"></button>
+                                        <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="editpardetails(id)" id="@item.ParHeader_Gid" title="Edit" type="button"></button>
+                                        <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="deletepardetails(id)" title="Delete" type="button"></button>
+
+
+                                    }
+                                    <a title="Raise Tickets" id="@item.ParNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+
+                            </text>)))
+        }
+
+    </div>
+
+
+        @*if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }*@
+       
+        <input hidden="hidden" id="hidPopUp" value="" />
+        <div id="ForPopUpRT"></div>
+        {
+            Session["FlexiDash"] = null;
+        }        
+        @Html.HiddenFor(x => x.des, new { id = "page" })
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('tfoot a').click(function () {
+
+                    $('form').attr('action', $(this).attr('href')).submit();
+
+                    return false;
+                });
+                //$('th a, tfoot a').click(function () {
+                //    $('form').attr('action', $(this).attr('href')).submit();
+                //    return false;
+                //});
+                $("#txtpardate").datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    maxDate: 'd',
+                    dateFormat: 'dd-mm-yy'
+                });
+
+                $("#txtpardate").keyup(function (e) {
+                    if (e.keyCode == 8) {
+                        $.datepicker._clearDate(this);
+                    }
+                    if (e.keyCode == 46) {
+                        $.datepicker._clearDate(this);
+                    }
+                    $(this).datepicker('show');
+                });
+                $('#grid tr th:nth-child(6)').addClass("nosort");
+                $('#grid').dataTable({
+                    "aoColumnDefs": [{
+                        "aTargets": ["nosort"],
+                        "bSortable": false
+                    }]
+                }).css("width", "99%");
+            });
+            //function viewcbfraise(id) {
+            //    location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=view';
+
+            //}
+            //function editcbfraise(id) {
+            //    location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=edit';
+            //}
+            //function deletecbfraise(id) {
+            //    location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=delete';
+            //}
+            //function cancelcbfraise(id) {
+            //    location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=cancel';
+            //}
+
+            function submit12() {
+                var url = '@Url.Action("Index", "PARNew")?' + new Date().getTime();
+                @*var url = '@Url.Action("ParRaiserIndex", "ParRaiser")?' + new Date().getTime();*@
+                location = url;
+            }
+
+            if ('@ViewBag.status' != null) {
+                var selectedvalue = '@ViewBag.status';
+                $('#txtstatus').val(selectedvalue);
+            }
+
+            function editpardetails(id) {
+                var viewfor = "edit";
+                location = "@Url.Action("Index", "PARNew")?pargid=" + id + "&viewtype=edit&" + new Date().getTime();
+                @*location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor;*@
+
+            }
+
+            function viewpardetails(id) {
+                var viewfor = "view";
+                location = "@Url.Action("Index", "PARNew")?pargid=" + id + "&viewtype=view&" + new Date().getTime();
+                @*location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor;*@
+            }
+
+            function deletepardetails(id) {
+                var viewfor = "delete";
+                location = "@Url.Action("Index", "PARNew")?pargid=" + id + "&viewtype=delete&" + new Date().getTime();
+                @*location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor;*@
+            }
+            function isEvent(evt) {
+                return false;
+            }
+
+
+            var objRT;
+            function RaiseTicket(parno) {
+                var refflagname = "PAR";
+                var itemrefno = parno;
+                if ($('#hidPopUp').val() == "") {
+                    $("#hidPopUp").val("iem");
+                    objRT = $("[id$='ForPopUpRT']");
+                    objRT.dialog({
+                        autoOpen: false,
+                        modal: true,
+                        cache: false
+                        //show: 'fade-in',
+                        //close: 'fade-out'
+                    });
+                }
+                objRT.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+                objRT.dialog({
+                    title: 'Raise Ticket',
+                    width: 1100,
+                    height: 500
+                });
+                objRT.dialog("open");
+            }
+            function Download() {
+                location = "../ParSummary/downloadsexcel";
+            }
+        </script>
+    }
+</div>

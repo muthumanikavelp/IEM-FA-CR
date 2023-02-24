@@ -1,0 +1,651 @@
+﻿@model IEM.Areas.EOW.Models.EOW_Payment
+<div id="createPayment">
+
+    @using (Html.BeginForm())
+    {
+        <div style="padding:0;margin:0;">
+            <input type="hidden" id="ecfamomtssession4" value="@Session["Ecfamountpaymentfirst"]" />
+            <table class="myTableStyleTabNew" style=" width: 100%">
+                <tr>
+                    <td style="width:45%">
+                        <span>Paymode </span><br />
+                        @Html.DropDownListFor(model => model.PaymentModeId, Model.PaymentModedata, "--Select--", new { @class = "textboxStyleMedium80 required", @id = "ddlPaymode" })
+
+                    </td>
+                    <td style="width:10%">
+                        <span></span><br />
+                        <input type="button" value="?" id="Getpaymodepopup" onclick="NewPaymentmodepopupC()" />
+                    </td>
+                    <td style="width:45%">
+                        <span>Ref No</span><br />
+                        @Html.DropDownListFor(model => model.RefNoId, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle", @id = "ddlRefNo" })
+                        <input type="text" id="txtcccardno" class="textboxStyle required" style="display:none;" />
+                    </td>
+
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span>Beneficiary</span><br />
+                        @Html.TextBoxFor(model => model.Beneficiary, new { disable = true, @class = "textboxStyle", @id = "txtpayBeneficiary" })
+                    </td>
+                    <td>
+                        <span>Amount</span><br />
+                        @Html.TextBoxFor(model => model.PaymentAmount, new { disable = true, @class = "textboxStyle required", @id = "txtPaymentAmount", @onkeypress = "return isAmount(event);", @maxlength = "15" })
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        <span>Description</span><br />
+                        <textarea id="txtpayDescription" maxlength="225" class="textboxStyle" style="width:606px;height:90px;resize:none "></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 10px;" colspan="3" align="center">
+                        <center>
+                            <button type="button" title="Save" disabled="disabled" name="Save" id="btnsavpaynew" onclick="SavePaymentsuppier()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                            <button type="button" id="btncanpay" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexPayment()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                        </center>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<input type="hidden" id="arfamont" />
+
+<script>
+    $(document).ready(function () {
+        $("#txtcccardno").autocomplete({
+            source: function (request, response) {
+                var Paymodecode = $("#ddlPaymode option:selected").text();
+                if (Paymodecode == "SUS") {
+                    $.ajax({
+                        url: "../EmployeeClaimNew/AutoCompleteglno",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.raiserccName, value: item.raiserccName };
+                            }))
+
+                        }
+                    })
+                }
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    $("#txtPaymentAmount").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+        var currentval = $("#txtPaymentAmount").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtPaymentAmount").val(replaceCommas(currentval));
+
+    });
+    function SavePaymentsuppier() {
+        //var ecfinvoiceamt = $("#txtInvoiceamount").val();
+        var ecfinvoiceamt = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var Paymode = $("#ddlPaymode").val();
+        //var PaymentAmount = $("#txtPaymentAmount").val();
+        var PaymentAmount = $("#txtPaymentAmount").val().replace(/,/g, "");
+        var RefNo = $("#ddlRefNo").val();
+        var Paymode1 = $("#ddlPaymode option:selected").text();
+        var RefNo1 = $("#ddlRefNo option:selected").text();
+        var payBeneficiary = $("#txtpayBeneficiary").val();
+        var payDescription = $("#txtpayDescription").val();
+        var paytxtcccardno = $("#txtcccardno").val();
+        var val1 = parseFloat(ecfinvoiceamt);
+        var val2 = parseFloat(PaymentAmount);
+        var valarf = parseFloat(arfamont);
+
+        if (Paymode == null || Paymode == "" || Paymode == "0") {
+            jAlert("Please Select Paymode.", "Message");
+            $("#ddlPaymode").focus();
+            return false;
+        }
+        if (payBeneficiary == null || payBeneficiary == "") {
+            jAlert("Beneficiary Name Should Not Be Empty.", "Message");
+            $("#ddlPaymode").focus();
+            return false;
+        }
+        if (Paymode1 == "PPX") {
+            if (RefNo1 == null || RefNo1 == "" || RefNo1 == "--Select--") {
+                jAlert("Please Select Ref No.", "Message");
+                $("#ddlRefNo").focus();
+                return false;
+            }
+            if (parseFloat(valarf) < parseFloat(val2)) {
+                jAlert("The Amount Should Not Be Less Then Selected ARF Exception Amount '" + valarf + "'", "Message");
+                return false;
+            }
+        }
+        else if (Paymode1 == "CRN" || Paymode1 == "EFT") {
+            if (RefNo1 == null || RefNo1 == "" || RefNo1 == "--Select--") {
+                jAlert("Please Select Ref No.", "Message");
+                $("#ddlRefNo").focus();
+                return false;
+            }
+        }
+        else if (Paymode1 == "DD" || Paymode1 == "SUS") {
+            if (paytxtcccardno == null || paytxtcccardno == "") {
+                jAlert("Please Enter Ref No.", "Message");
+                $("#ddlRefNo").focus();
+                return false;
+            }
+            else {
+                RefNo1 = paytxtcccardno;
+            }
+        }
+        else {
+            RefNo1 = "";
+        }
+        if (PaymentAmount == null || PaymentAmount == "") {
+            jAlert("Please Enter Payment Amount.", "Message");
+            $("#txtPaymentAmount").focus();
+            return false;
+        }
+        if (payDescription == null || payDescription == "") {
+            jAlert("Please Enter Description.", "Message");
+            $("#txtpayDescription").focus();
+            return false;
+        }
+
+        if (parseFloat(val1) < parseFloat(val2)) {
+            jAlert("The Total Amount Should Should Not Be Greather Invoice Amount ", "Message");
+            return false;
+        }
+        else {
+            var NewExpensemodel = {
+                "PaymentModeName": Paymode1,
+                "RefNoName": RefNo1,
+                "Beneficiary": payBeneficiary,
+                "Description": payDescription,
+                "PaymentAmount": PaymentAmount
+            };
+            $("#btnsavpaynew").attr('disabled', 'disabled');
+            $.post('../SupplierInvoiceNewmanual/_supplierPaymentCreate', NewExpensemodel,
+            function (data) {
+                if (data == "ok") {
+                    $("#btnsavpaynew").attr('disabled', 'disabled');
+                    objDialogPayment.dialog("close");
+                    jAlert("Saved Successfully.", "Message");
+                    var url = '@Url.Action("_SupplierPaymentGrid", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+                    $("#wgempPaymensupplier").load(url);
+                    window.parent.jQuery('#ForPartialViewsupplierPayment').dialog('close');
+                }
+                else if (data == "Duplicate") {
+                    $("#btnsavpaynew").removeAttr('disabled');
+                    jAlert("This Beneficiary Already Used.", "Message");
+                    return false;
+                }
+                else if (data == "DuplicateRef") {
+                    $("#btnsavpaynew").removeAttr('disabled');
+                    jAlert("This Ref No. Already Used.", "Message");
+                    return false;
+                }
+                else if (data == "InvalidEntry") {
+                    $("#btnsavpaynew").removeAttr('disabled');
+                    jAlert("The Total Amount Should Should Not Be Greather Invoice Amount", "Message");
+                    return false;
+                }
+                else {
+                    $("#btnsavpaynew").removeAttr('disabled');
+                    jAlert(data, "Message");
+                    return false;
+                }
+            }, 'json');
+        }
+    }
+
+
+    function GotoIndexPaymentmodepopupd() {
+        $("#ui-icon-closethick").click();
+        objDialogpolicypopup.dialog("close");
+        window.parent.jQuery('#ForPartialViewpolicypopup').dialog('close');
+    }
+
+    function GotoIndexPayment() {
+        objDialogPayment.dialog("close");
+        window.parent.jQuery('#ForPartialViewEmpPaymentmew').dialog('close');
+    }
+
+    function NewPaymentmodepopupC() {
+        $.ajaxSetup({ cache: false });
+        var url = "";
+        var paymodes = $("#ddlPaymode option:selected").text();
+        if (paymodes == "PPX") {
+            var url = '@Url.Action("_supplierPaymentmodepopup", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+            objDialogpolicypopup.load(url);
+            objDialogpolicypopup.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'PPX ',
+                width: 950,
+                height: 400
+            });
+        }
+        if (paymodes == "CRN") {
+            var url = '@Url.Action("_supplierPaymentmodecrn", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+            objDialogpolicypopup.load(url);
+            objDialogpolicypopup.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'Credit Note Adjustment ',
+                width: '85%',
+                height: 500
+            });
+        }
+        if (paymodes == "SUS") {
+            @*var url = '@Url.Action("_supplierPaymentmodesus", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+            objDialogpolicypopup.load(url);
+            objDialogpolicypopup.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'SUS Adjustment ',
+                width: '85%',
+                height: 500
+            });*@
+        }
+        if (paymodes == "EFT") {
+            var url = '@Url.Action("_supplierPaymentmodeeft", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+            objDialogpolicypopup.load(url);
+            objDialogpolicypopup.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'EFT Adjustment ',
+                width: '85%',
+                height: 500
+            });
+        }
+        if (paymodes == "CHQ") {
+
+            var url = '@Url.Action("_supplierPaymentmodeChq", "SupplierInvoiceNew")?' + new Date().getTime();
+            objDialogpolicypopup.load(url);
+            objDialogpolicypopup.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'CHQ Adjustment ',
+                width: '85%',
+                height: 500
+            });
+        }
+        objDialogpolicypopup.dialog("open");
+    }
+
+    $(document).ready(function () {
+        var stylesSelect = $('#txtpayBeneficiary');
+        stylesSelect.attr('disabled', true);
+        var stylesSelect = $('#ddlRefNo');
+        stylesSelect.attr('disabled', true);
+        var stylesSelect = $('#Getpaymodepopup');
+        stylesSelect.attr('disabled', true);
+
+        $('#ddlPaymode').change(function () {
+            var supplierName = $("#txtSuppliername").val()
+            $("#txtPaymentAmount").val('');
+            var stylesSelect = $('#txtPaymentAmount');
+            stylesSelect.attr('disabled', false);
+            $("#txtcccardno").removeClass('valid');
+            $("#txtcccardno").addClass('required');
+            $("#txtcccardno").val('');
+            $("#ddlRefNo").empty();
+            $("#ddlRefNo").append("<option value='0' >--Select--</option>");
+            var brandID = $(this).val();
+            var brandID1 = $("#ddlPaymode option:selected").text();
+            if (brandID1 == "PPX") {
+                $("#txtpayBeneficiary").val(supplierName);
+                $("#ddlRefNo").show();
+                $("#txtcccardno").hide();
+                var Student =
+                          {
+                              "RefNoId": brandID
+                          };
+                $.ajax({
+                    url: '../SupplierInvoiceNewmanual/GetPaymodeRefNo/',
+                    data: JSON.stringify(Student),
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $("#ddlRefNo").empty();
+                        if (data.length > 0) {
+                            $("#ddlRefNo").append("<option value='0' >--Select--</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                var stylesSelect = $('#ddlRefNo');
+                                stylesSelect.attr('disabled', true);
+                                $("#ddlRefNo").append("<option value=" + data[i].RefNoId + " >" + data[i].RefNoName + "</option>");
+                            }
+                            var stylesSelect = $('#Getpaymodepopup');
+                            stylesSelect.attr('disabled', false);
+                        }
+
+                        if (data.length == 0) {
+                            var stylesSelect = $('#ddlRefNo');
+                            stylesSelect.attr('disabled', true);
+                            var stylesSelect = $('#Getpaymodepopup');
+                            stylesSelect.attr('disabled', true);
+                            jAlert("There Is No PPX For This Supplier.", "Message");
+                            return false;
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Error", "Message");
+                    }
+                });
+            }
+            else if (brandID1 == "CRN") {
+                $("#txtpayBeneficiary").val(supplierName);
+                $("#ddlRefNo").show();
+                $("#txtcccardno").hide();
+                $("#ddlRefNo").append("<option value='0' >--Select--</option>");
+                var stylesSelect = $('#ddlRefNo');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#Getpaymodepopup');
+                stylesSelect.attr('disabled', false);
+                return false;
+            }
+            else if (brandID1 == "EFT") {
+                $("#txtpayBeneficiary").val('');
+                $("#ddlRefNo").show();
+                $("#txtcccardno").hide();
+                $("#ddlRefNo").append("<option value='0' >--Select--</option>");
+                var stylesSelect = $('#ddlRefNo');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#Getpaymodepopup');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#txtPaymentAmount');
+                stylesSelect.attr('disabled', true);
+                var eftamount = $("#ecfamomtssession4").val();
+                $("#txtPaymentAmount").val(eftamount);
+                $("#txtPaymentAmount").removeClass('required');
+                $("#txtPaymentAmount").addClass('valid');
+                return false;
+            }
+            else if (brandID1 == "CHQ") {
+                $("#txtpayBeneficiary").val('');
+                $("#txtpayDescription").val('Supplier Account');
+                $("#ddlRefNo").show();
+                $("#txtcccardno").hide();
+                $("#ddlRefNo").append("<option value='0' >--Select--</option>");
+                var stylesSelect = $('#ddlRefNo');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#Getpaymodepopup');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#txtPaymentAmount');
+                stylesSelect.attr('disabled', true);
+                var eftamount = $("#ecfamomtssession4").val();
+                $("#txtPaymentAmount").val(eftamount);
+                $("#txtPaymentAmount").removeClass('required');
+                $("#txtPaymentAmount").addClass('valid');
+                return false;
+            }
+            else {
+                $("#txtpayBeneficiary").val(supplierName);
+                $("#ddlRefNo").hide();
+                $("#txtcccardno").show();
+                var stylesSelect = $('#ddlRefNo');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#Getpaymodepopup');
+                stylesSelect.attr('disabled', true);
+                return false;
+            }
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        var stylesSelect = $('#txtpayBeneficiary');
+        stylesSelect.attr('disabled', true);
+        $("#txtcccardno").keyup(function () {
+            var txtContractFrom = $("#txtcccardno").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtcccardno").removeClass('required');
+                $("#txtcccardno").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtcccardno").removeClass('valid');
+                $("#txtcccardno").addClass('required'); cheval();
+            }
+        });
+        $("#txtcccardno").change(function () {
+            var txtContractFrom = $("#txtcccardno").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtcccardno").removeClass('required');
+                $("#txtcccardno").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtcccardno").removeClass('valid');
+                $("#txtcccardno").addClass('required'); cheval();
+            }
+        });
+        $("#ddlPaymode").keyup(function () {
+            var txtContractFrom = $("#ddlPaymode option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlPaymode").removeClass('required');
+                $("#ddlPaymode").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlPaymode").removeClass('valid'); cheval();
+                $("#ddlPaymode").addClass('required');
+            }
+        });
+        $("#ddlPaymode").change(function () {
+            var txtContractFrom = $("#ddlPaymode option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlPaymode").removeClass('required');
+                $("#ddlPaymode").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlPaymode").removeClass('valid');
+                $("#ddlPaymode").addClass('required'); cheval();
+            }
+        });
+        var txtContractFrom = $("#ddlPaymode option:selected").text();
+        if (txtContractFrom.trim() != "--Select--") {
+            $("#ddlPaymode").addClass('valid'); cheval();
+        }
+        else {
+            $("#ddlPaymode").addClass('required'); cheval();
+        }
+        $("#ddlRefNo").keyup(function () {
+            var txtContractFrom = $("#ddlRefNo option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlRefNo").removeClass('required');
+                $("#ddlRefNo").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlRefNo").removeClass('valid');
+                $("#ddlRefNo").addClass('required'); cheval();
+            }
+        });
+        $("#ddlRefNo").change(function () {
+            var txtContractFrom = $("#ddlRefNo option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlRefNo").removeClass('required');
+                $("#ddlRefNo").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlRefNo").removeClass('valid');
+                $("#ddlRefNo").addClass('required'); cheval();
+            }
+        });
+        var brandID1 = $("#ddlPaymode option:selected").text();
+        if (brandID1 == "PPX" || brandID1 == "CRN" || brandID1 == "EFT") {
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlRefNo").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlRefNo").addClass('required'); cheval();
+            }
+        }
+        $("#txtPaymentAmount").keyup(function () {
+            var txtContractFrom = $("#txtPaymentAmount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtPaymentAmount").removeClass('required');
+                $("#txtPaymentAmount").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtPaymentAmount").removeClass('valid');
+                $("#txtPaymentAmount").addClass('required'); cheval();
+            }
+        });
+        $("#txtPaymentAmount").change(function () {
+            var txtContractFrom = $("#txtPaymentAmount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtPaymentAmount").removeClass('required');
+                $("#txtPaymentAmount").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtPaymentAmount").removeClass('valid');
+                $("#txtPaymentAmount").addClass('required'); cheval();
+            }
+        });
+        var txtContractFrom = $("#txtPaymentAmount").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtPaymentAmount").addClass('valid'); cheval();
+        }
+        else {
+            $("#txtPaymentAmount").addClass('required'); cheval();
+        }
+        $("#txtpayDescription").keyup(function () {
+            var txtContractFrom = $("#txtpayDescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtpayDescription").removeClass('required');
+                $("#txtpayDescription").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtpayDescription").removeClass('valid');
+                $("#txtpayDescription").addClass('required'); cheval();
+            }
+        });
+        $("#txtpayDescription").change(function () {
+            var txtContractFrom = $("#txtpayDescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtpayDescription").removeClass('required');
+                $("#txtpayDescription").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtpayDescription").removeClass('valid');
+                $("#txtpayDescription").addClass('required'); cheval();
+            }
+        });
+        var txtContractFrom = $("#txtpayDescription").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtpayDescription").addClass('valid'); cheval();
+        }
+        else {
+            $("#txtpayDescription").addClass('required'); cheval();
+        }
+    });
+    function cheval() {
+        var ddlPaymode1 = $("#ddlPaymode").val();
+        var ddlRefNo1 = $("#ddlRefNo").val();
+
+        var ddlPaymode = $("#ddlPaymode option:selected").text();
+        var ddlRefNo = $("#ddlRefNo option:selected").text();
+        var txtcccardno = $("#txtcccardno").val();
+        var txtPaymentAmount = $("#txtPaymentAmount").val();
+        var txtpayDescription = $("#txtpayDescription").val();
+
+        if (ddlPaymode == "PPX" || ddlPaymode == "CRN" || ddlPaymode == "EFT") {
+            if (ddlPaymode1 != null && ddlPaymode != "--Select--" && ddlRefNo1 != null && ddlRefNo != "--Select--" && txtPaymentAmount != "" && txtpayDescription != "") {
+                $('#btnsavpaynew').attr('disabled', false);
+            }
+            else {
+                $('#btnsavpaynew').attr('disabled', true);
+            }
+        }
+        else if (ddlPaymode == "DD" || ddlPaymode == "SUS") {
+            if (ddlPaymode1 != null && ddlPaymode != "--Select--" && txtPaymentAmount != "" && txtpayDescription != "" && txtcccardno != "") {
+                $('#btnsavpaynew').attr('disabled', false);
+            }
+            else {
+                $('#btnsavpaynew').attr('disabled', true);
+            }
+        }
+        else {
+            if (ddlPaymode1 != null && ddlPaymode != "--Select--" && txtPaymentAmount != "" && txtpayDescription != "") {
+                $('#btnsavpaynew').attr('disabled', false);
+            }
+            else {
+                $('#btnsavpaynew').attr('disabled', true);
+            }
+        }
+    }
+</script>
+<style>
+    .txtarea {
+        width: 606px;
+        height: 90px;
+        resize: none;
+    }
+
+    .textboxStyleMedium80 {
+        width: 100%;
+        height: 27px;
+        padding: 4px 8px;
+        font-size: 13px;
+        color: #000;
+        line-height: 1.42857143;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    }
+
+        .textboxStyleMedium80:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+        }
+
+        .textboxStyleMedium80::-moz-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+
+        .textboxStyleMedium80:-ms-input-placeholder {
+            color: #999;
+        }
+
+        .textboxStyleMedium80::-webkit-input-placeholder {
+            color: #999;
+        }
+
+        .textboxStyleMedium80[disabled],
+        .textboxStyleMedium80[readonly],
+        fieldset[disabled] .textboxStyle {
+            cursor: not-allowed;
+            background-color: #eee;
+            opacity: 1;
+        }
+</style>

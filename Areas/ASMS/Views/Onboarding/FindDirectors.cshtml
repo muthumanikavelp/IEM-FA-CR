@@ -1,0 +1,300 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model  IEnumerable<IEM.Areas.ASMS.Models.DirectorModel>
+
+@{
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    SupDataModel dm = new SupDataModel();
+    List<DirectorModel> dirmod = new List<DirectorModel>();
+    dirmod = dm.GetDirector().ToList();
+
+    if (dirmod.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    //IEnumerable<DirectorModel> obj = (List<DirectorModel>)ViewBag.Directors;
+    var grid = new WebGrid(dirmod, canSort: true, canPage: false, ajaxUpdateContainerId: "divFindDierctors", ajaxUpdateCallback: "HideElements()");
+    var a = dirmod.Count();
+    ViewBag.totalrows = a;
+    int rowcount = 0;
+}
+<script type="text/javascript">
+    var pagemode;
+
+    function HideElements() {
+        $('.edit-mode').hide();
+        $('.edit-directors, .cancel-directors').live('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit-mode, .display-mode').toggle();
+        });
+        $("#wgridDirectors td:nth-child(1),#wgridDirectors th:nth-child(1)").hide();
+        $("#wgridDirectors td:nth-last-child(1)").show();
+        if (pagemode == "3" || pagemode == "5") {
+            //$("#divDirectorsHeadContent").css("display", "none");
+            $("#wgridDirectors td:nth-child(4),#wgridDirectors th:nth-child(4)").hide();
+        }
+
+
+        $('.save-directors').live('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var DirectorName = tr.find("#_DirectorsName").val();
+            var DirectorID = tr.find("#lblDirectorID").html();
+            if (DirectorName == "" || DirectorName == null) {
+                jAlert(ErrMsg_D1, Title_1, function () {
+                    tr.find("#_DirectorsName").focus();
+                });
+                return false;
+            }
+            tr.find("#lblDirectorName").text(DirectorName);
+            tr.find('.edit-mode, .display-mode').toggle();
+
+            //var DirectorModel =
+            //{
+            //    "_DirectorsID": DirectorID,
+            //    "_DirectorsName": DirectorName
+            //};
+            //$.ajax({
+            //    url: '../Onboarding/UpdateDirectors/',
+            //    data: JSON.stringify(DirectorModel),
+            //    type: 'POST',
+            //    contentType: 'application/json; charset=utf-8',
+            //    success: function (data) {
+            //        // self.location.reload(true);
+            //        // alert(data);
+            //    }
+            //});
+
+        });
+        @*$('.add-directors').live('click', function () {
+
+               var GridRowsCount = parseInt(@ViewBag.totalrows);
+
+               var txtEnteredVal = parseInt($("#txtNoofDirectors").val());
+
+               if (GridRowsCount <= txtEnteredVal) {
+                   var DirectorName = $("#txtDirectors").val();
+                   if (DirectorName == "" || DirectorName == null) {
+                       jAlert(ErrMsg_D1, Title_1, function () {
+                           $("#txtDirectors").focus();
+                       });
+                       return false;
+                   }
+                   var DirectorModel =
+                   {
+                       //"_DirectorsID": DirectorID,
+                       "_DirectorsName": DirectorName
+                   };
+                   $.ajax({
+                       url: '../Onboarding/InsertDirectors/',
+                       data: JSON.stringify(DirectorModel),
+                       type: 'POST',
+                       contentType: 'application/json; charset=utf-8',
+                       success: function (data) {
+                           //self.location.reload(true);
+                           NewDirector();
+                       }
+                   });
+               }
+               else {
+                   jAlert(ErrMsg_D3, Title_1);
+
+                   return false;
+               }
+
+
+
+           });*@
+
+        $('.delete-directors').live('click', function () {
+
+            jConfirm(ConfirmMsg_D1, Title_3, function (e) {
+                if (e == true) {
+                    var tr = $(this).parents('tr:first');
+                    var DirectorName = tr.find("#_DirectorsName").val();
+                    var DirectorID = tr.find("#lblDirectorID").html();
+                    //if (DirectorName == "" || DirectorName == null) {
+                    //    alert("Please Enter Director/Partner Name.");
+                    //    return false;
+                    //}
+                    tr.find("#lblDirectorName").text(DirectorName);
+                    //tr.find('.edit-mode, .display-mode').toggle();
+                    var x = tr;
+                    //tr.remove();
+                    var DirectorModel =
+                    {
+                        "_DirectorsID": DirectorID,
+                        "_DirectorsName": DirectorName
+                    };
+
+                    $.ajax({
+                        url: '../Onboarding/DeleteDirectors/',
+                        data: JSON.stringify(DirectorModel),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            x.remove();
+                            NewDirector();
+                            //temp.remove();
+                            // alert(data);
+                        }
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+        });
+
+    }
+    $('.edit-directors, .cancel-directors').live('click', function () {
+        var tr = $(this).parents('tr:first');
+        tr.find('.edit-mode, .display-mode').toggle();
+    });
+    $(document).ready(function () {
+        pagemode = '@ViewBag.PageMode';
+        $('.edit-mode').hide();
+        //$('.edit-directors, .cancel-directors').live('click', function () {
+        //    var tr = $(this).parents('tr:first');
+        //    tr.find('.edit-mode, .display-mode').toggle();
+        //});
+
+        //$("#txtDirectors").attr("maxlength", "128");
+        $("#wgridDirectors td:nth-child(1),#wgridDirectors th:nth-child(1)").hide();
+        $("#wgridDirectors td:nth-last-child(1)").show();
+        if (pagemode == "3" || pagemode == "5") {
+            // $("#divDirectorsHeadContent").css("display", "none");
+            $("#wgridDirectors td:nth-child(4),#wgridDirectors th:nth-child(4)").hide();
+        }
+
+
+        $('.save-directors').live('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var DirectorName = tr.find("#_DirectorsName").val();
+            var DirectorID = tr.find("#lblDirectorID").html();
+            if (DirectorName == "" || DirectorName == null) {
+                jAlert(ErrMsg_D1, Title_1, function () {
+                    tr.find("#_DirectorsName").focus();
+                });
+                return false;
+            }
+            tr.find("#lblDirectorName").text(DirectorName);
+            tr.find('.edit-mode, .display-mode').toggle();
+
+            var DirectorModel =
+            {
+                "_DirectorsID": DirectorID,
+                "_DirectorsName": DirectorName
+            };
+            $.ajax({
+                url: '../Onboarding/UpdateDirectors/',
+                data: JSON.stringify(DirectorModel),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    // self.location.reload(true);
+                    // alert(data);
+                }
+            });
+
+        });
+
+        $('.delete-directors').live('click', function () {
+            var tr = $(this).parents('tr:first');
+            jConfirm(ConfirmMsg_D1, Title_3, function (e) {
+                if (e == true) {
+                    var DirectorName = tr.find("#_DirectorsName").val();
+                    var DirectorID = tr.find("#lblDirectorID").html();
+                    //if (DirectorName == "" || DirectorName == null) {
+                    //    alert("Please Enter Director/Partner Name.");
+                    //    return false;
+                    //}
+                    tr.find("#lblDirectorName").text(DirectorName);
+                    //tr.find('.edit-mode, .display-mode').toggle();
+                    var x = tr;
+                    //tr.remove();
+                    var DirectorModel =
+                    {
+                        "_DirectorsID": DirectorID,
+                        "_DirectorsName": DirectorName
+                    };
+
+                    $.ajax({
+                        url: '../Onboarding/DeleteDirectors/',
+                        data: JSON.stringify(DirectorModel),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            x.remove();
+                            NewDirector();
+
+                            //temp.remove();
+                            // alert(data);
+                        }
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+
+        });
+    });
+</script>
+
+<div id="divFindDierctors">
+    <div id="wg" class="table-responsive" style="margin-top:10px; width:100%;">
+        @grid.GetHtml(
+            htmlAttributes: new { id = "wgridDirectors" },
+                     tableStyle: "tableSmall table-bordered table-hover",
+            columns:
+                grid.Columns(
+                @*grid.Column(null,null,format: @<text><input type="hidden" id="_DirectorsID" name="_DirectorsID" value="@item._DirectorsID" /> </text>),*@
+                grid.Column("_DirectorsID", "ID", format: @<text>  <span class="display-mode">@item._DirectorsID </span> <label id="lblDirectorID" class="edit-mode">@item._DirectorsID</label> </text>, canSort:false ),
+                grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_DirectorsName", objCmnFunctions.Sorter("_DirectorsName", "Directors Name", grid), format: @<text>  <span class="display-mode"> <label id="lblDirectorName">@item._DirectorsName</label> </span> <input type="text" id="_DirectorsName" value="@item._DirectorsName" class="edit-mode textboxStyle" /></text>),
+                grid.Column("Action",style:"action", format: @<text>
+                    @*<a title="Edit" style="text-decoration:none;" class="edit-directors display-mode"><span class="glyphicon glyphicon-edit"></span></a>
+                    <a title="Save" style="text-decoration:none;" class="save-directors edit-mode"><span class="glyphicon glyphicon-floppy-save"></span></a>
+                    <a title="Cancel" style="text-decoration:none;" class="cancel-directors edit-mode"><span class="glyphicon glyphicon-remove-sign"></span></a>*@
+                    <a title="Delete" style="text-decoration:none;" class="delete-directors"><span class="glyphicon glyphicon-trash"></span></a>
+                </text>, canSort: false)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage" style="width:100%">
+            @ViewBag.NoRecordsFound
+            </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <div>
+            <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+        </div>*@
+</div>

@@ -1,0 +1,170 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.obfdetail
+@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common;
+
+
+    <span style="color: rgb(52, 108, 196);">OBF LineItems</span>
+
+<br /><br />
+<input type="hidden" id="hid_cbfremamount" value="@Session["cbfheadamount"]" />
+@using (Html.BeginForm())
+{
+    <div id="cbfdetailsgrid" class="overflow">
+        @{
+    if (Session["objlist"] != null)
+    {
+        Model.lstobfdetail = (List<obfdetail>)Session["objlist"];
+    }
+    var grid = new WebGrid(source: Model.lstobfdetail, canSort: true,
+        canPage: false, rowsPerPage: 2, ajaxUpdateContainerId: "cbfgrid", ajaxUpdateCallback: "dummyfunction()");
+    //grid.Pager(WebGridPagerModes.All);
+    CmnFunctions obj = new CmnFunctions();
+    int rowNum = 0;
+        }
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover",
+        htmlAttributes: new { id = "obfgrid" },
+        columns: grid.Columns
+            (
+                 grid.Column("Sl", format: a => rowNum = rowNum + 1),
+                grid.Column("obfdetailgid", obj.Sorter("obfdetailgid", "Cbfdetailgid", grid)),
+              grid.Column("obfno", obj.Sorter("cbfno", "OBF No", grid)),
+                 grid.Column("serviceCode", obj.Sorter("serviceCode", "Service Code", grid), style: "MidColumn10"),
+                 grid.Column("serviceName", obj.Sorter("serviceName", "Service Name", grid), style: "MidColumn10"),
+                 grid.Column("serviceDesc", obj.Sorter("serviceDesc", "Service Description", grid), style: "MidColumn40"),
+             // grid.Column("uom", obj.Sorter("uom", "UOM", grid)),
+        //grid.Column("quantity", obj.Sorter("quantity", "Quantity", grid)),
+        //grid.Column("unitPrice", obj.Sorter("unitPrice", "Unit Price", grid)),
+                grid.Column("obfheadAmount", obj.Sorter("obfheadAmount", "Total(Incl.Tax)", grid)),
+               grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid), style: "MidColumn40"),
+                    grid.Column(header: "Action", canSort: false, style: "col-sm-1",
+                     format: @<text>
+                        <input type="checkbox" href="@item.vendorname" value="@item.vendorname"
+                               class="btn btn-link chkb" name="ids"
+                               onclick="vendor()"
+                               id="chk_vendname_@rowNum" title="Select" />
+                    </text>)))
+        @*format: @<text>
+                <input type="button" href="@item.vendorname" value="Select"
+                       class="btn btn-link" name="ids"
+                       onclick="vendor()"
+                       id="chk_vendname_@item.cbfdetailgid" title="Select" />
+            </text>)))*@
+        <input type="hidden" style="display:none" id="namevendor" />
+        @if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle btnCenter">
+                @ViewBag.records
+            </div>
+        }
+    </div>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div @*style="margin-left:380px;"*@>
+                    <button type="button" id="btn_submit" name="command" class="btn btn-success" onclick="ObfSave()" value="Submit">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Submit
+                    </button>
+                    &nbsp;
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Back" onclick="GoToSummary()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span> Back
+                    </button>
+                    @*<input type="button" class="btn btn-primary" value="Submit" onclick="CbfSave()" />*@
+                    @*<input type="button" class="btn btn-warning " value="Back" onclick="GoToSummary()" />*@
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    $("#obfgrid td:nth-child(2),#obfgrid th:nth-child(2)").hide();
+    //$(document).ready(function () {
+    //    var tr = $("#cbfgrid").find('tr');
+    //    $("#cbfgrid tr .chkb").click(function () {
+    //        $('#cbfgrid').find('tr').css('background', 'none');
+    //        $(this).closest('tr').css('background', '#ccc');
+    //    });
+    //});
+    function dummyfunction() {
+        vendor();
+    }
+    var res = 0;
+    function vendor() {
+
+        $("#obfgrid tr").each(function (i, row) {
+            var $actualRow = $(row);
+            if ($actualRow.find('input[type=checkbox]').prop('checked') == true) {
+                $actualRow.css('background-color', '#ccc');
+            }
+            else {
+                $actualRow.css('background-color', 'white');
+            }
+
+            var i = 0;
+            var ChkResult = "";
+            $("#obfgrid td").find("input:checkbox").each(function () {
+
+                var id = $(this).attr('value')
+                var id2 = $(this).attr('id')
+                if ($('#' + id2 + '').is(":checked") == true) {
+                    if (($("#namevendor").val() == id) || ($("#namevendor").val() == "")) {
+                        $('#' + id2 + '').attr('checked', true);
+
+                        $("#namevendor").val(id);
+                        ChkResult += $(this).closest('tr').find('td:eq(1)').text() + ",";
+                    }
+                    else {
+                        $('#' + id2 + '').attr('checked', false);
+                        if ($('#' + id2 + '').find('input[type=checkbox]').prop('checked') == false) {
+                            $('#' + id2 + '').css('background-color', 'white')
+                        }
+                        //$('#' + id2 + '').css('background-color', 'white');
+                    }
+                    i = 1;
+                }
+            });
+            ChkResult = ChkResult.substring(0, ChkResult.length - 1);
+            if (i == 0) {
+                $("#namevendor").val("");
+            }
+            res = ChkResult;
+        });
+    }
+
+    function ObfSave() {
+        //var cbfamount=$("#hid_cbfremamount").val();
+        if (res == 0) {
+            jAlert("Please select OBF line item", "Error");
+            return false;
+        }
+        else {
+            var woheadgid = new Array(res);
+           // location = '../WoRaiser/Wodetails/?function_param=' + woheadgid;
+            location = '@Url.Action("Index","WONew")?cbfdetailsgid=' + woheadgid;
+        }
+    }
+    var objdialogBoq;
+    function ViewBOQ(name) {
+        if ($('#hid_boq').val() == "") {
+            $("#hid_boq").val("asd");
+            objdialogBoq = $("[id$='ForBoqAttach']");
+            objdialogBoq.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                show: 'fade-in',
+                close: 'fade-out'
+            });
+        }
+
+        objdialogBoq.load('../cbfselection/ViewboqattachmentForPo?id=' + name + '&' + new Date().getTime());
+        objdialogBoq.dialog({ title: 'View BOQ Attachment', width: '892', height: '575' });
+        objdialogBoq.dialog("open");
+    }
+    function GoToSummary() {
+        var viewfor = "refresh";
+        location = '@Url.Action("WoSummary", "WoSummary")?viewfor=' + viewfor;
+    }
+</script>

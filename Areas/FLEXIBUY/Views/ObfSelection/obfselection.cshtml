@@ -1,0 +1,216 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.obfselection
+@using IEM.Common;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source:Model.obfsummary, canSort: true, canPage: true, rowsPerPage: 5,
+        ajaxUpdateContainerId: "grid");
+    // int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+}
+<input type="hidden" id="hid_groupobf" value="@Model.result" />
+<style>
+    .forsearch {
+        border: none;
+        box-shadow: none;
+        font-size: 1.7em;
+        background-color: rgb(245, 245, 245);
+    }
+</style>
+<b>
+    <span style="color: rgb(52, 108, 196);">OBF Selection</span>
+</b>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+                            <span>OBF Number</span>
+                            <br />
+                            <input type="text"
+                                   name="obfno"
+                                   id="obfno"
+                                   value="@ViewBag.obfno"
+                                   class="textboxStyleSearch"
+                                   @*placeholder="Enter CBF Number"*@ />
+
+                        </td>
+                        <td>
+                            <span>OBF Date</span>
+                            <br />
+                            <input type="text"
+                                   name="obfdate"
+                                   id="obfdate"
+                                   value="@ViewBag.obfdate"
+                                   class="textboxStyleSearch"
+                                   @*placeholder="Enter CBF Date"*@ />
+                        </td>
+                        @*<td>
+                            <span>OBF End Date</span>
+                            <br />
+                            <input type="text"
+                                   name="obfenddate"
+                                   id="obfenddate"
+                                   value="@ViewBag.obfenddate"
+                                   class="textboxStyleSearch"
+                                   @*placeholder="Enter CBF End Date"*@
+                        <td>
+                            <span>Department</span>
+                            <br />
+                            <select name="ddldepartment" id="statusgid" style="width: 150px;" class="textboxStyleSearch">
+                                <option value="0">Select</option>
+                                @foreach (var pitem in Model.requestlist)
+                                {
+                                    var childitemfilter = Model.requestlist.Where(m => m.Value == pitem.Value);
+                                    if (childitemfilter != null)
+                                    {
+                                        foreach (var citem in childitemfilter)
+                                        {
+                                            string selectedValue = "";
+                                            if (Model.requestforgid == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            @*@Html.DropDownList("requestforgid", Model.requestlist, "--Select--", new { @class = "textboxStyleSearch", @style = "width:180px" })*@
+                        </td>
+                        <td>
+                            @*<span class="glyphicon glyphicon-search" onclick="searchpo()"></span>*@
+                            @*<button class="glyphicon glyphicon-search forsearch" name="command" type="submit"></button>*@
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                            </button>
+                            @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                        </td>
+                    </tr>
+                </table>
+                <input type="hidden" style="display:none" id="department" />
+            </div>
+        </div>
+        <div style="margin-top:17px" id="pogrid1" class="container-fluid overflowx overflowy">
+            <div>
+
+                @grid.GetHtml(
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "obfselection" },
+        columns: grid.Columns
+            (
+                    grid.Column("slno", obj.Sorter("slno", "Sl", grid), style: "MidColumn5"),
+                    grid.Column("obfmode", obj.Sorter("cbfmode", "OBF Mode", grid), style: "MidColumn10"),
+             grid.Column("obfno", obj.Sorter("obfno", "OBF No", grid), style: "MidColumn20"),
+                    grid.Column("obfdate", obj.Sorter("obfdate", "OBF Date", grid), style: "MidColumn10"),
+                    grid.Column("department", obj.Sorter("department", "Department", grid)),
+                    grid.Column("finconBudget", obj.Sorter("finconBudget", "Fincon Budgeted", grid)),
+                    grid.Column("obfamount", obj.Sorter("obfamount", "OBF Amount", grid), style: "col-sm-2"),
+                   // grid.Column("deviationamount", obj.Sorter("deviationamount", "Deviation Amount", grid), style: "MidColumn20"),
+                  //  grid.Column("status", obj.Sorter("status", "Status", grid), style: "MidColumn30"),
+                    grid.Column("description", obj.Sorter("description", "Description", grid), style: "MidColumn50"),
+                    grid.Column(header: "Action", canSort: false, style: "action MidColumn30",
+                     format: @<text>
+                        @*<input type="checkbox" href="@item.cbfheadgid" style="color:rgb(94, 177, 246)" value="@item.cbfheadgid"
+                        class="btn btn-link" name="ids"  onchange="samplefunction(value)"
+                        id="chk_id_@item.cbfheadgid" title="@item.department" />*@
+                <input type="button" value="Select" class="btn btn-link" onclick="SelectObfDetails('@item.obfheadgid','@item.obfno')" id="btn" title="Select" />
+                    </text>)))
+            </div>
+
+            @if (@ViewBag.records != null || @ViewBag.records == "")
+            {
+                <div class="borderStyle btnCenter">
+                    @ViewBag.records
+                </div>
+            }
+        </div>
+
+    </div>
+    <div id="grid_cbfdetails">
+        <div id="cbfdetailsgrid">
+        </div>
+    </div>
+
+
+    <div id="ForBoqAttach"></div>
+    <input type="hidden" id="hid_boq" />
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".btn-link").removeProp('checked');
+        $("#obfdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+
+        var tr = $("#obfselection").find('tr');
+        $("#obfselection tr #btn").click(function () {
+            $('#obfselection').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+        $("#hid_boq").val("");
+
+        $.ajax({
+            url: '@Url.Action("obfdetails", "ObfSelection")?' + new Date().getTime(),
+            type: 'POST',
+            cache: false,
+            success: function () {
+                $("#cbfdetailsgrid").load('@Url.Action("obfdetails", "ObfSelection")?' + new Date().getTime());
+            },
+            error: function () {
+                alert("something seems wrong");
+            }
+        });
+
+
+    });
+    function SelectObfDetails(value,get_obfno) {
+        debugger;
+        var IsExists = 'N'; 
+        $("#obfgrid td").find("input:checkbox").each(function () { 
+            var obf_no = $(this).closest('tr').find('td:eq(2)').text(); 
+            if (obf_no == get_obfno) {
+                IsExists='Y';
+            }
+
+        });
+
+        if( IsExists=='N')
+            { 
+                var objcbf =
+                 {
+                     "obfheadgid": value,
+                 };
+                $.ajax({
+                    url: '@Url.Action("obfdetails", "ObfSelection")?' + new Date().getTime(),
+                    type: 'POST',
+                    cache: false,
+                    data: objcbf,
+                    success: function (data) {
+                        $("#cbfdetailsgrid").load('@Url.Action("obfdetails", "ObfSelection")?' + new Date().getTime());
+                    },
+                    error: function () {
+                        alert("something seems wrong");
+                    }
+                });
+            } 
+    }
+</script>
+

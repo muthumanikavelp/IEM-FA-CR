@@ -1,0 +1,355 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.TransferMakerModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.TModel,
+                         canPage: true,
+                         rowsPerPage: 20,
+                         canSort: true,
+                         ajaxUpdateContainerId: "TMgridId",
+                          ajaxUpdateCallback: "TMgridId"
+                       );
+}
+<b>
+    <span style="color: rgb(52, 108, 196);"> Transfer of Asset - Maker</span>
+</b>
+
+<div class="well">
+    <div class="row">
+        <div class="col-sm-9">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                    <tr>
+                        <td>
+                            <div>
+                                <span> Transfer No </span>
+                                <br />
+                                <input type="text"
+                                       name="filter"
+                                       id="txtFilter"
+                                       value="@ViewBag.filter"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <span>  Transfer Date </span>
+                                <br />
+                                <input type="text"
+                                       name="filter1"
+                                       id="filter1"
+                                       value="@ViewBag.filter1"
+                                       class="textboxStyleSearch" readonly="readonly"
+                                       placeholder="dd-mm-yyyy" />
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <span>  Transfer Status </span>
+                                <br />
+                                <select id="txtstatus" class="textboxStyleSearch" name="status"></select>
+                            </div>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="submit"><span style="color:white;" onclick="refreshpage()" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            @if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            }
+        </div>
+        <table class="myTableStyleTabNew " style="float:right;margin-right:4px">
+            <tr>
+                <td>
+                    <div style="float:right;padding-right:8px;">
+                        <span> </span>
+                        <br />
+
+                        <button class="btn btn-primary" type="submit" onclick="maker()" name="command" value="TRANSFER"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Bulk Asset Transfer </button>
+
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top:17px;" class="overflowx overflowy ">
+        @grid.GetHtml(
+                   htmlAttributes: new { id = "TMgridId" },
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                mode: WebGridPagerModes.All,
+                columns: grid.Columns(
+                grid.Column(header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                         grid.Column("_toa_number", obj.Sorter("Transferno", "Transfer Number", grid), style: " MidColumn20"),
+                         grid.Column("_tfr_date", obj.Sorter("TransferDate", "Transfer Date", grid), style: " MidColumn20"),
+                         grid.Column("_no_records", obj.Sorter("Records", "No of Records", grid), style: " MidColumn10"),
+                         grid.Column("_tfr_status", obj.Sorter("Status", "Transfer Status", grid), style: " MidColumn20"),
+                                  grid.Column("_upld_fname", obj.Sorter("filename", "Uploded File", grid), style: " MidColumn50",
+                        format: @<text>
+                                    <a title='Click here to download' onclick="DownloadtoaAttachments('@item._upld_fname')">
+                                        @item._upld_fname
+                                    </a>
+                        </text>),
+        @*grid.Column(header: "Attachment", canSort: false, style: "action",
+                        format: @<text>
+                                        @Html.Raw("<a data-modal='' href='../AssetTransfer/DownloadDocument?id=" + item._upld_fname + "' title='View Attachment'> <span class='glyphicon glyphicon-file'> </span> </a>")
+            </text>),*@
+ grid.Column(header: "Attachment(s)", canSort: false, style: "action",
+                                                                                                                                                                                    format: @<text>
+    @if (@item._tfr_status == "DRAFT")
+    {
+        <a onclick='toaAttach(@item._gid)' title='Add/View Attachment'> <span id='Color' class='glyphicon glyphicon-plus'> </span> </a>
+    }
+    else
+    {
+        <a onclick='toaAttachedit(@item._gid)' title='View Attachment'> <span id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>
+
+    }</text>),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+
+                    @if (@item._tfr_status == "DRAFT")
+                    {
+                        <a onclick='TransferDetails(@item._gid)' title='View Detail'> <span id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>
+                        <a onclick='TransferMakerAbort(@item._gid)' title='Delete Transfer'> <span id='Color' class='glyphicon glyphicon-trash'> </span> </a>
+                    }
+                    @*@if (@item._tfr_status == "DRAFT")
+                        {
+                            <a onclick='TransferMakerAbort(@item._gid)' title='Delete Transfer'> <span id='Color' class='glyphicon glyphicon-trash'> </span> </a>
+                        }*@
+
+                    else if (@item._tfr_status == "WAITING FOR APPROVAL")
+                    {
+                        <a onclick='TransferDetailWFA(@item._gid)' title='View Detail'> <span id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>
+                    }
+
+                    else if (@item._tfr_status == "REJECTED")
+                    {
+                        <a onclick='TransferDetails(@item._gid)' title='View Detail'> <span id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>
+                    }
+
+
+                    else
+                    {
+                        <a style="color:grey;cursor:not-allowed" disabled='disabled' title='Delete Transfer'> <span style="color:grey;" class='glyphicon glyphicon-trash'> </span> </a>
+
+                    }
+                </text>)
+
+                                                                                                                                                                                                                                        ))
+        <div class="table-bordered btnCenter" align="center">
+            @if (ViewBag.Message != null)
+            {
+                <b> @ViewBag.Message </b>
+            }
+        </div>
+
+    </div>
+
+    <br />
+    <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@Model.TModel.Count()</span>
+</div>
+
+<div id="forAttachment"></div>
+<div id="forficcsearch"></div>
+
+<script type="text/javascript">
+    var tr = $("#TMgridId").find('tr');
+    $("#TMgridId tr #Color").click(function () {
+        $('#TMgridId').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#CEECF5');
+    });
+    var objforAttachment;
+    var forficcsearch;
+    $(document).ready(function () {
+        objforAttachment = $("[id$='forAttachment']");
+        forficcsearch = $("[id$='forficcsearch']");
+    });
+
+    function toaAttach(id) {
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1000,
+            height: 400,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("toaAttach", "AssetTransfer")?viewfor=addmode&id=' + id + '&' + new Date().getTime());
+        objforAttachment.dialog({ title: 'Add Files for Transfer' });
+        objforAttachment.dialog("open");
+    }
+    function toaAttachedit(id) {
+
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 350,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("toaAttach", "AssetTransfer")?id=' + id + '&' + 'viewfor=view' + '&' + new Date().getTime());
+        objforAttachment.dialog({ title: 'View Files for Transfer' });
+        objforAttachment.dialog("open");
+    }
+
+
+    function TransferDetails(assetid) {  // View Detail TM Summary Page
+        debugger;
+        var id = assetid;
+        //_toa_number
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 450,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("TransferMakerView", "AssetTransfer")?id=' + id + '&' + 'viewfor=view' + '&' + new Date().getTime());
+        objforAttachment.dialog({ title: 'View Transfer Details' });
+        objforAttachment.dialog("open");
+    }
+
+
+    //Final Raiser approved
+
+    function TransferDetailWFA(assetid) {
+        debugger
+        var id = assetid;
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 600,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("TransferMakerView", "AssetTransfer")?id=' + id + '&' + 'viewfor=view' + '&' + new Date().getTime());
+        objforAttachment.dialog({ title: 'View Transfer Details' });
+        objforAttachment.dialog("open");
+    }
+
+
+    function TransferMakerAbort(_toa_number) {
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 450,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("TransferMakerView", "AssetTransfer")?viewfor=abort&id=' + _toa_number + '&' + new Date().getTime());
+        objforAttachment.dialog({ title: 'Delete Transfer Details' });
+        objforAttachment.dialog("open");
+    }
+
+    function maker() {
+        objforAttachment.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 650,
+            height: 230,
+            resizable: false
+        });
+        objforAttachment.load('@Url.Action("BulkTransfer", "AssetTransfer")?' + new Date().getTime());
+        objforAttachment.dialog({ title: 'Make Bulk Transfer' });
+        objforAttachment.dialog("open");
+    }
+
+    function refreshpage() {
+        location = '../AssetTransfer/TMSummary';
+    }
+    $(document).ready(function () {
+        var Draft = '@ViewBag.Status';
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("ImpairStatus", "AssetTransfer")',
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].status, data[i].status);
+                        $('#txtstatus').append(opt);
+
+                        $("#txtstatus").find('option').each(function (i, opt) {
+
+                            if (opt.value == Draft)
+                                $(opt).attr('selected', 'selected');
+                        });
+                    }
+                }
+            });
+        });
+        $("#filter1").datepicker(
+         {
+             changeMonth: true,
+             changeYear: true,
+             dateFormat: 'dd-mm-yy',
+             maxdate: new Date()
+         });
+    });
+    function DownloadtoaAttachments(filename) {
+        debugger;
+
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "AssetTransfer")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                debugger;
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    location = "../AssetTransfer/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function Download() {
+
+        location = '@Url.Action("Trfexceldownload", "AssetTransfer")';
+    }
+</script>
+
+

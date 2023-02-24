@@ -1,0 +1,789 @@
+﻿@model IEM.Areas.EOW.Models.EOW_TravelClaim
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    .wht {
+        width: 100%;
+    }
+
+    .txtarea {
+        width: 96.4%;
+        height: 70px;
+        resize: none;
+    }
+</style>
+<div id="createTravelmoceqwer">
+    @using (Html.BeginForm())
+    {
+        <div style="padding:0;margin:0;">
+            <input type="hidden" id="hdraiserfcc" value="@Session["raiserfcc"]" />
+            <input type="hidden" id="hdraiserccc" value="@Session["raiserccc"]" />
+            <table class="myTableStyleTabNew" style="width:100%">
+                <tr>
+                    <td style="width: 33%;">
+                        <span>Nature of Expenses</span><br />
+                        @Html.DropDownListFor(model => model.NatureofExpensesId, Model.ExpNatureofExpdata, new { @class = "textboxStyle required", @id = "ddlNatureofExpensesto" })
+                    </td>
+                    <td style="width: 33%;">
+                        <span>Expense Category</span><br />
+                        @Html.DropDownListFor(model => model.ExpenseCategoryId, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle required", @id = "ddlExpenseCategoryto" })
+                    </td>
+                    <td style="width: 35%;">
+                        <span>Sub Category</span><br />
+                        @Html.DropDownListFor(model => model.SubCategoryId, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "wht textboxStyle required", @id = "ddlSubCategoryto" })
+                    </td>
+                    <td style="width:10%">
+                        <span>&nbsp;</span><br />
+                        <input type="button" value="?" style="margin-top: 5px;" disabled="disabled" id="Getpolicypopup" onclick="Newpolicypopup()" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>Business Segment(BU)</span><br />
+                        @Html.DropDownListFor(model => model.FC, Model.Exp_FCC, new { @class = "textboxStyle ", @id = "txtFCto", @disabled = "disabled" })
+                    </td>
+                    <td>
+                        <span>Cost Center(CC)</span><br />
+                        @Html.DropDownListFor(model => model.CC, Model.Exp_CCC, new { @class = "textboxStyle ", @id = "txtCCto" })
+                    </td>
+                    <td>
+                        <span>Product Code</span><br />
+                        @Html.TextBoxFor(model => model.ProductCode, new { disable = true, @class = "textboxStyle with", @id = "txtProductCodeto" })
+                        <input type="text" id="txtFCCC" style="display:none;" value="@Model.Exp_FCCC" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span>Location Code(OUCode)</span><br />
+                        @Html.TextBoxFor(model => model.OUCode, new { disable = true, @class = "textboxStyle withs", @id = "txtOUCodeto" })
+
+                    </td>
+                    <td colspan="2">
+                        <span>Amount</span><br />
+                        @Html.TextBoxFor(model => model.Amount, new { disable = true, @class = "textboxStyle required", @id = "txtAmountto" })
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1" style="width: 14%;">
+                        <span>HSN Code</span><br />
+                        @Html.DropDownListFor(model => model.HsnId, Enumerable.Empty<SelectListItem>(), new { @class = "wht textboxStyle required", @id = "txtHsnId" })
+                    </td>
+                    <td colspan="2">
+                        <span> Hsn Description</span><br />
+                        @Html.TextAreaFor(model => model.HsnDesc, new { disable = true, @class = "textboxStyle", @id = "txthsndesc", @maxlength = "250", @disabled = "disabled" })
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <span>Description</span><br />
+                        @Html.TextAreaFor(model => model.travelDescription, new { disable = true, @class = "textboxStyle txtarea", @id = "txttravelDescriptiony", @maxlength = "250" })
+                    </td>
+                </tr>
+                <tr>
+                    @*Ramya Added*@
+                    <td style="width:33%; padding:3px;" colspan="4">
+                        <span> RCM Flag</span>
+                        @Html.RadioButtonFor(model => model.RCMFlag, "Y", new { @id = "rdorcmChargedYes", @name = "rdorcmChargedFlag", @disabled = "disabled" })<span>Yes</span>
+                        @Html.RadioButtonFor(model => model.RCMFlag, "N", new { @id = "rdorcmChargedNo", @checked = "checked", @name = "rdorcmChargedFlag", @disabled = "disabled" })<span>No</span>
+                    </td>
+                </tr>@*Ramya Added*@
+                <tr>
+                    <td style="padding-top: 10px;" colspan="4" align="right">
+                        <center>
+                            <button type="button" title="Save" disabled="disabled" name="Save" id="btnsavexpNN1" class="btn btn-primary" onclick="SaveotherTravelmode()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                            <button type="button" id="btncanexpNNN" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexotherExpense()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                        </center>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<style>
+    .with {
+        width: 102%;
+    }
+
+    .withs {
+        width: 95%;
+    }
+
+    .dispgg {
+        display: none;
+    }
+</style>
+<script>
+    $("#txtAmountto").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmountto").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmountto").val(replaceCommas(currentval));
+
+    });
+    $(document).ready(function () {
+        $('#txtFCto').change(function () {
+            var txtFC = $(this).val();
+            var hdraiserfcc = $("#hdraiserfcc").val();
+            if (txtFC != hdraiserfcc) {
+                jAlert("Additional Approval to be attached", "Message");
+                return false;
+            }
+        });
+    });
+    $(document).ready(function () {
+
+        var HsnArray;
+        LoadGSTINCategory();
+        function LoadGSTINCategory() {
+            var _tmpFilter = {
+                ViewType: "3",
+                RefId: "0"
+            };
+            $.ajax({
+                type: "post",
+                url: "../EOWHelper/GetGSTINArray",
+                data: JSON.stringify(_tmpFilter),
+                async: false,
+                contentType: "application/json;",
+                success: function (response) {
+                    var Data1 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                        Data1 = JSON.parse(response.Data1);
+                    HsnArray = Data1;
+                    var data2 = JSON.parse(response.Data1);
+                    $("#txtHsnId").empty();
+                    //if (data2.length > 0) {
+                    //    // $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                    //    for (var i = 0; i < data2.length; i++) {
+                    //        var stylesSelect = $('#txtHsnId');
+                    //        stylesSelect.attr('disabled', false);
+                    //        $("#txtHsnId").append("<option value=" + data2[i].Id + " >" + data2[i].Value + "</option>");
+                    //    }
+                    //    $("#txtHsnId").chosen({});
+                    //    $("#txtHsnId_chosen").addClass("mychosen").css('width', '100%');
+                    //}
+                    if (data2.length == 0) {
+                        $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#txtHsnId');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+        };
+function LoadRCMonHSNChange(txtHsnID) {
+            //hsn+provider location state
+            var DebitlineGId = 0;
+            var ECFId = 0;
+            var invid = 0;
+            var ProviderLocation = 0;
+            var GstinVendor = 0;
+            var hsngid = txtHsnID;
+            //if ((parseInt(ProviderLocation) == 0 || $.trim(ProviderLocation) == "")) {
+            //    jAlert("Ensure Provider Location!", "Message");
+            //    return false;
+            //}
+
+            //if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+            //    if (hsngid == "0") {
+            //        jAlert("Ensure hsn details", "Error");
+            //        return false;
+            //    }
+            //}
+            var rcmflagparam = {
+                DebitlineGId: DebitlineGId,
+                ECFId: ECFId,
+                invid: invid,
+                hsngid: hsngid,
+                ProviderLocation: ProviderLocation,
+                action: 'single'
+
+            }; 
+            $.ajax({
+                type: "post",
+
+                url: "../TravelClaimNew/CheckrcmExists",
+                data: JSON.stringify(rcmflagparam),
+                contentType: "application/json;",
+                success: function (response) {
+                    var Data1 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                        Data1 = JSON.parse(response.Data1); 
+                        if (Data1[0].STATUS == 'EXISTS')
+                            $("#rdorcmChargedYes").prop("checked", true);
+                        else {
+                            $("#rdorcmChargedNo").prop("checked", true);
+                        }
+                    }
+
+
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            });
+
+        };
+        $('#txtHsnId').change(function () {
+            if (HsnArray.length > 0) {
+                var hsnid = $("#txtHsnId").val();
+				$("#rdorcmChargedNo").prop("checked", true);
+                if (parseInt(hsnid) != 0 || hsnid != "") {
+                    for (var i = 0; i < HsnArray.length; i++) {
+                        if (parseInt(hsnid) == parseInt(HsnArray[i].Id)) {
+                            $("#txthsndesc").val(HsnArray[i].Value1);
+							 //Ramya Aug
+                            var GSTCharged = $("#hdfEditViewGstChargedFlag").val(); 
+                            if (GSTCharged == "N") {
+                                LoadRCMonHSNChange(hsnid);
+                            }
+                            break;
+                        }
+                    }
+                }
+                else {
+                    $("#txthsndesc").val("");
+                }
+            }
+        });
+
+        $('#txtCCto').change(function () {
+            var txtCC = $(this).val();
+            var hdraiserccc = $("#hdraiserccc").val();
+            if (txtCC != hdraiserccc) {
+                jAlert("Additional Approval to be attached", "Message");
+                return false;
+            }
+        });
+    });
+    $(document).ready(function () {
+        $("#txtOUCodeto").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../EmployeeClaimNew/AutoCompleteoucode",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.raiserccName, value: item.raiserccName };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    $(document).ready(function () {
+        $("#txtProductCodeto").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../EmployeeClaimNew/AutoCompleteproductcode",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.raiserccName, value: item.raiserccName };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    function Newpolicypopup() {
+        var SubCategory = $("#ddlSubCategoryto").val();
+        if (SubCategory != "0") {
+            var url = '@Url.Action("_Emppolicypopup", "SupplierInvoiceNewmanual")?id=' + SubCategory + '&' + new Date().getTime();
+            objDialogpolicypopupce.load(url);
+            objDialogpolicypopupce.dialog({
+                autoOpen: false,
+                cache: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                title: 'Policy Help',
+                width: 860,
+                height: 400,
+                open: function (event, ui) {
+                    $('.ui-dialog').css('z-index', 1003);
+                    $('.ui-widget-overlay').css('z-index', 1002);
+                }
+            });
+            objDialogpolicypopupce.dialog("open");
+        }
+    }
+    function GotoIndexotherExpense() {
+        objDialogOtherTravelmodenew.dialog("close");
+        window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+    }
+
+    function SaveotherTravelmode() {
+        //var ecfinvoiceamt = $("#txtInvoiceamount").val();
+        var ecfinvoiceamt = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var txtiClaimMonth = $("#txtsermonth").val();
+        var NatureofExpenses = $("#ddlNatureofExpensesto").val();
+        var ExpenseCategory = $("#ddlExpenseCategoryto").val();
+        var SubCategory = $("#ddlSubCategoryto").val();
+        var RCMFlag = "";
+        if ($("input[id=rdorcmChargedYes]:radio[checked=checked]").attr("value")) {
+            RCMFlag = "Y";
+        }
+        else {
+            RCMFlag = "N";
+        }
+        var FC = $("#txtFCto").val();
+        var CC = $("#txtCCto").val();
+        var ProductCode = $("#txtProductCodeto").val();
+        var OUCode = $("#txtOUCodeto").val();
+        //var Amount = $("#txtAmountto").val();
+        var Amount = $("#txtAmountto").val().replace(/,/g, "");
+        var travelDescription = $("#txttravelDescriptiony").val();
+        var Hsnid = $("#txtHsnId").val();
+        if (NatureofExpenses == null || NatureofExpenses == "" || NatureofExpenses == "0") {
+            jAlert("Please select the Nature of Expenses.", "Message");
+            return false;
+        }
+        if (ExpenseCategory == null || ExpenseCategory == "0") {
+            jAlert("Please select The Expense Category", "Message");
+            return false;
+        }
+        if (SubCategory == null || SubCategory == "0") {
+            jAlert("Please select the Sub Category", "Message");
+            return false;
+        }
+
+        if (FC == null || FC == "") {
+            jAlert("Please Enter FC.", "Message");
+            return false;
+        }
+        if (CC == null || CC == "") {
+            jAlert("Please Enter the Cost Center(CC)", "Message");
+            return false;
+        }
+        if (ProductCode == null || ProductCode == "") {
+            jAlert("Please Enter the Product Code", "Message");
+            return false;
+        }
+        if (OUCode == null || OUCode == "") {
+            jAlert("Please Enter Location (OU Code)", "Message");
+            return false;
+        }
+        if (Amount == null || Amount == "") {
+            jAlert("Please enter the Amount", "Message");
+            return false;
+        }
+        if (parseFloat(ecfinvoiceamt) < parseFloat(Amount)) {
+            jAlert("The Debitline Amount Should Should Not Be Greather Invoice Amount ", "Message");
+            return false;
+        }
+        if (Hsnid == null || Hsnid == "" || Hsnid == "0") {
+            jAlert("Please select the HSN Code.", "Message");
+            return false;
+        }
+        else {
+            $("#btnsavexpNN1").attr('disabled', 'disabled');
+            var NewExpensemodel = {
+                "NatureofExpensesName": NatureofExpenses,
+                "ExpenseCategoryName": ExpenseCategory,
+                "SubCategoryName": SubCategory,
+                "FC": FC,
+                "CC": CC,
+                "ClaimMonth": txtiClaimMonth,
+                "ProductCode": ProductCode,
+                "OUCode": OUCode,
+                "travelDescription": travelDescription,
+                "Amount": Amount,
+                "TravelHsnid": Hsnid,
+                "RCMFlag": RCMFlag
+            };
+            $.post('../SupplierInvoiceNewmanual/_TabdebitlineCreate', NewExpensemodel,
+            function (data) {
+                if (data == "Success") {
+                    $("#btnsavexpNN1").attr('disabled', 'disabled');
+                    jAlert("Saved Successfully.", "Message");
+                    var url = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+                    //var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+                    $("#wgTravelmodeotab2").load(url);
+                    //$("#wgempTaxsupplier").load(taxurl);
+                    var url1 = '@Url.Action("_GetGstDetails", "SupplierInvoiceNewmanual")';
+                    $("#PoGstGrid").load(url1);
+                    var url2 = '@Url.Action("_LoadRCMDetails", "SupplierInvoiceNewmanual")';
+                    $("#GrdRCMdetls").load(url2);
+                    window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+                    GotoIndexotherExpense();
+                    $("#Taxtab").hide();
+                    $('#tabs').tabs('select', 0);
+                    if (GstCharged == "Y") {
+                        $("#Gsttab").show();
+                        $("#RCMtab").hide();
+                    }
+                    else {
+                        $("#Gsttab").hide();
+                        $("#RCMtab").show();
+
+                    }
+                }
+                else {
+                    $("#btnsavexpNN1").removeAttr('disabled');
+                    jAlert(data, "Message");
+                    return false;
+                }
+            }, 'json');
+        }
+    }
+
+    $(document).ready(function () {
+        $("#ddlNatureofExpensesto").append("<option selected='selected' value='0' >--Select--</option>");
+        $("#ddlTravelModeto").append("<option selected='selected' value='0' >--Select--</option>");
+
+        $('#ddlNatureofExpensesto').change(function () {
+            var brandID = $(this).val();
+            var Student =
+           {
+               "NatureofExpensesId": brandID
+           };
+            $.ajax({
+                url: '../SupplierInvoiceNewmanual/GetExpenseCategory/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    cheval();
+                    $("#ddlExpenseCategoryto").empty();
+                    $("#ddlSubCategoryto").empty();
+                    if (data.length > 0) {
+                        $("#ddlSubCategoryto").append("<option value='0' >--Select--</option>");
+                        $("#ddlExpenseCategoryto").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            var stylesSelect = $('#ddlExpenseCategoryto');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlExpenseCategoryto").append("<option value=" + data[i].ExpenseCategoryId + " >" + data[i].ExpenseCategoryName + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#ddlSubCategoryto").append("<option value='0' >--Select--</option>");
+                        $("#ddlExpenseCategoryto").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlExpenseCategoryto');
+                        stylesSelect.attr('disabled', true);
+                        var stylesSelect = $('#ddlSubCategoryto');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (result) {
+                    jAlert("Error", "Message");
+                    return false;
+                }
+            });
+        });
+
+        $('#ddlExpenseCategoryto').change(function () {
+            var brandID = $(this).val();
+            var Student =
+           {
+               "ExpenseCategoryId": brandID
+           };
+            $.ajax({
+                url: '../SupplierInvoiceNewmanual/GetSubCategory/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    cheval();
+                    $("#ddlSubCategoryto").empty();
+                    if (data.length > 0) {
+                        $("#ddlSubCategoryto").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            var stylesSelect = $('#ddlSubCategoryto');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlSubCategoryto").append("<option value=" + data[i].SubCategoryId + " >" + data[i].SubCategoryName + "</option>");
+                        }
+                    }
+                    if (data.length == 0) {
+                        $("#ddlSubCategoryto").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlSubCategoryto');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (result) {
+                    jAlert("Error", "Message");
+                    return false;
+                }
+            });
+        });
+
+        $('#ddlSubCategoryto').change(function () {
+            var brandID = $(this).val();
+            if (brandID != "0") {
+                var Student =
+               {
+                   "ExpenseCategoryId": brandID
+               };
+                $.ajax({
+                    url: '../EmployeeClaimnew/GetSubCategorypolicy/',
+                    data: JSON.stringify(Student),
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        cheval();
+                        if (data.policy != "") {
+                            var stylesSelect = $('#Getpolicypopup');
+                            stylesSelect.attr('disabled', false);
+                        }
+                        $("#txtHsnId").empty();
+
+                        if (data.Data2 != "" && data.Data2 != null) {
+                            HsnArray = JSON.parse(data.Data2);
+                            var data2 = JSON.parse(data.Data2);
+                            $("#txtHsnId").empty();
+                            if (HsnArray.length > 0) {
+                                $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                                for (var i = 0; i < HsnArray.length; i++) {
+                                    var stylesSelect1 = $('#txtHsnId');
+                                    stylesSelect1.attr('disabled', false);
+                                    $("#txtHsnId").append("<option value=" + HsnArray[i].hsnid + " >" + HsnArray[i].hsncode + "</option>");
+                                }
+                            }
+                            else {
+
+                                $("#txtHsnId").empty();
+                                $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                                var stylesSelect1 = $('#txtHsnId');
+                                stylesSelect1.attr('disabled', true);
+                            }
+                        }
+
+
+                        else {
+
+                            var stylesSelect = $('#Getpolicypopup');
+                            stylesSelect.attr('disabled', true);
+                            $("#txtHsnId").empty();
+                            $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                            var stylesSelect1 = $('#txtHsnId');
+                            stylesSelect1.attr('disabled', true);
+                            $("#txtHsnId").removeClass('valid');
+                            $("#txtHsnId").addClass('required');
+                            cheval();
+
+                        }
+                    },
+                    error: function (result) {
+                        $("#txtHsnId").empty();
+                        $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                        var stylesSelect1 = $('#txtHsnId');
+                        stylesSelect1.attr('disabled', true);
+
+                        jAlert("Error.", "Error");
+                        return false;
+                    }
+                });
+            }
+            else {
+                $("#txtHsnId").empty();
+                $("#txtHsnId").append("<option value='0' >--Select--</option>");
+                var stylesSelect = $('#Getpolicypopup');
+                stylesSelect.attr('disabled', true);
+            }
+        });
+
+        $('#txtCCto').change(function () {
+            var ccs = $("#txtCCto option:selected").text();
+            var fcs = $("#txtFCto option:selected").text();
+            concode(fcs, ccs);
+        });
+        $('#txtFCto').change(function () {
+            var ccs = $("#txtCCto option:selected").text();
+            var fcs = $("#txtFCto option:selected").text();
+            concode(fcs, ccs);
+        });
+    });
+    function concode(fcs, ccs) {
+        var fc = fcs.split('-');
+        var cc = ccs.split('-');
+        $("#txtFCCC").val(fc[1] + "-" + cc[1]);
+    }
+</script>
+<script>
+    $(document).ready(function () {
+
+        $("#ddlNatureofExpensesto").keyup(function () {
+            var txtContractFrom = $("#ddlNatureofExpensesto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlNatureofExpensesto").removeClass('required');
+                $("#ddlNatureofExpensesto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlNatureofExpensesto").removeClass('valid');
+                $("#ddlNatureofExpensesto").addClass('required'); cheval();
+            }
+        });
+        $("#ddlNatureofExpensesto").change(function () {
+            var txtContractFrom = $("#ddlNatureofExpensesto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlNatureofExpensesto").removeClass('required');
+                $("#ddlNatureofExpensesto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlNatureofExpensesto").removeClass('valid');
+                $("#ddlNatureofExpensesto").addClass('required'); cheval();
+            }
+        });
+
+        $("#ddlExpenseCategoryto").keyup(function () {
+            var txtContractFrom = $("#ddlExpenseCategoryto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlExpenseCategoryto").removeClass('required');
+                $("#ddlExpenseCategoryto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlExpenseCategoryto").removeClass('valid');
+                $("#ddlExpenseCategoryto").addClass('required'); cheval();
+            }
+        });
+        $("#ddlExpenseCategoryto").change(function () {
+            var txtContractFrom = $("#ddlExpenseCategoryto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlExpenseCategoryto").removeClass('required');
+                $("#ddlExpenseCategoryto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlExpenseCategoryto").removeClass('valid');
+                $("#ddlExpenseCategoryto").addClass('required'); cheval();
+            }
+        });
+
+        $("#ddlSubCategoryto").keyup(function () {
+            var txtContractFrom = $("#ddlSubCategoryto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlSubCategoryto").removeClass('required');
+                $("#ddlSubCategoryto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlSubCategoryto").removeClass('valid');
+                $("#ddlSubCategoryto").addClass('required'); cheval();
+            }
+        });
+        $("#ddlSubCategoryto").change(function () {
+            var txtContractFrom = $("#ddlSubCategoryto").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#ddlSubCategoryto").removeClass('required');
+                $("#ddlSubCategoryto").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlSubCategoryto").removeClass('valid');
+                $("#ddlSubCategoryto").addClass('required'); cheval();
+            }
+        });
+
+        $("#txtAmountto").keyup(function () {
+            var txtContractFrom = $("#txtAmountto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtAmountto").removeClass('required');
+                $("#txtAmountto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtAmountto").removeClass('valid');
+                $("#txtAmountto").addClass('required'); cheval();
+            }
+        });
+        $("#txtAmountto").change(function () {
+            var txtContractFrom = $("#txtAmountto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtAmountto").removeClass('required');
+                $("#txtAmountto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtAmountto").removeClass('valid');
+                $("#txtAmountto").addClass('required'); cheval();
+            }
+        });
+
+        $("#txtProductCodeto").keyup(function () {
+            var txtContractFrom = $("#txtProductCodeto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtProductCodeto").removeClass('required');
+                $("#txtProductCodeto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtProductCodeto").removeClass('valid');
+                $("#txtProductCodeto").addClass('required'); cheval();
+            }
+        });
+        $("#txtProductCodeto").change(function () {
+            var txtContractFrom = $("#txtProductCodeto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtProductCodeto").removeClass('required');
+                $("#txtProductCodeto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtProductCodeto").removeClass('valid');
+                $("#txtProductCodeto").addClass('required'); cheval();
+            }
+        });
+
+        $("#txtOUCodeto").keyup(function () {
+            var txtContractFrom = $("#txtOUCodeto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtOUCodeto").removeClass('required');
+                $("#txtOUCodeto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtOUCodeto").removeClass('valid');
+                $("#txtOUCodeto").addClass('required'); cheval();
+            }
+        });
+        $("#txtOUCodeto").change(function () {
+            var txtContractFrom = $("#txtOUCodeto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtOUCodeto").removeClass('required');
+                $("#txtOUCodeto").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtOUCodeto").removeClass('valid');
+                $("#txtOUCodeto").addClass('required'); cheval();
+            }
+        });
+    });
+    function cheval() {
+        var ddlNatureofExpenses1 = $("#ddlNatureofExpensesto").val();
+        var ddlExpenseCategory1 = $("#ddlExpenseCategoryto").val();
+        var ddlSubCategory1 = $("#ddlSubCategoryto").val();
+
+        var ddlNatureofExpenses = $("#ddlNatureofExpensesto option:selected").text();
+        var ddlExpenseCategory = $("#ddlExpenseCategoryto option:selected").text();
+        var ddlSubCategory = $("#ddlSubCategoryto option:selected").text();
+
+        var txtAmount = $("#txtAmountto").val();
+        var txtProductCode = $("#txtProductCodeto").val();
+        var txtOUCode = $("#txtOUCodeto").val();
+
+        if (txtProductCode != "" && txtOUCode != "" &&
+            ddlNatureofExpenses1 != null && ddlExpenseCategory1 != null && ddlSubCategory1 != null
+            && ddlNatureofExpenses1 != "0" && ddlExpenseCategory1 != "0" && ddlSubCategory1 != "0"
+            && ddlNatureofExpenses != "--Select--" && ddlExpenseCategory != "--Select--" && ddlSubCategory != "--Select--"
+            && txtAmount != "") {
+            $('#btnsavexpNN1').attr('disabled', false);
+        }
+        else {
+            $('#btnsavexpNN1').attr('disabled', true);
+        }
+    }
+</script>

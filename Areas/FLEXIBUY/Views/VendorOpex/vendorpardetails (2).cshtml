@@ -1,0 +1,128 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var grid = new WebGrid(source: Model.cbfPardetailslst, canPage: true, canSort: true, rowsPerPage: 5, selectionFieldName: "selectedrow", ajaxUpdateContainerId: "gridpardt", ajaxUpdateCallback: "Dum()");
+    int rowNum = 0;
+}
+<input type="hidden" id="hid_parheadergid" value="@ViewBag.parheadgid" />
+@using (Html.BeginForm())
+{
+    <div>
+        @*<h4>
+            PAR Details
+        </h4>*@
+        <span style="color:rgb(52,108,196);"> PAR Details</span>
+    </div>
+    <div class="borderStyle panel panel-default" id="prdetails">
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+        <br />
+        <table align="center">
+            <tr>
+                <td>
+                    <div id="grid_details_par" class="container">
+                        @grid.GetHtml(
+                                        tableStyle: "tableSmall table-bordered ",
+                                        selectedRowStyle: "selectedrow",
+                                        htmlAttributes: new { id = "gridpardt" },
+                            mode: WebGridPagerModes.All,
+                                        columns: grid.Columns(
+                         grid.Column("Sl", format: item => rowNum = rowNum + 1, canSort: false),
+                         grid.Column("pardet_Gid", sorter("pardet_Gid", "parGid", grid), canSort: false),
+                         grid.Column("par_Expense", sorter("par_Expense", "Capex/Opex", grid), canSort: false),
+                         grid.Column("par_Requestfor", sorter("par_Requestfor", "Department", grid), canSort: false),
+                         grid.Column("par_Budget", sorter("par_Budget", "Budgeted", grid), canSort: false),
+                         grid.Column("description", sorter("description", "Description", grid), style: "MidColumn30", canSort: false),
+                         grid.Column("year", sorter("year", "Year", grid), style: "MidColumn10", canSort: false),
+        //grid.Column("b_FwdAmount", sorter("b_FwdAmount", "B/Fwd Amount", grid)),
+                         grid.Column("lin_Amt", sorter("lin_Amt", "Line Amount", grid), canSort: false),
+                         grid.Column("ulis_Amt", sorter("ulis_Amt", "Utiltized Amount", grid), canSort: false),
+        //grid.Column("c_FwdAmount", sorter("c_FwdAmount", "C/fwd Amount", grid)),
+                         grid.Column("balance", sorter("balance", "Balance", grid), canSort: false),
+                         grid.Column("remarks", sorter("remarks", "Remarks", grid), canSort: false),
+                                        grid.Column(header: "Attchment", canSort: false, style: "action",
+                                                    format: @<text>
+                                            <input type="button" value="View Doc" id="@item.pardet_Gid" onclick="Newboqview12(id)" class="btn btn-link" title="View Doc" />
+                                                    </text>),
+                                        grid.Column(header: "Action", canSort: false, style: "action",
+                                        format: @<text>
+                                            <input type="button" value="Select" class="btn btn-link parselect" onclick="cbfpardetailsfunction(id,this)" id="@item.pardet_Gid" title="Select" />
+                                        </text>)))
+                        <div class="borderStyle btnCenter">
+                            @ViewBag.NoRecordsFound
+                        </div>
+                    </div>
+
+                    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.cbfPardetailslst.Count</label>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="divVendorOpex"></div>
+    <script>
+        var objDialogforpo;
+        function Newboqview12(id) {
+            if ($('#parheaderviewopex').val() == "") {
+         
+                $('#parheaderviewopex').val("1");
+                objDialogforpo = $("[id$='divVendorOpex']");
+                objDialogforpo.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    width: 1000,
+                    height: 600
+                });
+            }
+
+            objDialogforpo.load('../CbfRaiser/viewattachforpar?lnParDetail=' + id);
+            objDialogforpo.dialog({ title: 'View BOQ Attachment' });
+            objDialogforpo.dialog("open");
+        }
+        $(document).ready(function () {
+            $("#gridpardt td:nth-child(2),#gridpardt th:nth-child(2)").hide();
+            $("#gridpardt tr .parselect").click(function () {
+                $('#gridpardt').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+            });
+        });
+        function cbfpardetailsfunction(id,element) {
+
+          
+            $('#cbfdetailsgridforpar').show();
+            var row = $(element).closest("tr");
+            var costestimation = row.find("td:eq(9)").text();
+            var pargid = row.find("td:eq(1)").text();
+            $('#hid_costest').val(costestimation);
+            var prdegid =
+                       {
+                           "prdetailsGid": pargid,
+                           "productcode": id
+                       };
+            $.ajax({
+                url: "../VendorOpex/vendorcbfdetails/",
+                type: 'POST',
+                data: prdegid,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgridforpar").empty().append(data);
+                        $('.display-mode').hide();
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+    </script>
+}

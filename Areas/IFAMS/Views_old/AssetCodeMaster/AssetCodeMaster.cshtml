@@ -1,0 +1,162 @@
+﻿@model IEM.Areas.IFAMS.Models.Ifams_Property
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(Model.AssetDetails, canPage: true, canSort: true, rowsPerPage: 20, ajaxUpdateContainerId: "wgassetdetaisl", ajaxUpdateCallback: "wgassetdetaisl");
+    //var grid = new WebGrid(Model.AssetDetails, canPage: true, canSort: true, rowsPerPage: 15, ajaxUpdateContainerId: "wgassetdetaisl", ajaxUpdateCallback: "wgassetdetaisl");
+    
+    var mess = Convert.ToString(Session["message"]);
+    if (mess == "submit")
+    {
+        <script>jAlert('Successfully Inserted', "Message") </script>
+        Session["message"] = string.Empty;
+    }
+    else if (mess == "edit")
+    {
+        <script>jAlert('Successfully Updated', "Message") </script>
+        Session["message"] = string.Empty;
+    }
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Asset Sub-Category</span>
+</div>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%">
+                    <span>Asset Code</span><br />
+                    @Html.TextBoxFor(a => a.assetCode, new { @id = "txtAssetCode", @class = "fstextbox", @Value = @ViewBag.assetCode })
+
+                </td>
+                <td style="width:20%">
+                    <span>Asset Description</span><br />
+                    @Html.TextBoxFor(a => a.assetDesc, new { @id = "txtAssetDesc", @class = "fstextbox", @Value = @ViewBag.assetDesc })
+                </td>
+                <td style="width:40%">
+                    <button type="submit" id="btnSearch" class="btn btn-primary" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button type="submit" id="btnRefresh" name="Refersh" title="Refersh" value="Refersh" class="btn btn-primary" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+                </td>
+                <td style="width:20%; text-align:right;">
+                    <button type="button" id="btnnew" onclick="newasset()" value="NEW" class="btn btn-primary" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Asset</button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+         mode: WebGridPagerModes.All,
+            htmlAttributes: new { id = "wgassetdetaisl" },
+            tableStyle: "tableSmall table-bordered table-hover",
+            columns: grid.Columns(
+                //grid.Column("assetgid", "SlNo"),
+                //grid.Column("assetDescType", "Depreciation Type", style: "colmedium"),
+                //grid.Column("assetCategoryId", "assetCategoryId"),
+                //grid.Column("assetSubCategoryName", "SubCategory Name", style: "collargeBreak"),
+                //grid.Column("assetSubCategoryId", "assetSubCategoryId"),
+
+             grid.Column(style: "slno", header: "SlNo", canSort: false, format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                grid.Column("assetCode", "Asset Code", style: "colmedium"),
+                grid.Column("assetDesc", "Asset Description", style: "collargeBreak"),
+                grid.Column("assetCategoryName", "Asset Category", style: "colmedium"),
+                grid.Column("glCode", "GLCode", style: "colmedium"),
+                grid.Column("ownedByName", "Owned By", style: "colmediumBreak"),
+
+                grid.Column("SLM", "Dep Type", style: "colSmall"),
+               // grid.Column("LPM", "LPM", style: "colSmall"),
+                grid.Column("umonths", "UOM", style: "colSmall"),
+                grid.Column("descRate", "Depreciation Rate", style: "colmedium"),
+                grid.Column("descGlCode", "Depreciation GLCode", style: "collarge"),
+                grid.Column("descResGlCode", "Depreciation Res GLCode", style: "collarge"),
+
+                grid.Column("Verifiable", "Verifiable/ Non verifiable", style: "colSmall"),
+              //  grid.Column("NonVerifiable", "NonVerifiable", style: "colSmall"),
+             grid.Column("IsQuantified", "IsQuantified", style: "colSmall"),
+                grid.Column("BarcodeIsMandatory", "Barcode IsReqd?", style: "colSmall"),
+                
+                grid.Column("NonMantadatory", "SerialNo IsMandatory?", style: "colSmall"),
+               grid.Column("Movable", "Movable/Immovable", style: "colSmall"),
+                grid.Column(header: "Action", canSort:false, style: "action",
+          format: @<text>
+            <span id='Color' style="padding-right:5px;" class='glyphicon glyphicon-eye-open cursorpointer' onclick="viewTrigger(@item.assetgid)"></span>
+            <span id='Color' style="padding-right:5px;" class='glyphicon glyphicon-edit cursorpointer' onclick="EditTrigger(@item.assetgid)"></span>
+            <span class='glyphicon glyphicon-trash cursorpointer' onclick="DeleteTrigger(@item.assetgid)"></span>
+        </text>)))
+        </div>
+        @if (@grid.TotalRowCount == 0)
+        {
+            <div class="gridMessage">
+                No Record Found!
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left; font-size:14px;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+    </div>
+    
+    <div id="ForPartialViewfa"></div>
+}
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialViewfa']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 680,
+            height: 600,
+            duration: 300
+        });
+    });
+
+
+    function newasset() {
+        objDialog.load('../AssetCodeMaster/NewAssetCodeMaster?' + new Date().getTime());
+        objDialog.dialog({ title: 'AssetCode Master' });
+        objDialog.dialog("open");
+    }
+
+    function viewTrigger(id) {
+        objDialog.load('../AssetCodeMaster/EditAssetCode?id=' + id + '&' + 'type=view' + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'AssetCode Master' });
+        objDialog.dialog("open");
+       
+    }
+
+    function EditTrigger(id) {
+        objDialog.load('../AssetCodeMaster/EditAssetCode?id=' + id + '&' + 'type=edit' + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'AssetCode Master' });
+        objDialog.dialog("open");
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "AssetCodeMaster")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=AssetDetails&' + new Date().getTime());
+    }
+    function DeleteTrigger(id) {
+      
+        jConfirm("Do you want to delete this Sub Category ? ", "Message", function (r) {
+            if (r == true) {
+                $.post('../AssetCodeMaster/DeleteAssetDetails?id=' + id + '&' + new Date().getTime(),
+                     function (data) {
+                         if (data == 0) {
+                             location = location.href;
+                         }
+                         else {
+                             jAlert("Record Deleted Successfully!!!", "Message", function (t) {
+                                 if (t == true) { location = '../AssetCodeMaster/AssetCodeMaster?' + new Date().getTime(); }
+                             });
+
+                         }
+                     }, 'json');
+            }
+            else { return false; }
+        });
+    }
+</script>
+

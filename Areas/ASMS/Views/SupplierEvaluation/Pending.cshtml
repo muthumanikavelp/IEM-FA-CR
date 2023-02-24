@@ -1,0 +1,171 @@
+﻿@model IEM.Areas.ASMS.Models.SEModel
+@using IEM.Common;
+@using IEM.Areas.ASMS.Models;
+
+@{
+    CmnFunctions cmn = new CmnFunctions();
+    ASMSDataModel model = new ASMSDataModel();
+    SEModel revirew = new SEModel();
+    List<SEModel> List = new List<SEModel>();
+    string mt = null;
+    if (List.Count() == 0)
+    {
+        List = model.GetSEModelPending(mt, Convert.ToInt32(cmn.GetLoginUserGid())).ToList();
+        if (List.Count() == 0)
+        {
+            ViewBag.PendMessage = "No records found";
+        }
+        else if (Session["pDownload"] != null) { List = (List<SEModel>)Session["pDownload"]; }
+    }
+    else
+    {
+        List = (List<SEModel>)Session["pDownload"];
+    }
+    WebGrid gridPen = new WebGrid(source: List,canPage:false, ajaxUpdateContainerId: "ddd", ajaxUpdateCallback: "divPend()");
+    int row = 0;
+}
+<div>
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td>
+                        Supplier Code <br />
+                        <input type="text"
+                               name="txtCodePenFilter"
+                               id="txtCodePenFilter"
+                               value="@ViewBag.txtCodePenFilter"
+                               class="textboxStyleSearch"
+                               style="display: block;" maxlength="100" />
+                    </td>
+                    <td>
+                        Supplier Name <br />
+                        <input type="text"
+                               name="txtPenFilter"
+                               id="txtPenFilter"
+                               value="@ViewBag.txtPenFilter"
+                               class="textboxStyleSearch"
+                               maxlength="100"
+                               style="display: block; " />
+                    </td>
+                    <td>
+                        Assessment Period <br />
+                        <select name="yearpicker" id="txtperiodPending" class="textboxStyleSearch">
+                            <option value="0"> --Select Period-- </option>
+                        </select>
+                    </td>
+                    <td>
+                        <br />
+                        <button class="btn btn-primary" id="btnsearch" onclick="BtnPend()" value="Search" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    </td>
+                    <td>
+
+                        <br />
+                        <button class="btn btn-primary" onclick="Refresh()" id="btnclear" value="Clear" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table class="myTableStyleTabNew" style="float:right;margin-right :3px;">
+            <tr>
+                <td>
+                    <div style="float:right;padding-right:8px;">
+
+                        <br />
+                        <a href="@Url.Action("PDownload", "SupplierEvaluation")" class=" btn btn-primary" style="float: right;height:35px;"><span style="color: white;" class="glyphicon glyphicon-export"></span>Excel Export</a>
+                    </div>
+            </tr>
+        </table>
+
+    </div>
+    <div id="divPend" style="margin-top:17px;" class="overflowy">
+        @gridPen.GetHtml(
+                   htmlAttributes: new { id = "wgPending" },         
+ tableStyle: "tableSmall table-bordered",
+ columns: gridPen.Columns
+(
+gridPen.Column("S.No.", canSort: false, format: item =>row= row+1),
+gridPen.Column("seSupCode", "Supplier Code", canSort: false),
+gridPen.Column(header:"Supplier Name",
+format: @<text> 
+        <span title="Click to Evaluate the Supplier" class="btn btn-link btnselect">@item.seSupName</span>
+        <label style="display:none;height:0px;" id="lblseID" >@item.seID</label>
+        <label style="display:none;height:0px;" id="lblseYear">@item.seYear</label>
+        </text>
+ , canSort: false),
+        //gridPen.Column("seSupName", "Supplier Name", canSort: false, format: (item) => Html.ActionLink(((string)item.SESupName), "../SupplierEvaluation/Evaluation", new { id = item.SEid, @onclick = "GetId('" + item.seYear + "','" + item.SEid + "')" }, new { title = "Click to Evaluate the Supplier" })),
+ gridPen.Column("seYear", "Reviewed Year", canSort: false),
+ gridPen.Column("SEstatus", "Supplier Evaluation Status", canSort: false))
+                             )
+    </div>
+    @if (ViewBag.PendMessage != null)
+    {
+        <div align="center" class="borderStyle">
+
+            <h6 class="row" style="font-weight:bold ;">
+                @ViewBag.PendMessage
+            </h6>
+        </div>
+    }
+    <span class="myTableStyleTabNew"></span><span class="myTableStyleTabNew"> Total No Of Records:@List.Count()</span>
+</div>
+
+<script>
+    var supName;
+    var supCode;
+    var txtYearFilter;
+    var i = (new Date().getFullYear()) - 1;
+    var end = i - 10;
+    for (i  ; i > end; i--) {
+        $('#txtperiodPending').append($('<option />').val(i).html(i));
+    }
+    function BtnPend() {
+        supName = $("#txtPenFilter").val();
+        supCode = $("#txtCodePenFilter").val();
+        supYear = $("#txtperiodPending").val();
+        alert(supYear);
+        $.post('../SupplierEvaluation/Pending?txtPenFilter=' + supName + '&pending=Pending&txtCodePenFilter=' + supCode + '&txtYear=' + supYear,
+                function (data) {
+                    $("#txtPenFilter").val(supName);
+                    $("#txtCodePenFilter").val(supCode);
+                    if (data == 0) {
+                        location = location.href;
+                    }
+
+                }, 'json');
+    }
+    //"GetId('" + item.SEid + "," + item.seYear + "')"
+
+    //function GetId(id, year) {
+    //    alert(year);
+    //    alert(id);
+    //    obj.load('../SupplierEvaluation/Evaluation?id=' + id + '&year='+ year );
+    //}
+
+    function GetId(id,year) {
+        alert(id);
+        alert(year);
+        location = "../SupplierEvaluation/Evaluation/?year=" + year + "&id=" + id;
+    }
+    function Refresh() {
+        location = '../SupplierEvaluation/Index?pending=Pending';
+
+    }
+
+    $('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var empid = tr.find("#lblseID").text();
+        var empcode = tr.find("#lblseYear").text();        
+        location = "../SupplierEvaluation/Evaluation/?id=" + empid + "&year=" + empcode;
+    });
+
+    if ('@Session["cYEAR"]' != null) {
+        var selectedvalue = '@Session["cYEAR"]';
+        $('#txtperiodPending').val(selectedvalue);
+    }
+
+    @*if ('@Session["pYEAR"]' != null) {
+        var selectedvalue = '@Session["pYEAR"]';
+        $('#txtSeYear').val(selectedvalue);
+    }*@
+</script>

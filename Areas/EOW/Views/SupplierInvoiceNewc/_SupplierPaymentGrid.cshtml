@@ -1,0 +1,155 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Payment>
+@{
+    Session["Ecfamountpaymentfirst"] = "0";
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_Payment> lstPayment = new List<EOW_Payment>();
+    lstPayment = (List<EOW_Payment>)TempData["SearchItems"];
+    decimal remamount = 0;
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.GetEmployeeePayment(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+
+        if (lstPayment.Count > 0)
+        {
+            Session["Ecfamountpaymentfirst"] = lstPayment[0].PaymentAmount.ToString();
+        }
+        for (int tr = 0; lstPayment.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lstPayment[tr].PaymentAmount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lstPayment[tr].PaymentAmount.ToString());
+            }
+        }
+        ViewBag.NoRecordstolp = "total";
+        Session["invoicePaymentamnt"] = remamount.ToString();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempPaymensupplier">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempPaymensupplier", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+                         htmlAttributes: new { id = "wgempPaymensupplier" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(
+                //gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                                   gridPayment.Column("PaymentModeName", objCmnFunctions.Sorter("PaymentModeName", "Payment Mode", gridPayment), canSort: false, style: "collargeBreak"),
+                                                                     gridPayment.Column("RefNoName", objCmnFunctions.Sorter("RefNoName", "Ref No / Bank Account Number", gridPayment), canSort: false, style: "collargeBreak"),
+                                                            gridPayment.Column("Beneficiary", objCmnFunctions.Sorter("Beneficiary", "Beneficiary", gridPayment), canSort: false, style: "collargeBreak"),
+                                                            gridPayment.Column("Description", objCmnFunctions.Sorter("Description", "Description", gridPayment), canSort: false, style: "collargeBreak"),
+                //gridPayment.Column("PaymentAmount", objCmnFunctions.Sorter("PaymentAmount", "Amount", gridPayment), canSort: false, style: "collargeBreak"),
+                                                             gridPayment.Column(header: "PaymentAmount",
+                        format: @<text>
+                                                                @Html.Raw(String.Format("{0:#,##}",
+                                                 objCmnFunctions.GetINRAmount(Convert.ToString(@item.PaymentAmount)
+                        ))) </text>, style: "colamountlarge"),
+                                           gridPayment.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                            @if (Session["Supplierpaydebitedit"].ToString() == "Edit")
+                                            {
+                                                //rowValPayment = rowValPayment + 1;
+                                                //if (rowValPayment != 1)
+                                                //{
+                                                if (item.Description != "Invoice Retension Amount" && item.Description != "Supplier Account")
+                                                {
+                                                    @Html.Raw("<a title='view' onclick='EmpPaymentView(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                    @Html.Raw("<a title='Edit' onclick='EmpPaymentEdit(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                                    @Html.Raw("<a title='Delete' onclick='EmpPaymentDelete(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                                }
+                                                @*}
+                                                    else
+                                                    {
+                                                        if (item.Description != "Invoive Retension Amount" && item.Description != "Suppier Account")
+                                                        {
+                                                            @Html.Raw("<a title='view' onclick='EmpPaymentView(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                            @Html.Raw("<a title='Edit' onclick='EmpPaymentEdit(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                                            @Html.Raw("<a title='Delete' onclick='EmpPaymentDelete(" + item.Paymentgid + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                                        }
+                                                    }*@
+                                            }
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ))
+
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundPayment </b>
+                </center>
+            </div>
+        }
+    </div>
+
+    @if (@ViewBag.NoRecordstolp == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <div align="right">
+                            <span id="supplierpaymentdfr">
+                                Total Payment Amount : <b>
+                                    <label style="display:none" id="supplierpaymentd">
+                                        @Session["invoicePaymentamnt"]
+                                    </label>
+                                    <label id="supplierpaymentd6">
+                                        @objCmnFunctions.GetINRAmount(@Session["invoicePaymentamnt"].ToString())
+                                    </label>
+                                </b>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+</div>
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            var Ecfamountvalmain = $("#txtInvoiceamount").val();
+            var Ecfrowtolamt = $("#supplierpaymentd").text();
+            var val1 = parseFloat(Ecfamountvalmain);
+            var val2 = parseFloat(Ecfrowtolamt);
+            if (val1 == val2) {
+                var stylesSelect = $('#btnpaymentinvo');
+                stylesSelect.attr('disabled', true);
+            }
+            else {
+                var stylesSelect = $('#btnpaymentinvo');
+                stylesSelect.attr('disabled', false);
+            }
+        });
+    </script>*@
+<script>
+    $(document).ready(function () {
+        $("#wgempPaymensupplier tr #id").click(function () {
+            $('#wgempPaymensupplier').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+
+</script>
+
+

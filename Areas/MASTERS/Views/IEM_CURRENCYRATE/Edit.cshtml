@@ -1,0 +1,390 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_currencyrate 
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+  
+    <table class="myTableStyleTabNew" style="width:100%;">    
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display :none ;">
+                <input name="DocNameID" id="txtcurrencyrategid" type="text" placeholder="DocName ID" data-val="true" value="@Model.currencyrate_gid " />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Currency Name</span>
+                @*@Html.DropDownListFor(m => m.selectedstate_gid, Model.Getstate, Model.state_name, new { @class = "textboxStyle ", @style = "display: block", @id = "state_gid", @ViewBag.viewmode })*@
+                <select name="depat_gid" id="currency_gid" onchange="change()" class="fstextbox chosen-select" @ViewBag.viewmode>
+                    <option value="0">Select</option>
+                    @foreach (var pitem in Model.Getcurrency)
+                    {
+                        var childitemfilter = Model.Getcurrency.Where(m => m.Value == pitem.Value);
+                        if (childitemfilter != null)
+                        {
+                            foreach (var citem in childitemfilter)
+                            {
+                                string selectedValueddel = "";
+                                if (Model.selectedcurrency_gid.ToString() == citem.Value)
+                                {
+                                    selectedValueddel = "selected='selected'";
+                                }
+                                <option value="@citem.Value" @selectedValueddel>@citem.Text</option>
+                            }
+                        }
+                    }
+                </select>
+
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Currency Period From </span>
+                <br/>
+                <input name="DocNameName" id="txteditperiodfrom" type="text" onchange="checkperiodfrom()" data-val="true"
+                       value="@Model.currencyrate_period_from" class="fstextbox valid" style="  display: block;" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Currency Period To </span>
+                <br/>
+                <input name="DocNameName" id="txteditperiodto" type="text" data-val="true" onchange="checkperiodto()"
+                       value="@Model.currencyrate_period_to" class="fstextbox valid" style="display: block;" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Currency Rate</span>
+                <br />
+                <input name="DocNameName" id="txteditcurrencyratevalue" type="text"  data-val="true" maxlength="5" value="@Model.currencyrate_value"
+                       class="fstextbox valid" style=" display: block;" @ViewBag.viewmode />
+
+                @*onkeypress="return isNumberKey(event)"
+                onkeyup="checkcurrencyrate()"*@
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Indian Rupee </span>
+                <br/>
+                <input name="DocNameName" id="_Cityname" type="text" data-val="true" maxlength="70" value="INR" readonly="readonly"
+                       class="fstextbox valid" style="display: block;" />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center ;">
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"
+                                style="margin-top:10px;  color:white;">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                        </button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                    }
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                        </button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"
+                                style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                        </button>
+                    }
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txteditperiodfrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+                var dt = $('#txteditperiodfrom').val();
+                var dt1 = $('#txteditperiodto').val();
+                $("#txteditperiodfrom").addClass('valid');
+                $("#txteditperiodto").datepicker("option", "minDate", selected)                
+            }            
+        })
+        $("#txteditperiodto").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+                var dt = $('#txteditperiodfrom').val();
+                var dt1 = $('#txteditperiodto').val();
+                $("#txteditperiodto").addClass('valid');
+            }
+        });
+
+        $("#currency_gid").chosen({});
+        $("#currency_gid_chosen").css("width", "100%");
+    });
+    //$('#txteditperiodto').mouseover(function () {
+    //    $("#txteditperiodto").datepicker({
+    //        dateFormat: 'dd-mm-yy'
+    //    });
+    //});
+    //$('#txteditperiodfrom').mouseover(function () {
+    //    $("#txteditperiodfrom").datepicker({
+    //        dateFormat: 'dd-mm-yy'
+    //    });
+    //});
+
+    $("#txteditcurrencyratevalue").ready(function () {
+        var currentval = $("#txteditcurrencyratevalue").val();
+        $("#txteditcurrencyratevalue").val(replaceCommas(currentval));
+    });
+
+    $("#txteditcurrencyratevalue").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txteditcurrencyratevalue").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txteditcurrencyratevalue").val(replaceCommas(currentval));
+
+        checkcurrencyrate();
+    });
+
+    $(".ui-icon-closethick").click(function () {
+        $("#txteditperiodfrom").datepicker("destroy");
+        $("#txteditperiodto").datepicker("destroy");
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+      //  $('#gridcurrencyrate').find('tr').css('background', 'none');
+    });
+    function checkperiodfrom() {
+
+        var txtSESubCategoryName = $("#txteditperiodfrom").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#txteditperiodfrom").removeClass('required');
+            $("#txteditperiodfrom").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#txteditperiodfrom").removeClass('valid');
+            $("#txteditperiodfrom").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+    function change() {
+        if ($("#currency_gid").val() == 0) {
+            CheckFieldsHeader();
+            $("#currency_gid").removeClass('valid');
+            $("#currency_gid").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#currency_gid").removeClass('required');
+            $("#currency_gid").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+    function checkperiodto() {
+
+        var txtSESubCategoryName = $("#txteditperiodto").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#txteditperiodto").removeClass('required');
+            $("#txteditperiodto").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#txteditperiodto").removeClass('valid');
+            $("#txteditperiodto").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+    //function checkcurrencyrate() {
+
+    //    var txtSESubCategoryName = $("#txteditcurrencyratevalue").val();
+    //    if (txtSESubCategoryName.trim() != "") {
+    //        CheckFieldsHeader();
+    //        $("#txteditcurrencyratevalue").removeClass('required');
+    //        $("#txteditcurrencyratevalue").addClass('valid');
+    //        CheckFieldsHeader();
+    //    }
+    //    else {
+    //        CheckFieldsHeader();
+    //        $("#txteditcurrencyratevalue").removeClass('valid');
+    //        $("#txteditcurrencyratevalue").addClass('required');
+    //        CheckFieldsHeader();
+    //    }
+    //}
+    function isNumberKey(evt) {
+
+        var charCode = (evt.which) ? evt.which : event.keyCode
+
+        if (charCode == 46 || charCode == 8 || charCode == 48 || charCode == 49 || charCode == 50 || charCode == 51 || charCode == 52 || charCode == 53 || charCode == 54 || charCode == 55 || charCode == 56 || charCode == 57) {
+
+            CheckFieldsHeader();
+            return true;
+
+        }
+        else {
+
+            CheckFieldsHeader();
+            return false;
+
+        }
+
+    }
+    function checkcurrencyrate()
+    {
+        var txtSESubCategoryName = $("#txteditcurrencyratevalue").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#txteditcurrencyratevalue").removeClass('required');
+            $("#txteditcurrencyratevalue").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else
+        {
+            CheckFieldsHeader();
+            $("#txteditcurrencyratevalue").removeClass('valid');
+            $("#txteditcurrencyratevalue").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+    function CheckFieldsHeader()
+    {
+        var periodto = $('#txteditperiodfrom').val();
+        var periodfrom = $('#txteditperiodto').val();
+        var currratevalue = $('#txteditcurrencyratevalue').val();
+        var gid = $('#currency_gid').val();
+        var ErrCount = 0;
+
+        if ($("#currency_gid").val() == "--Select Currency--" || $("#currency_gid").val() == 0) {
+            ErrCount = 1;
+        }
+        else if ($("#txteditperiodfrom").val() == "" || $("#txteditperiodfrom").val() == null) {
+            ErrCount = 2;
+        }
+        else if ($("#txteditperiodto").val() == "" || $("#txteditperiodto").val() == null) {
+            ErrCount = 3;
+        }
+        else if ($("#txteditcurrencyratevalue").val() == "" || $("#txteditcurrencyratevalue").val() == null) {
+            ErrCount = 4;
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+    function goToIndex()
+    {
+        $("#txteditperiodfrom").datepicker("destroy");
+        $("#txteditperiodto").datepicker("destroy");
+        $('#gridcurrencyrate').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+    function DeleteType() {
+        var currencyrategid = $("#txtcurrencyrategid").val();
+        jConfirm("Do you want to delete this Currency Rate ? ", "Delete Currency Rate", function (j) {
+            if (j == true) {
+                var model = { "currencyrate_gid": currencyrategid }
+                $.post('../IEM_CURRENCYRATE/Deletecurrencyrate', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) {
+                                     $("#txteditperiodfrom").datepicker("destroy");
+                                     $("#txteditperiodto").datepicker("destroy");
+                                     window.parent.jQuery('#ForPartialView').dialog('close');
+                                     location = '../IEM_CURRENCYRATE/Index';
+                                 }
+                             });
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    function Update() {
+     
+        var currrategid = $('#txtcurrencyrategid').val();
+        var currgid = $('#currency_gid').val();
+        var periodfrom = $("#txteditperiodfrom").val();
+        var periodto = $("#txteditperiodto").val();
+        var currencyrate = $("#txteditcurrencyratevalue").val().replace(",", "");
+        var CategoryModel = { "currencyrate_gid": currrategid, "currency_gid": currgid, "currencyrate_period_from": periodfrom, "currencyrate_period_to": periodto, "currencyrate_value": currencyrate };
+       
+        $.post('../IEM_CURRENCYRATE/UpdateCurrencyRate', CategoryModel,
+            function (data) {
+
+                if (data != "success") {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            $("#txteditperiodfrom").datepicker("destroy");
+                            $("#txteditperiodto").datepicker("destroy");
+                            return false;
+                        }
+                    });
+                }
+                else {
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+                            $("#txteditperiodfrom").datepicker("destroy");
+                            $("#txteditperiodto").datepicker("destroy");
+                            window.parent.jQuery('#ForPartialView').dialog('close');
+                            location = '../IEM_CURRENCYRATE/Index';
+                        }
+                    });
+                }
+            }
+        , 'json');
+    }
+</script>

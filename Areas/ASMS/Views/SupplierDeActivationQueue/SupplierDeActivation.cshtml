@@ -1,0 +1,144 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierDeActvation
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //var grid = new WebGrid(canPage: true, canSort: true, rowsPerPage: 10);
+    //grid.Bind(Model.SupplierDeActiveList, autoSortAndPage: true);
+    //grid.Pager(WebGridPagerModes.All);
+
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model.SupplierDeActiveList);
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Deactivation</span>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table align="center" width="100%" class="myTableStyleTabNew">
+            <tr>
+                <td style="width:20%;">
+                    <span>Supplier Code </span><br />
+                    <input type="text" id="txtDeSuppliercode" placeholder="Suppliercode" class="textboxStyle" maxlength="20" name="txtDeSuppliercode" value="@ViewBag.txtDeSuppliercode" />
+                </td>
+                <td style="width:20%;">
+                    <span>Supplier Name </span><br />
+                    <input type="text" id="txtDeSupplierName" placeholder="SupplierName" class="textboxStyle" maxlength="150" name="txtDeSupplierName" value="@ViewBag.txtDeSupplierName" />
+                </td>
+                <td style="width:60%; padding:20px">
+                    <button type="submit" name="Search" title="Search" id="btnSearch" value="Search" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search "></span> Search</button>
+                    <button type="submit" name="Clear" title="Refresh" id="btnClear" value="Clear" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh "></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+            tableStyle: "tableSmall table-bordered ",
+            htmlAttributes: new { id = "Deactivegrid" },
+            columns: grid.Columns(
+        //grid.Column("DSupplierheadergid", "Supp HeaderGid"),
+                grid.Column(format: @<input type="hidden" name="DSupplierheadergid" value="@item.DSupplierheadergid" /> ),
+                grid.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1, style:"slno"),
+                grid.Column("DSupplierCode","Supplier Code"),
+                grid.Column("DSupplierName","Supplier Name", style: "collargeBreak"),
+                grid.Column("DSupplierClassificationName", "Supplier Classification"),
+                //grid.Column("DRequestTypeName", com.Sorter("DRequestTypeName", "Request Type", grid)),
+                // grid.Column("DRequestStatusName", com.Sorter("DRequestStatusName", "Request Status", grid)),
+                grid.Column("DSupplierStatusName","Supplier Status"),
+                // grid.Column("DActivityCount", com.Sorter("DActivityCount","Activity Count",grid)),
+                grid.Column(header: "Action", style: "action",
+                format: @<text>
+                    @*@Html.Raw("<input type='button'  title='Edit' onclick='Renewal(" + item.SupplierCode + ")' class='btn btn-primary' value='Renewal' />"*@
+                    @*@Html.Raw("<a data-model='' href='/ASMS/SupplierDeActivation/SpplierDeActive/" + item.DSupplierCode + "' id='" + item.DSupplierCode + "' title='Search'><span>DeActivate</span></a>"*@
+                    <a><span onclick="EditProduct(@item.DSupplierheadergid)">DeActivate</span></a>
+                </text>)))
+        </div>
+
+        @*if (@ViewBag.Dvalue == "RecordNtFound")
+            {
+                <div class="gridMessage">
+                    Record Not found
+                </div>
+            }
+            else
+            {
+                <div class="gridCount">
+                    Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b>
+                    Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>
+                </div>
+            }*@
+
+    </div>
+}
+<div id="ForPartialViewDe"></div>
+<script>
+    $("#Deactivegrid td:nth-child(1),#Deactivegrid th:nth-child(1)").hide();
+    $("#Deactivegrid td:nth-last-child(1)").show();
+    var objDialog;
+    $(document).ready(function () {
+
+        objDialog = $("[id$='ForPartialViewDe']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            cache: false,
+            width: 967,
+            height: 600
+        });
+
+        $('#Deactivegrid tr th:nth-child(7)').addClass("nosort");
+        $('#Deactivegrid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+    });
+
+    function EditProduct(id) {
+        // alert(id);
+        objDialog.load('../SupplierDeActivationQueue/SpplierDeActive?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier DeActivation' });
+        objDialog.dialog("open");
+    }
+    $(document).ready(function () {
+
+        //$('#btnSearch').click(function () {
+        //   // alert('ok');
+        //    var supp_code = $('#txtDeSuppliercode').val();
+        //    //alert(supp_code);
+        //    var supp_name = $('#txtDeSupplierName').val();
+        //   // alert(supp_name);
+        //    var supp_status = $("#ddlDeSupplierStatus option:selected").text();
+        //    var supp_class = $("#ddlDeSup_Clasification option:selected").text();
+        //   // alert(supp_class);
+        //    var Reqstype = $("#ddlDeRequestType option:selected").text();
+        //    var ReqsStatus = $("#ddlDeRequestStatus option:selected").text();
+
+        //  if (supp_code == '' && supp_name == '' && supp_status == '--Select--' && supp_class == '--Select--' && Reqstype == '--Select--' && ReqsStatus == '--Select--')
+        // {
+        //     alert('Should be fill anyone filter');
+        //     return false;
+        // }
+
+        //});
+
+        $('#btnClear').click(function () {
+            // alert('hh');
+            $('#txtDeSuppliercode').val('');
+            $('#txtDeSupplierName').val('');
+            $("#ddlDeSupplierStatus").val('0');
+            // $("#ddlSup_Clasification").attr('selectedIndex', 0);
+            $("#ddlDeSup_Clasification").val('0');
+            $("#ddlDeRequestType").val('0');
+            $("#ddlDeRequestStatus").val('0');
+
+        });
+
+    });
+</script>

@@ -1,0 +1,257 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/angular.min.js"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#txtctdispath").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+    });
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">ECF Cancellation Report</span>
+</div>
+<div class="well" style="padding: 1px 1px 0px 1px;">
+    <div ng-app="myApp">
+        <div ng-controller="PageCtrl">
+            <div>
+                <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;font-family:Tahoma;">
+                    <thead style="width:100%;">
+                        <tr>
+                            <th class="thfix" style="display:none;">
+                                ecf Gid
+                            </th>
+                            <th class="thfix" style="width:4%;">
+                                S.No
+                            </th>
+                            <th class="thfix" style="width:9.5%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFDate'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Date
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFDate' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFDate' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input id="txtctdispath" type="text" class="textboxStyle" ng-model="search.ECFDate">
+                            </th>
+                            <th class="thfix" style="width:15%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFRaiser'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Raiser
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFRaiser' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFRaiser' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input type="text" class="textboxStyle" ng-model="search.ECFRaiser">
+                            </th>
+                            <th class="thfix" style="width:25%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'SupplierorEmployeename'; sortReversemyreq = !sortReversemyreq">
+                                    Supplier/Employee Name
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'SupplierorEmployeename' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'SupplierorEmployeename' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input type="text" class="textboxStyle" ng-model="search.SupplierorEmployeename">
+                            </th>
+                            <th class="thfix" style="width:18%;">
+                                Claim Type<br />
+                                <select class="textboxStyle" ng-model="search.DocSubTypeName">
+                                    <option value="">ALL</option>
+                                    <option value="Employee Claim - Regular">Employee Claim - Regular</option>
+                                    <option value="Employee Claim - Local Coveyance">Employee Claim - Local Coveyance</option>
+                                    <option value="Employee Claim - Travel">Employee Claim - Travel</option>
+                                    <option value="Supplier Invoice">Supplier Invoice</option>
+                                    <option value="Supplier Invoice - DSA">Supplier Invoice - DSA</option>
+                                    <option value="Employee Advance Request">Employee Advance Request</option>
+                                    <option value="Supplier Advance Request">Supplier Advance Request</option>
+                                    <option value="Employee Petty Cash">Employee Petty Cash</option>
+                                    <option value="Rent/Lease Advance">Rent/Lease Advance</option>
+                                </select>
+                            </th>
+                            <th class="thfix" style="width:10%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFAmount'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Amount
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFAmount' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFAmount' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input type="text" id="txtAmount" class="textboxStyle" ng-model="search.ECFAmount">
+                            </th>
+                            <th class="thfix">
+                                Status<br />
+                            </th>
+                            <th class="thfix" style="width:11.2%;">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="height: 600px;overflow-y: scroll;">
+                    <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+                        <tbody ng-show="filtered.length!=0" ng-repeat="item in filtered = items| orderBy:sortTypemyreq:sortReversemyreq | filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit" style="width:100%;">
+                            <tr>
+                                <td class="tdfix" style="display:none;">
+                                    {{item.ECFId}}
+                                </td>
+                                <td class="tdfix" style=" width:4%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td class="tdfix" style="width:9.63%;overflow: hidden;">
+                                    <a id="idview" onclick="View(this)" title={{item.ECFDate}}>
+                                        <span> {{item.ECFDate}}</span>
+                                    </a>
+                                </td> 
+                                <td class="tdfix" style="width:15.2%;overflow: hidden;">
+                                    <a id="idview" onclick="View(this)" title={{item.ECFRaiser}}>
+                                        <span> {{item.ECFRaiser}}</span>
+                                    </a>
+                                </td> 
+                                <td class="tdfix" style="width:25.5%;overflow: hidden;">
+                                    <a id="idview" onclick="View(this)" title={{item.SupplierorEmployeename}}>
+                                        <span> {{item.SupplierorEmployeename}}</span>
+                                    </a>
+                                </td>                              
+                                <td class="tdfix" style=" width:18.2%;overflow: hidden;">
+                                    <span>{{item.DocSubTypeName}}</span>
+                                </td>
+                                <td class="tdfix" style="width:10.2%;overflow: hidden;">
+                                    <a id="idview" onclick="View(this)" title={{item.ECFAmount}}>
+                                        <span> {{item.ECFAmount}}</span>
+                                    </a>
+                                </td>   
+                                <td class="tdfix" style="overflow: hidden;">
+                                    <span> {{item.ECFStatus}}</span>
+                                </td>
+                                <td class="tdfix" style="width:10%;" align="center">
+                                    <a id="idview" onclick="View(this)" title="Delete">
+                                        <span class="glyphicon glyphicon-trash"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot ng-show="filtered.length==0">
+                            <tr>
+                                <td colspan="9" style="text-align:left;"><div class="gridMessage" style="width:100%; border:none;"><center>No Records Found</center></div></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div ng-show="filtered.length>0">
+                    <table style="width:100%;">
+                        <tr>
+                            <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems}}  of {{filtered.length}} </div></td>
+                            <td align="right">
+                                <pagination total-items="totalItems"
+                                            ng-model="currentPage"
+                                            page="currentPage"
+                                            max-size="noofsetpages"
+                                            boundary-links="true"
+                                            items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;font-size:14px;">
+                                </pagination>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="padding:2px;" id="ForPartialViewcentral"></div>
+<script>
+    $("#txtAmount").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmount").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmount").val(replaceCommas(currentval));
+
+    });
+
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    var app = angular.module('myApp', ['ui.bootstrap']);
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        };
+    });
+
+    app.controller('PageCtrl', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+        $http.get("../ECF/ToGetecfcancellation?" + new Date().getTime())
+     .then(function (response) {
+         $scope.items = response.data.qrylist;
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage = 1;
+         $scope.totalItems = $scope.items.length;
+         $scope.entryLimit = 50;
+         $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages = 5;
+         $scope.$watch('search', function (newVal, oldVal) {
+             $scope.filtered = filterFilter($scope.items, newVal);
+             $scope.totalItems = $scope.filtered.length;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.currentPage = 1;
+             $scope.noofsetpages = 5;
+         }, true);
+     });
+    }]);
+
+    var objDialogyCentral;
+    $(document).ready(function () {
+        objDialogyCentral = $("[id$='ForPartialViewcentral']");
+        objDialogyCentral.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 500,
+            height: 500
+        });
+    });
+
+    function View(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        var url = '@Url.Action("CancellationView", "ECF")?id=' + ecfnum + '&' + new Date().getTime();
+        objDialogyCentral.load(url);
+        objDialogyCentral.dialog({ title: 'ECF Cancellation View', width: '1245', height: '400' });
+        objDialogyCentral.dialog("open");
+    }
+    function Cancel() {
+        window.parent.jQuery('#ForPartialViewcentral').dialog('close');
+    }
+</script>
+

@@ -1,0 +1,183 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+@using IEM.Areas.IFAMS.Models
+@{
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+    // capitalizationMaker objpo = new capitalizationMaker();
+    // Ifams_Model irr = new Ifams_Model();
+    // var a=0;
+    // if (Session["Podetailslistid"] != null)
+    // {
+    //     a = (Int32)Session["Podetailslistid"];
+    // }
+    //objpo.Podetailslist = irr.Getpoqtydetails(a);
+
+}
+@using (Html.BeginForm())
+{
+    <div class="panel panel-default">
+        <table width="100%">
+            <tr>
+                <td style="padding:10px;">
+                    <div>
+                        @{
+    var gridpo = new WebGrid(Model.Podetailslist, canSort: true, canPage: true, rowsPerPage: 10);
+    gridpo.Pager(WebGridPagerModes.All);
+                    @gridpo.GetHtml(
+        htmlAttributes: new { id = "wgpodetails" },
+        tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        gridpo.Columns(
+        gridpo.Column("pohgid", "SlNo"),
+        gridpo.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+        gridpo.Column("ponumber", commfa.Sorter("ponumber", "PO Number", gridpo)),
+        gridpo.Column("orderdqty", commfa.Sorter("orderdqty", "Oredred Qty", gridpo)),
+        gridpo.Column("invoiceqty", commfa.Sorter("invoiceqty", "Invoice Qty", gridpo)),
+        gridpo.Column("Receivedqty", commfa.Sorter("Receivedqty", "Received Qty", gridpo)),
+
+
+        gridpo.Column(header: "Action", canSort: false, style: "action",
+        format: @<text>
+                        <a href="#">View PO</a>
+                        <a><span onclick="getpofulldetails(@item.pohgid)">Select</span></a>
+                    </text>),
+
+        gridpo.Column(header: "Attachments", canSort: false, style: "action",
+        format: @<text>
+                        <a href="#">View</a>
+
+                    </text>),
+                                   gridpo.Column(style: "col-lg-2 MidColumn20Center", format: @<text> <input type="checkbox" value="@item.ponumber" name="ids" /> </text>, header: "{checkall}")
+            )
+            )
+    if (Model.Podetailslist.Count == 0)
+    {
+                    <div class="panel panel-default"><span>No Recards found</span></div>
+    }            @*<label style="padding:10px;">Page: @(gridpo.PageIndex + 1) of @gridpo.PageCount - Total No of Records :@gridpo.TotalRowCount</label>*@
+                        }
+                    </div>
+                </td>
+            </tr>
+        </table>
+     
+    </div>
+}
+<script>
+    $("#wgpodetails td:nth-child(1),#wgpodetails th:nth-child(1)").hide();
+    $("#wgpodetails td:nth-last-child(1)").show();
+
+    function getpofulldetails(id) {
+
+        var obj =
+            {
+                "pohgid": id
+            }
+        $.ajax({
+            url: "@Url.Action("AssetPofulldetails", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+            type: 'POST',
+            data: obj,
+            success: function (data) {
+                $("#dvpodetails").empty().append(data);
+                //window.parent.jQuery("#Forshipment").dialog('close');
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+
+
+    }
+
+
+    $(document).ready(function () {
+        $("#wgpodetails th").each(function () {
+            var checked = $("#wgpodetails td :checkbox:checked").length;
+            CheckFields();
+            //if (checked == 0) {
+            //    $("#PrintBarcode").attr("disabled", true);
+            //}
+            //else {
+            //    $("#PrintBarcode").attr("disabled", false);
+            //}
+            if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+                $(this).text('');
+                $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                $(this).append("<span>Select All</span>");
+            }
+            CheckFields();
+        });
+
+        //2nd click event for header checkbox for select /deselect all
+        $("#cbSelectAll").live("click", function () {
+            var ischecked = this.checked;
+            $('#wgpodetails').find("input:checkbox").each(function () {
+                this.checked = ischecked;
+            });
+            var checked = $("#wgpodetails td :checkbox:checked").length;
+
+            //if (checked == 0) {
+            //    $("#PrintBarcode").attr("disabled", true);
+            //}
+            //else {
+            //    $("#PrintBarcode").attr("disabled", false);
+
+          //  }
+            CheckFields();
+        });
+
+
+        //3rd click event for checkbox of each row
+        $("input[name='ids']").click(function () {
+            CheckFields();
+
+            var totalRows = $("#wgpodetails td :checkbox").length;
+            var checked = $("#wgpodetails td :checkbox:checked").length;
+
+            //if (checked == 0) {
+            //    $("#PrintBarcode").attr("disabled", true);
+            //}
+            //else {
+            //    $("#PrintBarcode").attr("disabled", false);
+
+            //}
+
+            if (checked == totalRows) {
+                $("#wgpodetails").find("input:checkbox").each(function () {
+                    this.checked = true;
+                });
+            }
+            else {
+                $("#cbSelectAll").removeAttr("checked");
+            }
+            CheckFields();
+        });
+    });
+  
+
+    function CheckFields() {
+
+        var ErrCount = 0;
+        var checked = $("#wgpodetails td :checkbox:checked").length;
+        //if (checked == 0 && ($("#txtawbnodetail").val() != "" || $("#txtawbnodetail").val() != null) && ($("#txtawbnodetail").val() != "" || $("#txtawbnodetail").val() != null)) {
+        //    ErrCount = 3;
+        //}
+        //else if ($("#txtawbnodetail").val() == "" || $("#txtawbnodetail").val() == null && checked == 0) {
+        //    ErrCount = 1;
+        //}
+        //else if ($("#txtcourierdetail").val() == "" || $("#txtcourierdetail").val() == null && checked == 0) {
+        //    ErrCount = 2;
+        //}
+        //else {
+        //    ErrCount = 0;
+        //}
+
+        //if (ErrCount == 0) {
+        //    $("#btnsave").removeAttr('disabled');
+        //}
+        //else {
+        //    $("#btnsave").attr('disabled', true);
+        //    $("#btnsave").attr('disabled', 'disabled');
+        //}
+    }
+</script>

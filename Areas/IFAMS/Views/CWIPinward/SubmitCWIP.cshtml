@@ -1,0 +1,307 @@
+﻿@model IEM.Areas.IFAMS.Models.CWIPModel
+
+@{
+    ViewBag.Title = "SubmitCWIP";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <span class="pageHeading">Capitalization Detials</span>
+    <div>
+        <div class="well" style="padding-bottom:50px;">
+            <div style="width:100%">
+                <table class="myTableStyleTabNew">
+                    <tr>
+                        <td>
+                            <span>Asset Id</span><br />
+                            <input type="text" name="Asset" class="textboxStyle" />
+                        </td>
+                        <td style="display:none">
+                            <span>Capitilization Date</span><br />
+                            <input type="text" ng-model="CapDate" class="textboxStyle" id="txtcapdate"
+                                   value="@ViewBag.capdate"
+                                   readonly="readonly"
+                                   placeholder="dd-mm-yyyy" />
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            @*<button type="submit"  class="btn btn-sm btn-primary" >
+                                    <span class="glyphicon glyphicon-search" style="color:white;"></span>
+                                    Search
+                                </button>*@
+                            <button class="btn btn-primary" id="btnsearch" value="SEARCH" name="command" type="submit" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+
+
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            <button type="button" disabled="" class="btn btn-sm btn-success" id="btnAdd">
+                                <span class="glyphicon glyphicon-link" style="color:white;"></span>
+                                Submit
+                            </button>
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-warning" id="btnclear">
+                                <span class="glyphicon glyphicon-circle-arrow-left" style="color:white;"></span>
+                                Cancel
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+
+                <br />
+
+
+                <div id="gridsearch" style="overflow-x:scroll;width:1300px;overflow-y:scroll;height:600px">
+                    @{
+    var grid = new WebGrid(
+    source: Model.Model,
+    canPage: false,
+        //rowsPerPage: 20,
+        // canSort: true,
+   ajaxUpdateCallback: "cwipgridnew", ajaxUpdateContainerId: "cwipgridnew"
+    );
+    @grid.GetHtml(
+                    htmlAttributes: new { id = "cwipgridnew" },
+                    fillEmptyRows: false,
+                         mode: WebGridPagerModes.All,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                    columns: grid.Columns(
+                            grid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                            + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage)
+                            * grid.RowsPerPage * grid.PageIndex),
+                                grid.Column("cwip_asset_id", "Asset ID", style: "MidColumn40"),
+                                grid.Column("cwip_asset_code", "Asset Code", style: "MidColumn10"),
+                                grid.Column("cwip_capitalisation_date", "CApitalization Date", style: "MidColumn20"),
+                                grid.Column("cwip_group_id", "Group Id", style: "MidColumn20"),
+                                grid.Column("cwip_asset_value", "Asset Value", style: "MidColumn20"),
+                                    grid.Column("cwip_description", "Narration", style: "MidColumn60"),
+                                    grid.Column("cwip_supplier_name", "Supplier Name", style: "MidColumn60"),
+                                grid.Column("cwip_branch_code", "Branch", style: "MidColumn10"),
+                                grid.Column("cwip_cbf_number", "CBF NO", style: "MidColumn30"),
+                                grid.Column("cwip_po_number", "PO NO", style: "MidColumn30"),
+                                grid.Column("cwip_ecf_number", "ECF NO", style: "MidColumn30"),
+                                 grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    <a onclick='View(@item.cwip_gid)' title='View Detail'> <span id='Color' class='glyphicon glyphicon-eye-open MidColumn '> </span> </a>
+                                    <a onclick='Edit(@item.cwip_gid)' title='Edit Detail'> <span id='Color' class='glyphicon glyphicon-edit'> </span> </a>
+                </text>),
+                            grid.Column(format: @<text>
+        <input type="checkbox" value="@item.cwip_gid" name="ids" />
+                            </text>, style: "MidColumn20", header: "{checkall}")))
+                    }
+                    <div class="table-bordered btnCenter" align="center">
+                        @if (@Model.Model.Count == 0)
+                        { <b> No Records found </b>}
+                    </div>
+                    <span> Total no of records @Model.Model.Count</span>
+                </div>
+
+
+
+
+            </div>
+
+        </div>
+    </div>
+    <div id="partialViewCWIP"></div>
+}
+<script type="text/javascript">
+    var   objDialog = $("[id$='partialViewCWIP']");
+    objDialog.dialog({
+        autoOpen: false,
+        modal: true,
+        width: 970,
+        height: 460
+
+    });
+    $("#btnAdd").click(function () {
+        var ids = "";
+        var ids2 = "";
+        $("#cwipgridnew").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                var checked = $("#cwipgridnew td :checkbox:checked").length;
+                if (checked == 1) {
+                    ids = $(this).val();
+                }
+                else {
+                    ids = $(this).val() + "," + ids;
+                }
+            }
+        });
+       
+        $("#cwipgridnew").find("input:checkbox").each(function () {
+            if (this.checked == false) {
+                var checked = $("#cwipgridnew td :checkbox:not(:checked)").length;
+                if (checked == 1) {
+                    ids2 = $(this).val();
+                }
+                else {
+                    ids2 = $(this).val() + "," + ids2;
+                }
+            }
+        });
+      //  alert(ids2);
+        showProgress();
+        $.ajax({
+            url: '@Url.Action("SubmitCWIP", "CWIPinward")?ids=' + ids + '&ids2='+ids2 + '&' + new Date().getTime(),
+            data: JSON.stringify(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+               
+                if (data == "Success") {
+                    hideProgress();
+                    jAlert("Submitted to Checker Successfully!", "Information", function (r) {
+                        if (r == true) {
+                            location = '@Url.Action("CwipMaker", "CWIPinward")';
+                        }
+                    });
+                }
+               else if (data == "failed" || data == "branch_date") {
+                    hideProgress();
+                    jAlert("Doesn't form a Group \n (Asset code, Capitalization date, branch , asset value are not same)", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+                else {
+                   
+                    hideProgress();
+                    jAlert("Error in selected data.!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+            },
+            error: function (result) {
+                hideProgress();
+                jAlert("Error", "Error");
+            }
+        });
+    });
+
+    $("#btnclear").click(function () {
+
+        jConfirm("Are you Sure to Cancel ?","Information",function(u){
+            if(u==true){
+
+                showProgress();
+                $.ajax({
+                    url: '@Url.Action("cancel", "CWIPinward")',
+                    data: JSON.stringify(),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == "Success") {
+                            hideProgress();
+                            jAlert("Capitalization was cancelled!", "Information", function (r) {
+                                if (r == true) {
+                                    location = '@Url.Action("CwipMaker", "CWIPinward")';
+                                }
+                            });
+                        }                        
+                        if (data == "Error") {
+                            hideProgress();
+                            jAlert("Error occured!", "Information", function (r) {
+                                if (r == true) {
+                                    return false;
+                                }
+                            });
+                            return false;
+                        }
+                    },
+                    error: function (result) {
+                        hideProgress();
+                        jAlert("Error", "Error");
+                    }
+                });
+
+              
+            }
+        });
+
+    });
+
+    function Edit(id) {
+        objDialog.load('../CWIPinward/Edit_View?cwip_gid=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Detail' });
+        objDialog.dialog("open");
+    }
+    function View(id) {
+        objDialog.load('../CWIPinward/Edit_View?cwip_gid=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Detail' });
+        objDialog.dialog("open");
+    }
+
+    $("#cwipgridnew th").each(function () {
+
+        var checked = $("#cwipgridnew td :checkbox:checked").length;
+        if (checked == 0 || checked == 1) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+            $(this).text('');
+            $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+            $(this).append("<span>Select All</span>");
+        }
+    });
+
+    //2nd click event for header checkbox for select /deselect all
+    $("#cbSelectAll").live("click", function () {
+
+        var ischecked = this.checked;
+        $('#cwipgridnew').find("input:checkbox").each(function () {
+            this.checked = ischecked;
+        });
+        var checked = $("#cwipgridnew td :checkbox:checked").length;
+        if (checked == 0 || checked == 1) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+    });
+
+
+    //3rd click event for checkbox of each row
+    $("input[name='ids']").click(function () {
+
+        var totalRows = $("#cwipgridnew td :checkbox").length;
+        var checked = $("#cwipgridnew td :checkbox:checked").length;
+        if (checked == 0 ) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if (checked == totalRows) {
+            $("#cwipgridnew").find("input:checkbox").each(function () {
+                this.checked = true;
+            });
+        }
+        else {
+            $("#cbSelectAll").removeAttr("checked");
+        }
+    });
+</script>

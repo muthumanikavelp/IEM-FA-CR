@@ -1,0 +1,400 @@
+﻿@{
+    ViewBag.Title = "CBF Utilized Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+
+@{
+
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    prsummodel objd = new prsummodel();
+    List<CBFPRPARDetails> CBFUtilReport = new List<CBFPRPARDetails>();
+
+    if (CBFUtilReport.Count == 0)
+    {
+
+        if (!string.IsNullOrEmpty(@ViewBag.CBFDateFrom) && !string.IsNullOrEmpty(@ViewBag.CBFDateTo))
+        {
+            CBFUtilReport = objd.GetCBFReportTreeView(Convert.ToString(@ViewBag.CBFDateFrom), Convert.ToString(@ViewBag.CBFDateTo));
+
+        }
+
+    }
+    var gridPaymentfg = new WebGrid(source: CBFUtilReport, canSort: false, canPage: false);
+
+    int rowcount = 0;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<style type="text/css">
+    .webgrid-header {
+        background-color: #A7C942;
+        color: #FFFFFF;
+        padding-bottom: 4px;
+        padding-top: 5px;
+        text-align: left;
+    }
+
+    .ExpColld {
+        cursor: pointer;
+    }
+
+    .forecolr {
+        color: green;
+        font-weight: bold;
+    }
+
+    .expandd {
+        background-image: url('../images/minus.png');
+        background-position-x: -4px;
+        background-position-y: -4px;
+        background-repeat: no-repeat;
+    }
+
+    .collapsed {
+        background-image: url('../images/plus.png');
+        background-position-x: -4px;
+        background-position-y: -4px;
+        background-repeat: no-repeat;
+    }
+
+
+    .ExpColld_subgrid {
+        cursor: pointer;
+    }
+
+    .forecolr_subgrid {
+        color: green;
+        font-weight: bold;
+    }
+
+    .expandd_subgrid {
+        background-image: url('../images/minus.png');
+        background-position-x: -4px;
+        background-position-y: -4px;
+        background-repeat: no-repeat;
+    }
+
+    .collapsed_subgrid {
+        background-image: url('../images/plus.png');
+        background-position-x: -4px;
+        background-position-y: -4px;
+        background-repeat: no-repeat;
+    }
+
+    .ExpColld_subGrid1 {
+        cursor: pointer;
+    }
+
+    .forecolr_subGrid1 {
+        color: green;
+        font-weight: bold;
+    }
+
+    .expandd_subGrid1 {
+        background-image: url('~/images/pmleftnew.png');
+        background-position-x: -2px;
+        background-repeat: no-repeat;
+    }
+
+    .collapsed_subGrid1 {
+        background-image: url('~/images/pm.png');
+        background-position-x: -2px;
+        background-repeat: no-repeat;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">CBF Report</span>
+</div>
+<div id="ForMyApproval" class="well">
+    @{
+
+
+    }
+
+
+
+    <div id="main" style="padding:25px; background-color:white;">
+        <div>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                
+                <table class="myTableStyleTabNew">
+                    <tr>
+                        <td>
+                            <span>CBF Date From</span>
+                            <br />
+                            <input type="text"
+                                   id="CBFDateFrom"
+                                   name="CBFDateFrom"
+                                   value="@ViewBag.CBFDateFrom"
+                                   class="textboxStyle"
+                                   style="width: 100%" />
+                        </td>
+                        <td>
+                            <span>CBF Date To</span>
+                            <br />
+                            <input type="text"
+                                   id="CBFDateTo"
+                                   name="CBFDateTo"
+                                   value="@ViewBag.CBFDateTo"
+                                   class="textboxStyle"
+                                   style="width: 100%" />
+                        </td>
+                        <td>
+                            <span>CBF NO</span>
+                            <br />
+                            <input type="text"
+                                   id="CBFNO"
+                                   name="CBFNO"
+                                   value="@ViewBag.CBFNO"
+                                   class="textboxStyle"
+                                   style="width: 100%" />
+                        </td>
+                        <td>
+                            <span>PO NO</span>
+                            <br />
+                            <input type="text"
+                                   id="PONO"
+                                   name="PONO"
+                                   value="@ViewBag.PONO"
+                                   class="textboxStyle"
+                                   style="width: 100%" />
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnsearch" value="CBFSearch" name="command" type="submit" onclick="validatedate()"  style="margin-top:15px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+
+
+                        <td>
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="refresh()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+
+                </table>
+            }
+            <button class="btn-sm btn-primary" style="float:right" onclick="ExportDoc()">
+                <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                Export to Excel
+            </button>
+        </div>
+        @gridPaymentfg.GetHtml(
+                     htmlAttributes: new { id = "mainGridtoselectCRN" },
+                     tableStyle: "tableSmall table-bordered table-hover",
+                     columns: gridPaymentfg.Columns(
+        gridPaymentfg.Column("SlNo", format: item => rowcount = rowcount + 1, canSort: false, style: "slno"),
+     gridPaymentfg.Column("PRNo", "PR/PAR", canSort: false),
+     gridPaymentfg.Column("PRPARAmount", "PR/PAR Amount", canSort: false),
+     gridPaymentfg.Column("cbfNo", "CBF No", canSort: false),
+     gridPaymentfg.Column("cbfAmount", "CBF Amount", canSort: false),
+     gridPaymentfg.Column("cbfDate", "CBF Date", canSort: false),
+     gridPaymentfg.Column("Status", "Status", canSort: false),
+
+
+                                  gridPaymentfg.Column(format: (item) =>
+                {
+                    WebGrid subGrid = new WebGrid(source: item.PoDetails, canSort: false, canPage: false);
+                    return subGrid.GetHtml(
+                        htmlAttributes: new { id = "subGrid" },
+                        tableStyle: "tableSmall table-bordered table-hover", //table-hover
+                                columns: subGrid.Columns(
+                                subGrid.Column("Pono", "PONO", canSort: false),
+                                subGrid.Column("POAmount", "PO Total", canSort: false),
+                                subGrid.Column("POBranch", "Branch code", canSort: false),
+                                subGrid.Column("PoStatus", "Status", canSort: false),
+                                subGrid.Column("GRNNumber", "GRN Number", canSort: false),
+                                subGrid.Column("ProductCode", "Product Code", canSort: false),
+                                subGrid.Column("ProductName", "Product Name", canSort: false),
+                                subGrid.Column("ProductDesc", "Product Desc", canSort: false),
+                                subGrid.Column("ExpCode", "Exp Code", canSort: false),
+                                subGrid.Column("ExpSubCode", "Exp SubCode", canSort: false),
+                                subGrid.Column("ProjectManager", "Project Manager", canSort: false),
+                                subGrid.Column("UOM", "UOM", canSort: false),
+                                subGrid.Column("Qty", "Qty", canSort: false),
+                                subGrid.Column("UnitAmount", "Unit Amount", canSort: false),
+                                subGrid.Column("CapexBudgetLineNo", "CapexBudgetLineNo", canSort: false),
+                                subGrid.Column("CC", "CC", canSort: false),
+                                subGrid.Column(format: (item1) =>
+                                {
+                                    WebGrid subGrid1 = new WebGrid(source: item1.ECFDetails, canSort: false, canPage: false);
+                                    return subGrid1.GetHtml(
+                                htmlAttributes: new { id = "subGrid1" },
+                                        tableStyle: "tablesmall table-bordered table-hover",
+                                        columns: subGrid1.Columns(
+                                        subGrid1.Column("ECFNo", "ECF No", canSort: false),
+                                        subGrid1.Column("EcfAmount", "ECF Amount", canSort: false),
+                                        subGrid1.Column("ECFDate", "ECF Date", canSort: false),
+                                        subGrid1.Column("EcfDesc", "Ecf Desc", canSort: false),
+                                        subGrid1.Column("RaiserID", "Raiser", canSort: false),
+                                        subGrid1.Column("RaiserDepartment", "Raiser Department", canSort: false),
+                                        subGrid1.Column("EcfStatus", "EcfStatus", canSort: false),
+                                        subGrid1.Column("InvoiceNo", "Invoice NO", canSort: false),
+                                        subGrid1.Column("InvoiceAmount", "Invoice Amount", canSort: false),
+                                        subGrid1.Column("InvDesc", "Inv Desc", canSort: false),
+                                        subGrid1.Column("InvoiceServiceMonth", "Invoice ServiceMonth ", canSort: false)
+
+                                        )
+                                        );
+
+                                })
+
+
+                               )
+                        );
+                })
+
+
+            ))
+        @if (@gridPaymentfg.TotalRowCount == 0)
+        {
+            <div class="gridMessage">
+                No Record Found!
+            </div>
+        }
+    </div>
+    <input hidden="hidden" id="hidPopUp" value="" />
+    <div id="ForAPopUpRT"></div>
+
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#CBFDateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+        $("#CBFDateTo").datepicker({
+
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+
+        var size = $("#main #mainGridtoselectCRN > thead > tr >th").size();  //get columns size tbl.rows[i].cells.length
+        $("#main #mainGridtoselectCRN > thead > tr >th").last().remove(); // remove last column tbl.rows.length
+        $("#main #mainGridtoselectCRN > thead > tr").prepend("<th></th>");
+
+        //main grid
+        $("#main #mainGridtoselectCRN > tbody > tr").each(function (i, el) {
+            $(this).prepend(
+                    $("<td style='width: 25px;'></td>")
+                    .addClass("expandd")
+                    .addClass("ExpColld")
+                );
+
+            //Now get sub table from last column and add this to the next new added row
+            var table = $("table", this).parent().html();
+
+            //add new row with this subtable
+            $(this).after("<tr><td  style='width: 15px;'></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+            $("table", this).parent().remove();
+
+
+            //add click event to make it collapsible
+            $(".ExpColld", this).live("click", function () {
+                $(this).parent().closest("tr").next().slideToggle(100);
+                $(this).toggleClass("collapsed expandd");
+            });
+        });
+        //by default make all subgrid in collapse mode
+        $("#main #mainGridtoselectCRN > tbody > tr td.expandd").each(function (i, el) {
+            $(this).toggleClass("collapsed expandd");
+            $(this).parent().closest("tr").next().slideToggle(100);
+        });
+
+
+
+
+        //subGrid
+        var size1 = $("#main #subGrid > thead > tr >th").size();  //get columns size tbl.rows[i].cells.length
+        $("#main #subGrid > thead > tr >th").last().remove(); // remove last column tbl.rows.length
+        $("#main #subGrid > thead > tr").prepend("<th></th>");
+
+
+        $("#main #subGrid > tbody > tr").each(function (i, el) {
+            $(this).prepend(
+                    $("<td style='width: 25px;'></td>")
+                    .addClass("expandd_subgrid")
+                    .addClass("ExpColld_subgrid")
+                );
+
+            //Now get sub table from last column and add this to the next new added row
+            var table1 = $("table", this).parent().html();
+
+            //add new row with this subtable
+            $(this).after("<tr><td  style='width: 15px;'></td><td style='padding:5px; margin:0px;' colspan='" + (size1 - 1) + "'>" + table1 + "</td></tr>");
+            $("table", this).parent().remove();
+
+
+            //add click event to make it collapsible
+            $(".ExpColld_subgrid", this).live("click", function () {
+
+                $(this).parent().closest("tr").next().slideToggle(100);
+                $(this).toggleClass("collapsed_subgrid expandd_subgrid");
+            });
+        });
+        //by default make all subgrid in collapse mode
+        $("#main #subGrid > tbody > tr td.expandd_subgrid").each(function (i, el) {
+
+            $(this).toggleClass("collapsed_subgrid expandd_subgrid");
+            $(this).parent().closest("tr").next().slideToggle(100);
+        });
+
+
+
+
+        //$('#mainGridtoselectCRN').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+    });
+
+    function ExportDoc() {
+        var CBFDateFrom = $("#CBFDateFrom").val();
+        var CBFDateTo = $("#CBFDateTo").val();
+        var CBFNO = $("#CBFNO").val();
+        var PONO = $("#PONO").val();
+        location = '../CBFUtilizationSummary/DownloadExcel?CBFDateFrom=' + CBFDateFrom + '&CBFDateTo=' + CBFDateTo + '&CBFNO=' + CBFNO + '&PONO=' + PONO + '&' + new Date().getTime();
+    }
+
+
+    function validatedate() {
+         
+        var CBFDateFrom = $("#CBFDateFrom").val();
+        var CBFDateTo = $("#CBFDateTo").val();
+
+        var d = CBFDateFrom.split('-');
+        var d1 = CBFDateTo.split('-');
+        CBFDateFrom = d[1] + '-' + d[0] + '-' + d[2];
+        CBFDateTo = d1[1] + '-' + d1[0] + '-' + d1[2];
+        var dt1 = new Date(CBFDateFrom);
+        var dt2 = new Date(CBFDateTo);
+
+
+        var timeDiff = Math.abs(dt2.getTime() - dt1.getTime());
+        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+        var diff = Math.floor((Date.UTC(dt2.getFullYear(), dt2.getMonth(), dt2.getDate()) - Date.UTC(dt1.getFullYear(), dt1.getMonth(), dt1.getDate())) / (1000 * 60 * 60 * 24));
+        if (diff > 0 && diff <= 15) {
+
+            return true;
+        }
+        else {
+            alert("Please Select Date between 15 days");
+            return false;
+        }
+
+    }
+
+</script>

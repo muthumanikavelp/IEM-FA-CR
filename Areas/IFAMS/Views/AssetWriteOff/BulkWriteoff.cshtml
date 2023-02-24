@@ -1,0 +1,194 @@
+﻿@model IEM.Areas.IFAMS.Models.WriteOffModel
+           
+<div id="headerAttachment">
+    <div class="well" style="background-color:white">
+        <div>
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <span>Select file</span><br />
+                        <form id="theuploadformwrtma">
+                            @Html.AntiForgeryToken()
+                            <input class="textboxStyleSearch" id="fileUploadWrtMaker" name="fileUploadWrtMaker" type="file" onchange="checkfileextension(this)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                        </form>
+                    </td>
+                    <td>
+                        <span>Select Sheet</span>
+                        <br />
+                        @Html.DropDownListFor(model => model.SheetName, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectsheetname", @name = "ddlSelectsheetname" })
+                    </td>
+
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <div style="font-weight:bold">
+                            <a class="btn" data-modal="" href="../AssetWriteOff/samdownloadsexcel" id="DownloadTemplate">
+                                Download Template
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>&nbsp;</span><br />
+                    <button id="btnfrstsubmit" class="btn btn-primary" value="Upload" onclick="WrtOffMaker()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>&nbsp;
+                    &nbsp;<button id="btncanpayclear" onclick="txtClear()" class="btn btn-primary" value="cancel"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>&nbsp;
+                    &nbsp;<button id="btncanpayclear" onclick="backtowmsummary()" class="btn btn-warning" value="cancel"><span style="color:white;" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+
+<script>
+    function WrtOffMaker() {
+        if ($("#fileUploadWrtMaker").val() == null || $("#fileUploadWrtMaker").val() == "") {
+            jAlert("Please Select a valid file", "Information");
+        }
+        var sheet = $("#ddlSelectsheetname option:selected").text();
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please select a sheet", "Information");
+            $("#ddlSelectsheetname").focus();
+            return false;
+        }
+        else {
+            var objsheet =
+                 {
+                     "SheetName": sheet
+                 };
+            $.ajax({
+                url: "@Url.Action("Makerupdate", "AssetWriteOff")",
+                type: 'POST',
+                cache: false,
+                data: objsheet,
+                success: function (data) {
+                    if (data == "Success") {                       
+                        objwoaattach.dialog({
+                            autoOpen: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+                            width: 400,
+                            height: 300,
+                            resizable: false
+                        });
+                        objwoaattach.load("@Url.Action("Uploadstatus", "AssetWriteOff")?ddlSelectsheetname=" + sheet + '&' + new Date().getTime());
+                        objwoaattach.dialog({ title: 'Upload Summary' });
+                        objwoaattach.dialog("open");
+                    }
+                    else {
+                        jAlert(" \tInvalid template." + "\n\t\t" + "   Please refer template.", "Information");
+                        txtClear();
+                        return false;
+                    }
+                },
+                error: function () {
+                    jAlert("Please refer template.", "Information");
+                    txtClear();
+                    return false;
+                }
+            });
+        }
+    }
+
+
+    function getsheets() {
+       
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '../AssetWriteOff/UploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                $("#ddlSelectsheetname").empty();
+                $("#ddlSelectsheetname").append("<option value='0' >--Select--</option>");
+                if (result == "undefined" || result == "") {
+                    jAlert("Please Upload File with Data", "Information");
+                    txtClear();
+                    return false;
+                }
+                else {
+                    var err = result[0].SheetName;
+
+                    if (result.length > 0) {
+                        var stylesSelect = $('#ddlSelectsheetname');
+                        stylesSelect.attr('disabled', false);
+                        for (var i = 0; i < result.length; i++) {
+                            $("#ddlSelectsheetname").append("<option value=" + result[i].SheetId + " >" + result[i].SheetName + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSelectsheetname');
+                        stylesSelect.attr('disabled', true);
+                    }
+
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                jAlert(err, "Error");
+                txtClear();
+                return false;
+            }
+        });
+    }
+
+    function backtowmsummary() {
+        window.parent.jQuery('#woaattach').dialog('close');
+    }
+
+    function checkfileextension(extn) {
+        debugger;
+        var validExts = new Array(".xlsx", ".xls");
+        var fileExt = extn.value;
+        fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+        if (validExts.indexOf(fileExt) < 0) {
+            jAlert("Invalid file selected, valid files are of " +
+                     validExts.toString() + " types.", "Information");
+            window.parent.jQuery('#woaattach').dialog('close');
+            objwoaattach.load('@Url.Action("BulkWriteoff", "AssetWriteOff")?' + new Date().getTime());
+            objwoaattach.dialog({ title: 'Make Bulk Write Off' });
+            objwoaattach.dialog("open");
+        }
+        else {
+            
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');           
+            $("body").append(iframe);           
+            var form = $('#theuploadformwrtma');           
+            // alert(form);
+            form.attr("action", "../AssetWriteOff/UploadFilesnew");          
+            form.attr("method", "post");          
+            form.attr("encoding", "multipart/form-data");        
+            form.attr("enctype", "multipart/form-data");          
+            form.attr("target", "postiframe");          
+            form.attr("file", $('#fileUploadWrtMaker').val());
+            form.submit();
+            setTimeout(function () {
+                getsheets();
+            }, 1000);
+           //getsheets();
+            return false;
+        }
+    }
+
+    function txtClear() {
+        var fileUpload = $("[id*=fileUploadWrtMaker]");
+        var id = fileUpload.attr("id");
+        var name = fileUpload.attr("name");
+        //Create a new FileUpload element.
+        var newFileUpload = $("<input type = 'file' id='fileUploadWrtMaker' name='fileUploadWrtMaker' class='textboxStyleSearch' onchange='checkfileextension(this)' accept='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel' />");
+        fileUpload.after(newFileUpload);
+        fileUpload.remove();
+        $("#ddlSelectsheetname").empty();
+        $("#ddlSelectsheetname").append("<option value='0' >---Select---</option>");
+    }
+</script>

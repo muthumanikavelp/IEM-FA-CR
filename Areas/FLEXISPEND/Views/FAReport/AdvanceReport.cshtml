@@ -1,0 +1,242 @@
+﻿@{
+    ViewBag.Title = "AdvanceReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">FA Advance Report</span>
+</div>
+<div class="well">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span>Date From</span>
+                <br />
+                <input type="text"
+                       id="txtDate"
+                       @*disabled ="disabled"*@
+                       @*value="@DateTime.Now.ToString("dd'/'MM'/'yyyy")"*@
+                       onkeypress="return isEvent(event)"
+                       class="fstextbox" />
+            </td>
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span>Date To</span>
+                <br />
+                <input type="text"
+                       id="txtDateto"
+                       @*disabled ="disabled"*@
+                       @*value="@DateTime.Now.ToString("dd'/'MM'/'yyyy")"*@
+                       onkeypress="return isEvent(event)"
+                       class="fstextbox" />
+            </td>
+            <td style="width:25%; padding:0px 10px;">
+                <span>Vendor </span>
+                <br />
+                <input type="text"
+                       id="txtVendor"
+                       name="txtVendor"
+                       class="fstextbox" />
+                <input type="hidden" id="hfVendor" value="0" />
+            </td>
+            <td style="width:25%; padding:0px 10px;">
+                <span> ECF No</span>
+                <br />
+                <input type="text"
+                       id="txtECFNo"
+                       name="txtECFNo"
+                       class="fstextbox" />
+            </td>
+            </tr>
+            <tr>
+            <td style="width:25%; padding:0px 10px;">
+                <span> GL No</span>
+                <br />
+                <input type="hidden" id="hdfGL" value="0" />
+                <input type="text"
+                       id="txtGl"
+                       name="txtGL"
+                       class="fstextbox" />
+            </td>
+
+            <td style="width:25%; padding:0px 10px;">
+                <span> Raiser</span>
+                <br />
+                <input type="hidden" id="hdfRaiser" value="0" />
+                <input type="text"
+                       id="txtRaiser"
+                       name="txtRaiser"
+                       class="fstextbox" />
+            </td>
+
+                <td style="width:25%; padding:0px 10px;">
+                    <span> Branch</span>
+                    <br />
+                    <input type="hidden" id="hdfbranch" value="0" />
+                    <input type="text"
+                           id="txtbranch"
+                           name="txtbranch"
+                           class="fstextbox" />
+                </td>
+
+            <td style="width:25%; padding:0px; vertical-align:bottom;">
+                <button class="btn btn-primary" id="btnsearch" data-bind="click: $root.search" style="color:white; margin-bottom:3px;">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span>
+                    Search
+                </button>
+                <button class="btn btn-primary" data-bind="click: $root.clearFilter" style="color:white; margin-bottom:3px;">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-refresh"></span>
+                    Clear
+                </button>
+                <button class="btn btn-success" id="btnExporExcel" data-bind="click: $root.Download" style="color:white; margin-bottom:3px;">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>
+            </td>
+        </tr>
+    </table>
+    <div style="width:100%; overflow:auto; height:100%; margin-top: 15px;">
+        <table class="tableSmall table-bordered table-hover table-responsive" id="gvReport" data-bind="visible: ResultArray().length > 0">
+            <thead>
+                <tr>
+                    <th style="width:2%; min-width:40px; max-width:100%;">
+                        S No
+                    </th>
+                    <th style="width:4%; min-width:100px; max-width:100%">
+                        ARFNo
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        Raiser Code
+                    </th>
+                    <th style="width:7%; min-width:150px; max-width:100%;">
+                        Raiser Name
+                    </th>
+                    <th style="width:5%; min-width:120px; max-width:100%;">
+                        Advance Amount
+                    <th style="width:5%; min-width:120px; max-width:100%;">
+                        Liquidation Amount
+                    </th>
+                    <th style="width:5%; min-width:120px; max-width:100%;">
+                        Outstanding Amount
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        Location Code
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        GL Code
+                    </th>
+                    <th style="width:7%; min-width:150px; max-width:100%;">
+                        Vendor Name
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        Gross Amount
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        TDS Amount
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        WCT Amount
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;">
+                        Net Amount
+                    </th>
+                    <th style="width:7%; min-width:150px; max-width:100%;" class="nosort">
+                        Purpose
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;" class="colDate">
+                        Process Date
+                    </th>
+                    <th style="width:4%; min-width:100px; max-width:100%;">
+                        Ageing
+                    </th>
+                    <th style="width:4%; min-width:100px; max-width:100%;">
+                        Bucket
+                    </th>
+                    <th style="width:5%; min-width:100px; max-width:100%;" class="colDate">
+                        Target Date
+                    </th>
+                    <th style="width:5%; min-width:120px; max-width:100%;">
+                        Department
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach:{ data: ResultArray, afterRender: DatatableCall }, visible: ResultArray().length > 0">
+                <tr>
+                    <td align="center">
+                        <span data-bind="text: SlNo"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: DocNo"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: RaiserCode"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: RaiserName"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(ECFARFAmount)"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(LiquidationAmount)"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(OutStandingAmount)"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: LocationCode"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: GLCode"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: EmployeeSupplierName"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(GrossAmount)"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(TDSAmount)"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(WCTAmount)"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: $root.formatNumber(NetAmount)"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Purpose"></span>
+                    </td>
+                    <td align="center">
+                        <span data-bind="text: ProcessDate"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Ageing"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Bucket"></span>
+                    </td>
+                    <td align="center">
+                        <span data-bind="text: LiquidationDate"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Department"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    var UrlDet = "@Url.Action("AdvanceReport", "FAReport")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+<script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsAdvanceReport.js")" type="text/javascript"></script>

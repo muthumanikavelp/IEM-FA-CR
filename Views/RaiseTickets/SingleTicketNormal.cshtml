@@ -1,0 +1,183 @@
+﻿@using IEM.Models
+@{
+    Layout = null;
+    List<RaiseTicketEntity> lstMain = new List<RaiseTicketEntity>();
+    List<RaiseTicketEntity> lstReply = new List<RaiseTicketEntity>();
+    lstMain = (List<RaiseTicketEntity>)ViewBag.lstTickets;
+    lstReply = (List<RaiseTicketEntity>)ViewBag.lstReplies;
+}
+<div class="well" id="RTContent">
+    <fieldset>
+        <legend>
+            <b><span style="color: rgb(52, 108, 196);">Ticket Summary</span></b>
+        </legend>
+        <div>
+            <input type="hidden" name="refname" value="@ViewBag.refname" />
+            <input type="hidden" name="itemrefno" value="@ViewBag.itemrefno" />
+            @if (lstMain == null)
+            {
+                <div>
+                    <textarea class="form-control" name="txtCommentsNew" cols="5" style="width:100%;" placeholder="write a comment..."></textarea>
+                    <input type="button" value="Post Your Comment" class="btn-sm btn-primary" onclick="savecommentsnew()" />
+                </div>
+            }
+            else
+            {
+                foreach (var ts in lstMain)
+                {
+                    <ul class="list-group-item">
+                        <li class="list-group-item">
+                            <div style="float:left;width:3%;">
+                                @if (ts.TicketFromGender == "M" || ts.TicketFromGender == "N")
+                                {
+                                    <img src="~/Content/images/Mr1.png" width="30" height="30" />
+                                }
+                                @if (ts.TicketFromGender == "F")
+                                {
+                                    <img src="~/Content/images/Ms1.png" width="30" height="30" />
+                                }
+                            </div>
+                            <div style="float:right;width:97%;">
+                                <b style="color:navy">@ts.TicketNumber &nbsp; - &nbsp; @ts.RefFlag &nbsp; - &nbsp; @ts.ItemRefNumber</b>
+                                <br />
+                                <b>@ts.TicketContent</b>
+                            </div>
+                            <br />
+                            <div>
+                                <span>@ts.TicketFromName</span>&nbsp;
+                                <span>@ts.TicketDate</span>&nbsp;
+                                @*<a class="linkComment" href="#" onclick="toggleComment(@ts.TicketNumber)">Comment</a>*@
+                                <div>
+                                    <input type="hidden" value="@ts.TicketNumber" name="TicNum">
+                                    @if (lstReply != null)
+                                    {
+                                        foreach (var rs in lstReply)
+                                        {
+                                            <ul class="list-group-item-success">
+                                                <li class="list-group-item">
+                                                    <div style="float:left;width:3%;">
+                                                        @if (rs.TicketFromGender == "M" || rs.TicketFromGender == "N")
+                                                        {
+                                                            <img src="~/Content/images/Mr1.png" width="30" height="30" />
+                                                        }
+                                                        @if (rs.TicketFromGender == "F")
+                                                        {
+                                                            <img src="~/Content/images/Ms1.png" width="30" height="30" />
+                                                        }
+                                                    </div>
+                                                    <div style="float:right;width:97%;">
+                                                        <b>@rs.TicketContent</b>
+                                                    </div>
+                                                    <br />
+                                                    <div>
+                                                        <span>@rs.TicketFromName</span>&nbsp;
+                                                        <span>@rs.TicketDate</span>&nbsp;
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        }
+                                    }
+                                    <div style="display: block" id="@ts.TicketNumber">
+                                        <textarea class="form-control" name="@ts.TicketNumber" style="width:100%;" placeholder="write a comment..."></textarea>
+                                        <a title='Reply' id="@ts.TicketNumber" class="btn btn-primary commentbtn">Post Your Comment</a>
+                                        @*<input type="button" value="Post Your Comment" class="btn-sm btn-primary" onclick="savecomments(@ts.TicketNumber)" />*@
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                }
+            }
+
+        </div>
+    </fieldset>
+</div>
+<script type="text/javascript">
+    $(".commentbtn").click(function () {
+        var ticnum = this.id;
+        var comments = $("[name=" + ticnum + "]").val();
+        if (comments == "" || comments == null) {
+            jAlert("Please Enter Comments", "Error", function () {
+                $("[name=" + ticnum + "]").focus();
+                return false;
+            });
+            return false;
+        }
+        var objRaiseTic = {
+            "TicketNumber": ticnum,
+            "TicketContent": comments
+        };
+        $.ajax({
+            url: '@Url.Action("InsertTicketComments", "RaiseTickets")?' + new Date().getTime(),
+            data: JSON.stringify(objRaiseTic),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == 1) {
+                    var refflag = $("[name=refname]").val();
+                    var itemrefno = $("[name=itemrefno]").val();
+                    var urlGetDetails = '@Url.Action("SingleTicketNormal", "RaiseTickets")?refname=' + refflag + '&itemrefno=' + itemrefno + '&' + new Date().getTime();
+                    $("#RTContent").load(urlGetDetails);
+                }
+                else {
+                    jAlert("Error While Inserting Comments", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            },
+            error: function (result) {
+                jAlert("Something Went wrong", "Error");
+            }
+        });
+    });
+    function savecomments(ticnum) {
+        alert(ticnum);
+
+    }
+    function toggleComment(ticnum) {
+        $("[id=" + ticnum + "]").slideToggle();
+    }
+    function savecommentsnew() {
+        var refflag = $("[name=refname]").val();
+        var itemrefno = $("[name=itemrefno]").val();
+        var comments = $("[name=txtCommentsNew]").val();
+        if (comments == "" || comments == null) {
+            jAlert("Please Enter Comments", "Error", function () {
+                $("[name=txtCommentsNew]").focus();
+                return false;
+            });
+            return false;
+        }
+        var objRaiseTic = {
+            "TicketContent": comments,
+            "RefFlag": refflag,
+            "ItemRefNumber": itemrefno
+        };
+        $.ajax({
+            url: '@Url.Action("InsertTicketCommentsNew","RaiseTickets")?' + new Date().getTime(),
+            data: JSON.stringify(objRaiseTic),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == 1) {
+                    var refflag = $("[name=refname]").val();
+                    var itemrefno = $("[name=itemrefno]").val();
+                    var urlGetDetails = '@Url.Action("SingleTicketNormal", "RaiseTickets")?refname=' + refflag + '&itemrefno=' + itemrefno + '&' + new Date().getTime();
+                    $("#RTContent").load(urlGetDetails);
+                }
+                else {
+                    jAlert("Error While Inserting Comments", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            },
+            error: function (result) {
+                jAlert("Something Went wrong", "Error");
+            }
+        });
+    }
+</script>

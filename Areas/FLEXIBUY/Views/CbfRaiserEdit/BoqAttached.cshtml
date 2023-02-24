@@ -1,0 +1,202 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Index";
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "delmat")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+
+}
+<div id="createsupattachment" class="borderstyle panel panel-default">
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <span>Document Date</span> <br />
+                <input type="text"  id="id_attachDate" value="@Model.attachmentDate" maxlength="10"
+                        title="Document Date" class="textboxStyle" />
+            </td>
+            <td>
+                <span>Select File</span><br />
+                @*<input type="file" name="UploadFile" id="txtUploadFile" multiple />*@
+                <form id="frmDeactivation">
+                    @Html.TextBoxFor(m => m.boqfile, new { @id = "txtUploadBoq", type = "file", @class = "txtUploadSupAttachmentFile" })
+                </form>
+            </td>
+            @*<td>
+                    <span>Document Date</span> <br />
+                    <input type="text" name="Cbf_AttachDate" id="_AttachDate" value="@Model.attachmentDate" maxlength="10" title="Document Date" class="textboxStyle" />
+                </td>*@
+            <td>
+                <span>File Name</span> <br />
+                <input name="_AttachName" readonly="readonly" id="_AttachName" class="textboxStyle" title="File Name" type="text" value="@Model.attachment1" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span>Description</span> <br />
+                <input name="_AttachDescription" id="_AttachDescription1" class="textboxStyle" title="Description" type="text" value="@Model.des" />
+            </td>
+            <td>
+                <input type="button" name="btnSaveSupAttachment" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="Savecbfattachment()" />
+                &nbsp;&nbsp; &nbsp;&nbsp;
+                <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                &nbsp;&nbsp; &nbsp;&nbsp;
+                <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />
+            </td>
+        </tr>
+        @*<tr>
+                <td colspan="4" style="text-align:right;padding-right:5%;">
+                    <input type="button" name="btnSaveSupAttachment" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+                    <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                    <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />
+                </td>
+            </tr>*@
+    </table>
+</div>
+<div>
+    @Html.Partial("BoqAttachgridinline")
+</div>
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    function back() {
+        window.parent.jQuery('#boqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadBoq").val("");
+        $("#_AttachName").val("");
+        $("#_AttachDescription1").val("");
+    }
+    //$(document).ready(function () {
+    //    var pickerOpts = {
+    //        dateFormat: "dd-mm-yy"
+
+    //    };
+    //    $('#_AttachDate').datepicker(pickerOpts);
+
+    //});
+    //$('#txtUploadFile').on('change', function (e) {
+    //    var files = e.target.files;
+    //    if (files.length > 0) {
+    //        if (window.FormData !== undefined) {
+    //            var data = new FormData();
+    //            for (var x = 0; x < files.length; x++) {
+
+    //                data.append("temp_" + x, files[x]);
+    //            }
+    //            var fname = $("#_AttachedFileName").val();
+    //            $.ajax({
+    //                type: "POST",
+    //                url: '../CbfRaiser/UploadedFiles/?fname=' + fname,
+    //                contentType: false,
+    //                processData: false,
+    //                data: data,
+    //                success: function (result) {
+
+    //                    $("#_AttachedFileName").val(result);
+    //                },
+    //                error: function (xhr, status, p3, p4) {
+    //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+    //                    if (xhr.responseText && xhr.responseText[0] == "{")
+    //                        err = JSON.parse(xhr.responseText).Message;
+    //                    console.log(err);
+    //                }
+    //            });
+    //        } else {
+    //            jAlert("This browser doesn't support HTML5 file uploads!");
+    //        }
+    //    }
+    //});
+    function Savecbfattachment() {
+        var AttachDate = $("#id_attachDate").val();
+        alert(AttachDate);
+        var AttachFileName = $("#_AttachName").val();
+        var AttachDescription = $("#_AttachDescription1").val();
+        var attachmodel = {
+            "attachment1": AttachFileName,
+            "des": AttachDescription,
+            "attachmentdate": AttachDate
+        };
+
+        //if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+        //    jAlert("Please Select Attachment Date.", "Error");
+        //    return false;
+        //}
+
+        //if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+        //    jAlert("Please Select Attachmnet.", "Error");
+        //    return false;
+        //}
+        //if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+        //    jAlert("Please Enter Descritption.", "Error");
+        //    return false;
+        //}
+        $.post('../CbfRaiser/BoqAttachgridinline?' + new Date().getTime(), attachmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else {
+                $('#gridattachmentinline').load('../CbfRaiser/BoqAttachgridinline?' + new Date().getTime());
+                jAlert("Inserted Successfully", "Message"); refresh();
+            }
+        }, 'json');
+    }
+
+    var jqXHRData;
+
+    $(document).ready(function () {
+
+        if ('@ViewBag.viewmode' == 'disabled') {
+            $('$createsupattachment').hide();
+        }
+        initAutoFileUpload();
+
+
+    });
+    function initAutoFileUpload() {
+        'use strict';
+        $('#txtUploadBoq').fileupload({
+
+            autoUpload: true,
+
+            url: '@Url.Action("UploadedFiles", "CbfRaiser")?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+
+                        }
+                        alert(data.message);
+                        //  $("#gridattachment").load('../PRRaiser/PRattachgrid?' + new Date().getTime());
+
+                        $("#_AttachName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            jAlert(textStatus + errorThrown + data,"Error");
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    alert(data.files[0].error);
+                }
+            }
+        });
+    }
+</script>

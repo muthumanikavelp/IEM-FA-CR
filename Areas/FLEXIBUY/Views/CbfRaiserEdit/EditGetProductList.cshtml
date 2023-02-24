@@ -1,0 +1,147 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Common
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    ViewBag.Title = "Product List";
+    var grid = new WebGrid(source: Model.cbfDetails, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "cbfeditprodgrid");
+}
+
+    @*<h3>Product List</h3>*@
+      @*<span style="color: rgb(52, 108, 196);">Product List</span>*@
+    @using (Html.BeginForm())
+{
+        @Html.AntiForgeryToken()
+
+        <div id="cbfeditproduct">
+    <table class="myTableStyleTabpopup">
+        <tr>
+            <td>
+                <span>Product Code</span>
+                <br />
+                <input type="text"
+                       name="prodcode"
+                       id="txtprodcode"
+                       value="@TempData["code"]"
+                       class="textboxStyle" />
+            </td>
+            <td>
+                <span>Product Name</span>
+                <br />
+                <input type="text"
+                       name="prodname"
+                       id="txtprodname"
+                       value="@TempData["name"]"
+                       class="textboxStyle" />
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    <span>
+                        <button class="btn btn-primary" onclick="searchcbfproduct()" id="btnsearch" value="search" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+                    </span>
+                </div>
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    <span>
+                        <button class="btn btn-primary" onclick="webgridrefresh()" id="btnrefresh" value="Clear" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                        </button>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered",
+                    htmlAttributes: new { id = "cbfeditprodgrid" },
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns
+                    (
+                    grid.Column("productcode", objCmnFunctions.Sorter("productcode", "Product Code", grid), format: @<text><label id="productcode1">@item.productcode</label></text>),
+                    grid.Column("productname", objCmnFunctions.Sorter("productname", "Product Name", grid), format: @<text><label id="productname1">@item.productname</label></text>),
+                    grid.Column("description", objCmnFunctions.Sorter("description", "Product Description", grid), format: @<text><label id="description1">@item.description</label></text>),
+                    grid.Column(header: "Action", canSort: false, style: "action",
+    format: @<text>
+                        <input type="button" onclick="productcode(this,id,@item.productgid)" id="@item.chartOfAccount" class="btn btn-link" title="SUBMIT" value="Submit" />
+    </text>)))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.cbfDetails.Count</label>
+
+    <div class="borderStyle">
+        @ViewBag.NoRecordsFound
+    </div>
+</div>
+    }
+    <script src="~/Scripts/Partial.js"></script>
+    <script>
+        function productcode(element, id,product) {
+            var pca = id;
+            var row = $(element).closest('tr');
+         
+            var Parproduct =
+              {
+                  "productgid": product
+              };
+
+            $.post('../CbfRaiserEdit/productdetails', Parproduct,
+            function (data) { if (data >0) {jAlert('Already You Have Raise This Product Please Select Any Other Product') } else { 
+            var row = $(element).closest('tr');
+            var pc = row.find('td:eq(0)').text();
+            var pn = row.find('td:eq(1)').text();
+            var pd = row.find('td:eq(2)').text();
+            //alert(pca);
+            var id = $('#rowid').val();
+            $('#chartofaccount' + id + '').val(pca);
+            $('#txtproductgid_' + id + '').val(product);
+            $('#ProductGid' + id + '').val(product);
+            $('#productcode' + id + '').val(pc);
+            $('#productname' + id + '').val(pn);
+            $('#description' + id + '').val(pd);
+            $('#inchartofaccount_' + id + '').val(pca);
+            $("#txtproductcode_" + id + "").val(pc);
+            $("#txtproductname_" + id + "").val(pn);
+            $("#txtdescription_" + id + "").val(pd);
+            objDialog1.dialog('close');
+            window.parent.jQuery('#productserviewpopup').dialog('close'); } }, 'json');
+        }
+
+        function searchcbfproduct() {
+            var prod_gid = $("#editprodgid").val();
+            var prodcode = $('#txtprodcode').val();
+            var prodname = $('#txtprodname').val();
+
+            var objownersearch = {
+                "productName": prodname,
+                "productCode": prodcode,
+                "productgid": prod_gid
+            };
+            $.ajax({
+                url: '@Url.Action("SearchCbfProd", "CbfRaiserEdit")?' + new Date().getTime(),
+                type: 'POST',
+                data: objownersearch,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#cbfeditproduct").load('@Url.Action("EditGetProductList", "CbfRaiserEdit")?lnid=' + prod_gid + '&' + 'listfor=search' + '&' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+
+        function webgridrefresh() {
+            var prod_gid = $("#editprodgid").val();
+            $("#txtprodcode").val("");
+            $("#txtprodname").val("");
+            $("#cbfeditproduct").load('@Url.Action("EditGetProductList", "CbfRaiserEdit")?lnid=' + prod_gid + '&' + 'listfor=refresh' + '&' + new Date().getTime());
+        }
+    </script>

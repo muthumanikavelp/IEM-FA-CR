@@ -1,0 +1,199 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierActivation
+@using IEM.Common
+@using IEM.Areas.ASMS.Models
+@using System.Text
+@using System.Data
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    SupRenwalModel objd = new SupRenwalModel();
+    List<SupplierActivation> lstAttachment = new List<SupplierActivation>();
+    if (TempData["SearchItems"] != null)
+    {
+        lstAttachment = (List<SupplierActivation>)TempData["SearchItems"];
+    }
+  
+    if (lstAttachment == null)
+    {
+        ViewBag.IsSearched = "no";
+        DataTable dtGetvalue = new DataTable();
+        if (Session["supplierattmtfile"] != null)
+        {
+            dtGetvalue = (DataTable)Session["supplierattmtfile"];
+            if (dtGetvalue.Rows.Count == 0)
+            {
+                Session["supplierattmtfile"] = null;
+            }
+            else
+            {
+                lstAttachment = objd.GetEmployeeeAttachmentActivation(dtGetvalue).ToList();
+            }
+           
+        }
+       
+    }
+    if (lstAttachment.Count == 0)
+    {
+        ViewBag.NoRecordsAttachment = "NoRecords";
+        ViewBag.NoRecordsFoundAttachment = "No Records Found";
+    }
+
+}
+
+<div id="wgAttachmentsupplier">
+    @{
+        var gridAttachment = new WebGrid(lstAttachment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgAttachmentsupplier", ajaxUpdateCallback: "DummyFunction()");
+        int rowValAttachment = 0;
+    }
+
+    <div class="container" style="width:800px;">
+        <div>
+            @gridAttachment.GetHtml(
+                              htmlAttributes: new { id = "wgAttachmentsupplier" },
+                     tableStyle: "tableSmall table-bordered ",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                gridAttachment.Columns(
+                    //gridAttachment.Column("#", canSort: false, format: item => rowValAttachment = rowValAttachment + 1),
+                    // gridAttachment.Column("Attachid", objCmnFunctions.Sorter("Attachid", "Slno", gridAttachment), canSort: false),
+                                                     gridAttachment.Column("Attachid", "Slno", format: @<text>  <span> <label id="lblgid">@item.Attachid</label> </span> <input type="text" id="gid" value="@item.Attachid" style="display:none;" /></text>, style: "col2Width"),
+                                                   // gridAttachment.Column("AttachFileName", objCmnFunctions.Sorter("AttachFileName", "Attachment Name", gridAttachment), canSort: false),
+                                                                               gridAttachment.Column("AttachFileName", "Attachment Name", format: @<text>  <span> <label id="lblName">@item.AttachFileName</label> </span> <input type="text" id="Name" value="@item.AttachFileName" style="display:none;" /></text>, style: "col2Width"),
+                                                 //   gridAttachment.Column("AttachFileType", objCmnFunctions.Sorter("AttachFileType", "Attachment Type", gridAttachment), canSort: false),
+                                //  gridAttachment.Column("AttachmentDescription", objCmnFunctions.Sorter("AttachmentDescription", "Description", gridAttachment), canSort: false),
+                                                    gridAttachment.Column("Todate", objCmnFunctions.Sorter("Todate", "Attached Date", gridAttachment), canSort: false),
+                                                  //  gridAttachment.Column("Insertby", objCmnFunctions.Sorter("Insertby", "Attached By", gridAttachment), canSort: false),
+                                  gridAttachment.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @*@Html.Raw("<a data-modal='' href='/EOW/EmployeeClaimnew/Download/" + item.AttachmentFilenameId + "' id='" + item.AttachmentFilenameId + "' title='Detail'> <span class='glyphicon glyphicon-search'> </span> </a>")
+                                        @if (item.attachment_by == objCmnFunctions.GetLoginUserGid())
+                                        {
+                                            @Html.Raw("<a data-modal='' href='/EOW/EmployeeClaimnew/Download/" + item.Attachid + "' id='" + item.Attachid + "'  title='Delete'   > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                                        }*@
+                                    <span class='glyphicon glyphicon-eye-open cursorpointer'></span>
+                                    @*@Html.Raw("<input type='button' class='glyphicon glyphicon-trash cursorpointer' id='btnremove'  Onclick='remove1(" + item.Attachid + ")'  />")*@
+                                    <span class='glyphicon glyphicon-trash cursorpointer'></span>
+                                    @*<input type='button' id='btnremove' class="glyphicon glyphicon-trash cursorpointer" onclick='remove1(" + item.Attachid + ")' />*@
+
+
+                </text>
+         )
+)
+)
+            @if (lstAttachment.Count == 0)
+            {
+
+                <label style="padding:10px;">@ViewBag.NoRecordsFoundAttachment</label>
+
+            }
+
+        </div>
+    </div>
+</div>
+<script>
+   // $(document).ready(function () {
+
+
+        function remove1(id)
+        {
+           // alert(id);
+            var data = id;
+      //  $("#btnremove").click(function () {
+           // alert('ok');
+            var att = id;
+          //  alert(att);
+            var UserModel =
+                {
+                    "FilesToBeUploaded": att
+
+                };
+            $.ajax({
+                type: "POST",
+                url: '../SupplierActivationQueue/remove1',
+                contentType: 'application/json; charset=utf-8',
+               // processData: false,
+                data: JSON.stringify(UserModel),
+                success: function (data) {
+                 //   alert(result);
+                   // alert(result.length);
+                    $("#wgAttachmentsupplier").load('../SupplierActivationQueue/SupplierAttachments');
+
+                },
+                error: function (xhr, status, p3, p4) {
+                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+                    if (xhr.responseText && xhr.responseText[0] == "{")
+                        err = JSON.parse(xhr.responseText).Message;
+                    console.log(err);
+                }
+            });
+       // });
+
+
+        }
+    //  });
+
+        function view(id)
+        {
+           // alert(id);
+            var tr = $(this).parents('tr:first');
+            var Name = tr.find("#Name").val();
+            var value = '@Request.RequestContext.HttpContext.Session["supplierattmtfile"]';
+           // alert(value);
+            window.open("//192.168.0.130/images/" + Name, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
+        }
+    $(document).ready(function () {
+        $('.glyphicon-eye-open').on('click', function () {
+           // alert('hellow');
+            var tr = $(this).parents('tr:first');
+            //var Name = tr.find("#Name").val();
+            var SurName = tr.find("#Name").val();
+            //var UserID = tr.find("#UserID").html();
+          //  alert(SurName);
+            // alert(SurName);
+            if (SurName != '') {
+                window.open("//192.168.0.130/images/" + SurName, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
+            }
+        });
+
+        $('.glyphicon-trash').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            //var Name = tr.find("#Name").val();
+            var SurName = tr.find("#gid").val();
+            //var UserID = tr.find("#UserID").html();
+            var att = SurName;
+          //  alert(att);
+            var UserModel =
+                {
+                    "FilesToBeUploaded": att
+
+                };
+            jConfirm("Are you sure you want to delete this?", "Confirm", function (r) {
+                if (r == true) {
+                    // alert('hai');
+
+                    $.ajax({
+                        type: "POST",
+                        url: '../SupplierActivationQueue/remove1',
+                        contentType: 'application/json; charset=utf-8',
+                        // processData: false,
+                        data: JSON.stringify(UserModel),
+                        success: function (data) {
+                            //   alert(result);
+                            // alert(result.length);
+                            $("#wgAttachmentsupplier").load('../SupplierActivationQueue/SupplierAttachments');
+
+                        },
+                        error: function (xhr, status, p3, p4) {
+                            var err = "Error " + " " + status + " " + p3 + " " + p4;
+                            if (xhr.responseText && xhr.responseText[0] == "{")
+                                err = JSON.parse(xhr.responseText).Message;
+                            console.log(err);
+                        }
+                    });
+                }
+            });
+
+
+        });
+
+    });
+</script>

@@ -1,0 +1,101 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.SupClassificationModel>
+@{
+    ViewBag.Title = "Role Master";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true);
+    int rowVal = 0;
+
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <input type="text"
+                           name="filter"
+                           id="txtFilter"
+                           value="@ViewBag.filter"
+                           class="form-control"
+                           style="display: block;"
+                           placeholder="Enter Role Name" />
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </span>
+                </div>
+            </div>
+            <div style="float:right;padding-right:20px;">
+                <input type="button" value="AddNewRoll" onclick="NewHolidayAdd()" class="btn btn-primary" name="newslab" />
+            </div>
+        </div>
+        <div style="margin-top:17px;" id="mainll">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column(null, null, format: @<input type="hidden" name="Holiday_gid" value="@item.Holiday_gid" />),
+                grid.Column("RoleCode", Sorter("RoleCode", "Role Code", grid)),
+                grid.Column("RoleName", Sorter("RoleName", "Role Name", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <span class="glyphicon glyphicon-search" onclick="ViewHoliday(@item.Holiday_gid)"></span>
+                    <span class=" glyphicon glyphicon-edit" onclick="EditHoliday(@item.Holiday_gid)"></span>
+                    <span class="glyphicon glyphicon-trash" onclick="DeleteHoliday(@item.Holiday_gid)"></span>
+                </text>)
+          )))
+        </div>
+    </div>
+}
+<div id="ForPartialView1"></div>
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView1']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 700,
+            height: 700
+        });
+
+    });
+    function NewHolidayAdd() {
+        objDialog.load('/RoleMaster/RoleNew');
+        objDialog.dialog({ title: 'Add New Role' });
+        objDialog.dialog("open");
+    }
+    function EditHoliday(id) {
+        objDialog.load('/HolidayMaster/EditHoliday?id=' + id);
+        objDialog.dialog({ title: 'Edit Holiday' });
+        objDialog.dialog("open");
+    }
+    function ViewHoliday(id) {
+        objDialog.load('/HolidayMaster/ViewHoliday?id=' + id);
+        objDialog.dialog({ title: 'View Holiday' });
+        objDialog.dialog("open");
+    }
+    function DeleteHoliday(id) {
+        if (confirm("Do you want to delete Holiday: ")) {
+            var custmodel = { "id": id }
+            $.post('/HolidayMaster/DeleteHoliday', custmodel,
+                 function (data) {
+                     alert('Slab Deleted Successfully');
+                     location.reload();
+                 }, 'json');
+
+        }
+    }
+
+</script>

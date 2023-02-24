@@ -1,0 +1,227 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_role
+@using IEM.Common;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model.RoleList);
+    int rowVal = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    /*Here We will add some css for style our treeview*/
+    .collapse1 {
+        width: 15px;
+        background-image: url('../../Images/ui-icons_454545_256x240.png');
+        background-repeat: no-repeat;
+        background-position: -18px -128px;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .expand1 {
+        width: 15px;
+        background-image: url('../../Images/ui-icons_454545_256x240.png');
+        background-repeat: no-repeat;
+        background-position: -50px -128px;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .treeview ul {
+        font: 14px Arial, Sans-Serif;
+        margin: 0px;
+        padding-left: 20px;
+        list-style: none;
+    }
+
+    .treeview > li > a {
+        font-weight: bold;
+    }
+
+    .treeview li {
+    }
+
+        .treeview li a {
+            padding: 4px;
+            font-size: 12px;
+            display: inline-block;
+            text-decoration: none;
+            width: auto;
+        }
+</style>
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Role</span>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%">
+                    <span>Role Code</span>
+                    <br />
+                    <input type="text"
+                           name="rolecode"
+                           id="txtFilter"
+                           value="@ViewBag.role_code"
+                           class="fstextbox"
+                           maxlength="8"
+                           style="display: block;" />
+                </td>
+                <td style="width:20%">
+                    <span>Role Name</span>
+                    <br />
+                    <input type="text"
+                           name="rolename"
+                           id="txtFilter1"
+                           value="@ViewBag.role_name"
+                           class="fstextbox"
+                           maxlength=" 32"
+                           style="display: block;" />
+                </td>
+                <td style="width:20%">
+                    <span>Role Group</span>
+                    <br />
+                    <input type="text"
+                           name="rolegroupname"
+                           id="txtFilter2"
+                           value="@ViewBag.rolegroup_name"
+                           class="fstextbox"
+                           maxlength=" 32"
+                           style="display: block;" />
+                </td>
+                <td width="24%">
+                    <button class="btn btn-primary" value="Search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" value="Refresh" onclick="refresh()" name="command" type="button" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    @if (ViewBag.alert != "No Records")
+                    {
+                        <button type="button" id="btnexport" value="New Document Group" style="margin-top:20px;" onclick="Export()" class="btn btn-primary">
+                            <span style="color:white;" class="glyphicon glyphicon-export"></span> Export
+                        </button>
+                    }
+
+                </td>
+                <td width="16%" style="text-align:right;">
+                    <button type="button" value="New Role" onclick="NewType()" class="btn btn-primary " style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Role</button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+                htmlAttributes: new { id = "wgridAdminRole" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+                            grid.Columns(grid.Column("SlNo", style: "slno", format: item => rowVal = rowVal + 1),
+                            grid.Column(header: "Role Code", columnName: "role_code"),
+                            grid.Column(header: "Role Name", columnName: "role_name"),
+                            grid.Column(header: "Role Group", columnName: "rolegroup_name"),
+                            grid.Column(header: "AssignedTo", columnName: "role_assignedto"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.role_gid + ")'> <span class='glyphicon  glyphicon-eye-open''> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.role_gid + ")'> <span class='glyphicon glyphicon-edit'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteType(" + item.role_gid + ")'> <span class='glyphicon glyphicon-trash'> </span> </a> ")
+
+                            </text>))))
+        </div>
+    </div>
+}
+<div id="ForPartialView12"></div>
+
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView12']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 350,
+            height: 650,
+            duration: 300
+        });
+
+        $('#wgridAdminRole tr th:nth-child(6)').addClass("nosort");
+        $('#wgridAdminRole').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+
+    function NewType() {
+        objDialog.load('../IEM_ROLE/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add New Role' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function EditType(id) {
+        objDialog.load('../IEM_ROLE/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Role' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function ViewType(id) {
+        objDialog.load('../IEM_ROLE/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Role' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function DeleteType(id) {
+        jConfirm("Do you want to delete this role? ", Title_3, function (e) {
+            if (e == true) {
+                var custmodel = { "role_gid": id }
+                $.post('../IEM_ROLE/Delete1', custmodel,
+                 function (data) {
+                     if (data == 0) {
+                         location = location.href;
+                     } else if (data == "2") {
+                         jAlert("Can Not Delete this, Its Based On Some Other category!", "Message", function () {
+                             location = '../IEM_ROLE/Index';
+                         });
+                     }
+                     else {
+                         jAlert("Record Deleted Successfully!", "Message", function () {
+                             location = '../IEM_ROLE/Index';
+                         });
+                     }
+                 }, 'json');
+
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    function refresh() {
+        location = '../IEM_ROLE/Index';
+    }
+
+    function GotoIndexRole() {
+
+        window.parent.jQuery('#ForPartialView12').dialog('close');
+    }
+
+    function DummyFunction201() {
+        $("#wgridAdminRole td:nth-child(1),#wgridAdminRole th:nth-child(1)").show();
+    }
+
+
+    function Export() {
+
+        location = '../IEM_ROLE/excelexport'
+
+    }
+</script>

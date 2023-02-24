@@ -1,0 +1,151 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@{ var viewfor = (string)ViewBag.viewfor;
+ CbfSumEntity objDetails = new CbfSumEntity();
+ CbfSumModel objrep = new CbfSumModel();
+ var grid = new WebGrid();
+ if (Model.cbfDetails == null)
+ {
+     grid = new WebGrid(source: Model.cbfPardetailslst, canPage: true, canSort: false, rowsPerPage: 5, selectionFieldName: "selectedrow", ajaxUpdateContainerId: "prdetails", ajaxUpdateCallback: "Dum()");
+ }
+ else
+ {
+     grid = new WebGrid(source: Model.cbfPardetailslst, canPage: true, canSort: false, rowsPerPage: 5, selectionFieldName: "selectedrow", ajaxUpdateContainerId: "prdetails", ajaxUpdateCallback: "Dum()");
+ }
+
+ int rowNum = 0;
+}
+<div id="prdetails">
+    <fieldset>
+        <legend style="border:none;">PAR Details</legend>
+        <div>
+            @functions{
+                public static string sorter(string columnname, string columnheader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+                }
+            }
+            <div id=" grid_details_par" style="overflow-x:auto; overflow-y:auto;">
+                @grid.GetHtml(
+                                tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                                selectedRowStyle: "selectedrow",
+                                htmlAttributes: new { id = "gridpardt" },
+                                mode: WebGridPagerModes.All,
+                                columns: grid.Columns(
+                                grid.Column("Sl", format: item => rowNum = rowNum + 1, style: "sltd"),
+                                grid.Column("par_Expense", sorter("par_Expense", "Capex/Opex", grid), style: "opextd"),
+                                grid.Column("par_Requestfor", sorter("par_Requestfor", "Dept", grid), style: "depttd"),
+                                grid.Column("par_Budget", sorter("par_Budget", "Budgeted", grid), style: "budgettd"),
+                                grid.Column("description", sorter("description", "Description", grid), style: "desctd"),
+                                grid.Column("year", sorter("year", "Year", grid), style: "yeartd"),
+                                grid.Column("b_FwdAmount", sorter("b_FwdAmount", "B/Fwd Amount", grid), style: "bAmttd rightAlign"),
+                                         grid.Column("lin_Amt", sorter("lin_Amt", "Line Amount", grid), style: "LineAmttd rightAlign"),
+                                         grid.Column("ulis_Amt", sorter("ulis_Amt", "Utiltized Amount", grid), style: "UAmttd rightAlign"),
+                                         grid.Column("c_FwdAmount", sorter("c_FwdAmount", "C/fwd Amount", grid), style: "CAmndtd rightAlign"),
+                                         grid.Column("balance", sorter("balance", "Balance", grid), style: "balancetd rightAlign"),
+                                grid.Column(header: "Attchment", canSort: false, style: "attachtd",
+                                format: @<text>
+                                    <input type="button" value="View Attach" id="@item.pardet_gid" onclick="ViewParDetailsAttachmentsCbf(id)" class="btn btn-link" title="View Doc" />
+                                </text>),
+                                grid.Column(header: "Action", canSort: false, style: "actiontd",
+                                format: @<text>
+                                    <input type="button" value="Select" class="btn btn-link" @ViewBag.viewmode onclick="cbfpardetailsfunction(id,this)" id="@item.pardet_Gid" title="Select" />
+                                </text>)))
+
+            </div>
+            @if (ViewBag.records != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:normal ;">
+                    @ViewBag.records
+                </h6>
+            </div>
+            }
+
+        </div>
+    </fieldset>
+    <div id="divForPardetailsViewAttach"></div>
+    <input type="hidden" id="hid_viewparattachmentcbf" />
+
+</div>
+<script>
+    var objDialogforboq;
+    function Newboqview12(id) {
+        if ($('#parheaderview').val() == "") {
+            $('#parheaderview').val("1");
+            objDialogforboq = $("[id$='viewboqattachment']");
+            objDialogforboq.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 600
+            });
+        }
+        
+        objDialogforboq.load('@Url.Action("PARAttachmentIndex", "ParRaiser")?pardetid=' + id + '&viewtype=view&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'View BOQ Attachment' });
+        objDialogforboq.dialog("open");
+        //objDialogforboq.load('../CbfRaiserEdit/viewattachforpar?lnParDetail=' + id);
+        //objDialogforboq.dialog({ title: 'View BOQ Attachment' });
+        //objDialogforboq.dialog("open");
+    }
+    var objDialogParDetailsAttachment;
+    $(document).ready(function () {
+        if ($('#hid_viewparattachmentcbf').val() == "") {
+            $('#hid_viewparattachmentcbf').val("1");
+            objDialogParDetailsAttachment = $("[id$='divForPardetailsViewAttach']");
+            objDialogParDetailsAttachment.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 600
+            });
+        }
+     
+    });
+    function ViewParDetailsAttachmentsCbf(id){
+     
+        objDialogParDetailsAttachment.load('@Url.Action("PARAttachmentIndex", "ParRaiser")?pardetid=' + id + '&viewtype=view&' + new Date().getTime());
+        objDialogParDetailsAttachment.dialog({ title: 'View BOQ Attachment' });
+        objDialogParDetailsAttachment.dialog("open");
+    }
+    function cbfpardetailsfunction(id, element) {
+
+        $('#cbfpardetails').show();
+        var row = $(element).closest("tr");
+        var costestimatiuon = row.find("td:eq(7)").text();
+        $('#parcostestimation123').val(costestimatiuon);
+        $("#hidpardetailsgid").val(id);
+        var prdegid =
+                   {
+                       "prdetails_gid": 0,
+                       "productcode": id
+                   };
+        $.ajax({
+            url: "../CbfRaiserEdit/EditCbfParDetails/",
+            type: 'POST',
+            data: prdegid,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#cbfpardetails").empty().append(data);
+                    $('.display-mode').hide();
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+    }
+</script>
+
+@*}*@

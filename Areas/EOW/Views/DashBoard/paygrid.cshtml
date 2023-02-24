@@ -1,0 +1,112 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Common
+@using IEM.Areas.EOW.Models
+@{
+    decimal remamount = 0;
+    EOW_EmployeeeExpense sh = (EOW_EmployeeeExpense)ViewBag.EOW_EmployeeeExpenseheader;
+    DataTable GetflowgidCount = new DataTable();
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    List<EOW_arfraising> list = new List<EOW_arfraising>();
+    ArfRaising rais = new ArfRaising();
+    GetflowgidCount = rais.Getpaymodedata(Convert.ToString(Session["EcfGid"].ToString()), "arfpaymentdata");
+    for (int tr = 0; GetflowgidCount.Rows.Count > tr; tr++)
+    {
+        if (remamount == 0)
+        {
+            remamount = Convert.ToDecimal(GetflowgidCount.Rows[tr]["ecfcreditline_amount"].ToString());
+        }
+        else
+        {
+            remamount = remamount + Convert.ToDecimal(GetflowgidCount.Rows[tr]["ecfcreditline_amount"].ToString());
+        }
+    }
+    if (GetflowgidCount.Rows.Count > 0)
+    {
+        list.Add(
+        new EOW_arfraising
+        {
+            //creditline_pay_mode = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_pay_mode"]),
+            //creditline_ref_no = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_ref_no"]),
+            //creditline_beneficiary = Convert.ToString(sh.Raiser_Name),
+            //creditline_desc = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_desc"].ToString()),
+            //creditline_amount = Convert.ToDecimal(sh.ECF_Amount)
+            creditline_pay_mode = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_pay_mode"].ToString()),
+            creditline_ref_no = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_ref_no"].ToString()),
+            creditline_beneficiary = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_beneficiary"].ToString()),
+            creditline_desc = Convert.ToString(GetflowgidCount.Rows[0]["ecfcreditline_desc"].ToString()),
+            creditline_amount = objCmnFunctions.GetINRAmount(GetflowgidCount.Rows[0]["ecfcreditline_amount"].ToString())
+        });
+    }
+    WebGrid grid = new WebGrid(source: list, canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+
+}
+
+<div id="gridPayment">
+
+    @using (Html.BeginForm())
+    {
+        <div class="table-responsive" id="paygrid" style="padding-right: 10px;max-height: 350px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered",
+        columns: grid.Columns
+            (
+
+  grid.Column("creditline_pay_mode", Sorter("creditline_pay_mode", "PayMode", grid), style: "cpay"),
+  grid.Column("creditline_ref_no", Sorter("ecfarf_desc", "Ref No / Bank Account Number", grid), style: "apay"),
+   grid.Column("creditline_beneficiary", Sorter("creditline_beneficiary", "Beneficiary", grid), style: "dpay"),
+  grid.Column("creditline_desc", Sorter("creditline_desc", "Description", grid), style: "dpay"),
+ grid.Column(header: "Amount",
+                        format: @<text>
+    @Html.Raw(String.Format("{0:#,##}",
+                          objCmnFunctions.GetINRAmount(Convert.ToString(@item.creditline_amount)
+                        ))) </text>, style: "colamountlarge")))
+        </div>
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <span>
+                            Total Payment Amount : <b>
+                                <label id="Ecfrowtolamtdispay">
+                                    @objCmnFunctions.GetINRAmount(remamount.ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+
+</div>
+<style>
+    .cpay {
+        width: 10% !important;
+        padding-left: 5px !important;
+        min-width: 80px;
+        word-wrap: break-word;
+    }
+
+    .apay {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dpay {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+</style>

@@ -1,0 +1,414 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.SaleMakerModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowVal = 0;
+    CmnFunctions cmn = new CmnFunctions();
+    var grid = new WebGrid(source: Model.TModel, canPage: false, rowsPerPage: 10, canSort: false, ajaxUpdateContainerId: "sagridId", ajaxUpdateCallback: "sagridId");
+    int id = grid.PageIndex;
+
+}
+<b>
+    <span style="color: rgb(52,108,196);"> Sale of Asset - Maker</span>
+</b>
+<div class="well">
+
+    <div class="row">
+
+        <div class="col-sm-9">
+            @using (Html.BeginForm())
+            {
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+
+
+                    <tr>
+
+                        <td>
+                            <div>
+
+                                <span> Sale No </span>
+                                <br />
+                                <input type="text" name="filter" id="txtFilter" value="@ViewBag.filter" class="textboxStyleSearch" maxlength="20" />
+                            </div>
+
+                        </td>
+                        <td>
+                            <div>
+                                <span> Sale Date</span>
+                                <br />
+                                <input type="text" name="filter1" id="filter1" value="@ViewBag.filter1" class="textboxStyleSearch" readonly="readonly" placeholder="dd-mm-yyyy" />
+                            </div>
+                        </td>
+                        @*<td>
+                                <div>
+                                    <span> Sale Status</span>
+                                    <br />
+                                    <select id="txtstatus" class="textboxStyleSearch" name="status" >
+                                        <option >@ViewBag.status</option>
+                                        <option value="APPROVED">APPROVED</option>
+                                        <option value="DRAFT">DRAFT </option>
+                                        <option value="REJECTED">REJECTED</option>
+                                        <option value="WAITING FOR APPROVAL">WAITING FOR APPROVAL</option>
+                                    </select>
+                                </div>
+                            </td>*@
+
+                        <td>
+
+                            <span>Status</span>
+                            <br />
+                            <select class="textboxStyleSearch" id="Status" name="status"></select>
+
+                        </td>
+
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-remove-circle"> </span> Clear</button>
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            @if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" ><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                        </td>
+                        @*<td><textarea name="vendoradd" id="vendaddr"  style="height:80px;" maxlength="100" class="vendoradd required textboxStyleBig" rows="4" cols="50" ></textarea></td>*@
+                    </tr>
+                </table>
+            }
+        </div>
+        <table class="myTableStyleTabNew" style="float:right; margin-right:4px">
+            <tr>
+                <td>
+                    <div style="float:right; padding-right:8px;">
+                        <span> </span>
+                        <br />
+                        @*<button class="btn btn-primary" type="submit" id="closemaker" onclick="closesale()" name="command" value="SALE"><span style="color:white;" class="glyphicon glyphicon-plus"></span> Close</button>*@
+                        <button class="btn btn-primary" type="submit" onclick="samaker()" name="command" value="SALE"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Asset Sale </button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top:17px; height:600px; overflow-y:scroll" @*class="overflowx overflowy"*@>
+
+        @grid.GetHtml(htmlAttributes: new { id = "sagridId" }, fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive", mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+        grid.Column(header: "S.No", format: item => rowVal = rowVal + 1),
+        grid.Column("soaSalenumber", cmn.Sorter("soaheader_sale_number", "SaleNo", grid), style: "col-lg-3 MidColumn20Center"),
+        grid.Column("soaSalevalue", cmn.Sorter("soaheader_sale_value", "Sale Amount", grid), style: "MidColumn20 rig"),
+        grid.Column("soaTnorecords", cmn.Sorter("soaheader_no_records", "No of Records", grid), style: "col-lg-1 MidColumn20Center"),
+        grid.Column("soaSaledate", cmn.Sorter("soaheader_sale_date", "Sale Date", grid), style: "col-lg-3 MidColumn20Center"),
+        grid.Column("soaStatus", cmn.Sorter("soaheader_sale_status", "Sale Status", grid), style: "col-lg-3 MidColumn20Center"),
+        grid.Column(header: "Upload File", canSort: false, style: "action",
+
+        format: @<text>
+            <a title='click here to download' onclick="DownloadsoaAttachment('@item.soaUploadfilename')">
+                @item.soaUploadfilename
+            </a>
+        </text>),
+                grid.Column(header: "Attachment(s)", canSort: false, style: "action",
+        format: @<text>
+                    @if (@item.soaStatus == "DRAFT")
+                    {
+                        @Html.Raw("<a  onclick='soaAttach(" + item.soaGid + ")' title='Add/View Attachment'> <span id ='Color' class='glyphicon glyphicon-plus'> </span> </a>")
+                    }
+                    else
+                    {
+                        @Html.Raw("<a  onclick='soaAttachedit(" + item.soaGid + ")' title='Add/View Attachment'> <span id ='Color' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    }</text>),
+
+
+      grid.Column(header: "Action", canSort: false, style: "action",
+format: @<text>
+
+        @Html.Raw("<a onclick='SaleDetails(" + item.soaGid + ")' title='View Detail'> <span id ='Color' class='glyphicon glyphicon-eye-open'> </span> </a>")
+        @if (@item.soaStatus == "DRAFT")
+        {
+            @Html.Raw("<a onclick='SaleMakerAbort(" + item.soaGid + ")' title='Delete Transfer'> <span  id ='Color' class='glyphicon glyphicon-trash'> </span> </a>")
+        }
+        @*else if (@item.soaStatus == "APPROVED")
+        {
+            @Html.Raw("<a onclick = 'SaleRevoke(" + item.soaGid + ")' title=''> <span  class='glyphicon glyphicon-repeat'> </span> </a>")
+        }*@
+        @*else
+        {
+            @Html.Raw("<a  disabled='disabled' title='Delete Transfer'> <span class='glyphicon glyphicon-trash'> </span> </a>")
+
+        }*@
+
+</text>)
+        @* grid.Column(header: "Excel", canSort: false, style: "action",
+            format: @<text>
+                <button id=" btnexcel" class="btn btn-primary" value="export" onclick="ExcelExport()"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel Export </button>
+            </text>)*@
+))
+        <div class="table-bordered " align="center">
+            @if (ViewBag.Message != null)
+            {
+                <div class="" align="center">
+                    <b> @ViewBag.Message</b>
+                </div>
+            }
+        </div>
+    </div>
+
+    <br />
+    @*<span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>*@ <span class="myTableStyleTabNew">Total No of Records:@grid.TotalRowCount</span>
+</div>
+
+<div id="ForPartialViews"></div>
+
+
+<style>
+    .rig {
+        text-align: right;
+    }
+
+    .wid {
+        width: 250%;
+    }
+</style>
+
+
+<script type="text/javascript">
+
+    var tr = $("#sagridId").find('tr');
+    $("#sagridId tr #Color").click(function () {
+        $('#sagridId').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#CEECF5');
+    });
+
+
+
+
+    function searchonclick() { }
+    var objDialogsoaattach;
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialViews']");
+
+    });
+
+    function samaker() {
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 650,
+            height: 250,
+            resizable: false
+        });
+        objDialog.load('@Url.Action("BulkSale", "AssetSale")?' + new Date().getTime());
+        objDialog.dialog({ title: 'Make Bulk Sale' });
+        objDialog.dialog("open");
+    }
+
+    function closesale() {
+        $('#ForPartialView1').hide(0);
+        $('#closemaker').hide(0);
+    }
+
+    function ExcelExport() {
+        location = '../AssetSale/SAExcelDown';
+    }
+
+    $(document).ready(function () {
+
+        $("#filter1").datepicker(
+            {
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd-mm-yy',
+                maxdate: new Date()
+            });
+    });
+
+    $('#btncanpayclear').click(function () {
+        location = '../AssetSale/SASummary';
+    });
+
+    $('#btnclear').click(function () {
+        //// alert("hai");
+        location = '../AssetSale/SASummary';
+    });
+
+    function soaAttach(id) {
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 410,
+            resizable: false
+        });
+        objDialog.load('@Url.Action("soaAttach", "AssetSale")?viewfor=addmode&id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Files for Sale' });
+        objDialog.dialog("open");
+    }
+    function soaAttachedit(id) {
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 350,
+            resizable: false
+        });
+        objDialog.load('@Url.Action("soaAttach", "AssetSale")?viewfor=viewmode&id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Files for Sale' });
+        objDialog.dialog("open");
+    }
+    function SaleDetails(soaGid) {
+        //  alert(soaGid);
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1000,
+            height: 660,//660
+            resizable: false
+        });
+        objDialog.load('@Url.Action("SaleMakerView", "AssetSale")?viewfor=view&id=' + soaGid + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Sale Details' });
+        objDialog.dialog("open");
+    }
+
+    function SaleRevoke(soagid) {
+
+        $.ajax({
+            url: '@Url.Action("RevokeSale","AssetSale")',// + '&' + new Date().getTime(),
+            type: 'POST',
+            data: { soagid: soagid },
+            dataType: "json",
+            success: function (data) {
+
+                jAlert("AssetSale Revoke Successfully", "Message", function (t) {
+                    if (t == true) {
+                        location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                    }
+                });
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+    }
+
+    function SaleMakerAbort(soaGid) {
+
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1000,
+            height: 660,
+            resizable: false
+        });
+        objDialog.load('@Url.Action("SaleMakerView", "AssetSale")?viewfor=abort&id=' + soaGid + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Abort Sale Details' });
+        objDialog.dialog("open");
+        @*jAlert("Delete Successfully");
+        location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();*@
+    }
+
+    function DownloadsoaAttachment(safilenam) {
+        $.ajax({
+            url: '@Url.Action("SAcheckFileExists", "AssetSale")?id=' + safilenam + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    location = "../AssetSale/SADownloadDocument?id=" + safilenam + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+
+
+    var Draft = '@ViewBag.status';
+    $(document).ready(function () {
+
+        $(window).load(function () {
+
+            $.ajax({
+                url: '@Url.Action("ImpairStatus", "AssetImpairments")',
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].status, data[i].status);
+                        $('#Status').append(opt);
+
+                        $("#Status").find('option').each(function (i, opt) {
+
+                            if (opt.value === Draft)
+                                $(opt).attr('selected', 'selected');
+                        });
+
+                    }
+                }
+            });
+        });
+    });
+
+
+
+    $("#txtFilter").autocomplete({
+        source: function (request, response) {
+            var status = $('#Status').val();
+            // alert(status);
+            $.ajax({
+                url: '@Url.Action("saleautosaleno", "AssetSale")?' + '&' + new Date().getTime(),
+                //url: "../AssetValueReduction/locautosearch",
+                type: "POST",
+                dataType: "json",
+                data: { term: request.term, status: status },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return { label: item.soaSalenumber, value: item.soaSalenumber };
+                    }))
+                }
+            })
+        },
+        messages: {
+            noResults: "", results: ""
+        }
+    });
+    function Download() {
+       
+        location = '@Url.Action("SAExcelDown", "AssetSale")';
+    }
+</script>
+
+
+
+
+

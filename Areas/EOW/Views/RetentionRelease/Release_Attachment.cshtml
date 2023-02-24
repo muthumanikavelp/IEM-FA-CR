@@ -1,0 +1,103 @@
+﻿@model  IEM.Areas.EOW.Models.Retention_Release
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    //DataTable getadvancetype = new DataTable();
+   List<Retention_Release> list = new List<Retention_Release>();
+    //RetentionRelease rais = new RetentionRelease();
+    //getadvancetype = rais.debitgrid(Session["ecf"].ToString(), Session["invoice"].ToString());
+    //foreach (DataRow row in getadvancetype.Rows)
+    //{
+    //    list.Add(
+    //    new Retention_Release
+    //    {
+    //        creditpaymode = Convert.ToString(row["ecfcreditline_pay_mode"].ToString()),
+    //        creditref_no = Convert.ToString(row["ecfcreditline_ref_no"].ToString()),
+    //        creditbecificary = Convert.ToString(row["ecfcreditline_beneficiary"]),
+    //        creditamount = Convert.ToString(Session["balance"]),
+    //        creditdesc = Convert.ToString(row["ecfcreditline_desc"].ToString())
+
+    //    });
+    //};
+
+    WebGrid gridatt = new WebGrid(source: list, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "gridatt", selectionFieldName: "SelectedRow");
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div id="pppay">
+    <br />   
+    <table class="myTableStyleTabNew" align="right">
+        <tr>
+            <td>
+                <button type="button" id="relattach" value="AddNew" onclick="Newattachrel()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> Add Attachment</button>
+            </td>
+        </tr>
+    </table>
+    <div style="margin-top:-1px;width:700px; margin-left:-9px;" id="attgrid" class="container overflowy">
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @gridatt.GetHtml(
+       tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+     columns: gridatt.Columns
+            (
+         gridatt.Column("attachment_filename", Sorter("attachment_filename", "Attachment", gridatt), canSort: false),
+           gridatt.Column("attachment_type", Sorter("attachment_type", "Attachment Type", gridatt), canSort: false),
+         gridatt.Column("attachment_desc", Sorter("attachment_desc", "Description", gridatt), canSort: false),
+         gridatt.Column("attachment_date", Sorter("attachment_date", "Attached Date", gridatt), canSort: false),
+           gridatt.Column("attachment_nameby", Sorter("attachment_nameby", "Attached By", gridatt), canSort: false),
+
+             gridatt.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+
+                @Html.Raw("<a data-modal='' href='../RaisingArf/Download/" + item.attachment_gid + "' id='" + item.attachment_gid + "' title='Detail'> <span id='" + item.attachment_gid + "' class='glyphicon glyphicon-edit'> </span> </a>")
+                @Html.Raw("<a title='Delete' onclick='DeleteAttachment(" + item.attachment_gid + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)))
+    </div>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>        
+            <td>
+                <div>
+                    <button type="button" id="btnsaverelease" class="btn btn-primary" value="Save" onclick="SAVErelease()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td> 
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" id="attclose" value="Cancel" onclick="GotoIndexattachrel()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<input type="hidden" id="ddsrel" />
+<script type="text/javascript">
+   
+    function Newattachrel() {
+        var url = "@(Html.Raw(Url.Action("attachpop", "RetentionRelease")))";
+        objDialogretentionrelease.load(url + '?' + new Date().getTime());
+        objDialogretentionrelease.dialog({
+            title: 'Add Attachment ', 'width': 700,modal: true, cache: false, resizable: false, autoOpen: false, 'height': 250
+        });
+        objDialogretentionrelease.dialog("open");
+    }
+    function SAVErelease() {
+        jAlert("Saved Successfully", "Information", function (r) {
+            if (r = true) {
+                location = '../RetentionRelease/RetentionIndex';
+            }
+        });
+    }
+    function GotoIndexattachrel() {
+
+        location = '../RetentionRelease/RetentionIndex';
+    }
+</script>
+    

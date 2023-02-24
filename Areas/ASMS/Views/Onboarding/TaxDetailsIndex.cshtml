@@ -1,0 +1,314 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.SupplierTaxDetails>
+@{
+    SupDataModel dm = new SupDataModel();
+    List<SupplierTaxDetails> lst = new List<SupplierTaxDetails>();
+    lst = (List<SupplierTaxDetails>)Session["TaxSearchItems"];
+    if (lst == null || lst.Count == 0)
+    {
+        lst = dm.GetSupTaxDetails().ToList();
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    if (Session["isFinancialReviewer"] != null)
+    {
+        ViewBag.isFinancialReviewer = (string)Session["isFinancialReviewer"];
+    }
+    else
+    {
+        ViewBag.isFinancialReviewer = "";
+    }
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "ForTaxDetails", ajaxUpdateCallback: "DummyFunction9()");
+    int rowcount = 0;
+}
+<div id="ForTaxDetails">
+
+    <div class="table-responsive" style="margin-top:10px; width:100%">
+        <div>
+            @grid.GetHtml(
+                htmlAttributes: new { id = "wgridTaxDetails" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+                columns:
+               grid.Columns(
+               grid.Column("_TaxDetailsID", objCmnFunctions.Sorter("_TaxDetailsID", "ID", grid), canSort: false),
+               grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_TaxTypeName", objCmnFunctions.Sorter("_TaxTypeName", "Tax Type", grid), style: "colmedium"),
+                        grid.Column("_TaxRegNo", objCmnFunctions.Sorter("_TaxRegNo", "Tax Registration No", grid), style: "colmedium"),
+                        grid.Column(header: "Rate", style: "action",
+                format: @<text>
+                            @if (item._IsAllowAdd > 0 && ((ViewBag.PageMode != "3" && ViewBag.PageMode != "5") || ViewBag.isFinancialReviewer == "yes"))
+                            {
+                                <input type="hidden" value=@item._TaxReceivableFlag id="txtReceivableFlag" name="txtReceivableFlag">
+                                <a title='Add Rate' class='linkStyle' id=@item._TaxTypeID onclick='AddRate(this,id)'> Add </a>
+                            }
+                            else
+                            {
+                                <span>@item._TaxRate</span>
+                            }
+
+                </text>),
+            @*grid.Column(header: "Attachment", canSort: false, style: "MidColumn20Center",
+                format: @<text>
+
+                    <a title='Add Attachment' id="edit"  onclick='AttachDocsTax(this,id)'  class="addtaxattachment" > Attach Docs </a>
+                    <a title='View Attachment' id="view" onclick='AttachDocsTax(this,id)' class="viewtaxattachment"> View Docs </a>
+
+                </text>),*@
+ grid.Column(header: "Action", canSort: false, style: "colmediumCenter",
+                                     format: @<text>
+    @if ((ViewBag.PageMode != "3" && ViewBag.PageMode != "5") || ViewBag.isFinancialReviewer == "yes")
+    {
+        <a title='Add Attachment' id="edit" style="text-decoration:none;" onclick='AttachDocsTax(this,id)' class="addtaxattachment"> <span class='glyphicon glyphicon-paperclip'> </span> </a>
+    }
+    else
+    {
+        <a title='View Attachment' style="text-decoration:none;" id="view" onclick='AttachDocsTax(this,id)' class="addtaxattachment"> <span class='glyphicon glyphicon-paperclip'> </span> </a>
+    }
+
+    <a title='View' style="text-decoration:none;" id=@item._TaxTypeID onclick='ViewTax(this,id)'> <span class='glyphicon glyphicon-eye-open'> </span> </a>
+
+    @if ((ViewBag.PageMode != "3" && ViewBag.PageMode != "5") || ViewBag.isFinancialReviewer == "yes")
+    {
+        <a title='Edit' style="text-decoration:none;" id=@item._TaxTypeCode onclick='EditTax(this,id)'> <span class='glyphicon glyphicon-edit'> </span> </a>
+        <a title='Delete' style="text-decoration:none;" onclick='DeleteTax(@item._TaxDetailsID)'> <span class='glyphicon glyphicon-trash'> </span> </a>
+
+    }
+                                    </text>)))
+
+        </div>
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>*@
+
+</div>
+@*<div id="idhidden_ASMS1" hidden="hidden"></div>
+<div id="idhidden_ASMS2" hidden="hidden"></div>*@
+<div id="ForTDSADDNEW"></div>
+<div id="ForTDSTAXANew"></div>
+<script type="text/javascript">
+    var objDialogTax;
+    var objATax;
+    //alert($("#idhidden_ASMS1").val());
+    if ($("#idhidden_ASMS1").val() == "") {
+        $("#idhidden_ASMS1").val("OPENED");
+
+        objDialogTax = $("[id$='ForTDSTAXANew']");
+        objDialogTax.length = 1;
+        objDialogTax.dialog({
+            autoOpen: false,
+            // closeOnEscape:false,
+            modal: true,
+            async: false,
+            //show: 'fade-in',
+            //close: 'fade-out',
+            resizable: true,
+            cache: false
+            // close: function (ev, ui) { $(this).close(); }
+
+        });
+    }
+    $(document).ready(function () {
+
+       
+       
+
+       
+        
+        $("#wgridTaxDetails td:nth-child(1),#wgridTaxDetails th:nth-child(1)").hide();
+        $("#wgridTaxDetails td:nth-last-child(1)").show();
+
+        $("#ForTDSADDNEW").unload = refreshcurrentpage();
+
+    });
+    function refreshcurrentpage() {
+        $("#ForTDSADDNEW").dialog("close");
+        $("#ForTDSADDNEW").dialog("dispose");
+        //   location.reload();
+    }
+    function DummyFunction9() {
+        $("#wgridTaxDetails td:nth-child(1),#wgridTaxDetails th:nth-child(1)").hide();
+        $("#wgridTaxDetails td:nth-last-child(1)").show();
+    }
+    function EditTax(element, code) {
+        $("#_TaxRate").val("");
+        $("#_TaxRegNo").val("");
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#SessionTaxGid").val(ids);
+
+        var taxtype = tds.eq(2).text();
+        var regnumber = tds.eq(3).text();
+        var rate = tds.eq(4).text();
+        setTimeout(function () {
+            $("#selectedTaxTypeNameID option").each(function () {
+                if ($(this).text() == code) {
+                    $(this).attr('selected', 'selected').trigger('chosen:updated');
+                }
+            });
+        }, 10);
+        $("#_TaxRegNo").val(regnumber);
+        if (code != "TDS" && code != "VAT") {
+            $("#_TaxRate").val($.trim(rate));
+            $("#_TaxRate").removeAttr('disabled');
+        }
+        else {
+            $("#_TaxRate").prop('disabled', true);
+        }
+
+
+        if ($("#_TaxRegNo").val().trim() != "") {
+            $("#_TaxRegNo").removeClass('required');
+            $("#_TaxRegNo").addClass('valid');
+        }
+        else {
+            $("#_TaxRegNo").removeClass('valid');
+            $("#_TaxRegNo").addClass('required');
+        }
+        if ($("#_TaxRate").val().trim() != "") {
+            $("#_TaxRate").removeClass('required');
+            $("#_TaxRate").addClass('valid');
+        }
+        else {
+            $("#_TaxRate").removeClass('valid');
+            $("#_TaxRate").addClass('required');
+        }
+        if ($.trim(code).toUpperCase() == "VAT" || $.trim(code).toUpperCase() == "TDS") {
+            $("#_TaxRate").removeClass('valid');
+            $("#_TaxRate").removeClass('required');
+        }
+        $("#selectedTaxTypeNameID_chosen").removeClass('required');
+        $("#selectedTaxTypeNameID_chosen").addClass('valid');
+
+    }
+    function DeleteTax(id) {
+        $("#SessionTaxGid").val("0");
+        jConfirm("Do you want to delete this Tax : ", Title_3, function (e) {
+            if (e == true) {
+                var objTaxDetails = { "_TaxDetailsID": id }
+                $.post('../Onboarding/DeleteTaxDetails', objTaxDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#ForTaxDetails").load("../onboarding/TaxDetailsIndex?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    function ViewTax(element, taxgid) {
+        //var row = $(element).closest('tr');
+        //var taxsubtype = row.find('td:eq(2)').text();
+        //var taxdetailsid = row.find('td:eq(0)').text();
+        $("#SessionTaxGid").val("0");
+        var row = $(element).closest('tr');
+        var taxsubtype2 = row.find('td:eq(2)').text();
+        var taxdetailsid = row.find('td:eq(0)').text();
+        var receiveflag = row.find($("input[name$=txtReceivableFlag]")).val();
+        @*var url = '@Url.Action("TdsIndex", "Onboarding")?taxdetailsID=' + taxdetailsid + '&taxsubtype=' + taxgid + '&receiveflag=' + receiveflag + '&viewtype=edit';*@
+        objDialogIndex1.load('../Onboarding/TdsIndex?taxdetailsID=' + taxdetailsid + '&taxsubtype=' + taxgid + '&receiveflag=' + receiveflag + '&viewtype=view&' + new Date().getTime());
+        objDialogIndex1.dialog({ title: 'View ' + taxsubtype2, width: 760, height: 470 });
+        objDialogIndex1.dialog('open');
+        //if (code == "VAT") {
+        //    objDialog.load('../Onboarding/VatIndex?taxdetailsID=' + taxdetailsid + '&viewtype=view&' + new Date().getTime());
+        //    objDialog.dialog({ title: 'View Vat', width: 700,  height: 400  });
+        //    objDialog.dialog("open");
+        //}
+        //else if (code == "TDS") {
+        //    objDialog.load('../Onboarding/TdsIndex?taxdetailsID=' + taxdetailsid + '&taxsubtype=' + taxsubtype + '&viewtype=view&' + new Date().getTime());
+        //    objDialog.dialog({ title: 'View Tds', width: 760,  height: 400  });
+        //    objDialog.dialog("open");
+        //}
+
+    }
+    function AttachDocsTax(element, viewmode) {
+     //   alert($("#idhidden_ASMS2").val());
+        if ($("#idhidden_ASMS2").val() == "") {
+            $("#idhidden_ASMS2").val("OPENED");
+           
+            objATax = $("[id$='ForTDSADDNEW']");
+            objATax.length = 1;
+            objATax.dialog({
+                autoOpen: false,
+                modal: true,
+                async: false,
+                resizable: true,
+                cache: false
+            });
+        }
+       // alert($("#idhidden_ASMS2").val());
+        var row = $(element).closest('tr');
+        var taxsubtype = row.find('td:eq(2)').text();
+        var taxdetailsid = row.find('td:eq(0)').text();
+       
+        objATax.load('../Onboarding/TaxAttachmentIndex?taxdetailsID=' + taxdetailsid + '&viewtype=' + viewmode + '&' + new Date().getTime());
+        if (viewmode == "view") {
+            objATax.dialog({ title: 'View Tax Attachments', width: 760, height: 400 });
+        }
+        else if (viewmode == "edit") {
+            objATax.dialog({ title: 'Add Tax Attachments', width: 760, height: 400 });
+        }
+
+        objATax.dialog("open");
+    }
+    function AddRate(element, taxgid) {
+       
+       // alert($("#idhidden_ASMS1").val());
+        $("#SessionTaxGid").val("0");
+        var row = $(element).closest('tr');
+        var taxsubtype2 = row.find('td:eq(2)').text();
+        var taxdetailsid = row.find('td:eq(0)').text();
+        var receiveflag = row.find($("input[name$=txtReceivableFlag]")).val();
+        //$("#ForTDSADDNEW").dialog({
+        //    autoOpen: false,
+        //    closeOnEscape: false,
+        //    modal: true,
+        //    async: false,
+        //    show: 'fade-in',
+        //    close: 'fade-out',
+        //    cache: false
+        //});
+        
+        @*var url = '@Url.Action("TdsIndex", "Onboarding")?taxdetailsID=' + taxdetailsid + '&taxsubtype=' + taxgid + '&receiveflag=' + receiveflag + '&viewtype=edit';*@
+        objDialogTax.load('../Onboarding/TdsIndex?taxdetailsID=' + taxdetailsid + '&taxsubtype=' + taxgid + '&receiveflag=' + receiveflag + '&viewtype=edit&' + new Date().getTime());
+        objDialogTax.dialog({ title: 'Add ' + taxsubtype2, width: 760, height: 610 });
+        objDialogTax.dialog('open');
+
+    }
+    function GotoTaxDetailsIndex() {
+        window.parent.jQuery("#ForTDSADD").dialog('close');
+        window.parent.jQuery("#ForTDSADD").dialog('close');
+        window.parent.jQuery("#ForTDSADD").dialog('close');
+        // $(".ui-dialog-content").dialog().dialog("close");
+    }
+
+
+</script>
+

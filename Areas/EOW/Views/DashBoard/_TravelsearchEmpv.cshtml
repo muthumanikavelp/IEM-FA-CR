@@ -1,0 +1,213 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_Employeelst>
+
+@{
+    ViewBag.Title = "Index";
+    var grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 6, ajaxUpdateContainerId: "searchgrid", ajaxUpdateCallback: "fb_employee();");
+    int rowValAttachment = 0;
+}
+<div id="searchgrid">
+    <div class="well">
+        <div class="row">          
+            <div class="row">
+                <table class="myTableStyleTabNew tblstyles" align="center" style="width: 97%;">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> Employee Code </span>
+                            <input name="empcode"
+                                   id="empcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.empcode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Employee Name </span>
+                            <input name="empname"
+                                   id="empname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.empname"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="refreshecfinward123()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button type="button" value="Cancel" id="btnClear" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="GotoIndexaddemps()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+                @*<table class="myTableStyle">
+                    <tr>
+                        <td>
+                            <div class="input-append ">
+                                <input type="text"
+                                       name="empcode"
+                                       id="empcode"
+                                       value="@ViewBag.empcode"
+                                       class="form-control"
+                                       placeholder="Enter Employee Code" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <input type="text"
+                                       name="empname"
+                                       id="empname"
+                                       value="@ViewBag.empname"
+                                       class="form-control"
+                                       placeholder="Enter Employee Name" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" name="command" id="btnsearch" type="button" value="search">Search</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-warning" name="commandcan" id="btnCancel1" type="button" value="Cancel" onclick="GotoIndexaddemps()">Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>*@
+
+        </div>
+        <div style="margin-top:17px;" id="emplgrid">
+            <div class="overflowy">
+                <div style="max-height: 485px;">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "?" :
+                                "?" : string.Empty);
+                        }
+                    }
+
+                    @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+             grid.Column("#", canSort: false, format: item => rowValAttachment = rowValAttachment + 1),
+             grid.Column("Employee Code", format: @<text>
+                <input type="hidden" id="lblempgid_@item.employeeGid" name="EmployeeId" value="@item.employeeGid" />
+                <input type="hidden" id="lblempnameid_@item.employeeGid" name="Employeename" value="@item.empName" />
+                <label style="font-weight:normal;" id="lblempcode_@item.empCode">@item.empCode</label>
+                <label style="display:none" id="lblempbranch_@item.empbranch">@item.empbranch</label>
+                <label style="display:none" id="lblempfc_@item.empfc">@item.empfc</label>
+                <label style="display:none" id="lblempcc_@item.empcc">@item.empcc</label>
+            </text>),
+                           grid.Column("Employee Name", format:@<text><label style="font-weight:normal;" id="lblempnamenew_@item.empName">@item.empName</label></text>),
+                  grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                    <a><span class="btn btn-link btn-link" onclick="Selectemp(@item.employeeGid)">Select</span></a>
+                    </text>)))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#btnsearch').click(function () {
+        var empcode = $('#empcode').val();
+        var empname = $('#empname').val();
+        var objownersearch = {
+            "RaiserName": empname,
+            "RaiserCode": empcode
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("EmployeeSearchforinward", "Central")',
+            data: objownersearch,
+            success: function (data) {
+                $("#searchgrid").empty().append(data);
+                //$('#emplgrid').load(url, data);
+            },
+            error: function () {
+            }
+        });
+    });
+    function refreshecfinward123() {
+        $('#EmployeeCodeSearch').val('');
+        $('#EmployeeNameSearch').val('');
+        var empcode = $('#EmployeeCodeSearch').val();
+        var empname = $('#EmployeeNameSearch').val();
+
+        var objownersearch =
+           {
+               "RaiserName": empname,
+               "RaiserCode": empcode
+           };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("EmployeeSearchforinward", "Central")',
+            data: objownersearch,
+            success: function (data) {
+                $("#searchgrid").empty().append(data);
+                //$('#emplgrid').load(url, data);
+            },
+            error: function () {
+            }
+        });
+
+    }
+    //$('.btnselect').click(function () {
+    //    var tr = $(this).parents('tr:first');
+    //    var empid = tr.find("#lblempgid").text();
+    //    var empcode = tr.find("#lblempcode").text();
+    //    var empname = tr.find('#lblempname').text();
+    //    // $('#txtConcurrentapproval').val(empcode);
+    //    $('#txtConcurrentapprovalid').val(empid);
+    //    $('#txtConcurrentapproval').val(empname);
+    //    GotoIndexaddemps();
+    //});
+
+    function Selectemp(id) {
+        var empid = $("#lblempgid_" + id + "").val();
+        var empname = $("#lblempnameid_" + id + "").val();
+        $('#txtConcurrentapprovalid').val(empid);
+        $('#txtConcurrentapproval').val(empname);
+        GotoIndexaddemps();
+
+    }
+
+    function GotoIndexaddemps() {
+        objDialogEmployeeaddc.dialog("close");
+        objDialogEmployeeaddc.remove();
+        window.parent.jQuery('#ForPartialViewEmployeeaddc').dialog('close');
+    }
+    $('.btnClear').click(function () {
+        $('#empcode').val('');
+        $('#empname').val('');
+    });
+    function fb_employee() {
+        $("#grid td:nth-child(2),#grid th:nth-child(2)").show();
+    }
+</script>

@@ -1,0 +1,181 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<div ng-app="SCNInward">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">SCN Inward Summary</span></b></legend>
+            <br />
+            <div ng-controller="SCNInwardController">
+                <div class="table-responsive">
+                    <div style="width:100%">
+                        <div style="width:45%;float:left;">
+                            Search &nbsp;  <input type="text" ng-model="search.$" class="textboxStyle100" style="width:30%;" placeholder="Enter Search Criteria..." />
+                        </div>
+                        <div style="width:45%;float:right;">
+                            <div style="float:right;" class="myTableStyle">
+                                <button type="button" id="grn_add" value="ADD SCN" onclick="AddSCN()" class="btn btn-primary cursorpointer">
+                                    <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> ADD SCN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width:100%;overflow-x:scroll;" id="divData">
+                        <table class="tableSmall table-bordered table-hover table-responsive">
+                            <thead style="width:100%;">
+                                <tr>
+                                    <th style="width:5%; display:none;">
+                                        SCNHeadGid
+                                    </th>
+                                    <th style="width:5%;">
+                                        S.No
+                                    </th>
+                                    <th style="width:10%;">
+                                        SCN Date
+                                    </th>
+                                    <th style="width:10%;">
+                                        SCN RefNo
+                                    </th>
+                                    <th style="width:10%;">
+                                        WO RefNo
+                                    </th>
+                                    <th style="width:20%;">
+                                        Vendor Name
+                                    </th>
+                                    <th style="width:8%;">
+                                        WO Amount
+                                    </th>
+                                    <th style="width:8%;">
+                                        Status
+                                    </th>
+                                    <th style="width:5%;">
+                                        Action
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody ng-show="filtered.length>0" ng-repeat="GRNInward in (filtered = (items| filter:search)) | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+                                <tr>
+                                    <td style="width:10%; display:none;">
+                                        {{GRNInward.grnheadgid}}
+                                    </td>
+                                    <td style="width:5%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{GRNInward.grnDate}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{GRNInward.grnRefNo}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{GRNInward.poRefNo}}
+                                    </td>
+                                    <td style="width:20%;">
+                                        {{GRNInward.vendorName}}
+                                    </td>
+                                    <td style="width:8%;">
+                                        {{GRNInward.poAmount}}
+                                    </td>
+                                    <td style="width:8%;">
+                                        {{GRNInward.grnStatus}}
+                                    </td>
+                                    <td style="width:5%;">
+                                        <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1.4em;
+                                    background-color: rgb(255, 255, 255);" name="command" ng-click="ViewSCN(GRNInward.grnheadgid)" id="" title="View"
+                                                type="button"></button>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <div style="width:100%;">
+                        <div ng-show="filtered.length>0">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="color:#337ab7;font-weight:bold; padding-left:10px" align="left"> Total Records : <span>{{filtered.length}} </span> of <span>{{totalItems}} </span>  </td>
+                                    <td align="right">
+                                        <pagination total-items="filtered.length"
+                                                    ng-model="currentPage"
+                                                    page="currentPage"
+                                                    max-size="noofsetpages"
+                                                    boundary-links="true"
+                                                    items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                                        </pagination>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var myApp = angular.module('SCNInward', ['ui.bootstrap']);
+    myApp.controller('SCNInwardController', ['$scope', '$http', '$filter', function ($scope, $http, $filter) {
+        $scope.items = [];
+        $scope.currentPage = 1;
+        $scope.totalItems = $scope.items.length;
+        $scope.entryLimit = 10;
+        $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+        $scope.noofsetpages = 5;
+        showProgress();
+        $http.get('../SCNInwardSummary/GetSCNInward?' + new Date().getTime())
+         .then(function (response) {
+             $scope.items = JSON.parse(response.data.data0);
+             $scope.search = {};
+             $scope.resetFilters = function () {
+                 $scope.search = {};
+             };
+             $scope.currentPage = 1;
+             $scope.totalItems = $scope.items.length;
+             $scope.entryLimit = 10;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.noofsetpages = 5;
+             $scope.$watch('search', function (newVal, oldVal) {
+                 $scope.filtered = $filter('filter')($scope.items, newVal);
+                 $scope.totalItems = $scope.filtered.length;
+                 $scope.noOfPages = Math.ceil($scope.filtered.length / $scope.entryLimit);
+                 $scope.currentPage = 1;
+                 $scope.noofsetpages = 5;
+             }, true);
+             hideProgress();
+         })
+            .catch(function (response) {
+                hideProgress();
+                jAlert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText, "Information");
+                return false;
+                //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+                console.error('Gists error', response.status, response.data);
+            })
+        .finally(function () {
+            hideProgress();
+            console.log("finally finished");
+        });
+        $scope.ViewSCN = function (scngid) {
+            location = '@Url.Action("Index", "SCNInward")?scngid=' + scngid + '&viewfor=view&' + new Date().getTime();
+        }
+
+    }]);
+    myApp.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+    function AddSCN() {
+        location = '@Url.Action("SummaryForSCNInward", "SCNInward")?' + new Date().getTime();
+    }
+
+</script>

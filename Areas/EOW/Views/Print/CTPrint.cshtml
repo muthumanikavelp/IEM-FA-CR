@@ -1,0 +1,386 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/angular.min.js"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#txtctprint").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+
+        $("#EcfDateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+
+        $("#EcfDateTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+    });
+</script>
+ 
+<div class="pageHeadingLayout">
+    <span class="pageHeading">ECF Details Print Report</span>
+</div>
+<div class="well" style="padding: 1px 1px 0px 1px;">
+    <div ng-app="myApp">
+        <div ng-controller="PageCtrl">
+            <table class="myTableStyleTabNew" align="left">
+                <tr>
+                    <td>
+                        <span>ECF Date From</span>
+                        <br />
+                        <input type="text"
+                               id="EcfDateFrom"
+                               name="EcfDateFrom"
+                               value="@ViewBag.EcfDateFrom"
+                               class="textboxStyle"
+                               style="width: 113px;" />
+                    </td>
+                    <td>
+                        <span>ECF Date To</span>
+                        <br />
+                        <input type="text"
+                               id="EcfDateTo"
+                               name="EcfDateTo"
+                               value="@ViewBag.EcfDateTo"
+                               class="textboxStyle"
+                               style="width: 107px;" />
+                    </td>
+                    <td>
+                        <span>Print Status</span>
+                        <br />
+
+                        <select style="width:113px; height:30px;" name="ddlPrintStatus" id="ddlPrintStatus" class="form-control">
+                            <option value="S">---Select---</option>
+                            <option value="A">All</option>
+                            <option value="Y">Yes</option>
+                            <option value="N">No</option>
+
+                        </select>
+
+                    </td>
+                    <td>
+                        <span>Ecf No</span>
+                        <br />
+                        <input type="text"
+                               name="Ecfno"
+                               id="Ecfno"
+                               value="@ViewBag.EcfNo"
+                               class="textboxStyle"
+                               @*readonly="readonly"*@
+                               style="width: 316px;" />
+                    </td>
+
+                </tr>
+            </table>
+            <table class="myTableStyleTabNew" align="right">
+                <tr>
+                    <td valign="top">
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" ng-click="Search('Submit')" style=" margin-top:0px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    </td>
+                    @*<td>
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:0px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>*@
+                    <td>
+                        <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" ng-click="clearMe()" style="margin-top:0px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </td>
+
+                </tr>
+            </table>
+
+            <div>
+                <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;font-family:Tahoma;">
+                    <thead style="width:100%;">
+                        <tr>
+                            <th class="thfix" style="display:none;">
+                                ecf Gid
+                            </th>
+                            <th class="thfix" style="width:4%;">
+                                S.No
+                            </th>
+                            <th class="thfix" style="width:11%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFNo'; sortReversemyreq = !sortReversemyreq">
+                                    ECF No
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFNo' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFNo' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter ECF No. " type="text" class="textboxStyle" ng-model="search.ECFNo">
+                            </th>
+                            <th class="thfix" style="width:9.5%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFDate'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Date
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFDate' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFDate' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Select ECF Date " id="txtctprint" type="text" class="textboxStyle" ng-model="search.ECFDate">
+                            </th>
+                            <th class="thfix" style="width:10%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFAmount'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Amount
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFAmount' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFAmount' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input id="txtAmount" title="Enter ECF Amount " type="text" class="textboxStyle" ng-model="search.ECFAmount">
+                            </th>
+                            <th class="thfix" style="width:15%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ECFRaiser'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Raiser
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFRaiser' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ECFRaiser' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter ECF Raiser Name " type="text" class="textboxStyle" ng-model="search.ECFRaiser">
+                            </th>
+                            <th class="thfix" style="width:20%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'SupplierorEmployeename'; sortReversemyreq = !sortReversemyreq">
+                                    Supplier/Employee Name
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'SupplierorEmployeename' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'SupplierorEmployeename' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter Supplier or Employee Name " type="text" class="textboxStyle" ng-model="search.SupplierorEmployeename">
+                            </th>
+                            <th class="thfix">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'Reason'; sortReversemyreq = !sortReversemyreq">
+                                    Print Status
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'Reason' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'Reason' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter Print Status" type="text" class="textboxStyle" ng-model="search.Reason">
+
+                            </th>
+                            <th class="thfix" style="width:12%;">
+                                Claim Type<br />
+                            </th>
+                            <th class="thfix" style="width:8.3%;">
+                                Selection<br />
+                                <input type="checkbox" title="Select All" value="0" id="selectAll">
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="height: 600px;overflow-y: scroll;">
+                    <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+                        <tbody ng-show="filtered.length!=0" ng-repeat="item in filtered = items| orderBy:sortTypemyreq:sortReversemyreq | filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit" style="width:100%;">
+                            <tr>
+                                <td class="tdfix" style="display:none;">
+                                    {{item.QueueId}}
+                                </td>
+                                <td class="tdfix" style=" width:4%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td title="{{item.ECFNo}}" class="tdfix" style=" width:11.28%;overflow: hidden;">
+                                    <span> {{item.ECFNo}}</span>
+                                </td>
+                                <td title="{{item.ECFDate}}" class="tdfix" style=" width:9.63%;overflow: hidden;">
+                                    <span> {{item.ECFDate}}</span>
+                                </td>
+                                <td title="{{item.ECFAmount}}" class="tdfix" style=" width:10.2%;overflow: hidden;">
+                                    <span> {{item.ECFAmount}}</span>
+                                </td>
+                                <td title="{{item.ECFRaiser}}" class="tdfix" style=" width:15.2%;overflow: hidden;">
+                                    <span> {{item.ECFRaiser}}</span>
+                                </td>
+                                <td title="{{item.SupplierorEmployeename}}" class="tdfix" style=" width:20.3%;overflow: hidden;">
+                                    <span> {{item.SupplierorEmployeename}}</span>
+                                </td>
+                                <td title="{{item.Reason}}" class="tdfix" style="overflow: hidden;">
+                                    <span> {{item.Reason}}</span>
+                                </td>
+                                <td title="{{item.DocSubTypeName}}" class="tdfix" style=" width:12%;overflow: hidden;">
+                                    <span>{{item.DocSubTypeName}}</span>
+                                </td>
+                                <td align="center" class="tdfix" style="width:7%;overflow: hidden;">
+                                    <input type="checkbox" title="Select" id="chkValues" class="case" name="case[]" value="{{item.ECFId}}" />
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot ng-show="filtered.length==0">
+                            <tr>
+                                <td colspan="10" style="text-align:left;"><div class="gridMessage" style="width:100%; border:none;"><center>No Records Found</center></div></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div ng-show="filtered.length>0">
+                    <table style="width:100%;">
+                        <tr>
+                            <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems}}  of {{filtered.length}}</div></td>
+                            <td align="right">
+                                <pagination total-items="totalItems"
+                                            ng-model="currentPage"
+                                            page="currentPage"
+                                            max-size="noofsetpages"
+                                            boundary-links="true"
+                                            items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                                </pagination>
+                            </td>
+                            <td align="right" style="padding-right:1.1%;width:11%;padding-bottom:6px">
+                                <button class="btn btn-primary" type="button" onclick="printecfctp()" id="btnraiseecf"><span style="color:white;font-size: 13px;" class="glyphicon glyphicon-print"></span>&nbsp; ECF Print </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+
+
+<script>
+    $("#txtAmount").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmount").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmount").val(replaceCommas(currentval));
+
+    });
+
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    var app = angular.module('myApp', ['ui.bootstrap']);
+   
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        };
+    });
+
+    app.controller('PageCtrl', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+
+
+        GetDespatchReportct();
+        $scope.Search = function (searchtype) {
+
+            GetDespatchReportct(searchtype);
+
+        };    
+        $scope.clearMe = function () {
+            $scope.items = null;
+            $('#EcfDateFrom').val("");
+            $('#EcfDateTo').val("");
+            $('#ddlPrintStatus').val("S");
+            $('#Ecfno').val("");
+        };
+        function GetDespatchReportct(searchtype) {
+            var EcfDateFrom = $("#EcfDateFrom").val();
+            var EcfDateTo = $("#EcfDateTo").val();
+            var printstatus = $('#ddlPrintStatus').val();
+            if (printstatus == undefined || printstatus == null) {
+                printstatus = "";
+            }
+            var ecfno = $('#Ecfno').val();
+            if (ecfno == undefined || ecfno == null) {
+                ecfno = "";
+            }
+            if (searchtype == undefined || searchtype == null) {
+                searchtype = "";
+            }
+            $scope.ecfdatefrom = EcfDateFrom;
+            $scope.ecfdateto = EcfDateTo;
+            $scope.printstatus = printstatus;
+            $scope.ecfno = ecfno;
+            $scope.searchtype = searchtype;
+            $http.get("../ECF/DespatchReportctAll?ecffromdate=" + $scope.ecfdatefrom + "&ecfTodate=" + $scope.ecfdateto + "&ecfno=" + $scope.ecfno + "&printstatus=" + $scope.printstatus + "&searchtype=" + searchtype)
+            //$http.get("../ECF/DespatchReportctAll?ecffromdate=" + $scope.ecfdatefrom)
+             .then(function (response) {
+                 showProgress();
+                 $scope.items = response.data.qrylist;
+                 $scope.search = {};
+                 $scope.resetFilters = function () {
+                     $scope.search = {};
+                 };
+                 $scope.currentPage = 1;
+                 $scope.totalItems = $scope.items.length;
+                 $scope.entryLimit = 50;
+                 $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+                 $scope.noofsetpages = 5;
+                 $scope.$watch('search', function (newVal, oldVal) {
+                     $scope.filtered = filterFilter($scope.items, newVal);
+                     $scope.totalItems = $scope.filtered.length;
+                     $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+                     $scope.currentPage = 1;
+                     $scope.noofsetpages = 5;
+                 }, true);
+                 hideProgress();
+             });
+        }
+
+
+    }]);
+
+    $(document).ready(function () {
+        $('#selectAll').on('click', function () {
+            if ($(this).is(':checked')) {
+                $('.case').each(function () {
+                    this.checked = true;
+                });
+            } else {
+                $('.case').each(function () {
+                    this.checked = false;
+                });
+            }
+        })
+    });
+    function printecfctp() {
+        CheckListVal = [];
+        $('input:checkbox:checked').each(function () {
+            CheckListVal.push($(this).attr('value'));
+        });
+        if (CheckListVal == "") {
+            jAlert("No More Entry Selected", "Message");
+            return false;
+        }
+        else {
+            window.open("../Testprint/challanPrintct?ecfgids=" + CheckListVal + '&type=S&' + new Date().getTime(), "_blank");
+        }
+    }
+
+    function refresh() {
+        $('#EcfDateFrom').val("");
+        $('#EcfDateTo').val("");
+        $('#ddlPrintStatus').val("S");
+        $('#Ecfno').val("");
+        $('#')
+    }
+</script>

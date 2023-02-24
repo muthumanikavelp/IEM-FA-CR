@@ -1,0 +1,185 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_RefNo>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_RefNo> lstPayment = new List<EOW_RefNo>();
+    lstPayment = (List<EOW_RefNo>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.EmployeeePaymentcrn(Session["SupplierGid"].ToString(), "S").ToList();
+        ViewBag.roesvals = lstPayment.Count;
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    //WebGrid gridPaymentfg = new WebGrid(source: lstPayment, canSort: false);
+    var gridPaymentfg = new WebGrid(source: lstPayment, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "main", ajaxUpdateCallback: "fb_employeenew();");
+    int rowValPayment = 1;
+    int rowValPayments = 0;
+}
+<div id="main" style="padding:25px; background-color:white;max-height: 350px;">
+    @gridPaymentfg.GetHtml(
+                                            htmlAttributes: new { id = "mainGrid" },
+                                    tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        columns:
+                          gridPaymentfg.Columns(
+                                                  gridPaymentfg.Column("#", style: "IdColumn two", canSort: false, format: item => rowValPayments = rowValPayments + 1),
+                                  gridPaymentfg.Column("ecfdetails.RefLiquidationdatee", "ECF Date", canSort: false),
+                                  gridPaymentfg.Column("ecfdetails.RefNoNamee", "ECF No", canSort: false),
+                                  gridPaymentfg.Column("ecfdetails.RefAmounte", "ECF Amount", canSort: false),
+                                  gridPaymentfg.Column("ecfdetails.RefExceptione", "ECF Raiser", canSort: false),
+                                  gridPaymentfg.Column("ecfdetails.RefDescriptione", "ECF Description", canSort: false),
+                           gridPaymentfg.Column(format: (item) =>
+{
+    WebGrid subGrid = new WebGrid(source: item.invoiceDetails);
+    return subGrid.GetHtml(
+    htmlAttributes: new { id = "subGrid" + rowValPayment++ },
+    tableStyle: "tableSmall table-bordered table-hover table-responsive",
+    columns: subGrid.Columns(
+    subGrid.Column("invoicedate", "Invoice Date", canSort: false),
+    subGrid.Column("invoiceno", "Invoice No", canSort: false, style: "btnselect forecolr ExpColld "),
+    subGrid.Column("invoicedesc", "Invoice Description", canSort: false),
+    subGrid.Column("invoiceamt", "Invoice Amount", canSort: false)
+));
+})))
+
+    @if (@ViewBag.NoRecordsPayment == "NoRecords")
+    {
+        <div class="borderStyle">
+            <b>
+                @ViewBag.NoRecordsFoundPayment
+            </b>
+        </div>
+    }
+</div>
+<br />
+<br />
+<div align="center" style="width:100%">
+    <input hidden="hidden" id="getrowvales" value="@ViewBag.roesvals" />
+    <input type="button" id="btncanpay" class="btn btn-warning" value="Close" onclick="GotoIndexPaymentmodepopupd()" />
+</div>
+
+<style type="text/css">
+    .ExpColld {
+        cursor: pointer;
+    }
+
+    .forecolr {
+        color: green;
+        font-weight: bold;
+    }
+
+    .expandd {
+        background-image: url('../Images/pmleftnew.png');
+        background-position-x: -2px;
+        background-repeat: no-repeat;
+    }
+
+    .collapsed {
+        background-image: url('../Images/pm.png');
+        background-position-x: -2px;
+        background-repeat: no-repeat;
+    }
+</style>
+<script src="~/Scripts/nestedgrid.js"></script>
+<script type="text/javascript" language="javascript">
+    function fb_employeenew() {
+        $("#gridPaymentfg td:nth-child(2),#gridPaymentfg th:nth-child(2)").show();
+        var size = $("#main #mainGrid > thead > tr >th").size();  //get columns size tbl.rows[i].cells.length
+        $("#main #mainGrid > thead > tr >th").last().remove(); // remove last column tbl.rows.length
+        $("#main #mainGrid > thead > tr").prepend("<th></th>");
+        $("#main #mainGrid > tbody > tr").each(function (i, el) {
+            $(this).prepend(
+                    $("<td style='width: 15px;'></td>")
+                    .addClass("expandd")
+                    .addClass("ExpColld")
+                );
+
+            var table = $("table", this).parent().html();
+            $(this).after("<tr><td  style='width: 15px;'></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+            $("table", this).parent().remove();
+            $(".ExpColld", this).live("click", function () {
+                $(this).parent().closest("tr").next().slideToggle(100);
+                $(this).toggleClass("collapsed expandd");
+                var ddd = $(this).closest('tr').children('td.two').text();
+                var tbl = document.getElementById("subGrid" + ddd);
+                if (tbl != null) {
+                    for (var i = 1; i <= tbl.rows.length; i++) {
+                        tbl.rows[i].cells[1].style.color = "green";
+                        tbl.rows[i].cells[1].style.fontWeight = "900";
+                        tbl.rows[i].cells[1].style.textDecoration = "underline";
+                        tbl.rows[i].cells[1].style.fontSize = "15px";
+                        tbl.rows[i].cells[1].style.textAlign = "center";
+                        tbl.rows[i].cells[1].onclick = function () { getval(this); };
+                    }
+                }
+
+            });
+        });
+
+        $("#main #mainGrid > tbody > tr td.expandd").each(function (i, el) {
+            $(this).toggleClass("collapsed expandd");
+            $(this).parent().closest("tr").next().slideToggle(100);
+        });
+    }
+    $(document).ready(function () {
+        var size = $("#main #mainGrid > thead > tr >th").size();  //get columns size tbl.rows[i].cells.length
+        $("#main #mainGrid > thead > tr >th").last().remove(); // remove last column tbl.rows.length
+        $("#main #mainGrid > thead > tr").prepend("<th></th>");
+        $("#main #mainGrid > tbody > tr").each(function (i, el) {
+            $(this).prepend(
+                    $("<td style='width: 15px;'></td>")
+                    .addClass("expandd")
+                    .addClass("ExpColld")
+                );
+
+            var table = $("table", this).parent().html();
+            $(this).after("<tr><td  style='width: 15px;'></td><td style='padding:5px; margin:0px;' colspan='" + (size - 1) + "'>" + table + "</td></tr>");
+            $("table", this).parent().remove();
+            $(".ExpColld", this).live("click", function () {
+                $(this).parent().closest("tr").next().slideToggle(100);
+                $(this).toggleClass("collapsed expandd");
+                var ddd = $(this).closest('tr').children('td.two').text();
+                var tbl = document.getElementById("subGrid" + ddd);
+                if (tbl != null) {
+                    for (var i = 1; i <= tbl.rows.length; i++) {
+                        tbl.rows[i].cells[1].style.color = "green";
+                        tbl.rows[i].cells[1].style.fontWeight = "900";
+                        tbl.rows[i].cells[1].style.textDecoration = "underline";
+                        tbl.rows[i].cells[1].style.fontSize = "15px";
+                        tbl.rows[i].cells[1].style.textAlign = "center";
+                        tbl.rows[i].cells[1].onclick = function () { getval(this); };
+                    }
+                }
+
+            });
+        });
+
+        function getval(cel) {
+            var RefNoName = cel.innerHTML;
+            var RefException = "0";
+
+            $("#ddlRefNo option:selected").text(RefNoName);
+            $("#ddlRefNo").addClass('valid');
+
+            var currentval = RefException;
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtPaymentAmount").val(replaceCommas(currentval));
+
+            //$("#txtPaymentAmount").val(RefException);
+            $("#txtPaymentAmount").addClass('valid');
+            GotoIndexPaymentmodepopupd();
+        }
+    });
+</script>

@@ -1,0 +1,984 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var grid = new WebGrid(source: Model.cbfDetails, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "grid2", ajaxUpdateCallback: "Dummycbf()");
+
+    int rowNum = 0;
+    int add2 = 0;
+
+}
+<style>
+    /*table {
+        font-family: verdana,arial,sans-serif;
+        font-size: 11px;
+        color: #333333;
+        border-width: 1px;
+        border-color: #666666;
+        border-collapse: collapse;
+        width: 90%;
+    }
+
+    table th {
+        border-width: 1px;
+        padding: 5px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #dedede;
+    }
+
+    table td {
+        word-wrap: break-word;
+        width: 18%;
+        border-width: 1px;
+        padding: 5px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #ffffff;
+
+    }*/
+    cursor {
+        cursor: pointer;
+    }
+
+    panelwidth {
+        width: 100%;
+    }
+
+    .lblwth {
+        width: 170px;
+    }
+
+    .txtwth {
+        width: 150px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        var savedetails = 0;
+        $('.edit ').hide();
+        //$('.edit1-btn').on('click', function () {
+
+        //    var row = $(this).text();
+        //    var tr = $(this).parents('tr:first');
+        //    var prnumber = tr.find("#prnumber_" + row.trim() + "").val();
+
+        //    var prhegid =
+        //    {
+        //        "prhed_gid": prnumber
+        //    };
+        //    $.ajax({
+        //        url: "../CbfRaiser/PrDetails/",
+        //        type: 'POST',
+        //        contentType: "application/json; charset=utf-8",
+        //        data: JSON.stringify(prhegid),
+        //        success: function (data) {
+
+        //            $("#prdetailsgrid").load('../CbfRaiser/PrDetails/?' + new Date().getTime());
+
+        //        },
+        //        error: function () {
+        //            jAlert("something seems wrong", "Error");
+        //        }
+        //    });
+        //});
+        $('.edit-btn').on('click', function () {
+
+            var row = $(this).text();
+            var tr = $(this).parents('tr:first');
+            if (savedetails == 0) {
+                savedetails = 1
+                $('#grid2').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+                jsonasd(row);
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+                as(row);
+            }
+            else { jAlert("First Save or Cancel Your Pervious record", "Message"); }
+        });
+        function jsonasd(row) {
+            setTimeout(function () {
+                $("#grid1details td").find("input:checkbox").each(function () {
+                    var id = $(this).attr('href')
+                    var element = this;
+                    var value = $('#chk_id_' + id + '').val();
+                    if (parseInt(value) == parseInt(row)) {
+
+                        var row1 = $(this).closest("tr");
+                        var qty = row1.find("td:eq(6)").text();
+                        var costestimation = row1.find("td:eq(8)").text();
+                        var unitprise = row1.find("td:eq(7)").text();
+                        $('#prqty12').val(qty);
+                        $('#prcostestimation12').val(costestimation);
+                        $('#unitprise12').val(unitprise);
+
+
+                    }
+
+                });
+            }, 500);
+
+        }
+        function as(row) {
+            setTimeout(function () {
+                $("#grid1details td").find("input:checkbox").each(function () {
+                    var id = $(this).attr('href')
+                    var value = $('#chk_id_' + id + '').val();
+
+                    if (parseInt(value) == parseInt(row)) {
+                        $('#chk_id_' + value + '').attr("checked", true);
+                        $('#grid1details').find('tr').css('background', 'none');
+                        $(this).closest('tr').css('background', '#ccc');
+                    }
+                });
+            }, 500);
+        }
+        $('.cancel-btn').on('click', function () {
+            savedetails = 0;
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + value + '').attr("checked", true);
+                    $('#grid1details').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                }
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+        $('.delete-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + id + '').attr("checked", false);
+                    $('#grid1details').find('tr').css('background', 'none');
+                }
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var deleteval =
+                {
+                    "prdetailsGid": row
+                }
+            $.ajax({
+                url: "@Url.Action("CbfDelete", "CbfRaiser")",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(deleteval),
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgrid").load('../CbfRaiser/CbfDetails/?' + new Date().getTime());
+                    }
+
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        })
+
+        $('.save-btn').on('click', function () {
+           
+            savedetails = 0;
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + value + '').attr("checked", true);
+                    $('#grid1details').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                }
+
+
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var uom = tr.find("#uom").val();
+            var qty = tr.find("#inqty_" + row.trim() + "").val();
+            var unit = tr.find("#inunit_" + row.trim() + "").val();
+            var total = tr.find("#intotal_" + row.trim() + "").val();
+            //var remark = tr.find("#inremarks").val();
+            var remark = "";
+            var charttoaccount = tr.find("#inchartofaccount").val();
+            var Fccc = tr.find("#infcccgetpoup_" + row.trim() + "").val();
+            var budgetline = tr.find('#inbudgetline').val();
+            var vendor = tr.find("#vendornamedit1_" + row.trim() + "").val();
+            var vendorgid = tr.find("#vendorgid_"+ row.trim() +"").val();
+          //  alert(vendor);
+           
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (unit == null || unit == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+            //if (remark == null || remark == "") {
+            //    jAlert("Please Any Remarks.", "Error");
+            //    return false;
+            //}
+            if (charttoaccount == null || charttoaccount == "") {
+                jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                return false;
+            }
+            if (Fccc == null || Fccc == "" || Fccc == 0) {
+                jAlert("Please Select FCCC Code.", "Error");
+                return false;
+            }
+            if (budgetline == null || budgetline == "") {
+                jAlert("Please Enter Budject Line.", "Error");
+                return false;
+            }
+            //if (vendor == null || vendor == "") {
+            //    jAlert("Please Select Any Vendor.", "Error");
+            //    return false;
+            //}
+
+            $('.edit').hide();
+           
+            var UserModel =
+            {
+                "unChecked12": row,
+                "uom ": uom,
+                "qty": qty,
+                "unitAmt": unit,
+                "total": total,
+                "remarks": remark,
+                "chartOfAccount": charttoaccount,
+                "fccc": Fccc,
+                "budgetline": budgetline,
+                "vendorselection": vendor,
+                "vendorgid": vendorgid
+
+
+            };
+            $.ajax({
+                url: "@Url.Action("CbfPrSave", "VendorOpex")?" +new Date().getTime(),
+                type: 'POST',
+                data: UserModel,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgrid").empty().append(data);
+                    }
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+
+        });
+
+
+    });
+    function Dummycbf() {
+        var savedetails = 0;
+        $('.edit ').hide();
+        //$('.edit1-btn').on('click', function () {
+
+        //    var row = $(this).text();
+        //    var tr = $(this).parents('tr:first');
+        //    var prnumber = tr.find("#prnumber_" + row.trim() + "").val();
+
+        //    var prhegid =
+        //    {
+        //        "prhed_gid": prnumber
+        //    };
+        //    $.ajax({
+        //        url: "../CbfRaiser/PrDetails/",
+        //        type: 'POST',
+        //        contentType: "application/json; charset=utf-8",
+        //        data: JSON.stringify(prhegid),
+        //        success: function (data) {
+
+        //            $("#prdetailsgrid").load('../CbfRaiser/PrDetails/?' + new Date().getTime());
+
+        //        },
+        //        error: function () {
+        //            jAlert("something seems wrong", "Error");
+        //        }
+        //    });
+        //});
+        $('.edit-btn').on('click', function () {
+
+            var row = $(this).text();
+            var tr = $(this).parents('tr:first');
+            if (savedetails == 0) {
+                savedetails = 1
+                $('#grid2').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+                jsonasd(row);
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+                as(row);
+            }
+            else { jAlert("First Save or Cancel Your Pervious record", "Message"); }
+        });
+        function jsonasd(row) {
+
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var element = this;
+                var value = $('#chk_id_' + id + '').val();
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + value + '').attr("checked", true);
+                    var row1 = $(this).closest("tr");
+                    var qty = row1.find("td:eq(6)").text();
+                    var costestimation = row1.find("td:eq(8)").text();
+                    var unitprise = row1.find("td:eq(7)").text();
+
+                    $('#prqty12').val(qty);
+                    $('#prcostestimation12').val(costestimation);
+                    $('#unitprise12').val(unitprise);
+
+                    $('#prdetailsgrid').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+
+                }
+
+            });
+
+        }
+        function as(row) {
+
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + value + '').attr("checked", true);
+                    $('#grid1details').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                }
+            });
+        }
+        $('.cancel-btn').on('click', function () {
+            savedetails = 0;
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+
+                    $('#grid1details').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                }
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+        $('.delete-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#chk_id_' + id + '').attr("checked", false);
+                    $('#grid1details').find('tr').css('background', 'none');
+                }
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var deleteval =
+                {
+                    "prdetailsGid": row
+                }
+            $.ajax({
+                url: "../CbfRaiser/CbfDelete/",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(deleteval),
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgrid").load('../CbfRaiser/CbfDetails/');
+                    }
+
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        })
+
+        $('.save-btn').on('click', function () {
+
+            savedetails = 0;
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            $("#grid1details td").find("input:checkbox").each(function () {
+                var id = $(this).attr('href')
+                var value = $('#chk_id_' + id + '').val();
+
+                if (parseInt(value) == parseInt(row)) {
+                    $('#grid1details').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                }
+
+
+            });
+
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+
+
+            var uom = tr.find("#uom").val();
+            var qty = tr.find("#inqty_" + row.trim() + "").val();
+            var unit = tr.find("#inunit_" + row.trim() + "").val();
+            var total = tr.find("#intotal_" + row.trim() + "").val();
+            //var remark = tr.find("#inremarks").val();
+            var remark = "";
+
+            var charttoaccount = tr.find("#inchartofaccount").val();
+            var Fccc = tr.find("#infcccgetpoup_" + row.trim() + "").val();
+            var budgetline = tr.find('#inbudgetline').val();
+
+
+
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (unit == null || unit == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+            //if (remark == null || remark == "") {
+            //    jAlert("Please Any Remarks.", "Error");
+            //    return false;
+            //}
+            if (charttoaccount == null || charttoaccount == "") {
+                jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                return false;
+            }
+            if (Fccc == null || Fccc == "" || Fccc == 0) {
+                jAlert("Please Select FCCC Code.", "Error");
+                return false;
+            }
+            if (budgetline == null || budgetline == "") {
+                jAlert("Please Enter Budject Line.", "Error");
+                return false;
+            }
+
+            $('.edit').hide();
+            var UserModel =
+            {
+                "unChecked12": row,
+                "uom ": uom,
+                "qty": qty,
+                "unitAmt": unit,
+                "total": total,
+                "remarks": remark,
+                "chartOfAccount": charttoaccount,
+                "fccc": Fccc,
+                "budgetline": budgetline
+
+
+            };
+            $.ajax({
+                url: "../CbfRaiser/CbfSave/",
+                type: 'POST',
+
+                data: UserModel,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgrid").load('../CbfRaiser/CbfDetails/?' + new Date().getTime());
+                    }
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+
+        });
+        $(document).ready(function () {
+            $("#grid2 td:nth-child(13),#grid2 th:nth-child(13)").hide();
+            $("#inbudgetline").keypress(function (event) {
+                return;
+
+            });
+            $("#grid2 td").find("span[id=savecol]").each(function () {
+                var id1 = '@Session["prdetails_gid"]';
+                if (parseInt(id1) == parseInt($(this).text())) {
+                    $('#grid2').find('tr').css('background', 'none');
+                    $(this).closest('tr').css('background', '#ccc');
+                    return false;
+                }
+                else {
+
+                    $('#grid2').find('tr').css('background', 'none');
+                }
+            });
+            var add = 0;
+            $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+            $("#para").text("Grand Total : " + add);
+            getadd(add);
+        });
+
+    }
+</script>
+<style>
+    .sltd {
+        width: 3% !important;
+        padding: 3px !important;
+        min-width: 37px;
+    }
+
+    .productCode {
+        width: 5% !important;
+        padding: 3px !important;
+        min-width: 62px;
+    }
+
+    .productName {
+        width: 12% !important;
+        padding: 3px !important;
+        min-width: 150px;
+    }
+
+    .description {
+        width: 17% !important;
+        padding: 3px !important;
+        min-width: 213px;
+    }
+
+    .UOM {
+        width: 5% !important;
+        padding: 3px !important;
+        min-width: 62px;
+    }
+
+    .QTY {
+        width: 5% !important;
+        padding: 3px !important;
+        text-align: center;
+        min-width: 62px;
+    }
+
+    .unitAmt {
+        width: 8% !important;
+        padding: 3px !important;
+        text-align: right;
+        min-width: 100px;
+    }
+
+    .Total {
+        width: 9% !important;
+        padding: 3px !important;
+        text-align: right;
+        min-width: 113px;
+    }
+
+    .chartofaccount {
+        width: 8% !important;
+        padding: 3px !important;
+        min-width: 100px;
+    }
+
+    .FCCC {
+        width: 8% !important;
+        padding: 3px !important;
+        min-width: 100px;
+    }
+
+    .budgetLine {
+        width: 8% !important;
+        padding: 3px !important;
+        min-width: 100px;
+    }
+
+    .boq {
+        width: 7% !important;
+        padding: 3px !important;
+        min-width: 88px;
+    }
+
+    .act {
+        width: 5% !important;
+        padding: 3px !important;
+        min-width: 62px;
+    }
+</style>
+<fieldset>
+    <legend style="margin-left:10px; border:0px;">OBF Details</legend>
+    <div id="cbfdetails">
+
+
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+
+        <div id="grid_details1" style="width:100%;">
+
+            <div  style="padding:0px 10px 7px; overflow-x:scroll">
+                @grid.GetHtml(
+
+                    tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                    htmlAttributes: new { id = "grid2" },
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns(
+                             grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "sltd"),
+                             grid.Column("productCode", sorter("productCode", "PCode", grid), style: "productCode"),
+                             grid.Column("productName", sorter("productName", "Product Name", grid), style: "productName"),
+                             grid.Column("description", sorter("description", "Product Description", grid), style: "description"),
+                             grid.Column("uom", sorter("uom", "UOM", grid), style: "UOM"),
+                             grid.Column("qty", sorter("qty", "QTY", grid), style: "QTY", 
+                             format: @<text>  <span class="display">
+                             <label id="lblqty">@item.qty</label></span>
+                             <input type="text" disabled="disabled" id="inqty_@item.prdetailsGid" onkeypress="return isNumber1(event, this);" value="@item.qty" name="inqty" class="edit textboxStyleBig" title="@item.qty" href="@item.prdetailsGid" onkeyup="multInputs(title, value, this)" /> </text>),
+                             grid.Column("unitAmt", sorter("unitAmt", "Unit Amount", grid), style: "unitAmt", 
+                             format: @<text>  
+                             <span class="display">
+                             <label id="lblunit">@item.unitAmt</label></span> 
+                             <input type="text" disabled="disabled" onkeypress="return isNumber1(event, this);" id="inunit_@item.prdetailsGid" name="inunit" onclick="multInputs1(id, value)" href="@item.prdetailsGid" value="@item.unitAmt" class="edit textboxStyleBig" /> </text>),
+                             grid.Column("total", sorter("total", "Total", grid), style: "Total", format: @<text>  <span class="display "><label id="lbltotal">@item.total</label> </span> <input type="text" id="intotal_@item.prdetailsGid" name="intotal" readonly="readonly" href="@item.prdetailsGid" value="@item.total" class="edit textboxStyleBig" /> </text>),
+                             grid.Column("chartOfAccount", sorter("chartofaccount", "Chart Of Account", grid), style:"chartofaccount", format: @<text>  <span class="display"><label id="lblchartofaccount">@item.chartOfAccount</label> </span> <input type="text" id="inchartofaccount" value="@item.chartOfAccount" readonly="readonly" onkeypress="return isNumber1(event,this);" class=" edit textboxStyleBig" /> </text>),
+                             grid.Column("fccc", sorter("fccc", "FCCC", grid), style: "FCCC", format: @<text>  <span class="display"><label id="lblfccc">@item.fccc</label> </span><table><tr><td style="padding:0px; position:relative;"><input type="text" id="infcccgetpoup_@item.prdetailsGid" onkeypress="return isNumber1(event, this);" onchange="change(id,value)" value="@item.fccc" class="edit textboxStyleBig" /> <span class="glyphicon glyphicon-search edit searchpop pntrStyle cursorpointer" id="@item.prdetailsGid" onclick="NewSearch(id)" style="position:absolute; right:2px; top:10px; z-index:10px;"></span> </td></tr></table> </text> ),
+                             grid.Column("budgetLine", sorter("budgetLine", "Budget line", grid), style: "budgetLine", format: @<text>  <span class="display"><label id="lblbudgetlinec">@item.budgetLine</label> </span><input type="text" id="inbudgetline" value="@item.budgetLine" onkeypress="return isNumber1(event, this);" class="edit textboxStyleBig" />  </text>),
+
+                             grid.Column(header: "BOQ", canSort: false, style: "boq", format: @<text>
+                    <input type="button" value="View BOQ" class="btn btn-link" style="padding:2px;" onclick="Newboqcbfdetails(id)" id="@item.prdetailsGid" title="BOQ" />
+                            </text>),
+                             grid.Column("vendorselection", sorter("vendorselection", "Vendor Name", grid),format:@<text><span>
+                        <input id="vendorname_@item.prdetailsGid" type="text" value="@item.vendorselection" disabled="disabled" class="textboxStyle display" />
+                    </span>
+                    <input id="vendorgid_@item.prdetailsGid" class="edit" type="hidden" value="@item.vendorgid" />
+                    <span><input id="vendornamedit1_@item.prdetailsGid" type="text" value="@item.vendorselection" class="textboxStyle edit" /> </span><span class='glyphicon glyphicon-search edit' id="@item.prdetailsGid" onclick="NewVendorSearch(id)" style="cursor:pointer;" title="Search"></span>
+                </text>,style: "MidColumn40") ,
+                
+                    grid.Column(format: @<input type="hidden" id="prnumber_@item.prdetailsGid" value="@item.prheaderGid" />),
+                    grid.Column(header: "Action", canSort: false, style: "act",
+                    format: @<text>
+                        <div style="text-align:center;">
+                            <a class='glyphicon glyphicon-floppy-save edit save-btn' id="savecol" style="cursor:pointer; margin-top:3px;" title="Save"> <label id="sdf34" hidden="hidden">@item.prdetailsGid</label></a>
+                            <a class='glyphicon glyphicon-edit display edit1-btn edit-btn cursor' id="editcol" style="cursor:pointer; margin-top:3px;" title="Edit"><label id="sdf67" hidden="hidden"> @item.prdetailsGid</label> </a>
+                            <a class='glyphicon glyphicon-trash display delete-btn cursor' id="deletecol" style="cursor:pointer; margin-top:3px;" title="Delete"><label id="sdf8989" hidden="hidden"> @item.prdetailsGid</label> </a>
+                            <a class='glyphicon glyphicon-remove edit cancel-btn cursor' id="cancelcol" style="cursor:pointer; margin-top:3px;" title="Cancel"> <label id="sdf000-" hidden="hidden">@item.prdetailsGid</label></a>
+                        </div>
+                    </text>)))
+                @if (ViewBag.records != null)
+                {  <div align="center" class="borderStyle">
+                    <h6 class="row" style="font-weight:normal ;">
+                        @ViewBag.records
+                    </h6>
+                </div>
+                }
+
+            </div>
+
+        </div>
+        <div style="float:right;margin-right:15px;">
+            <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@Model.cbfDetails.Count</span>
+        </div>
+        <label id="para" style="margin-left: 10px;"></label>
+        <p id="add" style="display:none"></p>
+
+
+
+
+    </div>
+</fieldset>
+
+@*}*@
+<div id="forficcnew"></div>
+<div id="forvendorprselection"></div>
+<div id="forPROpexAttachment"></div>
+ <input id="hid_propexattachment" type="hidden" />
+<script>
+    function Newboqcbfdetails(id) {
+       
+        if ($('#hid_propexattachment').val() == "") {
+            $('#hid_propexattachment').val(id);
+            objDialogAttachPR = $("[id$='forPROpexAttachment']");
+            objDialogAttachPR.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 500
+            });
+        }
+        objDialogAttachPR.load('@Url.Action("PROpexAttachmentDetails", "VendorOpex")?prdetid=' + id + '&' + new Date().getTime());
+        objDialogAttachPR.dialog({ title: 'View PR Attachments' });
+        objDialogAttachPR.dialog("open");
+    }
+    $('.search').click(function () {
+
+
+    });
+    var objDialogforvendor;
+    function NewVendorSearch(title) {
+        $("#dategid").val(title);
+        if ($('#hid_vendor').val() == "") {
+            $('#hid_vendor').val(2);
+            objDialogforvendor = $("[id$='forvendorprselection']");
+            objDialogforvendor.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 500
+            });
+        }
+
+        objDialogforvendor.load('@Url.Action("VendorSelectionForPr", "VendorOpex")?id=' +title + '&' + new Date().getTime());
+        objDialogforvendor.dialog({ title: 'Select Vendor' });
+        objDialogforvendor.dialog("open");
+    }
+
+    var objDialogforficc;
+    function NewSearch(id) {
+        if ($('#hidden').val() == "") {
+            $('#hidden').val(id);
+            objDialogforficc = $("[id$='forficcnew']");
+            objDialogforficc.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                resizeable: false
+            })
+        }
+        objDialogforficc.load('../CbfRaiser/CreateSearch?id=' + id);
+        objDialogforficc.dialog({ title: 'Select FCCC Code', width: '1000', height: '500' });
+        objDialogforficc.dialog("open");
+
+    }
+
+    function change(id, value) {
+        var lsFccc = $('#' + id + '').val()
+
+        $.post('../CbfRaiser/fcccsearchtext?lsFccc=' + lsFccc,
+              function (data) {
+                  if (data == "") {
+                      jAlert("Fccc Code Mismatch,Please Enter Correct Correct Fccc Code", "Error");
+                      $('#' + id + '').val(data)
+                  }
+                  else {
+                      $('#' + id + '').val(data)
+                  }
+
+              }
+         , 'json');
+
+    }
+    $(document).ready(function () {
+        var objDialogAttachPR;
+        if ('@grid.TotalRowCount' > 0) {
+            $('#Request').attr("disabled", true);
+            $('#id_rdpr').attr("disabled", true);
+            $('#id_rdpar').attr("disabled", true);
+        }
+        else {
+            $('#Request').attr("disabled", false);
+            $('#id_rdpr').attr("disabled", false);
+            $('#id_rdpar').attr("disabled", false);
+        }
+        $("#grid2 td:nth-child(14),#grid2 th:nth-child(14)").hide();
+        $("#inbudgetline").keypress(function (event) {
+            return;
+
+        });
+        $("#grid2 td").find("span[id=savecol]").each(function () {
+            var id1 = '@Session["prdetails_gid"]';
+            if (parseInt(id1) == parseInt($(this).text())) {
+                $('#grid2').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+                return false;
+            }
+            else {
+
+                $('#grid2').find('tr').css('background', 'none');
+            }
+        });
+        var add = 0;
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#para").text("Grand Total : " + add);
+        $("#obf_amt").val(add);
+        getadd(add);
+    });
+    var dat = 0;
+    var value1 = 0;
+    function multInputs(title, value, element) {
+
+        //  $("#grid2 td").find("input[name=inqty]:text").each(function () {
+        var id1 = $(element).attr('href');
+        var cost = $('#prcostestimation12').val();
+        //alert(cost);
+        var prqty = $('#prqty12').val();
+        var unitprize = $('#unitprise12').val();
+        if (parseInt(value) > parseInt(prqty) || parseInt(value) == 0) {
+            jAlert("Should Not Be greater than Unit Quantity\n Maximum Quantity is " + prqty, "Message");
+            $(element).val(title);
+            $(element).focus();
+            return false;
+        }
+        else {
+
+            $('#intotal_' + id1 + '').val(value * $('#inunit_' + id1 + '').val());
+            var total = $('#intotal_' + id1 + '').val();
+            if (parseInt(total) <= parseInt(cost)) {
+
+                var add = 0;
+                $("#grid2 td").find("input[name=intotal]:text").each(function () {
+                    add += Number($(this).val());
+                });
+                $("#para").text("Grand Total : " + add);
+                getadd(add);
+            }
+            else {
+                $('#inunit_' + id1 + '').val(unitprize)
+                $('#inqty_' + id1 + '').val(prqty)
+                $('#intotal_' + id1 + '').val(cost)
+                $("#grid2 td").find("input[name=intotal]:text").each(function () {
+                    add += Number($(this).val());
+                });
+                $("#para").text("Grand Total : " + add);
+                getadd(add);
+                jAlert("Total Should Not Be greater than Cost Estimation = " + cost, "Message");
+
+            }
+        }
+    }
+    function multInputs1(id, value) {
+        $("#grid2 td").find("input[name=inunit]:text").each(function () {
+            var variable = "inunit_"
+            var id2 = $(this).attr('href')
+            var cost = $('#prcostestimation12').val();
+            //alert(cost);
+            var prqty = $('#prqty12').val();
+            var unitprize = $('#unitprise12').val();
+
+            var mult = 0;
+            var total = 0;
+            var value2 = value;
+            if (id == variable + id2) {
+                $("#inunit_" + id2 + "").keyup(function () {
+                    $('#intotal_' + id2 + '').val($('#inqty_' + id2 + '').val() * $('#inunit_' + id2 + '').val());
+
+                    var total = $('#intotal_' + id2 + '').val();
+
+                    if (parseInt(total) <= parseInt(cost)) {
+
+                        var add = 0;
+                        $("#grid2 td").find("input[name=intotal]:text").each(function () {
+                            add += Number($(this).val());
+                        });
+                        $("#para").text("Grand Total : " + add);
+                        getadd(add);
+                    }
+                    else {
+                        $('#inunit_' + id2 + '').val(unitprize)
+                        $('#inqty_' + id2 + '').val(prqty)
+                        $('#intotal_' + id2 + '').val(cost)
+                        jAlert("Total Should Not Be greater than Cost Estimation = " + cost, "Message");
+                        $("#grid2 td").find("input[name=intotal]:text").each(function () {
+                            add += Number($(this).val());
+                        });
+                        $("#para").text("Grand Total : " + add);
+                        getadd(add);
+                    }
+
+                });
+            }
+        });
+    }
+
+
+    function getadd(valu) {
+
+        $("#cbf_amt").val(valu);
+    }
+
+
+
+
+</script>

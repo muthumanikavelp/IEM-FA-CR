@@ -1,0 +1,731 @@
+﻿@using IEM.Areas.EOW.Models
+@{
+    string sh = ViewBag.invId;
+}
+<script src="~/Scripts/asms/jQuery1.alert.js"></script>
+<script type="text/javascript">
+
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "EOWHelper")"
+    UrlHelper = UrlHelper.replace("GetAutoCompleteCourier", "");
+</script>
+<script type="text/javascript">
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    var currentTabv = 0;
+    $(function () {
+        $("#tabssupviewdashnew").tabs({
+            select: function (e, i) {
+                currentTabv = i.index;
+            }
+        });
+    });
+    $(document).ready(function () {
+        $("#txtInvoicedate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            onSelect: function (selected) {
+                $("#txtInvoicedate").addClass('valid');
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        $("#txtsermonth").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'MM-yy',
+            maxDate: '-id',
+            onSelect: function (selected) {
+                $("#txtsermonth").addClass('valid');
+            }
+        });
+    });
+    $(document).ready(function () {
+        $("#txtrelasedate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            onSelect: function (selected) {
+                $("#txtrelasedate").addClass('valid');
+            }
+        });
+    });
+</script>
+
+<div class="table-responsive" id="Invoicenewadd">
+    <br />
+    <div class="well table-responsive" style="width: 99%;border-color: #43B6F5;border-width: 1px;padding: 0px;">
+        <table class="myTableStyleTab" style="width: 99%;">
+            <tr>
+                <td style="padding-left: 15px;">
+                    <span>Invoice Date</span><br />
+                    <input class="textboxStyle required" type="text" id="txtInvoicedate" maxlength="10" placeholder="dd-mm-yyyy" />
+                </td>
+                <td>
+                    <span>Invoice No</span><br />
+                    <input class="textboxStyle required" type="text" id="txtInvoiceno" maxlength="30" />
+                </td>
+                <td>
+                    <span>Service Month</span><br />
+                    <input class="textboxStyle required monthYearPicker" type="text" id="txtsermonth" maxlength="10" placeholder="MMM-yyyy" />
+                </td>
+                <td>
+                    <span>Invoice Amount</span><br />
+                    <input type="hidden" id="hdinvoiceamt" value="0" />
+                    <input class="textboxStyle required" type="text" id="txtInvoiceamount" onkeypress="return isAmount(event);" onkeyup="compare(this)" maxlength="15" />
+                </td>
+                <td style="padding-bottom: 10px;width:20%;">
+                    <span>Provision Flag</span><br />
+                    <input type="radio" name="rblProvisionflg" id="rblYesp" value="Yes" />&nbsp;Yes
+                    &nbsp;&nbsp;
+                    <input type="radio" name="rblProvisionflg" id="rblNop" value="No">&nbsp;No
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 15px;padding-bottom: 9px;">
+                    <span>Without Tax Amount</span><br />
+                    <input class="textboxStyle required" type="text" id="txtWithoutTaxAmount" onkeypress="return isAmount(event);" maxlength="15" />
+                </td>
+                <td colspan="3">
+                    <span>Invoice Description</span><br />
+                    <textarea id="tctInvoicedec" maxlength="250" class="textboxStyle" style="height:30px;resize:none;width:100%"></textarea>
+                </td>
+                <td style="padding-bottom: 10px;">
+                    <span>Retention Flag</span><br />
+                    <input type="radio" name="rblRetentionflg" id="rblYesr" value="Yes" />&nbsp;Yes
+                    &nbsp;&nbsp;
+                    <input type="radio" name="rblRetentionflg" id="rblNor" value="No">&nbsp;No
+                </td>
+                <td style="padding-left: 15px;">
+                    <span> GST Charged</span>
+                    <br />
+                    <input checked="checked" id="rdogstChargedFlagYes" name="rdogstChargedFlag" type="radio" value="Y" style="margin-top: 10px; margin-right:5px;">Yes
+                    <input id="rdogstChargedFlagNo" name="rdogstChargedFlag" type="radio" value="N" style="margin: 10px 5px 0px 20px;">No
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>Provider Location (state)</span><br />
+                        <select id="ddlgstProviderLoc" class="fstextbox required"></select>
+                    </div>
+                </td>
+                <td style="padding:5px 10px;" colspan="2">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; display:none;" class="divGSTChargedShow">
+                                    <span>GSTIN Vendor </span>
+                                    <br />
+                                    <input type="text" disabled
+                                           id="txtGSTINVendor"
+                                           class="fstextbox" />
+                                </div>
+                            </td>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; display:none;" class="divGSTChargedShow">
+                                    <span>Receiver Location (state)</span><br />
+                                    <select id="ddlgstReceiverLoc" class="fstextbox required"></select>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>GSTIN @System.Configuration.ConfigurationManager.AppSettings["CompanyName"] </span>
+                        <br />
+                        <input type="text"
+                               id="txtGSTINFICCL" disabled
+                               class="fstextbox" />
+                    </div>
+                </td>
+                <td align="right">
+                    @*<button type="button" title="Addinvoice" name="Addinvoice" id="idAddinvoice" class="btn btn-primary" onclick="NewAddinvoice()" style="width: 65%;"> Save </button>*@
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 15px;">
+                    <div style="display:none;" id="Retentionflgg">
+                        <span>Retention %</span><br />
+                        <input class="textboxStyle" type="text" id="txtRetentionper" disabled="disabled" onkeypress="return isAmount(event);" maxlength="5" />
+                    </div>
+                </td>
+                <td>
+                    <div style="display:none" id="Retentionflgg1">
+                        <span>Retention Amount</span><br />
+                        <input class="textboxStyle" type="text" id="txtRetentionamount" disabled="disabled" onkeypress="return isAmount(event);" maxlength="15" />
+                    </div>
+                </td>
+                <td>
+                    <div style="display:none" id="Retentionflgg2">
+                        <span>Release Date</span><br />
+                        <input class="textboxStyle" type="text" id="txtrelasedate" disabled="disabled" maxlength="10" placeholder="dd-mm-yyyy" />
+                    </div>
+                </td>
+                <td></td>
+                <td align="right">
+                    @*<button type="button" title="Addinvoice" name="Addinvoice" id="idAddinvoice" class="btn btn-primary" onclick="NewAddinvoice()" style="width: 50%;display:none;"> Save </button>*@
+                </td>
+            </tr>
+        </table>
+        <br />
+    </div>
+    <br />
+    <div style="padding:0;margin:0; width:99%">
+        <div id="tabssupviewdashnew">
+            <ul>
+                @if (@ViewBag.POStatus == "PO" || @ViewBag.POStatus == "WO")
+                {
+                    <li><a href="#tabssupviewdashnew-4"> Purchase Order </a></li>
+                }
+                
+                <li><a href="#tabssupviewdashnew-2"> Debit Line </a></li>
+		 <li><a id="Gsttab" href="#tabssupviewdashnew-6">GST Details</a></li>
+                <li><a id="RCMtab" href="#tabs-7" style="display:none;">RCM</a></li>
+                <li><a href="#tabssupviewdashnew-3">Payment</a></li>
+                <li><a href="#tabssupviewdashnew-5">Invoice Attachments</a></li>
+                <li><a href="#tabssupviewdashnew-1" id="Taxtab">Tax Details</a></li>
+            </ul>
+            @if (@ViewBag.POStatus == "PO" || @ViewBag.POStatus == "WO")
+            {
+                <div id="tabssupviewdashnew-4">
+                    @Html.Partial("_TabPOmappingV")
+                </div>
+            }
+            <div id="tabssupviewdashnew-1">
+                @Html.Partial("_SupplierTaxDetailsGrid")
+                <br />
+            </div>
+            <div id="tabssupviewdashnew-2">
+                @Html.Partial("_TabdebitlineDetails")
+                <br />
+            </div>
+            <div id="tabssupviewdashnew-3">
+                @Html.Partial("_SupplierPaymentGrid")
+                <br />
+            </div>
+            <div id="tabssupviewdashnew-5">
+                @Html.Partial("_InvoiceAttachmentDetails")
+                <br />
+            </div>
+            <div id="tabssupviewdashnew-6">
+                @Html.Partial("_LoadGstDetails")
+                <br />
+            </div>
+            <div id="tabs-7">
+                @Html.Partial("_LoadRCMDetails")
+            </div>
+        </div>
+    </div>
+    <br />
+    <div>
+        <center>
+            <button type="button" id="newinvoiceaddscal" value="Close" class="btn btn-warning" onclick="Newsupplieeinvoicecancel()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+        </center>
+    </div>
+</div>
+
+<div id="summaryhd1" style="padding-right: 10px;">
+    @Html.Partial("_supplierGridDetailsv")
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        //$("#txtGSTINVendor,#txtGSTINFICCL").val("");
+        //$("#ddlgstReceiverLoc,#ddlgstProviderLoc").removeClass("valid").removeClass("required").addClass("required");
+        $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+        $(".viewForIvoice").css("display", "");
+        $('#divInvoice').attr("style", "display:block;");
+        //$(".divGSTChargedShow").hide();
+        $(".divGSTChargedShow").show();
+        $("#Gsttab").hide();
+        $("#Taxtab").show();
+
+        /*$("#rdogstChargedFlagNo").change(function () {
+            $("#ddlgstProviderLoc").val("0");
+            $("#ddlgstReceiverLoc").val("0");
+            $("#txtGSTINVendor").val("");
+            $("#txtGSTINFICCL").val("");
+
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").addClass("required");
+
+            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y" && $("#doctypeNames").val() != "1" && $("#doctypeNames").val() != "2") {
+                $(".divGSTChargedShow").show();
+            }
+            else
+                $(".divGSTChargedShow").hide();
+        });
+
+        $("#rdogstChargedFlagYes").change(function () {
+
+            $("#ddlgstProviderLoc").val("0");
+            $("#ddlgstReceiverLoc").val("0");
+            $("#txtGSTINVendor").val("");
+            $("#txtGSTINFICCL").val("");
+
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").addClass("required");
+
+            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y" && $("#doctypeNames").val() != "1" && $("#doctypeNames").val() != "2")
+                $(".divGSTChargedShow").show();
+            else
+                $(".divGSTChargedShow").hide();
+        });
+        */
+        LoadGSTINCategory();
+        function LoadGSTINCategory() {
+            var _tmpFilter = {
+                ViewType: "5",
+                RefId: "0"
+            };
+            $.ajax({
+                type: "post",
+                url: '../EOWHelper/GetGSTINArray/',
+                data: JSON.stringify(_tmpFilter),
+                async: false,
+                contentType: "application/json;",
+                success: function (response) {
+                    var data2 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                        data2 = JSON.parse(response.Data1);
+                    $("#ddlgstReceiverLoc").empty();
+                    if (data2.length > 0) {
+                        for (var i = 0; i < data2.length; i++) {
+                            //alert('testttt');
+                            var stylesSelect = $('#ddlgstReceiverLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstReceiverLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                            var stylesSelect = $('#ddlgstProviderLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstProviderLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                            //alert('1');
+                        }
+                    }
+                    if (data2.length == 0) {
+                        $("#ddlgstReceiverLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstReceiverLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                    if (data2.length == 0) {
+                        $("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstProviderLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+
+
+            var RefId = $("#txtSuppliercodegid").val(); //var RefId = "5838";
+            
+            var _Filter = {
+                ViewType: "1",
+                RefId: RefId
+            };
+            $.ajax({
+                type: "post",
+                url: UrlHelper + "GetGSTINArray",
+                data: JSON.stringify(_Filter),
+                async: false,
+                contentType: "application/json;",
+                success: function (response) {
+                    var data2 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                        data2 = JSON.parse(response.Data1);
+                    $("#ddlgstProviderLoc").empty();
+                    if (data2.length > 0) {
+                        //$("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data2.length; i++) {
+                            var stylesSelect = $('#ddlgstProviderLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstProviderLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                        }
+                    }
+
+                    if (data2.length == 0) {
+                        $("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstProviderLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+
+
+        };
+        $("#ddlgstReceiverLoc").change(function () {
+            $("#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            var value = $(this).val();
+            if (value != null && value != "0" && value != "") {
+                $("#ddlgstReceiverLoc").addClass("valid");
+            } else { $("#ddlgstReceiverLoc").addClass("required"); }
+
+            var _text = $('#ddlgstReceiverLoc option:selected').attr('title');
+            $("#txtGSTINFICCL").val(_text);
+        });
+        $("#ddlgstProviderLoc").change(function () {
+            $("#ddlgstProviderLoc").removeClass("valid").removeClass("required");
+            var value = $(this).val();
+            if (value != null && value != "0" && value != "") {
+                $("#ddlgstProviderLoc").addClass("valid");
+            } else { $("#ddlgstProviderLoc").addClass("required"); }
+
+            var _text = $('#ddlgstProviderLoc option:selected').attr('title');
+            $("#txtGSTINVendor").val(_text);
+        });
+
+        $("#txtRetentionper,#txtInvoiceamount,#txtWithoutTaxAmount").keyup(function () {
+
+            //var curramountexrates = $("#txtInvoiceamount").val();
+            var curramountexrates = $("#txtInvoiceamount").val().replace(/,/g, "");
+            var curramounts = $("#txtRetentionper").val();
+
+            if (curramounts != null || curramounts != "" || curramountexrates != null || curramountexrates != "") {
+
+                //var Amount = $("#txtInvoiceamount").val().replace(/,/g, "");
+                var tol = $('#txtRetentionper').val() * (curramountexrates / 100);
+                var currentval = tol.toFixed(2);
+                var testDecimal = testDecimals(currentval);
+                if (testDecimal.length > 1) {
+                    currentval = currentval.slice(0, -1);
+                }
+                var tolnew = replaceCommas(currentval);
+                $('#txtRetentionamount').val(tolnew);
+                //$('#txtRetentionamount').val(tol.toFixed(2));
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtRetentionamount").addClass('valid');
+            }
+            else {
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtRetentionamount").addClass('required');
+            }
+        });
+    });
+    $("#txtInvoiceamount").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtInvoiceamount").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtInvoiceamount").val(replaceCommas(currentval));
+
+    });
+    $(document).ready(function () {
+        $("#Invoicenewadd").hide();
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+
+        var stylesSelect = $('#txtRetentionper');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtRetentionamount');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtrelasedate');
+        stylesSelect.attr('disabled', true);
+    });
+    function getmonth(date) {
+        if (date.length == 10) {
+            var ddd = isgetmonthyear(date);
+            if (ddd == "Error") {
+                $("#txtsermonth").val('')
+            }
+            else {
+                $("#txtsermonth").val(ddd)
+            }
+        }
+        else {
+            $("#txtsermonth").val('')
+        }
+    }
+    function isgetmonthyear(evt) {
+        var retnval;
+        var str = evt;
+        var array = str.split('-');
+        if (array[1] == "01") {
+            retnval = "January-" + array[2];
+            return retnval;
+        }
+        if (array[1] == "02") {
+            retnval = "February-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "03") {
+            retnval = "March-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "04") {
+            retnval = "April-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "05") {
+            retnval = "May-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "06") {
+            retnval = "June-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "07") {
+            retnval = "July-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "08") {
+            retnval = "August-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "09") {
+            retnval = "September-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "10") {
+            retnval = "October-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "11") {
+            retnval = "November-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "12") {
+            retnval = "December-" + array[2]; return retnval;
+        }
+        else {
+            retnval = "Error"; return retnval;
+        }
+        return retnval;
+    }
+    function Newsupplieeinvoicecancel() {
+        $("#summaryhd1").show();
+        $("#Invoicenewadd").slideToggle(500);
+    }
+
+    function SupplierInvoiceViewm(id) {
+        $("#summaryhd1").hide();
+        var EmpPaymentmodel = {
+            "Invoicegid": id,
+            "Provision": "View"
+        }
+        $.post('../DashBoard/ViewSupplierinvoice', EmpPaymentmodel,
+      function (data) {
+          if (data == 0) { location = location.href; } else {
+              $("#Invoicenewadd").slideToggle(500);
+
+              var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "DashBoard")?' + new Date().getTime();
+              var traurl = '@Url.Action("_TabdebitlineDetails", "DashBoard")?' + new Date().getTime();
+              var payurl = '@Url.Action("_SupplierPaymentGrid", "DashBoard")?' + new Date().getTime();
+              var pourl = '@Url.Action("_PODetailsGridV", "DashBoard")?' + new Date().getTime();
+              $("#wgempposupplier").load(pourl);
+
+              $("#wgempTaxsupplier").load(taxurl);
+              $("#wgTravelmodeotab2").load(traurl);
+              $("#wgempPaymensupplier").load(payurl);
+
+              var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "DashBoard")?' + new Date().getTime();
+              $("#wgAttachmentsupplierinv").load(invatturl);
+
+              $("#ddlgstProviderLoc").val(data[0].ProviderLocation);
+              $("#ddlgstReceiverLoc").val(data[0].ReceiverLocation);
+              $("#txtGSTINVendor").val(data[0].GstinVendor);
+              $("#txtGSTINFICCL").val(data[0].GstinFiccl);
+              $("#ddlgstProviderLoc").addClass('valid');
+              $("#ddlgstReceiverLoc").addClass('valid');
+              $("#txtGSTINVendor").addClass('valid');
+              $("#txtGSTINFICCL").addClass('valid');
+              var stylesSelect = $('#txtGSTINFICCL');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtGSTINVendor');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#ddlgstReceiverLoc');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#ddlgstProviderLoc');
+              stylesSelect.attr('disabled', true);
+              $(".divGSTChargedShow").show();
+              if (data[0].GstCharged == "Y") {
+                  $("#Gsttab").show();
+                  $("#Taxtab").hide();
+                  $("#RCMtab").hide();
+                  //Ramya Aug
+                  $("#hdfEditViewGstChargedFlag").val(data[0].GstCharged);
+                  $("input[name=rdogstChargedFlag][value=Y]").prop("checked", true);
+                  var url1 = '@Url.Action("_LoadGstDetails", "DashBoard")';
+                  $("#Grdgstdetls").load(url1);
+                 
+              }
+              else {
+                  //$(".divGSTChargedShow").hide();
+                  $("#hdfEditViewGstChargedFlag").val("N");
+                  $("#Gsttab").hide();
+                  $("#Taxtab").hide();
+                  $("#RCMtab").show();
+                  $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+                  @*var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                  $("#wgempTaxsupplier").load(taxurl);*@
+                  var url2 = '@Url.Action("_LoadRCMDetails", "DashBoard")';
+                  $("#GrdRCMdetls").load(url2);
+                
+              }
+              var stylesSelect = $('#rdogstChargedFlagNo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#rdogstChargedFlagYes');
+              stylesSelect.attr('disabled', true);
+              //$('#idAddinvoice').text('Update');
+
+              $("#txtInvoicedate").val(data[0].InvoiceDate);
+              $("#txtInvoiceno").val(data[0].InvoiceNo);
+              $("#tctInvoicedec").val(data[0].Description);
+
+              var currentval = data[0].Amount;
+              var testDecimal = testDecimals(currentval);
+              if (testDecimal.length > 1) {
+                  currentval = currentval.slice(0, -1);
+              }
+              var tolnew = replaceCommas(currentval);
+              $('#txtInvoiceamount').val(tolnew);
+
+              var taxableAmount = data[0].TaxableAmount;
+              var testDecimal1 = testDecimals(taxableAmount);
+              if (testDecimal1.length > 1) {
+                  taxableAmount = taxableAmount.slice(0, -1);
+              }
+              var tolnew1 = replaceCommas(taxableAmount);
+              $('#txtWithoutTaxAmount').val(tolnew1);
+
+              //$("#txtInvoiceamount").val(data[0].Amount);
+              $("#txtsermonth").val(data[0].SerMonth);
+
+              //var txtsermonthnew = $("#txtInvoicedate").val();
+
+              var txtsermonthnew = $("#txtsermonth").val();
+
+              if (txtsermonthnew.trim() != "") {
+                  $("#txtsermonth").addClass('valid');
+                  getmonth(data[0].SerMonth);
+              }
+              else {
+                  $("#txtsermonth").addClass('required');
+              }
+
+              $("#txtInvoicedate").addClass('valid');
+              $("#txtInvoiceno").addClass('valid');
+              $("#tctInvoicedec").addClass('valid');
+              $("#txtInvoiceamount").addClass('valid');
+              $("#txtsermonth").addClass('valid');
+              $("#txtWithoutTaxAmount").addClass('valid');
+              var renflg = data[0].Retensionflg;
+              var stylesSelect = $('#txtInvoicedate');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtInvoiceno');
+              stylesSelect.attr('disabled', true);
+              var renflg = data[0].Retensionflg;
+              var stylesSelect = $('#tctInvoicedec');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtInvoiceamount');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtsermonth');
+              stylesSelect.attr('disabled', true);
+
+              //var stylesSelect = $('#rblYes');
+              //stylesSelect.attr('disabled', true);
+              //var stylesSelect = $('#rblNo');
+              //stylesSelect.attr('disabled', true);
+              $("#rblYesp").attr('disabled', true);
+              $("#rblNop").attr('disabled', true);
+              $("#rblYesr").attr('disabled', true);
+              $("#rblNor").attr('disabled', true);
+
+              var $radios = $('input:radio[name=rblRetentionflg]');
+              if (renflg == "Y") {
+                  $radios.filter('[value=Yes]').prop('checked', true);
+                  $("#Retentionflgg").fadeIn();
+                  $("#Retentionflgg1").fadeIn();
+                  $("#Retentionflgg2").fadeIn();
+                  $("#txtRetentionper").val(data[0].Retensionper);
+
+                  var currentval = data[0].Retensionamount;
+                  var testDecimal = testDecimals(currentval);
+                  if (testDecimal.length > 1) {
+                      currentval = currentval.slice(0, -1);
+                  }
+                  var tolnew = replaceCommas(currentval);
+                  $('#txtRetentionamount').val(tolnew);
+
+                  //$("#txtRetentionamount").val(data[0].Retensionamount);
+                  $("#txtrelasedate").val(data[0].Retensionrelse);
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', true);
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('valid');
+              }
+              else {
+                  $radios.filter('[value=No]').prop('checked', true);
+                  $("#Retentionflgg").fadeOut();
+                  $("#Retentionflgg1").fadeOut();
+                  $("#Retentionflgg2").fadeOut();
+                  $("#txtRetentionper").val('');
+                  $("#txtRetentionamount").val('');
+                  $("#txtrelasedate").val('');
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', true);
+                  $("#txtRetentionper").removeClass('required');
+                  $("#txtRetentionamount").removeClass('required');
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('required');
+                  $("#txtrelasedate").removeClass('valid');
+              }
+              var renflg = data[0].Provision;
+
+              var $rblProvision = $('input:radio[name=rblProvisionflg]');
+              if (renflg == "Y") {
+                  $rblProvision.filter('[value=Yes]').prop('checked', true);
+              }
+              else {
+                  $rblProvision.filter('[value=No]').prop('checked', true);
+              }
+              var stylesSelect = $('#newinvoiceadds');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnpaymentinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btntaxdinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvoexcel');
+              stylesSelect.attr('disabled', true);
+          }
+      }, 'json');
+    }
+
+</script>

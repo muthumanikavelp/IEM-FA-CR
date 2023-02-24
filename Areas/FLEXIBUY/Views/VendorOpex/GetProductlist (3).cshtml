@@ -1,0 +1,79 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Product List";
+}
+
+@using (Html.BeginForm())
+{
+    @*<h3>Product List</h3>*@
+<span style="color: rgb(52, 108, 196);">Product List</span>
+    <div>
+        <div class="borderStyle panel panel-default" id="ProductDetailgrid">
+            @{
+    var grid = new WebGrid(source: Model.cbfDetails, canSort: true, canPage: true, rowsPerPage: 6, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+            }
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered",
+                    htmlAttributes: new { id = "grid" },
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns
+                    (
+                    grid.Column("productcode", Sorter("productcode", "Product Code", grid), format: @<text><label id="productcode1">@item.productcode</label></text>),
+                   grid.Column("productname", Sorter("productname", "Product Name", grid),format:@<text><label id="productname1">@item.productname</label></text>),
+                     grid.Column("description", Sorter("description", "Product Description", grid),format:@<text><label id="description1">@item.description</label></text>),
+    grid.Column(header: "Action", canSort: false, style: "action",
+    format: @<text>
+        <input type="button" onclick="productcode(this,id,@item.productgid)" id="@item.chartOfAccount" class="btn btn-link" title="SUBMIT" value="Submit" />
+    </text>)))
+            <div class="borderStyle">
+                @ViewBag.NoRecordsFound
+            </div>
+        </div>
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.cbfDetails.Count</label>
+    </div>
+    <script src="~/Scripts/Partial.js"></script>
+    <script>
+        function productcode(element,id,product) {
+            var pca = id;
+            var row = $(element).closest('tr');
+           
+            var Parproduct =
+              {
+                  "productgid": product
+              };
+
+            $.post('../VendorOpex/productdetails', Parproduct,
+            function (data) { if (data >0) {jAlert('Already You Have Raise This Product Please Select Any Other Product') } else { 
+                var pc = row.find('td:eq(0)').text();
+                var pn = row.find('td:eq(1)').text();
+                var pd = row.find('td:eq(2)').text();
+                var id = $('#rowid').val();
+                $('#txtproductgid_' + id + '').val(product);
+                $('#ProductGid' + id + '').val(product);
+                $('#chartofaccount' + id + '').val(pca);
+                $('#productcode' + id + '').val(pc);
+                $('#productname' + id + '').val(pn);
+                $('#description' + id + '').val(pd);
+                $('#inchartofaccount_' + id + '').val(pca);
+                $("#txtproductcode_" + id + "").val(pc);
+                $("#txtproductname_" + id + "").val(pn);
+                $("#txtdescription_" + id + "").val(pd);
+                objDialog1.dialog('close');
+                window.parent.jQuery('#productserviewpopup').dialog('close'); } }, 'json');
+
+
+        }
+    </script>
+}
+

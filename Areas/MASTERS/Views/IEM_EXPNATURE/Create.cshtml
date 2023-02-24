@@ -1,0 +1,172 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_expnature
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtTypeName">
+                    <span>Expense Nature</span>
+                    <br />
+                    <input name="CategoryName" id="_Expname" class="fstextbox  required" maxlength="64" 
+                           type="text"  data-val="true" value="" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <input type="checkbox" id="chk_travel" value="Y" name="With Holding Tax"><span> Expense Nature Related to Travel</span>
+
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <input type="radio" id="travelexp" value="T" disabled name="Radiotypenametravel">
+                Travel Expense &nbsp;
+                <input type="radio" id="other_travelexp" value="O" disabled name="Radiotypenametravel">
+                Other Travel Expense
+
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtTypeName">
+                    <span> Active</span>
+                    <br />
+                    <input type="radio" id="Yes" value="Y" checked="checked" name="Radiotypename">
+                    Yes &nbsp;
+                    <input type="radio" id="No" value="N" name="Radiotypename">
+                    No
+                </div>
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <button type="button" id="btnsave" disabled="disabled" class="btn btn-primary" value="Save"
+                             onclick="SaveCategoryName()" style="margin-top:20px;">
+                <span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+            
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:20px;">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+               
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_Expname").focus();
+        $("#_Expname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#_Expname").keyup(function () {
+            var txtSupplierName = $("#_Expname").val();
+
+            if (txtSupplierName.trim() != "") {
+                $("#_Expname").removeClass('required');
+                $("#_Expname").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_Expname").removeClass('valid');
+                $("#_Expname").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+    $('#chk_travel').change(function () {
+        if ($('#chk_travel').is(":checked") == true) {
+            $("#travelexp").attr('disabled', false);
+            $("#other_travelexp").attr('disabled', false);
+        }
+        else {
+            $("#travelexp").attr('disabled', true);
+            $("#other_travelexp").attr('disabled', true);
+            $("#travelexp").attr('checked', false);
+            $("#other_travelexp").attr('checked', false);
+        }
+    });
+</script>
+
+<script type="text/javascript">
+    function SaveCategoryName() {
+        var expname = $("#_Expname").val().trim();
+        var type = $('input[name=Radiotypename]:checked').val();
+        if ($('#chk_travel').is(":checked") == true) {
+            if ($('#travelexp').is(":checked") == true) {
+                var travel = 'T';
+            }
+            if ($('#other_travelexp').is(":checked") == true) {
+                var travel = 'O';
+            }
+        }
+        else {
+            var travel = 'N';
+        }
+
+        if ($('#chk_other').is(":checked") == true) {
+            var othertravel = 'Y';
+        }
+        else {
+            var othertravel = 'N';
+        }
+        if (expname == "") {
+            jAlert("Expense nature cannot be empty !", "Information");
+            $("#_Expname").focus();
+            return false;
+        }
+        if ($('#chk_travel').is(":checked") == true) {
+            if ($('#travelexp').is(":checked") == false && ($('#other_travelexp').is(":checked") == false)) {
+                jAlert("Please Select Any Travel Mode", "Information");
+                return false;
+            }
+        }
+
+        var CategoryModel = { "expnature_name": expname, "expnature_active": type, "expnature_istravel": travel, "expnature_isothertravel": othertravel };
+        $.post('../IEM_EXPNATURE/CreateExpNature', CategoryModel,
+            function (data) {
+                if (data != "success") {
+                    jAlert(data, "Information", function (r) {
+                        if (r = true) { return false; }
+                    });
+                }
+                else {
+                    jAlert("Record Inserted Successfully !", "Information", function (r) {
+                        if (r = true) { location = '../IEM_EXPNATURE/Index'; }
+                    });
+
+                }
+            }
+    , 'json');
+
+    }
+
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#_Expname").val().trim() == "" || $("#_Expname").val() == null) {
+            ErrCount = 1;
+        }
+
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>
+
+
+

@@ -1,0 +1,276 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CbfSumModel objrep = new CbfSumModel();
+    List<CbfParHeader> lst = new List<CbfParHeader>();
+    var grid1 = new WebGrid();
+    int cbfgid = 0;
+    if (Session["cbfgid"] != null)
+    {
+        var a = (string)Session["cbfgid"];
+        cbfgid = Convert.ToInt32(a);
+    }
+    if (Session["objowner"] != null)
+    {
+        objDetails = (CbfSumEntity)Session["objowner"];
+        lst = objDetails.cbfParheader;
+    }
+    else
+    {
+        if (TempData["isBudgeted"] != null)
+        {
+            var PageFor = (string)TempData["isBudgeted"];
+
+            if (PageFor == "yes")
+            {
+                objDetails = objrep.GetParHeader(cbfgid, "Y");
+                lst = objDetails.cbfParheader;
+            }
+            else if (PageFor == "no")
+            {
+                objDetails = objrep.GetParHeader(cbfgid, "N");
+                lst = objDetails.cbfParheader;
+            }
+            else if (PageFor == "pr")
+            {
+                objDetails = objrep.GetParHeader(cbfgid, "Y");
+                lst = objDetails.cbfParheader;
+            }
+        }
+        else
+        {
+            objDetails = objrep.GetParHeader(cbfgid, "Y");
+            lst = objDetails.cbfParheader;
+        }
+    }
+    grid1 = new WebGrid(source: lst, canSort: false, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "parheader", ajaxUpdateCallback: "gridCBFEditPAR()", selectionFieldName: "selectedRow");
+    int rowcount = 0;
+
+}
+@*@using (Html.BeginForm())
+    {*@
+<div id="parheader">
+    <div id="pargrid">
+        <fieldset>
+            <table class="myTableStyleTab" style="width:100%;">
+                <tr>
+                    <td style="padding:10px; width:20%;">
+                        <span>Enter PR No</span><br />
+                        <input type="text"
+                               name="txtparno"
+                               id="txtparno"
+                               value="@ViewBag.txtparno"
+                               class="textboxStyleBig"
+                               style="display:block"
+                               maxlength="16" />
+                    </td>
+                    <td style="padding:10px; width:20%;">
+                        <span>Enter PR Date</span><br />
+                        <input type="date"
+                               name="txtpardate"
+                               value="@ViewBag.txtpardate"
+                               id="txtpardate"
+                               class="textboxStyleBig"
+                               maxlength="9"
+                               style="display:block" />
+                    </td>
+                    <td style="padding:10px; width:20%;">
+                        <span>Enter PR Amount</span><br />
+                        <input type="text"
+                               name="txtparamount"
+                               value="@ViewBag.txtparamount"
+                               id="txtparamount"
+                               class="textboxStyleBig datepicker"
+                               maxlength="9"
+                               style="display:block" />
+                    </td>
+
+                    <td style="width:20%;">
+                        <button id="searchid" class="btn btn-primary" @ViewBag.viewmode type="button" onclick="prsearch1()" style="padding:5px 10px; font-size:12px;" name="command" title="Search" value="Search">
+                            <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                        </button>
+                        <button id="refreshparheader" class="btn btn-primary" @ViewBag.viewmode type="button" style="padding:5px 10px; font-size:12px;" onclick="prreferesh1()" name="command" title="Search" value="Refresh">
+                            <span class="glyphicon glyphicon-refresh" style="color:white;"> </span>Refresh
+                        </button>
+                    </td>
+                    <td style="padding:10px; width:20%;"></td>
+                </tr>
+            </table>
+
+
+
+            <table align="center" width="100%">
+                <tr>
+                    <td>
+
+                        <div style="overflow-x:auto;">
+                            @functions {
+                                public static string Sorter1(string columnName, string columnHeader, WebGrid grid1)
+                                {
+                                    return string.Format("{0} {1}", columnHeader, grid1.SortColumn == columnName ?
+                                        grid1.SortDirection == SortDirection.Ascending ? "▲" :
+                                        "▼" : string.Empty);
+                                }
+                            }
+
+                            @grid1.GetHtml(
+                            tableStyle: "tableSmall table-bordered",
+                            htmlAttributes: new { id = "grid1" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid1.Columns
+                            (
+                            grid1.Column("parDate", Sorter1("parDate", "PAR Date", grid1), style: "headWidt10"),
+                            grid1.Column("parNo", Sorter1("parNo", "PAR No", grid1), style: "headWidth16"),
+                            grid1.Column("par_Budget", Sorter1("par_Budget", "Is Budgeted", grid1), style: "col-sm-1"),
+                            grid1.Column("parDesc", Sorter1("parDesc", "PAR Description", grid1), style: "headWidth30"),
+                            grid1.Column("parAmt", Sorter1("parAmt", "PAR Amount", grid1), style: "headWidth12 rightAlign"),
+                            grid1.Column("utilizedAmt", Sorter1("utilizedAmt", "Utilized Amount", grid1), style: "headWidth12 rightAlign"),
+                            grid1.Column("balancedAmt", Sorter1("balancedAmt", "Balance Amount", grid1), style: "headWidth12 rightAlign"),
+                            grid1.Column(header: "Action", canSort: false, style: "headWidth8",
+                            format: @<text>
+                                <input type="button" value="Select" @ViewBag.viewmode class="btn btn-link" style="padding:3px;" onclick="pardetailsfunction(id)" id="@item.parGid" title="Select" />
+                            </text>)))
+                        </div>
+                        @if (ViewBag.records != null)
+                        {  <div align="center" class="borderStyle">
+                            <h6 class="row" style="font-weight:normal ;">
+                                @ViewBag.records
+                            </h6>
+                        </div>
+                        }
+                        @if (ViewBag.Message != null)
+                        {
+                            <div align="center">
+                                <label class="control-label">@ViewBag.Message</label>
+                            </div>
+                        }
+                        @if (@ViewBag.Error != null)
+                        {
+                            <div align="center">
+                                <label>@ViewBag.Error</label>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+    </div>
+
+</div>
+<script>
+    var parno;
+    var pardate;
+    var parreqno;
+    $("#txtpardate").datepicker(
+      {
+          changeMonth: true,
+          changeYear: true,
+          yearRange: '1950:2100',
+          currentText: "Now",
+          dateFormat: "dd-mm-yy",
+
+      });
+    function prsearch1() {
+        parno = $('#txtparno').val();
+        pardate = $('#txtpardate').val();
+        parreqno = $('#txtparamount').val();
+        var budject2 = $("input[name='Budgeted']:checked").val();
+
+        var prheader = {
+            "parNo": parno,
+            "parDate": pardate,
+            "parAmt": parreqno,
+            "par_Budget": budject2
+        };
+        $.post('../CbfRaiserEdit/CbfSearchPAR', prheader,
+            function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#parheader").load('../CbfRaiserEdit/CbfSearchPAR?listfor=search&' + new Date().getTime());
+                }
+               // return false;
+            }
+       , 'json');
+
+
+    }
+
+    function prreferesh1() {
+
+        parno = "";
+        pardate = "";
+        parreqno = "";
+        prreqno = 0;
+        $('#txtparno').empty();
+        $('#txtpardate').empty();
+        $('#txtparamount').empty();
+        var budject1 = $("input[name='Budgeted']:checked").val();
+
+        var prheader = {
+            "parNo": parno,
+            "parDate": pardate,
+            "parAmt": parreqno,
+            "par_Budget": budject1
+        };
+        $.post('../CbfRaiserEdit/CbfSearchPAR', prheader,
+           function (data) {
+               if (data == 0) {
+                   jAlert("Error Occured", "Error", function () {
+                       return false;
+                   });
+                   return false;
+               }
+               else {
+                   $("#parheader").load('../CbfRaiserEdit/CbfSearchPAR?listfor=search&' + new Date().getTime());
+               }
+               //return false;
+           }
+      , 'json');
+
+    }
+    function gridCBFEditPAR() {
+
+    }
+    function pardetailsfunction(id) {
+        $('#pardetails').show();
+        var request = $('#Request').val();
+        var budject = $("input[name='Budgeted']:checked").val();
+        var parheader = id;
+        $("#hidParHeaderGidEdit").val(id);
+        var par = {
+            "parGid": id,
+            "par_Requestfor": request,
+            "par_Budget": budject
+        };
+
+        $.ajax({
+            url: "../CbfRaiserEdit/EditParDetails/",
+            type: 'POST',
+            data: par,
+            cache: false,
+            async: false,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#pardetails").empty().append(data);
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+    }
+</script>
+@*}*@

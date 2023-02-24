@@ -1,0 +1,168 @@
+﻿
+<div class="table-responsive" style="padding-right: 10px;">
+    <div align="right" style="padding-bottom:5px;">
+        <button type="button" id="btnempNewExpense" value="New Expense" onclick="NewExpense()" class="btn btn-primary">
+            <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New Expense
+        </button>
+    </div>
+    @Html.Partial("_EmpExpenseDetails")
+</div>
+<br />
+<div id="ForPartialViewExpenseglno"></div>
+<div id="ForPartialViewExpensenew"></div>
+<div id="ForPartialViewpolicypopup"></div>
+<div id="ForPartialViewpolicypopupcre"></div>
+<script type="text/javascript">
+    var objDialogExpenseglno;
+    $(document).ready(function () {
+        objDialogExpenseglno = $("[id$='ForPartialViewExpenseglno']");
+        objDialogExpenseglno.length = 1;
+        objDialogExpenseglno.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: '97%',
+            height: 525
+        });
+    });
+    function EmpExpenseglno(id) {
+        var url = '@Url.Action("debitlinegldetails", "EmployeeClaimNew")?id=' + id + '&types=O&' + new Date().getTime();
+        objDialogExpenseglno.load(url);
+        objDialogExpenseglno.dialog({ title: 'View GL Details' });
+        objDialogExpenseglno.dialog("open");
+    }
+    var objDialogExpense;
+    $(document).ready(function () {
+        objDialogExpense = $("[id$='ForPartialViewExpensenew']");
+        objDialogExpense.length = 1;
+        objDialogExpense.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 860,
+            height: 525
+        });
+
+    });
+    var objDialogpolicypopup;
+    $(document).ready(function () {
+        objDialogpolicypopup = $("[id$='ForPartialViewpolicypopup']");
+        objDialogpolicypopup.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'PPX ',
+            width: 860,
+            height: 400
+        });
+
+    });
+    var objDialogpolicypopupce;
+    $(document).ready(function () {
+        objDialogpolicypopupce = $("[id$='ForPartialViewpolicypopupcre']");
+        objDialogpolicypopupce.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'PPX ',
+            width: 860,
+            height: 400
+        });
+
+    });
+
+
+    function GotoIndexExpenseNN() {
+        window.parent.jQuery('#ForPartialViewExpensenew').dialog('close');
+    }
+    function NewExpense() {
+        var url = '@Url.Action("_EmpExpenseCreate", "EmployeeClaimNew")?' + new Date().getTime();
+        objDialogExpense.load(url);
+        objDialogExpense.dialog({ title: 'New Expense' });
+        objDialogExpense.dialog("open");
+    }
+    function EmpExpenseEdit(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../EmployeeClaimNew/_Emplistadd', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_EmpExpenseEdit", "EmployeeClaimNew")?id=' + id + '&viewfor=edit&' + new Date().getTime();
+                objDialogExpense.load(url);
+                objDialogExpense.dialog({ title: 'Edit Expense' });
+                objDialogExpense.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpExpenseView(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../EmployeeClaimNew/_Emplistadd', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_EmpExpenseEdit", "EmployeeClaimNew")?id=' + id + '&viewfor=view&' + new Date().getTime();
+                objDialogExpense.load(url);
+                objDialogExpense.dialog({ title: 'View Expense' });
+                objDialogExpense.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpExpenseDelete(id) {
+        jConfirm("Do you want to delete Employeee Expense...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "Exp_GID": id }
+                $.post('../EmployeeClaimNew/DeleteEmpExpense', EmpExpensemodel,
+              function (data) {
+                  if (data == 0) {
+                      jAlert("Error.", "Error");
+                      return false;
+                      location = location.href;
+                  } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      var url = '@Url.Action("_EmpExpenseDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                      $("#wgExpense").load(url);
+                      @*var url1 = '@Url.Action("_LoadGstDetails", "TravelClaimNew")?' + new Date().getTime();
+                      $("#Grdgstdetls").load(url1);*@
+                      //$("#wgExpense").load("../EmployeeClaimNew/_EmpExpenseDetails?" + new Date().getTime());
+
+
+                      //------------Pandiaraj 19-07-2019
+
+                      var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                      $("#GstDtl").load(url2);
+                      var url3 = '@Url.Action("_LoadRCMDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                      $("#RCMDtl").load(url3);
+                      window.parent.jQuery('#ForPartialViewExpensenew').dialog('close');
+                  }
+              }, 'json');
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,353 @@
+﻿@{
+    ViewBag.Title = "Tracker";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">GRN/SCN Tracker</span>
+<div ng-app="GRNSummaryApp">
+    <div class="well" ng-controller="GRNSummaryController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            @*<div style="width:45%;float:left;">
+                    Search &nbsp;  <input type="text" ng-model="search1.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+                </div>*@
+            <div style="width:100%;">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+                @*<input style="float:right" type="button" value="Export" ng-click="ExportDoc()" />*@
+                @*<button class="btn-sm btn-primary" style="float:right" ng-click="ExportDoc()">
+                    <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>*@
+            </div>
+        </div>
+        <div style="width:100%;overflow-x:scroll;" id="divData">
+
+            <input type="hidden" name="txtpogid" value="@ViewBag.docgid" />
+            <input type="hidden" ng-model="CBFGid" />
+            <input type="hidden" name="txtfrompage" value="@ViewBag.frompage" />
+            <div style="width:105%;">
+                <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                    <thead>
+                        <tr class="SortText">
+                            <th style="width:3%;" ng-click="SortQueryData('SNo')" class="cursorpointer">
+                                <span>S.No</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='SNo'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;" ng-click="SortQueryData('CBFNumber')" class="cursorpointer">
+                                <span ng-show="POType =='P'">PO Number</span><span ng-show="POType =='W'">WO Number</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='CBFNumber'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;" ng-click="SortQueryData('PONumber')" class="cursorpointer">
+                                <span ng-show="POType =='P'">GRN Number</span><span ng-show="POType =='W'">SCN Number</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='PONumber'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" ng-click="SortQueryData('PODate')" class="cursorpointer">
+                                <span>Inward Date</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='PODate'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;" ng-click="SortQueryData('POAmount')" class="cursorpointer">
+                                <span>Inward By</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='POAmount'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" ng-click="SortQueryData('RequestFor')" class="cursorpointer">
+                                <span>Shipment Type</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='RequestFor'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:20%;" ng-click="SortQueryData('SupplierName')" class="cursorpointer">
+                                <span>Description</span>
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='SupplierName'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="FilteredItems3 > 0" ng-repeat="myapproval in myapprovals |orderBy:sortKey:reverse | filter:search2:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{myapproval.SNo}}
+                            </td>
+                            <td style="width:15%;">
+                                {{myapproval.PONumber}}
+                            </td>
+                            <td style="width:15%;">
+                                {{myapproval.GRNNumber}}
+                            </td>
+                            <td style="width:10%;">
+                                {{myapproval.InwardDate}}
+                            </td>
+                            <td style="width:15%;">
+                                {{myapproval.InwardBy}}
+                            </td>
+                            <td style="width:10%;">
+                                {{myapproval.ShipmentType}}
+                            </td>
+                            <td style="width:20%;">
+                                {{myapproval.Description}}
+                            </td>
+                            <td style="width:15%;" align="center">
+                                <a ng-click="ViewDoc(myapproval.GRNGid,myapproval.POType)" title="View">
+                                    <span class="glyphicon glyphicon-eye-open"></span>
+                                </a>
+                                &nbsp;&nbsp;
+                                <a ng-click="Track(myapproval.GRNGid,myapproval.POType)" title="Track">
+                                    <span style="color:green;" class="glyphicon glyphicon-transfer"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="FilteredItems3 < 1">
+                        <tr>
+                            <td colspan="8" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItems3 > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItems3"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItems3}}
+            </div>
+        </div>
+        <br />
+        <div style="display:none;" id="divGrnConfirm">
+            <div style="width:100%;overflow-x:scroll;">
+                <div style="width:130%;max-height:400px;overflow-y:auto;">
+                    <table class="tableSmall table-bordered table-hover table-responsive">
+                        <thead>
+                            <tr class="SortText">
+                                <th style="width:3%;">
+                                    S.No
+                                </th>
+                                <th style="width:10%;">
+                                    Product Code
+                                </th>
+                                <th style="width:15%;">
+                                    Product Name
+                                </th>
+                                <th style="width:15%;">
+                                    Description
+                                </th>
+                                <th style="width:10%;">
+                                    Asset Serial #
+                                </th>
+                                <th style="width:15%;">
+                                    Manufacturer Name
+                                </th>
+                                <th style="width:10%;">
+                                    Put To Use Date
+                                </th>
+                                <th style="width:10%;">
+                                    Recd Qty
+                                </th>
+                                <th style="width:10%;">
+                                    Confirmed On
+                                </th>
+                                <th style="width:15%;">
+                                    Confirmed By
+                                </th>
+                                <th style="width:15%;">
+                                    Confirmation Remarks
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody ng-show="FilteredItems4 > 0" ng-repeat="confirmation in grnconfirmation">
+                            <tr>
+                                <td style="width:3%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{confirmation.ProductCode}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{confirmation.ProductName}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{confirmation.PODetailDesc}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{confirmation.AssetSerialNo}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{confirmation.ManufacturerName}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{confirmation.PutToUseDate}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{confirmation.RecdQty}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{confirmation.ConfirmDate}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{confirmation.ConfirmBy}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{confirmation.ConfirmRemarks}}
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot ng-show="FilteredItems4 < 1">
+                            <tr>
+                                <td colspan="11" style="text-align:center">
+                                    No Records Found
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+           
+            </div>
+        
+        </div>
+        <div style="width:100%;text-align:center;">
+            <button type="button" class="btn btn-sm btn-warning" ng-click="CancelGRNSummary()">
+                <span class="glyphicon glyphicon-fast-backward" style="color:white;"></span>
+                Back
+            </button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var objADDWOGRN;
+    $(document).ready(function () {
+
+        objADDWOGRN = $("[id$='divGrnConfirm']");
+        objADDWOGRN.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 400,
+            duration: 300
+            //  resizable:false
+        });
+    });
+    var queryApp = angular.module('GRNSummaryApp', ['ui.bootstrap']);
+    queryApp.service("grnsummaryservice", function ($http) {
+        this.GetTrackerScreenDataGRN = function () {
+            var cbfgid = $("[name=txtpogid]").val();
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetTrackerScreenDataGRN", "Tracker")?docgid=' + cbfgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetTrackerGRNConfirm = function (docgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetTrackerGRNConfirm", "Tracker")?docgid=' + docgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+    });
+    queryApp.controller('GRNSummaryController', function ($scope, grnsummaryservice) {
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        GetTrackerScreenDataGRN();
+
+        function GetTrackerScreenDataGRN() {
+            var getData = grnsummaryservice.GetTrackerScreenDataGRN();
+            getData.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "")
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.myapprovals = Data0;
+                $scope.CBFGid = Data0[0].CBFGid;
+                $scope.POType = Data0[0].POType;
+                $scope.FilteredItems3 = $scope.myapprovals.length;
+
+            }, function () {
+                alert('Error While Loading record');
+            });
+        }
+        $scope.ViewDoc = function (docgid, doctype) {
+            var url;
+           if (doctype == 'W')
+               url = '@Url.Action("Index", "SCNInward")?scngid=' + docgid + '&viewfor=view&' + new Date().getTime();
+           if(doctype =="P")
+                url = '@Url.Action("GrnInwardViewDetails", "GrnSelectionPo")?grnheadGid=' + docgid + '&viewfor=view&grnType=direct&' + new Date().getTime();
+            window.open(url, "_blank");
+        }
+        $scope.Track = function (docgid, doctype) {
+            var getData1 = grnsummaryservice.GetTrackerGRNConfirm(docgid);
+            getData1.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "" && response.data.data0)
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.grnconfirmation = Data0;
+                $scope.FilteredItems4 = $scope.grnconfirmation.length;
+                var TitlePopUp = "";
+                if (doctype == 'P')
+                    TitlePopUp = "GRN Confirmation Details";
+                if (doctype == 'W') 
+                    TitlePopUp = "SCN Confirmation Details";
+              
+                $("#divGrnConfirm").css("display", "");
+                objADDWOGRN.dialog({ title: TitlePopUp, width: '780', height: '400' });
+                objADDWOGRN.dialog("open");
+
+            }, function () {
+                alert('Error in adding record');
+            });
+        }
+        $scope.SortQueryData = function (keyname) {
+            $scope.sortKey = keyname;   //set the sortKey to the param passed
+            $scope.reverse = !$scope.reverse; //if true make it false and vice versa
+        }
+        $scope.ExportDoc = function () {
+            location = '@Url.Action("DTtoExcell", "Print")?' + new Date().getTime();
+        }
+        $scope.CancelGRNSummary = function () {
+            var topage = 1;
+            var frompage = $("[name=txtfrompage]").val();
+            if (frompage != null && frompage != "") {
+                topage = parseInt(frompage) - 1;
+            }
+            var cbfgid = $scope.CBFGid;
+            if (cbfgid == null || cbfgid == 0 || cbfgid == "" || cbfgid == "0") {
+                location = '@Url.Action("Index", "Tracker")?' + new Date().getTime();
+            }
+            else {
+              
+                location = '@Url.Action("POSummary", "Tracker")?docgid=' + cbfgid + '&frompage=' + toString(topage) + '&' + new Date().getTime();
+            }
+          
+        }
+    });
+    queryApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

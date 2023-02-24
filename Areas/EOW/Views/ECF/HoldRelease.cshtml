@@ -1,0 +1,83 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.ECFDataModel>
+@{
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true);
+    int rowVal = 0;
+}
+<div style="margin-top:17px;" id="mainll" class=" overflowy overflowx">
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered table-hover table-responsive ",
+                columns: grid.Columns
+                (
+                  grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                  grid.Column("SupplierorEmployee", Sorter("SupplierorEmployee", "Supplier/Employee", grid)),
+                  grid.Column("SupplierorEmployeename", Sorter("SupplierorEmployeename", "Supplier/Employeename", grid)),
+                  grid.Column("ECFRaiser", Sorter("ECFRaiser", "ECF Raiser", grid)),
+                  grid.Column("DocTypeName", Sorter("DocTypeName", "Doc Type Name", grid)),
+                  grid.Column("DocSubTypeName", Sorter("DocSubTypeName", "Doc SubType Name", grid)),
+                  grid.Column("CreateMode", Sorter("CreateMode", "Create Mode", grid)),
+                  grid.Column("ClaimMonth", Sorter("ClaimMonth", "Claim Month", grid)),
+                  grid.Column("ECFAmount", Sorter("ECFAmount", "ECF Amount", grid)),
+                  grid.Column("Despatchdate", Sorter("Despatchdate", "Despatch date", grid)),
+                  grid.Column("CourierName", Sorter("CourierName", "Courier Name", grid)),
+                  grid.Column("AWBNo", Sorter("AWBNo", "AWBNo", grid)),
+                  grid.Column("ECFStatus", Sorter("ECFStatus", "ECF Status", grid)),
+                  grid.Column("CancelBy", Sorter("CancelBy", "Cancel By", grid)),
+                  grid.Column("CancelDate", Sorter("CancelDate", "Cancel Date", grid))
+            //grid.Column(header: "Action", canSort: false, style: "action",
+            @*format: @<text>
+                    <input type="hidden" id="batchdococunt_@item.ECFId" name="batchdococunt" value="@item.ECFId" />
+
+                    @<a title="Edit"> <span class="glyphicon glyphicon-eye-open" onclick="View(@item.ECFId)"></span></a>
+                </text>)*@
+                                                                            )))
+    @if (ViewBag.Message != null)
+    {  <div align="center" class="borderStyle">
+        <h6 class="row" style="font-weight:normal ;">
+            @ViewBag.Message
+        </h6>
+    </div>
+    }
+</div>
+<table class="myTableStyleTabNew" align="center">
+    <tr>
+        <td>
+            <div>
+                <button type="button" class="btn btn-danger" value="Cancel" onclick="Update()"><span style="color:white;" class="glyphicon glyphicon-trash"></span>Release</button>
+            </div>
+        </td>
+        <td>
+            <div>
+                <button type="button" class="btn btn-warning" value="Close" onclick="Cancel()"> <span style="color:white;" class="glyphicon glyphicon-remove"></span>Cancel</button>
+            </div>
+        </td>
+    </tr>
+</table>
+<script>
+    function Cancel() {
+        objDialogyHoldRelease.remove();
+    }
+    function Update() {
+        $.ajax({
+            url: '../ECF/HoldReleaseReaport/',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location.href = '@Url.Action("HoldReport", "ECF")?' + new Date().getTime();
+                    }
+                });
+
+            },
+        })
+    }
+</script>

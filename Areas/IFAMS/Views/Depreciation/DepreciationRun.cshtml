@@ -1,0 +1,214 @@
+﻿@model IEM.Areas.IFAMS.Models.Depreciation
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "verificationimport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    DataModel ifdm = new DataModel();
+   var date= ifdm.Format(DateTime.Today.ToShortDateString());
+    }
+<b>
+    <span id="spanPre" style="color: rgb(52, 108, 196);">Depreciation Run-Preliminary</span>
+    <span id="spanFinal" style="color: rgb(52, 108, 196);">Depreciation Run-Final</span>
+</b>
+
+
+<div class="well">
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <span>
+                    Depreciation Month
+                </span><span></span><br />
+
+                <input type="text" readonly="readonly" class="textboxStyleBig " id="txtmonthpicker" name="txtmonthpicker" />
+            </td>
+            <td style="padding-top:15px;">
+                &nbsp; &nbsp; <br />
+                <input type="checkbox" id="FinalCheck" name="FinalCheck" />
+                <span>
+                    &nbsp;   Final Run
+                </span>
+            </td>
+        </tr>
+    </table><br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <button id="btnpreRun" class="btn btn-primary" value="RunDepreciation" type="submit" onclick="rUN()" name="command"> <span class="glyphicon glyphicon-cog" style="color:white;"></span> Preliminary Run </button>
+            </td>
+            <td class="myTableStyleTabNew" >
+
+                @using (Html.BeginForm())
+                {
+
+                    <a class="btn btn-primary " style="color:white;" href="../Depreciation/downloadsexcel" id="reportDownloadExcel">
+                        <span class="glyphicon glyphicon-export" style="color:white;"></span>   Excel
+                    </a>   }
+
+            </td>
+
+            <td>
+                <button id="btnFianlRun" class="btn btn-primary" disabled="disabled" type="submit" name="command" onclick="fINALrUN()" value="FinalRun" ><span class="glyphicon glyphicon-cog" style="color:white;"></span> Final Run</button>
+            </td>
+            <td>
+                <button onclick="" class="btn btn-primary" id="btnCleans" name="command" type="button" value="Clear"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<script type="text/javascript">  
+  
+    $('#txtmonthpicker').val('@date')
+    $("#spanFinal").hide(0);
+    var CurrentYear = '@DateTime.Today.Year';
+    var PreviousYear =parseInt( '@DateTime.Today.Year') - 1;
+    var NextYear = parseInt('@DateTime.Today.Year' )+ 1;    
+    var FinYear = null;
+
+    if ('@DateTime.Today.Month' > 3)
+    { FinYear = CurrentYear + ":" + NextYear; }
+    else
+    { FinYear = PreviousYear + ":" + CurrentYear; }
+   // alert(FinYear);
+    $(document).ready(function () {
+        $('#txtmonthpicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            maxDate: '-id',
+            
+            dateFormat: 'MM-yy',
+            yearRange: FinYear.toString()
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                //$("#txtmonthpicker").removeClass('required');
+                //$("#txtmonthpicker").addClass('valid');
+            });
+        });
+        var postForm = false;
+
+        //$('#txtmonthpicker').datepicker( {
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    showButtonPanel: false,
+        //    maxDate: '03/30/2013',
+        //    minDate:'04/01/2012',
+        //    dateFormat: 'MM-yy',
+        //    onChangeMonthYear: function () { postForm = true; },
+        //    onClose: function (dateText, inst) {
+        //        var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+        //        var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+        //        $(this).datepicker('setDate', new Date(year, month, 1));
+        //    },
+        //    beforeShow: function (input, inst) {
+        //        if ((datestr = $(this).val()).length > 0) {
+        //            year = datestr.substring(datestr.length - 4, datestr.length);
+        //            month = jQuery.inArray(datestr.substring(0, datestr.length - 5), $(this).datepicker('option', 'monthNames'));
+        //            $(this).datepicker('option', 'defaultDate', new Date(year, month, 1));
+        //            $(this).datepicker('setDate', new Date(year, month, 1));
+        //            postForm = false;
+        //        }
+        //    }
+        //});
+        //if (postForm == true) {
+        //    postForm = false;
+        //    var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+        //    var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+        //    $(this).datepicker('setDate', new Date(year, month, 1));
+        //}
+    });
+    $("input[name='FinalCheck']").click(function () {
+        if ($("#FinalCheck").is(':checked')) {
+            $('#txtmonthpicker').val('@date')
+            $("#btnFianlRun").attr("disabled", false);
+            $("#btnpreRun").attr("disabled", true);
+            $("#spanPre").hide(0);
+            $("#spanFinal").show(0);
+        }
+        else {
+            $('#txtmonthpicker').val('@date')
+            $("#btnFianlRun").attr("disabled", true);
+            $("#btnpreRun").attr("disabled", false);
+            $("#spanPre").show();
+            $("#spanFinal").hide(0);
+        }
+    });
+    $("#btnCleans").click(function () {
+        $('#txtmonthpicker').val('@date')
+        $("#btnFianlRun").attr("disabled", true);
+        $("#btnpreRun").attr("disabled", false);
+        $("#spanPre").show();
+        $("#spanFinal").hide(0);
+        $("input[name='FinalCheck']").attr("checked", false);
+    });
+
+    function rUN() {
+        var txtmonthpicker = $("#txtmonthpicker").val();
+       var model = {
+            "_date": txtmonthpicker.trim(),
+
+       };
+       
+     
+           showProgress();
+           $.post('../Depreciation/DepreciationRunNew?command=RunDepreciation', model,
+               function (data) {
+                   if (data == "RAN") {
+                       hideProgress();
+                       jAlert("Depreciation ran successfull!", "Information", function (r) {
+                         //  alert(r);
+                           if (r == true) {
+                            //   debugger
+                               location = '../Depreciation/DepreciationRun';
+                           }
+                       });
+                   }
+                   else {
+                       hideProgress();
+                       jAlert(data, "Information", function (r) {
+                           if (r == true) { hideProgress(); return false; }
+                       });
+                       return false;
+                   }
+               }, 'json');
+       }
+    
+    function fINALrUN() {
+        var txtmonthpicker = $("#txtmonthpicker").val();
+        var model = {
+            "_date": txtmonthpicker,
+        };
+       // alert(txtmonthpicker);
+        showProgress();
+        $.post('../Depreciation/DepreciationRunNew?command=FinalRun', model,
+            function (data) {
+                if (data == "RAN") {
+                    hideProgress();
+                    jAlert("Depreciation ran successfully!", "Information", function (r) {
+                        if (r == true) {
+                            location = '../Depreciation/DepreciationRun';
+                        }
+                    });
+                }
+                else {
+                    hideProgress();
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) { hideProgress(); return false; }
+                    });
+                    return false;
+                }
+            }, 'json');
+    }
+   
+</script>

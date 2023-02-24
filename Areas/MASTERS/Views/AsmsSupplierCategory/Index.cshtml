@@ -1,0 +1,133 @@
+﻿@model  IEM.Areas.MASTERS.Models.CategoryModel
+
+@{  
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model.categoryModelList, canPage: false, canSort: false);
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Classification</span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td width="20%">
+                    <span> Supplier Classification </span>
+                    <br />
+                    <input type="text"
+                           name="filter"
+                           id="txtFilter"
+                           value="@ViewBag.filter"
+                           class="fstextbox"
+                           maxlength="64"
+                           style="display: block;" />
+                </td>
+                <td width="60%">
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" onclick="refresh()" id="btnclear" value="Clear" name="command" type="button" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    @if (@grid.TotalRowCount != 0)
+                    {
+                        <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                    }
+                    </td>
+                    <td width="20%" style="text-align:right;">
+                        <button type="button" value="New Supplier Classification" onclick="NewTyp()" class="btn btn-primary" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Supplier Classification</button>
+                    </td>
+                </tr>
+            </table>
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(htmlAttributes: new { id = "gridId" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                (
+                grid.Column(header: "S.No", style: "slno", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                grid.Column("categoryName", "Supplier Classification"),
+                grid.Column(header: "Action", style: "action",
+                format: @<text>
+                    @Html.Raw("<a style='text-decoration: none;' title='View' onclick='ViewType(" + item.categoryID + ")'> <span id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    @Html.Raw("<a style='text-decoration: none;' title='Edit' onclick='EditType(" + item.categoryID + ")'> <span id='Color' class='glyphicon glyphicon-edit'> </span> </a>")
+                    @Html.Raw("<a style='text-decoration: none;' title='Delete' onclick='DeleteType(" + item.categoryID + ")'> <span id='Color' class='glyphicon glyphicon-trash'> </span> </a> ")
+                </text>)))
+            </div>
+        </div>
+}
+<div id="ForPartialView"></div>
+
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+        $('th a, tfoot a').click(function () {
+            $('form').attr('action', $(this).attr('href')).submit();
+            return false;
+        });
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 310,
+            height: 180,
+            duration: 250
+        });
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $('#gridId tr th:nth-child(3)').addClass("nosort");
+        $('#gridId').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+    });
+
+    //var tr = $("#gridId").find('tr');
+    //$("#gridId tr #Color").click(function () {
+    //    $('#gridId').find('tr').css('background', 'none');
+    //    $(this).closest('tr').css('background', '#CEECF5');
+    //});
+
+    function NewTyp() {
+        objDialog.load('../AsmsSupplierCategory/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Supplier Classification ' });
+        objDialog.dialog("open");
+    }
+    function EditType(id) {
+        objDialog.load('../AsmsSupplierCategory/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Supplier Classification ' });
+        objDialog.dialog("open");
+    }
+
+    function ViewType(id) {
+        objDialog.load('../AsmsSupplierCategory/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Supplier Classification ' });
+        objDialog.dialog("open");
+    }
+
+    function DeleteType(id) {
+        /* objDialog.dialog({
+             autoOpen: false,
+             modal: true,
+             show: 'fade-in',
+             close: 'fade-out',
+             width: 320,
+             height: 180, resizable: false
+         });*/
+        objDialog.load('../AsmsSupplierCategory/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Supplier Classification' });
+        objDialog.dialog("open");
+
+    }
+    function refresh() {
+        location = '../AsmsSuppliercategory/Index';
+    }
+
+    function Download() {
+        location = "../AsmsSupplierCategory/downloadsexcel";
+    }
+</script>

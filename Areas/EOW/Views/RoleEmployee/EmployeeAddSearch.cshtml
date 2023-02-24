@@ -1,0 +1,161 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, rowsPerPage: 5, canPage: true, ajaxUpdateContainerId: "searchgrid1", ajaxUpdateCallback: "dummyforemproleser()");
+    int rowVal = 0;
+}
+
+    @using (Html.BeginForm())
+    {
+        <div id="searchgrid1">
+            <div class="well">
+                <table class="myTableStyleTabNew" width="100%">
+                    <tr>
+                        <td style="width:20%">
+                            <span> Employee Code </span>
+                            <br />
+                            <input name="EmployeeCode"
+                                   id="UrgentEmployeeCodeSearch"
+                                   type="text"
+                                   class="fstextbox required"
+                                   value="@ViewBag.EmployeeCode" />
+                        </td>
+                        <td style="width:20%">
+                            <span> Employee Name </span>
+                            <br />
+                            <input name="EmployeeName"
+                                   id="UrgentEmployeeNameSearch"
+                                   type="text"
+                                   class="fstextbox required"
+                                   value="@ViewBag.EmployeeName" />
+                        </td>
+                        <td style="width:60%">
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="Searforrolmap()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="reffffsuppseach()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                            <button type="button" value="Cancel" class="btn btn-warning" style="margin-top:20px;" onclick="Gotoindforrolmap()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                        </td>
+                        @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                        @*<button class="btn btn-primary" name="command" id="btnsearch" style="margin-left:-23px;margin-top:20px;margin-right:54px" onclick="searchemployee()" type="button" value="search">Search</button>*@
+                        @*<td><button class="btn btn-primary" type="button" onclick="searchemployee()" style="margin-top: 20px;">Search</button></td>*@
+                        @*<td>
+                                    <div class="input-append ">
+                                        <span class="input-append">
+                                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="button" onclick="reffffsuppseach()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                                        </span>
+                                    </div>
+                            </td>*@
+                    </tr>
+                </table>
+
+                @*id="mainll"*@
+                <div class="table-responsive" style="margin-top:12px;">
+                    @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                    }
+                    @grid.GetHtml(
+                    htmlAttributes: new { id = "wgridrolemap" },
+                    tableStyle: "tableSmall table-bordered table-hover",
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns
+                    (
+                        grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                        grid.Column("RaiserCode", Sorter("RaiserCode", "Employee Code", grid)),
+                        grid.Column("RaiserName", Sorter("RaiserName", "Employee Name", grid)),
+                        // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                        grid.Column(header: "Action", canSort: false, style: "action",
+                        format: @<text>
+                    <input type="hidden" id="UrgentEmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />
+                    <input type="hidden" id="UrgentRaiserCodeFind_@item.EmployeeId" name="RaiserCode" value="@item.RaiserCode" />
+                    <input type="hidden" id="UrgentRaiserNameFind_@item.EmployeeId" name="RaiserName" value="@item.RaiserName" />
+                    <a><span class="btn btn-link btn-link" onclick="Select(@item.EmployeeId)">Select</span></a>
+                        </text>))))
+                    @if (ViewBag.Message != null)
+                {
+                <div class="gridMessage">
+                    @ViewBag.Message
+                </div>
+                }
+                </div>
+            </div>
+        </div>
+    }
+
+
+<script>
+
+    $(document).ready(function () {
+        $("#UrgentEmployeeCodeSearch").keyup(function () {
+            var txtSupplierName = $("#UrgentEmployeeCodeSearch").val();
+            if (txtSupplierName.trim() != "") {
+                $("#UrgentEmployeeCodeSearch").removeClass('required');
+                $("#UrgentEmployeeCodeSearch").addClass('valid');
+
+            }
+            else {
+                $("#UrgentEmployeeCodeSearch").removeClass('valid');
+                $("#UrgentEmployeeCodeSearch").addClass('required');
+
+            }
+        });
+        $("#UrgentEmployeeNameSearch").keyup(function () {
+            var txtSupplierName = $("#UrgentEmployeeNameSearch").val();
+            if (txtSupplierName.trim() != "") {
+                $("#UrgentEmployeeNameSearch").removeClass('required');
+                $("#UrgentEmployeeNameSearch").addClass('valid');
+
+            }
+            else {
+                $("#UrgentEmployeeNameSearch").removeClass('valid');
+                $("#UrgentEmployeeNameSearch").addClass('required');
+
+            }
+        });
+
+    });
+    function Searforrolmap() {
+        var empcode = $('#UrgentEmployeeCodeSearch').val();
+        var empname = $('#UrgentEmployeeNameSearch').val();
+        var objownersearch =
+            {
+                "RaiserName": empname,
+                "RaiserCode": empcode
+            };
+
+        $.post('../RoleEmployee/EmployeeSearchrolmap', objownersearch,
+        function (data) {
+            $("#searchgrid1").load('../RoleEmployee/EmployeeAddSearch?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#UrgentEmployeeNameSearch").val(empname);
+            }, 50);
+
+        }, 'json');
+    }
+    function reffffsuppseach() {
+        $('#txtinwardcode').val('');
+        $('#txtinwardempname').val('');
+        $('#searchgrid1').load('../RoleEmployee/EmployeeAddSearch?' + new Date().getTime());
+
+    }
+    function Select(id) {
+        var Employeeid = $("#UrgentEmployeeIdFind_" + id + "").val();
+        var EmployeeName = $("#UrgentRaiserNameFind_" + id + "").val();
+        var EmployeeCode = $("#UrgentRaiserCodeFind_" + id + "").val();
+        $('#UrgentEmployeeId').val(Employeeid);
+        $('#txtEmpCode').val(EmployeeCode);
+        Gotoindforrolmap();
+    }
+    function Gotoindforrolmap() {
+        //objDialogyCentral.dialog("close");
+        //objDialogyCentral.remove();
+        window.parent.jQuery('#ForPartialViewcentral').dialog('close');
+
+    }
+    function dummyforemproleser() {
+        $("#wgridrolemap td:nth-child(2),#wgridrolemap th:nth-child(2)").show();
+    }
+</script>

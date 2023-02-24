@@ -1,0 +1,977 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_Supplierinvoice
+@using IEM.Areas.EOW.Models
+@{
+    EOW_Supplierinvoice sh = (EOW_Supplierinvoice)ViewBag.EOW_Supplierheader;
+}
+
+<style>
+    .with {
+        width: 100%;
+    }
+</style>
+<style>
+    .myTableStyleTabNewe thead td {
+        font-size: 12px;
+    }
+
+    .myTableStyleTabNewe tbody td {
+        font-size: 12px;
+        padding: 2px;
+    }
+</style>
+<div class="panel4 panel4-default4">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <br />
+        <table style="width: 99%;background-color: #E3E3E3;">
+            <tr>
+                <td style="width: 70%;border-radius: 10px;padding: 2px 12px 0px 10px;">
+                    <table class="myTableStyleTabNew myTableStyleTabNewe" style="width: 100%;">
+                        <tr>
+                            <td style="width: 18%;">
+                                @Html.HiddenFor(n => sh.ECF_Date, new { @id = "txtecfdateh" })
+                                <span>ECF Date</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Date, new { disable = true, @class = "textboxStyle required", @id = "txtecfdates", @maxlength = "10", @placeholder = "dd-mm-yyyy", @readonly = "readonly" })
+                            </td>
+                            <td style="width: 20%;">
+                                <span>Invoice Type</span><br />
+                                @Html.DropDownListFor(n => n.DocId, sh.doctypedata, new { @class = "textboxStyle required", @id = "doctypeNames" })
+                            </td>
+                            <td style="width: 15%;">
+                                <span>Supplier Code</span><br />
+                                <input type="text" name="txtSuppliercodegid" id="txtSuppliercodegid" value="@Session["SupplierGid"]" style="display:none" />
+                                <input type="text" name="txtSuppliercode" id="txtSuppliercode" disabled="disabled" value="@ViewBag.supcode" class="textboxStyle required wth" />
+                            </td>
+                            <td style="width: 5%;" align="left">
+                                <span>&nbsp;</span><br />
+                                <a onclick="Supplierdetails()"> <span class="glyphicon glyphicon-search" style="padding-top: 7px;"></span> </a>
+                            </td>
+                            <td>
+                                <span>Supplier Name</span><br />
+                                <input type="text" name="txtSuppliername" id="txtSuppliername" disabled="disabled" value="@ViewBag.supname" class="textboxStyle" style="width: 103%;" />
+                            </td>
+                            <td style="width:1%" align="center">
+                                &nbsp; &nbsp;<span title="View Supplier Details" style="cursor: pointer;font-weight: bold;background-color: rgb(208, 216, 214);" onclick="getviewsupplier()">?</span>&nbsp;&nbsp;
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span>Currency</span><br />
+                                <select name="currencyNames" id="currencyNames" class="textboxStyle required">
+                                    @foreach (var pitem in sh.Currencydata)
+                                    {
+                                        var childitemfilter = sh.Currencydata.Where(m => m.Value == pitem.Value);
+                                        if (childitemfilter != null)
+                                        {
+                                            foreach (var citem in childitemfilter)
+                                            {
+                                                string selectedValue = "";
+                                                if (sh.CurrencyName == Convert.ToString(citem.Text))
+                                                {
+                                                    selectedValue = "selected='selected'";
+                                                }
+
+                                                <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+
+                            </td>
+                            <td>
+                                <span>Exchange Rate</span><br />
+                                <input type="text" name="txtexrate" id="txtexrate" value="@ViewBag.exrate" class="textboxStyle" disabled="disabled" onkeypress="return isAmount(event);" maxlength="15" />
+                                @Html.HiddenFor(n => n.Exrate, new { @id = "txtecratehd" })
+                            </td>
+                            <td colspan="2">
+                                @Html.HiddenFor(n => sh.Currencyamount, new { @id = "txtclaimmonthh" })
+                                <span>Currency Amount</span><br />
+                                @*length fixed by selva*@
+                                @Html.TextBoxFor(n => n.Currencyamount, new { disable = true, @class = "textboxStyle required", @id = "txtecfcurramount", @onkeypress = "return isAmount(event);", @maxlength = "13" })
+                            </td>
+                            <td colspan="2">
+                                <span>ECF  Amount</span><br />
+                                <input type='text' name='txtecfamontal' id="txtecfamont" readonly="readonly" value='@sh.ECF_Amount' class="textboxStyle" style="width:100%" />
+                                @Html.HiddenFor(n => n.CurrencyName, new { @id = "CurrencyNamevalid" })
+                                @Html.HiddenFor(n => n.CurrencyId, new { @id = "Currencyidvalid" })
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 10px;">
+                                <span>Amort</span>
+                                <br />
+                                @Html.RadioButton("rblAmort", "Yes", true)  Yes
+                                @Html.RadioButton("rblAmort", "No", true)  No
+                                @Html.HiddenFor(n => sh.amort, new { @id = "txtAmort" })
+                            </td>
+                            <td>
+                                <span>Payment Mode</span><br />
+                                <input type="text" name="txtPayMode" id="txtPayMode" value="@ViewBag.ecfPayMode" class="textboxStyle" disabled="disabled" />
+                                @Html.HiddenFor(n => n.Exrate, new { @id = "txtecratehd" })
+                            </td>
+                            <td colspan="4">
+                                @Html.HiddenFor(n => n.ecfremark, new { @id = "txtecfremarkh" })
+                                @Html.HiddenFor(n => sh.ecfdescription, new { @id = "txtecfdescriptionh" })
+                                <span>ECF Description</span><br />
+                                @Html.TextAreaFor(n => n.ecfdescription, new { disable = true, @class = "textboxStyle required with", @id = "txtecfdescription", @maxlength = "250" }) @*// Length Modified by selva(Pre 400)*@
+                            </td> 
+                        </tr>
+                        <tr>
+                            <td>
+                                <div id="amotrd1" style="display:none">
+                                    @Html.HiddenFor(n => sh.from, new { @id = "txtafrom" })
+                                    <span>Amort From</span><br />
+                                    @Html.TextBoxFor(n => n.from, new { disable = true, @class = "textboxStyle", @id = "txtAmortfron", @disabled = "disabled", @maxlength = "10", @placeholder = "dd-mm-yyyy" })
+                                </div>
+                            </td>
+                            <td>
+                                <div id="amotrd2" style="display:none">
+                                    @Html.HiddenFor(n => sh.to, new { @id = "txtato" })
+                                    <span>Amort To</span><br />
+                                    @Html.TextBoxFor(n => n.to, new { disable = true, @class = "textboxStyle", @id = "txtAmortto", @disabled = "disabled", @maxlength = "10", @placeholder = "dd-mm-yyyy" })
+                                </div>
+                            </td>
+                            <td colspan="2">
+                                <div id="amotrd3" style="display:none">
+                                    <span>Amort Description</span><br />
+                                    <textarea name="txtAmortDescription" id="txtAmortDescriptionid" style="resize:none;width: 250%; height: 30px;" maxlength="400" class="textboxStyle">@sh.amortdec</textarea>
+                                </div>
+                            </td>
+                            <td colspan="2">
+                                <div align="right">
+                                    <span>&nbsp;</span><br />
+                                    <button id="btnsupplier" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-share"></span>&nbsp;Proceed</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="width: 2%;"></td>
+                <td align="left" style="background-color: #ccc;border-radius: 10px;padding: 2px 12px 60px 20px;">
+                    <fieldset>
+                        <legend><center> <span style="font-weight:bold; font-size:12px; padding:3px;">RAISER DETAILS</span></center></legend>
+                        <table class="myTableStyleTabNew myTableStyleTabNew" style="border-top:solid 1px black;" width="100%">
+                            <tr>
+                                <td>
+                                    <span>Raiser Mode</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    @Html.HiddenFor(n => sh.raisermodeId, new { @id = "raisermodeNames" })
+                                    <label style="font-size:12px;" id="txtmodes"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Code</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label style="font-size:12px;" id="txtraisercodes">@sh.Raiser_Code</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Name</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label style="font-size:12px;" id="txtraisernames">@sh.Raiser_Name</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Grade</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label style="font-size:12px;" id="txtgrades">@sh.Grade</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                </td>
+            </tr>
+        </table>
+    }
+    <br />
+</div>
+<script type="text/javascript">
+    function FindLeftWindowBoundry() {
+        if (window.screenLeft) {
+            return window.screenLeft;
+        }
+        if (window.screenX)
+            return window.screenX;
+
+        return 0;
+    }
+    function FindTopWindowBoundry() {
+        if (window.screenTop) {
+            return window.screenTop;
+        }
+        if (window.screenY)
+            return window.screenY;
+
+        return 0;
+    }
+
+    function getviewsupplier() {
+        var id = $("#txtSuppliercodegid").val();
+        if (id != null && id != "") {
+            //console.log(FindLeftWindowBoundry(), FindTopWindowBoundry());
+            var x = screen.width / 2 - 1200 / 2 + FindLeftWindowBoundry();
+            var y = screen.height / 2 - 800 / 2 + FindTopWindowBoundry();
+            var url = '@Url.Action("viewsupplierDetails", "SupplierInvoiceNew")?supid=' + id + '&pagefor=5&' + new Date().getTime();
+            //window.open(url);
+            window.open(url, 'Page', 'scrollbars=1,height=800,width=1200,left=' + x + ',top=' + y);
+        }
+    }
+</script>
+<style>
+    .diapy {
+        display: none;
+    }
+
+    .wth {
+        width: 100%;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#amotrd1").hide();
+        $("#amotrd2").hide();
+        $("#amotrd3").hide();
+        var invoicetype = "";
+
+        var rows = $("#rowscount").text(); //pandiaraj 11-11-17
+        //   alert(ss.toString());
+        if (rows >= 2) { //pandiaraj 11-11-17
+            $("#doctypeNames").attr("disabled", "disabled");
+        }
+        else {
+            $("#doctypeNames").removeAttr("disabled");
+        }
+    });
+    $(document).ready(function () {
+        var stylesSelect = $('#txtAmortfron');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtAmortDescriptionid');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtAmortto');
+        stylesSelect.attr('disabled', true);
+
+        var $radios = $('input:radio[name=rblAmort]');
+        var txtecfdateh = $("#txtAmort").val();
+        if (txtecfdateh.trim() == "Yes") {
+            $("#amotrd1").fadeIn();
+            $("#amotrd2").fadeIn();
+            $("#amotrd3").fadeIn();
+            $radios.filter('[value=Yes]').prop('checked', true);
+
+            var stylesSelect = $('#txtAmortto');
+            stylesSelect.attr('disabled', false);
+            var stylesSelect = $('#txtAmortDescriptionid');
+            stylesSelect.attr('disabled', false);
+            var stylesSelect = $('#txtAmortfron');
+            stylesSelect.attr('disabled', false);
+        }
+        else {
+            $("#amotrd1").fadeOut();
+            $("#amotrd2").fadeOut();
+            $("#amotrd3").fadeOut();
+            $radios.filter('[value=No]').prop('checked', true);
+            var stylesSelect = $('#txtAmortto');
+            stylesSelect.attr('disabled', true);
+            var stylesSelect = $('#txtAmortDescriptionid');
+            stylesSelect.attr('disabled', true);
+            var stylesSelect = $('#txtAmortfron');
+            stylesSelect.attr('disabled', true);
+        }
+
+        var txtecfdateh = $("#txtecfdateh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtecfdates").val(txtecfdateh);
+        }
+
+        var txtclaimmonthh = $("#txtclaimmonthh").val();
+        if (txtclaimmonthh.trim() != "") {
+            $("#txtecfcurramount").val(txtclaimmonthh);
+        }
+
+        var txtecfamounth = $("#txtafrom").val();
+        if (txtecfamounth.trim() != "") {
+            $("#txtAmortfron").val(txtecfamounth);
+        }
+        var txtecfamounth = $("#txtato").val();
+        if (txtecfamounth.trim() != "") {
+            $("#txtAmortto").val(txtecfamounth);
+        }
+
+        $("#txtecfdateh").val('');
+        $("#txtclaimmonthh").val('');
+        $("#txtafrom").val('');
+        $("#txtato").val('');
+
+        $('#btnsupplier').click(function () {
+            showProgress();
+            var ecfdescription = $("#txtecfdescription").val();
+            var ecfdate = $("#txtecfdates").val();
+            var doctypeNames = $("#doctypeNames").val();
+            var Suppliercode = $("#txtSuppliercode").val();
+            var Suppliername = $("#txtSuppliername").val();
+            var currencyNames = $("#currencyNames").val();
+            var exrate = $("#txtexrate").val();
+            var ecfcurramount = $("#txtecfcurramount").val();
+            var currencyNames1 = $("#currencyNames option:selected").text();
+            if (ecfdate == null || ecfdate == "") {
+                jAlert("Please Select ECF Date.", "Message"); hideProgress();
+                $("#txtecfdate").focus();
+                return false;
+            }
+            @*if (ecfdate != null && ecfdate != "") {
+                                            if (ecfdate.length == 10) {
+                                                var Student =
+                                                {
+                                                    "ECF_Date": ecfdate
+                                                };
+                                                $.ajax({
+                                                    url: '@Url.Action("checkvalataeemployeeS", "EmployeeClaimNew")?' + new Date().getTime(),
+                                                    data: JSON.stringify(Student),
+                                                    type: 'POST',
+                                                    contentType: 'application/json; charset=utf-8',
+                                                    success: function (data) {
+                                                        if (data == "NotRaise") {
+                                                            jAlert("Employee Can't Raise ECF", "Message");
+                                                            return true;
+                                                        }
+                                                    },
+                                                    error: function (result) {
+                                                        jAlert("Error.", "Error");
+                                                        return false;
+                                                    }
+                                                });
+                                            }
+                                        }*@
+            if (doctypeNames == null || doctypeNames == "0") {
+                jAlert("Please Select Doc Type.", "Message");
+                hideProgress();
+                return false;
+            }
+            if (Suppliercode == null || Suppliercode == "") {
+                jAlert("Please Select Supplier Code.", "Message"); hideProgress();
+                return false;
+            }
+            if (Suppliername == null || Suppliername == "") {
+                jAlert("Please Select Supplier Name.", "Message"); hideProgress();
+                return false;
+            }
+            if (currencyNames1 == null || currencyNames1 == "-- Select --") {
+                jAlert("Please Select Currency.", "Message"); hideProgress();
+                return false;
+            }
+
+            if (exrate == null || exrate == "") {
+                jAlert("Please Enter Currency Rate.", "Message"); hideProgress();
+                return false;
+            }
+            if (ecfcurramount == null || ecfcurramount == "" || ecfcurramount == 0) {
+                jAlert("Please Enter Currency Amount.", "Message"); hideProgress();
+                $("#txtecfamount").focus();
+                return false;
+            }
+
+            var rodio = $("input[name=rblAmort]:checked").val()
+            if (rodio == 'undefined' || rodio == null) {
+                jAlert("Please Select Amort.", "Message"); hideProgress();
+                $("#rblAmort").focus();
+                return false;
+            }
+            else if (rodio == "Yes") {
+                var txtContractFrom = $("#txtAmortfron").val();
+                if (txtContractFrom.trim() == "") {
+                    jAlert("Please Enter Amort From Amount.", "Message"); hideProgress();
+                    return false;
+                }
+                var txtContractFrom = $("#txtAmortto").val();
+                if (txtContractFrom.trim() == "") {
+                    jAlert("Please Enter Amort To Date.", "Message"); hideProgress();
+                    return false;
+                }
+            }
+            if (ecfdescription == null || ecfdescription == "") {
+                jAlert("Please Enter ECF Description.", "Message"); hideProgress();
+                return false;
+            }
+
+        });
+    });
+
+    $(document).ready(function () {
+        $("#txtecfdates").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            minDate: '+id',
+        });
+        //$("#txtecfdates").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    dateFormat: 'dd-mm-yy',
+        //    maxDate: '-id',
+        //    minDate: '+id',
+        //    onSelect: function (selected) {
+        //        $("#txtecfdates").addClass('valid');
+        //    }
+        //});
+    });
+
+    $(document).ready(function () {
+
+        //$("#txtraisercodes").addClass('valid');
+        //$("#txtraisernames").addClass('valid');
+        //$("#txtgrades").addClass('valid');
+        //$("#raisermodeNames").addClass('valid');
+
+        var txtContractFrom = $("#txtecfdates").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdates").addClass('valid');
+        }
+        else {
+            $("#txtecfdates").addClass('required');
+        }
+
+        var txtContractFrom = $("#doctypeNames").val();
+        if (txtContractFrom.trim() != "0") {
+            $("#doctypeNames").addClass('valid');
+        }
+        else {
+            $("#doctypeNames").addClass('required');
+        }
+        var txtContractFrom = $("#txtSuppliercode").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtSuppliercode").addClass('valid');
+        }
+        else {
+            $("#txtSuppliercode").addClass('required');
+        }
+        var txtContractFrom = $("#txtSuppliername").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtSuppliername").addClass('valid');
+        }
+        else {
+            $("#txtSuppliername").addClass('required');
+        }
+
+        var txtContractFrom = $("#currencyNames option:selected").text();
+        if (txtContractFrom.trim() != "-- Select --") {
+            $("#currencyNames").addClass('valid');
+        }
+        else {
+            $("#currencyNames").addClass('required');
+        }
+
+        var txtContractFrom = $("#txtecfcurramount").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfcurramount").addClass('valid');
+        }
+        else {
+            $("#txtecfcurramount").addClass('required');
+        }
+
+        var selmode = $("#raisermodeNames").val();
+        if (selmode.trim() == "C") {
+            $("#txtmodes").text('Central Team');
+        }
+        else if (selmode.trim() == "R") {
+            $("#txtmodes").text('Central Team');
+        }
+        else if (selmode.trim() == "P") {
+            $("#txtmodes").text('Proxy');
+        }
+        else {
+            $("#txtmodes").text('Self');
+        }
+    });
+    $(document).ready(function () {
+        var txtContractFrom = $("#txtecfdates").val();
+        if (txtContractFrom == "") {
+            $('#txtecfdates').datepicker().datepicker('setDate', 'today');
+        }
+        //var txtContractFrom1 = $("#currencyNames option:selected").text();
+        ////var txtContractFrom1 = $("#currencyNames").val();
+        //if (txtContractFrom1 == "-- Select --") {
+        //    $("#currencyNames option:selected").text('INR');
+        //}
+        //var txtContractFromr = $("#txtexrate").val();
+        //if (txtContractFromr == "") {
+        //    $("#txtexrate").val('1.00');
+        //}
+        var curramountid = $("#currencyNames").val();
+        var txtContractFrom1 = $("#currencyNames option:selected").text();
+        if (txtContractFrom1 == "INR") {
+            $("#txtexrate").val('1.00');
+            $("#txtecratehd").val('1.00');
+            $("#CurrencyNamevalid").val('INR');
+            $("#Currencyidvalid").val(curramountid);
+        }
+    });
+    //$(document).ready(function () {
+    //    $("#txtAmortfron").datepicker({
+    //        changeMonth: true,
+    //        changeYear: true,
+    //        dateFormat: 'dd-mm-yy',
+    //        numberOfMonths: 1,
+    //        onSelect: function (selected) {
+    //            $("#txtAmortfron").addClass('valid');
+    //            $("#txtAmortto").datepicker("option", "minDate", selected)
+    //        }
+    //    });
+    //});
+
+    //$(document).ready(function () {
+    //    $("#txtAmortto").datepicker({
+    //        changeMonth: true,
+    //        changeYear: true,
+    //        dateFormat: 'dd-mm-yy',
+    //        numberOfMonths: 1,
+    //        onSelect: function (selected) {
+    //            $("#txtAmortto").addClass('valid');
+    //            $("#txtAmortfron").datepicker("option", "minDate", selected)
+    //        }
+    //    });
+    //});
+
+    $(document).ready(function () {
+        $("#txtAmortfron").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            numberOfMonths: 1,
+            onSelect: function (selected) {
+                $("#txtAmortfron").addClass('valid');
+                $("#txtAmortto").datepicker("option", "minDate", selected);
+            }
+        });
+        $("#txtAmortto").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            numberOfMonths: 1,
+            onSelect: function (selected) {
+                $("#txtAmortto").addClass('valid');
+                $("#txtAmortfron").datepicker("option", "maxDate", selected);
+            }
+        });
+    });
+
+
+    $(document).ready(function () {
+
+
+        $('input[type=radio][name=rblAmort]').change(function () {
+
+            if (this.value == 'Yes') {
+
+                $("#amotrd1").fadeIn();
+                $("#amotrd2").fadeIn();
+                $("#amotrd3").fadeIn();
+
+                var stylesSelect = $('#txtAmortto');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#txtAmortDescriptionid');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#txtAmortfron');
+                stylesSelect.attr('disabled', false);
+                $("#txtAmortfron").addClass('required');
+                $("#txtAmortto").addClass('required');
+            }
+            else {
+
+                $("#amotrd1").fadeOut();
+                $("#amotrd2").fadeOut();
+                $("#amotrd3").fadeOut();
+
+                $("#txtAmortfron").val('')
+                $("#txtAmortto").val('')
+                var stylesSelect = $('#txtAmortfron');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#txtAmortDescriptionid');
+                stylesSelect.attr('disabled', true);
+                var stylesSelect = $('#txtAmortto');
+                stylesSelect.attr('disabled', true);
+                $("#txtAmortfron").removeClass('required');
+                $("#txtAmortto").removeClass('required');
+                $("#txtAmortfron").removeClass('valid');
+                $("#txtAmortto").removeClass('valid');
+            }
+        });
+    });
+
+    $(document).ready(function () {
+        $('#currencyNames').change(function () {
+            $("#txtexrate").val("");
+            $("#txtexrate").remove('valid');
+            $("#txtexrate").addClass('required');
+            $("#txtecfamont").val('');
+            $("#txtecfcurramount").val('');
+            var brandID = $(this).val();
+            var ecfdate = $("#txtecfdates").val();
+
+            var Paymode1 = $("#currencyNames option:selected").text();
+            var Paymodeid = $("#currencyNames").val();
+
+            if (ecfdate == null || ecfdate == "") {
+                jAlert("Please Enter ECF Date.", "Message");
+                $("#txtecfdates").focus();
+                return false;
+            }
+            if (brandID == null || brandID == "0" || brandID == "-- Select --") {
+                return false;
+            }
+            var Student =
+           {
+               "CurrencyName": brandID,
+               "Currencyrate": ecfdate
+           };
+            $.ajax({
+                url: '../SupplierInvoiceNew/Getcurrencyrate/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data != "") {
+                        $("#txtexrate").val(data);
+                        $("#txtecratehd").val(data);
+                        $("#CurrencyNamevalid").val(Paymode1);
+                        $("#Currencyidvalid").val(Paymodeid);
+                        $("#txtexrate").remove('required');
+                        $("#txtexrate").addClass('valid');
+                    }
+                    else {
+                        $("#txtexrate").val("");
+                        $("#txtexrate").remove('valid');
+                        $("#txtexrate").addClass('required');
+                        jAlert(" Please maintain Currency Rate ", "Message");
+                        return false;
+                    }
+                },
+                error: function (result) {
+                    $("#txtexrate").val("");
+                    $("#txtexrate").remove('valid');
+                    $("#txtexrate").addClass('required');
+                    jAlert("Error", "Message");
+                    return false;
+                }
+            });
+        });
+
+        $("#txtecfcurramount,#txtexrate").keyup(function () {
+            var curramountexrate = $("#txtexrate").val();
+            var curramount = $("#txtecfcurramount").val();
+            var curramountnew = curramount.replace(/,/g, "");
+
+            $("#txtecfamont").val('');
+            if (curramountexrate == null || curramountexrate == "") {
+                jAlert("Please Enter Exchange Rate.", "Message");
+                $("#txtexrate").focus();
+                return false;
+            }
+            if (curramount == null || curramount == "") {
+                $("#txtecfamont").val('');
+                return false;
+            }
+            if (curramountnew != null || curramountnew != "" || curramountexrate != null || curramountexrate != "") {
+                //var tol = $('#txtexrate').val() * parseFloat(curramountnew);
+
+                //$('#txtecfamont').val(tol.toFixed(2));
+
+                var currentvalnew = $('#txtexrate').val().replace(/,/g, "") * parseFloat(curramountnew);
+                var currentval = currentvalnew.toFixed(2);
+                var testDecimal = testDecimals(currentval);
+                if (testDecimal.length > 1) {
+                    currentval = currentval.slice(0, -1);
+                }
+                var tolnew = replaceCommas(currentval);
+                $('#txtecfamont').val(tolnew);
+
+            }
+        });
+
+    });
+
+    $(document).ready(function () {
+
+        var txtecfdescriptionh = $("#txtecfdescriptionh").val();
+        if (txtecfdescriptionh.trim() != "") {
+            $("#txtecfdescription").val(txtecfdescriptionh);
+        }
+        $("#txtecfdescriptionh").val('');
+        var txtecfdescription = $("#txtecfdescription").val();
+        if (txtecfdescription.trim() != "") {
+            $("#txtecfdescription").addClass('valid');
+        }
+        else {
+            $("#txtecfdescription").addClass('required');
+        }
+        var txtContractFrom = $("#txtexrate").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtexrate").removeClass('required');
+            $("#txtexrate").addClass('valid');
+        }
+        else {
+            $("#txtexrate").removeClass('valid');
+            $("#txtexrate").addClass('required');
+        }
+
+        var txtContractFrom = $("#txtecfdates").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdates").removeClass('required');
+            $("#txtecfdates").addClass('valid');
+        }
+        else {
+            $("#txtecfdates").removeClass('valid');
+            $("#txtecfdates").addClass('required');
+        }
+        $("#txtecfdates").keyup(function () {
+            var txtContractFrom = $("#txtecfdates").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdates").removeClass('required');
+                $("#txtecfdates").addClass('valid');
+            }
+            else {
+                $("#txtecfdates").removeClass('valid');
+                $("#txtecfdates").addClass('required');
+            }
+        });
+        $("#txtecfdates").change(function () {
+            var txtContractFrom = $("#txtecfdates").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdates").removeClass('required');
+                $("#txtecfdates").addClass('valid');
+            }
+            else {
+                $("#txtecfdates").removeClass('valid');
+                $("#txtecfdates").addClass('required');
+            }
+        });
+
+        $("#txtecfcurramount").keyup(function () {
+            var txtContractFrom = $("#txtecfcurramount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfcurramount").removeClass('required');
+                $("#txtecfcurramount").addClass('valid');
+            }
+            else {
+                $("#txtecfcurramount").removeClass('valid');
+                $("#txtecfcurramount").addClass('required');
+            }
+        });
+        $("#txtecfcurramount").change(function () {
+            var txtContractFrom = $("#txtecfcurramount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfcurramount").removeClass('required');
+                $("#txtecfcurramount").addClass('valid');
+            }
+            else {
+                $("#txtecfcurramount").removeClass('valid');
+                $("#txtecfcurramount").addClass('required');
+            }
+        });
+
+        $("#doctypeNames").keyup(function () {
+            var txtContractFrom = $("#doctypeNames").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#doctypeNames").removeClass('required');
+                $("#doctypeNames").addClass('valid');
+            }
+            else {
+                $("#doctypeNames").removeClass('valid');
+                $("#doctypeNames").addClass('required');
+            }
+        });
+        $("#doctypeNames").change(function () {
+            var txtContractFrom = $("#doctypeNames").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#doctypeNames").removeClass('required');
+                $("#doctypeNames").addClass('valid');
+            }
+            else {
+                $("#doctypeNames").removeClass('valid');
+                $("#doctypeNames").addClass('required');
+            }
+        });
+
+        $("#txtSuppliercode").keyup(function () {
+            var txtContractFrom = $("#txtSuppliercode").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtSuppliercode").removeClass('required');
+                $("#txtSuppliercode").addClass('valid');
+            }
+            else {
+                $("#txtSuppliercode").removeClass('valid');
+                $("#txtSuppliercode").addClass('required');
+            }
+        });
+        $("#txtSuppliercode").change(function () {
+            var txtContractFrom = $("#txtSuppliercode").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtSuppliercode").removeClass('required');
+                $("#txtSuppliercode").addClass('valid');
+            }
+            else {
+                $("#txtSuppliercode").removeClass('valid');
+                $("#txtSuppliercode").addClass('required');
+            }
+        });
+
+        $("#txtSuppliername").keyup(function () {
+            var txtContractFrom = $("#txtSuppliername").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtSuppliername").removeClass('required');
+                $("#txtSuppliername").addClass('valid');
+            }
+            else {
+                $("#txtSuppliername").removeClass('valid');
+                $("#txtSuppliername").addClass('required');
+            }
+        });
+        $("#txtSuppliername").change(function () {
+            var txtContractFrom = $("#txtSuppliername").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtSuppliername").removeClass('required');
+                $("#txtSuppliername").addClass('valid');
+            }
+            else {
+                $("#txtSuppliername").removeClass('valid');
+                $("#txtSuppliername").addClass('required');
+            }
+        });
+
+        $("#currencyNames").keyup(function () {
+            var txtContractFrom = $("#currencyNames option:selected").text();
+            if (txtContractFrom.trim() != "-- Select --") {
+                $("#currencyNames").removeClass('required');
+                $("#currencyNames").addClass('valid');
+            }
+            else {
+                $("#currencyNames").removeClass('valid');
+                $("#currencyNames").addClass('required');
+            }
+        });
+        $("#currencyNames").change(function () {
+            var txtContractFrom = $("#currencyNames option:selected").text();
+            if (txtContractFrom.trim() != "-- Select --") {
+                $("#currencyNames").removeClass('required');
+                $("#currencyNames").addClass('valid');
+            }
+            else {
+                $("#currencyNames").removeClass('valid');
+                $("#currencyNames").addClass('required');
+            }
+        });
+        $("#txtecfdescription").keyup(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+        $("#txtecfdescription").change(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+        var txtContractFrom = $("#currencyNames option:selected").text();
+        if (txtContractFrom.trim() != "-- Select --") {
+            $("#currencyNames").removeClass('required');
+            $("#currencyNames").addClass('valid');
+        }
+        else {
+            $("#currencyNames").removeClass('valid');
+            $("#currencyNames").addClass('required');
+        }
+        var rodio = $("input[name=rblAmort]:checked").val()
+        if (rodio == 'undefined' || rodio == null) {
+            $("#txtAmortfron").removeClass('required');
+            $("#txtAmortto").removeClass('required');
+            $("#txtAmortfron").removeClass('valid');
+            $("#txtAmortto").removeClass('valid');
+        }
+        else if (rodio == "Yes") {
+            var txtContractFrom = $("#txtAmortfron").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtAmortfron").removeClass('required');
+                $("#txtAmortfron").addClass('valid');
+            }
+            else {
+                $("#txtAmortfron").removeClass('valid');
+                $("#txtAmortfron").addClass('required');
+            }
+            var txtContractFrom = $("#txtAmortto").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtAmortto").removeClass('required');
+                $("#txtAmortto").addClass('valid');
+            }
+            else {
+                $("#txtAmortto").removeClass('valid');
+                $("#txtAmortto").addClass('required');
+            }
+        }
+        else if (rodio == "No") {
+            $("#txtAmortfron").removeClass('required');
+            $("#txtAmortto").removeClass('required');
+            $("#txtAmortfron").removeClass('valid');
+            $("#txtAmortto").removeClass('valid');
+        }
+    });
+</script>
+
+<div id="ForPartialViewsupplieradd"></div>
+<script type="text/javascript">
+    var objDialogEmployeeadd;
+    $(document).ready(function () {
+        objDialogEmployeeadd = $("[id$='ForPartialViewsupplieradd']");
+        objDialogEmployeeadd.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'New Supplier ',
+            width: 900,
+            height: 650
+        });
+    });
+
+    function Supplierdetails() {
+        var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime();
+        objDialogEmployeeadd.load(url);
+        objDialogEmployeeadd.dialog({
+            title: 'New Supplier ', width: 900, show: 'fade-in', close: 'fade-out', modal: true, cache: false, autoOpen: false, height: 650
+        });
+        objDialogEmployeeadd.dialog("open");
+    }
+
+    function GotoIndexemp() {
+        objForEmployeeadddatas.dialog("close");
+        //ForEmployeeadddatas.remove();
+        window.parent.jQuery('#ForPartialViewsupplieradd').dialog('close');
+    }
+</script>

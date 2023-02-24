@@ -1,0 +1,173 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferInvoice
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "SIMSummary";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model._TransferInvoice_list,
+                         canPage: true,
+                         rowsPerPage: 20,
+                         canSort: true,
+                         ajaxUpdateContainerId: "InvPrintGrid",
+                         ajaxUpdateCallback: "InvPrintGrid"
+                       );
+}
+<b>
+    <span style="color: rgb(52, 108, 196);"> Transfer Invoice Generation and Printing</span>
+</b>
+@using (Html.BeginForm())
+{
+    <div class="well">
+
+        <div class="row">
+            <div class="col-sm-9">
+
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                    <tr>
+                                                
+                        <td>
+                            <div>
+                                <span>  TOA Number </span>
+                                <br />
+                                <input type="text"
+                                       name="ToaNo"
+                                       id="txttoaNo"
+                                       value="@ViewBag.toaNo"
+                                       class="textboxStyleSearch" maxlength="13" />
+                            </div>
+                        </td>
+                     
+                        <td>
+                            <div>
+                                <span>  TOA Date </span>
+                                <br />
+                                <input type="text"
+                                       name="toaDate"
+                                       id="txttoaDate"
+                                       value="@ViewBag.toaDate"
+                                       class="textboxStyleSearch" readonly="readonly"
+                                       placeholder="dd-mm-yyyy" />
+                            </div>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="Search"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="submit"><span style="color:white;" onclick="refreshpage()" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                        <td>
+                            @if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                        </td>
+
+                        <td style ="width:52%; text-align:right;">
+                            <span> </span>
+                            <br />
+
+                            <button class="btn btn-primary btnprint" type="submit" name="command" value="gen"><span style="color:white;"   class="glyphicon glyphicon-print"></span> Generate and Print</button>
+                        </td>
+                    </tr>
+                </table>
+                
+                      
+                      
+                     
+            </div>
+           
+        </div>
+        <div style="margin-top:10px; width:75%; margin-left:5%" @*overflow-y:scroll;height:550px;*@>
+            @grid.GetHtml(
+                 htmlAttributes: new { id = "InvPrintGrid" },
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                mode: WebGridPagerModes.All,
+                columns: grid.Columns(
+                grid.Column(header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+          grid.Column("_toa_no", obj.Sorter("_toa_no", "TOA Number", grid), style: "MidColumn20"),
+          grid.Column("_toa_date", obj.Sorter("_toa_date", "TOA Date", grid), style: " MidColumn20"),
+         grid.Column("recordcount", obj.Sorter("recordcount", "Record Count", grid), style: " MidColumn10   "),
+          grid.Column("toastatus", obj.Sorter("toastatus", "Status", grid), style: " MidColumn15"),
+                @*grid.Column(style: "col-lg-2 MidColumn20Center", format: @<text> <input type="radio" value="@item._sale_gid" name="ids" /> </text>, header: "{checkall}")))*@
+ grid.Column(style: "MidColumn20Center", format: @<text> <input type="radio" value="@item._toa_gid" name="ids" /> </text>, header: "Select")))
+            <div class="table-bordered btnCenter" align="center">
+                @if (ViewBag.Message != null)
+                {
+                    <b> @ViewBag.Message </b>}
+            </div>
+
+        </div>
+        <br />
+        <span class="myTableStyleTabNew"> Total No Of Records:@Model._TransferInvoice_list.Count()</span>
+    </div>
+}
+<script>
+    function refreshpage() {
+        location = '../TransferInvoiceGenPrt/TIMSummary/';
+    }
+    $("#btnprint").click(function () {
+        // alert();
+        setTimeout(function () { refreshpage() }, 1000);
+    });
+
+     
+    $("#txttoaNo").keypress(function (event) {
+        return isAlphaNumeric(event, this);
+    });
+    
+    $(document).ready(function () {
+        $("#txttDate,#txttoaDate,#txtfDate").datepicker(
+        {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxdate: new Date()
+        });
+        var $radioButtons = $("input:radio");
+        $radioButtons.change(function () {
+            var anyRadioButtonHasValue = false;
+            // iterate through all radio buttons
+            $radioButtons.each(function () {
+                if (this.checked) {
+                    // indicate we found a radio button which has a value
+                    anyRadioButtonHasValue = true;
+
+                    // break out of each loop
+                    return false;
+                }
+            });
+            // check if we found any radio button which has a value
+            if (anyRadioButtonHasValue) {
+                // enable submit button.
+                $("input[value='gen']").removeAttr("disabled");
+            }
+            else {
+                // else is kind of redundant unless you somehow can clear the radio button value
+                $("input[value='gen']").attr("disabled", "");
+            }
+        });
+    });
+    @*function Clearfilled() {
+        $("#txtawbnodetail").val("");
+        $("#txtcourierdetail").val("");
+        $("#txtdespdatedetail").val('@System.DateTime.Now.ToShortDateString()');
+        $("#txtawbnodetail").removeClass('valid');
+        $("#txtawbnodetail").addClass('required');
+        $("#txtcourierdetail").removeClass('valid');
+        $("#txtcourierdetail").addClass('required');
+    }*@
+    function Download() {
+        location = '@Url.Action("downloadsexcel", "QuerySearch")';
+    }
+</script>

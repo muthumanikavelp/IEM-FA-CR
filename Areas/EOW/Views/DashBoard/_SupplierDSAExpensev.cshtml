@@ -1,0 +1,89 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetSuppliserDeditexcel(Session["EcfGid"].ToString(), "S").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<div id="wgTravelmodeotab2">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: false, canPage: false, rowsPerPage: 10, ajaxUpdateContainerId: "wgTravelmodeotab2", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+    <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+        @grid.GetHtml(
+                                          htmlAttributes: new { id = "wgTravelmodeotab2" },
+                                                            tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   grid.Columns(grid.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                                      grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName", "Nature of Expenses", grid), canSort: false, style: "collargeBreak"),
+                                                            grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false, style: "collargeBreak"),
+                                                            grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false, style: "collargeBreak"),
+                                                            grid.Column(header: "GL No", canSort: false, style: "collargeBreak",
+                                            format: @<text>
+                                                                <table id="tblglno" style="width: 155%;">
+                                                                    <tr>
+                                                                        <td>
+                                                                            <label style="font-weight:normal;" id="RefException">@item.Exp_ClaimMonth</label>
+                                                                            @Html.Raw("<a title='view' onclick='EmpExpenseglnot(" + item.TravelMode_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                            </text>),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            grid.Column("FC", objCmnFunctions.Sorter("FC", "FC", grid), canSort: false),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               grid.Column("CC", objCmnFunctions.Sorter("CC", "CC", grid), canSort: false),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               grid.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", grid), canSort: false),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               grid.Column("OUCode", objCmnFunctions.Sorter("OUCode", "OUCode", grid), canSort: false),
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 grid.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", grid), canSort: false)))
+
+
+        @if (@ViewBag.NoRecords == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFound </b>
+                </center>
+            </div>
+        }
+        else
+        {
+            <div>
+                <table style="width:100%">
+                    <tr>
+                        <td align="right">
+                            <span> Total Expence Amount : <b>@objCmnFunctions.GetINRAmount(remamount.ToString()) </b>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        }
+    </div>
+</div>

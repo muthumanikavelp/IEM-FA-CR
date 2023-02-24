@@ -1,0 +1,437 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierDeActvation
+
+@using (Html.BeginForm("SpplierDeActive", "SupplierDeActivationQueue", FormMethod.Post))
+{
+    <div class="well">
+        <table align="center" style="width: 100%;">
+            <tr style="display:none;">
+                <td><span>Supplier HedaerGid :</span></td>
+                <td style="width:10px;"></td>
+                <td>@Html.TextBoxFor(model => model.DSupplierheadergid, new { @class = "textboxStyle", @readonly = "readonly" })</td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-size:12px;">Supplier Code </span><br />
+                    @Html.TextBoxFor(model => model.DSupplierCode, new { @class = "textboxStyle", @readonly = "readonly", @style = "font-size:12px;" })
+                </td>
+                <td style="width:10px;"></td>
+                <td>
+                    <span style="font-size:12px;">Supplier Name </span><br />
+                    @Html.TextBoxFor(model => model.DSupplierName, new { @class = "textboxStyle", @readonly = "readonly", @style = "font-size:12px;" })
+                </td>
+            </tr>
+            <tr style="height:20px;"><td colspan="3"></td></tr>
+            <tr>
+                <td>
+                    <span style="font-size:12px;">Reason for De-activation </span><br />
+                    @Html.TextAreaFor(model => model.DeActiveReason, new { @class = "textboxStyle required", @maxlength = "128", @style = "height:100px;font-size:12px;", @id = "txtDeActivatereason" })
+                    @*<textarea class="form-control" cols="30" rows="4" id="txtDeActivatereason" maxlength="128" name='@Html.NameFor(x=>x.DeActiveReason)' value="@Model.DeActiveReason"> </textarea>*@
+                </td>
+                <td style="width:10px;"></td>
+                <td>
+                    <span style="font-size:12px;">Comments </span><br />
+                    @Html.TextAreaFor(model => model.Decomments, new { @class = "textboxStyle", @maxlength = "128", @style = "height:100px;font-size:12px;", @id = "txtComments" })
+                    @*<textarea class="form-control" cols="30" maxlength="128" rows="4" name='@Html.NameFor(x=>x.Decomments)' value="@Model.Decomments"> </textarea>*@
+                </td>
+            </tr>
+            <tr style="height:20px;"><td></td></tr>
+            <tr>
+                <td colspan="3" align="left">
+                    <span style="font-size:12px;">Attachments </span><br />
+                    <div>
+                        <table>
+                            <tr>
+                                <td>
+                                    @Html.HiddenFor(i => i.FilesToBeUploaded)
+                                </td>
+                            </tr>
+                            <tr>
+
+                                <td>
+                                    <div id="uploaders" style="font-size:12px;">
+
+                                        @if (Model.Dr_status.ToUpper() == "APPROVED" || Model.Dr_status.ToUpper() == "REJECTED" && Model.Dr_status.ToUpper() != "INPROCESS")
+                                        {
+                                            <form id="frmDeactivation">
+                                                @Html.TextBoxFor(m => m.MyFile, new { @id = "fileupsupplier", type = "file" })
+                                            </form>
+
+                                        }                                       
+
+                                        <br />
+                                        <span id="spnFile" style="float: left; color: #FF0000"></span>
+                                        @Html.ValidationMessage("File")
+                                        @Html.Hidden("hdnFileUpload")
+                                    </div>
+                                </td>
+
+
+
+                            </tr>
+
+
+                            <tr>
+                                <td>
+                                    <div class="control-section" style="padding: 0px;">
+                                        <div id="selectedFiles"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    @*<input type="file" id="fuldAttach" class="form-control" multiple="multiple" name='@Html.NameFor(x=>x.AttachFileName)' value="@Model.AttachFileName" />*@
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="width:100%">
+                    <div id="dvAttch" class="table-responsive" style="margin-top:10px;">
+                        @Html.Partial("SupplierAttachmentsDe")
+                    </div>
+                </td>
+            </tr>
+            <tr style="height:20px;"><td></td></tr>
+            @if (Model.Dr_status == "APPROVED" || Model.Dr_status.ToUpper() == "REJECTED" && Model.Dr_status.ToUpper() != "INPROCESS")
+            {
+                <tr>
+                    <td colspan="3" align="center">
+                        <button type="button" name="DEACTIVATE" id="btnDeactivate" onclick="getUserModel()" value="De-Activate" class="btn btn-primary" disabled>De-Activate</button>
+                        <input type="button" name="BACK" onclick="location.href='@Url.Action("SupplierDeActivation", "SupplierDeActivationQueue")'" value="Back" class="btn btn-primary" />
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+}
+
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    //  var nowTemp = new Date();
+    //var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+    @*var d = new Date();
+    var strDate = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+    var files;
+    var storedFiles = [];
+    var upc = 0;
+
+
+
+    $(function () {
+        //alert('hai');
+        $(":file").attr('title', '  ');
+        var $loading = $('#loadingDiv').hide();
+
+        $("input[id^='fileToUpload']").change(function (e) {
+            doReCreate(e);
+        });
+
+        selDiv = $("#selectedFiles");
+    });
+
+
+    function doReCreate(e) {
+        //  alert('hellow');
+        upc = upc + 1;
+        handleFileSelect(e);
+      //  alert('ok');
+        $("input[id^='fileToUpload']").hide();
+
+        $('<input>').attr({
+            type: 'file',
+            multiple: 'multiple',
+            id: 'fileToUpload' + upc,
+            class: 'fUpload',
+            name: 'fileUpload',
+            style: 'float: left',
+            title: '  ',
+            onchange: "doReCreate(event)"
+
+        }).appendTo('#uploaders');
+    }
+
+
+    function handleFileSelect(e) {
+
+        //selDiv.innerHTML = ""; storedFiles = [];
+        // alert('welcome');
+        selDiv = document.querySelector("#selectedFiles");
+        //alert(selDiv);
+        if (!e.target.files) return;
+
+        //selDiv.innerHTML = "";
+        files = e.target.files;
+      //  alert(files);
+
+        for (var i = 0; i < files.length; i++) {
+            // alert('yes');
+            //if (i == 0) { selDiv.innerHTML = ""; storedFiles = []; }
+            var f = files[i];
+            //alert(f.name);
+            //selDiv.innerHTML += "<div>" + f.name + "<a onclick='removeAtt(this)'> Delete </a></div>";
+            storedFiles.push(f.name);
+            var sl = i + 1;
+            //alert(f.name);
+            var rowCount = 1;
+            //function addMoreRows(files) {
+            rowCount++;
+            var recRow = '<div id="rowCount' + sl + '"><tr><td><input name="" value="' + f.name + '" type="text"  maxlength="120" style="margin: 4px 5px 0 5px;"/></td><td><input name="" value="' + strDate + '" type="text" maxlength="120" style="margin: 4px 10px 0 0px;"/></td></tr> <a href="javascript:void(0);" onclick="removeRow(' + sl + ');">Delete</a></div>';
+            jQuery('#selectedFiles').append(recRow);
+        }
+        $('#@Html.IdFor(i => i.FilesToBeUploaded)').val(storedFiles);
+    }
+
+    function removeRow(removeNum) {
+       // alert('hai');
+      //  alert(removeNum);
+        jQuery('#rowCount' + removeNum).remove();
+
+    }
+
+
+
+
+    function removeAtt(t) {
+
+        var serEle = $(t).parent().text().slice(0, -3);
+        var index = storedFiles.indexOf(serEle);
+        if (index !== -1) {
+            storedFiles.splice(index, 1);
+        }
+        $(t).parent().remove();
+
+        $('#@Html.IdFor(i => i.FilesToBeUploaded)').val(storedFiles);
+
+    }*@
+
+    function getUserModel() {
+
+        //  alert($('#txtDeActivatereason').val());
+        var Deactivereson = $('#txtDeActivatereason').val();
+        var Decomm = $('#txtComments').val();
+        var objDe =
+         {
+             DSupplierheadergid: '@Model.DSupplierheadergid',
+             DSupplierCode: '@Model.DSupplierCode',
+             DSupplierName: '@Model.DSupplierName',
+             DeActiveReason: Deactivereson,
+             Decomments: Decomm
+         };
+        $.post('../SupplierDeActivationQueue/SpplierDeActive?' + new Date().getTime(), objDe,
+           function (data) {
+
+               jAlert("Successfully Moved to Supervisory approval!!", "Sucess", function (r) {
+                   if (r == true) { location = '../SupplierDeActivationQueue/SupplierDeActivation?' + new Date().getTime(); }
+               });
+
+           }, 'json');
+
+
+    }
+
+    $(document).ready(function () {
+        //  alert('gdasgh');
+        //$('#txtDeActivatereason').change(function () {
+        //    // alert('hellow');
+        //    // $('#btnactivate').enabled = true;
+        //    $('#btnDeactivate').prop('disabled', false);
+
+
+        //});
+
+        $('#btnDeactivate').click(function () {
+            // alert('error');
+            var DeActivatereason = $('#txtDeActivatereason').val();
+            //  alert(DeActivatereason);
+            if ($('#txtDeActivatereason').val().trim() == '') {
+                jAlert("Please Enter DeActivate Reason", "Error", function () {
+                    $('#txtDeActivatereason').focus();
+                });
+                return false;
+            }
+            showProgress();
+
+        });
+
+        $('#FromDate').change(function () {
+            var dd = $('#FromDate').val();
+            var Todate;
+            var arr = dd.split('-');
+            var TDate = arr[0];
+            var Tmon = arr[1];
+            var NewDate = 0;
+            var i;
+            // alert(TDate);
+            if (TDate == '30' | TDate == '31') {
+                // alert('notok');
+                Tmon = parseInt(Tmon) + 1;
+                TDate = 30;
+                Todate = TDate + '-' + Tmon + '-' + arr[2];
+            }
+            else {
+                for (i = parseInt(TDate) ; i < 31; i++) {
+                    if (i == 30) {
+                        Tmon = parseInt(Tmon) + 1;
+                        NewDate = parseInt(TDate);
+                    }
+                    //NewDate++;
+                }
+                Todate = NewDate + '-' + Tmon + '-' + arr[2];
+                // alert(Todate);
+            }
+
+            $('#Todate').val(Todate);
+            // alert(Todate);
+
+
+        });
+
+
+        $("#txtDeActivatereason").keyup(function () {
+            IsMandatoryDeAct(this);
+        });
+        $("#txtDeActivatereason").change(function () {
+            IsMandatoryDeAct(this);
+        });
+        if ($("#txtDeActivatereason").val().trim() != "" && $("#txtDeActivatereason").val() != null) {
+            $("#txtDeActivatereason").removeClass('required');
+            $("#txtDeActivatereason").addClass('valid');
+            $('#btnDeactivate').removeAttr("disabled");
+        }
+        else {
+            $("#txtDeActivatereason").removeClass('valid');
+            $("#txtDeActivatereason").addClass('required');
+            $('#btnDeactivate').attr("disabled", "disabled");
+        }
+
+
+    });
+
+    function IsMandatoryDeAct(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+            $('#btnDeactivate').removeAttr("disabled");
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+            $('#btnDeactivate').attr("disabled", "disabled");
+        }
+    }
+
+    $('#fileupsupplier').on('change', function (e) {
+
+        //Pandiaraj 12-02-2020 
+        var fileSize = Attachment_size();
+        var f = this.files[0];
+        //here I CHECK if the FILE SIZE is bigger than 8 MB (numbers below are in bytes)
+        if (f.size > fileSize || f.fileSize > fileSize) {
+            jAlert("Allowed file size exceeded. (Max: 8 MB)", "Warning");
+            this.value = null;
+            $('#fileupsupplier').val('');
+        }
+        //Pandiaraj 12-02-2020
+      
+        showProgress();
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        var Attach_list = Attachment_list();
+        var Attachment_fomat = Attached_fileformat();
+        // Get form
+        var fileUpload = $("#fileupsupplier").get(0);
+        var files = fileUpload.files;
+
+        // Create FormData object
+        var fileData = new FormData();
+
+        // Looping over all files and add it to FormData object
+        for (var i = 0; i < files.length; i++) {
+            fileData.append(files[i].name, files[i]);
+        }
+        // If you want to add an extra field for the FormData
+        //  data.append("CustomField", "This is some extra data, testing");
+
+        $.ajax({
+            type: "POST",
+            enctype: 'multipart/form-data',
+            url: '../SupplierDeActivationQueue/SupplierAttachmentsDe?' + '&attach=' + Attach_list + '&attaching_format=' + Attachment_fomat,
+            data: fileData,
+            processData: false,
+            contentType: false,
+            cache: false,
+            dataType: 'json',
+            //    timeout: 600000,
+            success: function (data) {
+                debugger;
+                if (data.isUploaded == true) {
+                    $("#wgAttachmentsupplier").load('../SupplierDeActivationQueue/SupplierAttachmentsDe?' + new Date().getTime());
+                    jAlert('Successfully uploaded');
+                }
+                else {
+                    jAlert('Invalid File format!');
+                }
+                hideProgress();
+
+            },
+            error: function (e) {
+
+                jAlert('Error..' + data.files[0].error);
+
+            }
+        });
+
+    });
+
+
+
+
+
+
+    var jqXHRData;
+
+    /* $(document).ready(function () {
+
+         //  initSimpleFileUpload();
+         initAutoFileUpload();
+         //   initFileUploadWithCheckingSize();
+         //alert('hai');
+
+     });*/
+    /* function initAutoFileUpload() {
+         'use strict';
+         //alert();
+         $('#fileupsupplier').fileupload({
+             autoUpload: true,
+             url: '../SupplierDeActivationQueue/SupplierAttachmentsDe',
+             dataType: 'json',
+             add: function (e, data) {
+                 var jqXHR = data.submit()
+                     .success(function (data, textStatus, jqXHR) {
+                         if (data.isUploaded) {
+
+                         }
+                         else {
+
+                         }
+                         // alert(data.message);
+                         $("#wgAttachmentsupplier").load('../SupplierDeActivationQueue/SupplierAttachmentsDe?' + new Date().getTime());
+                         hideProgress();
+                     })
+                     .error(function (data, textStatus, errorThrown) {
+                         if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                             alert(textStatus + errorThrown + data);
+                         }
+                     });
+             },
+             fail: function (event, data) {
+                 if (data.files[0].error) {
+                     alert(data.files[0].error);
+                 }
+             }
+         });
+
+     }*/
+
+</script>

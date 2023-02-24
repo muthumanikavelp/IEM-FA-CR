@@ -1,0 +1,198 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierActivation
+@using IEM.Common
+@{
+    ViewBag.Title = "ActivationQueue";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //CmnFunctions comm = new CmnFunctions();
+    if (Session["Active"] == "yes")
+    {
+        Session["Active"] = string.Empty;
+        <script language="javascript" type="text/javascript">jAlert('Successfully Submitted', "Message") </script>
+        
+    }
+    //var grid = new WebGrid(canPage: true, canSort: true, rowsPerPage: 10);
+    //grid.Bind(Model.SupplierActiveList, autoSortAndPage: true);
+    //grid.Pager(WebGridPagerModes.All);
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model.SupplierActiveList);
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Activation</span>
+</div>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table width="100%" class="myTableStyleTabNew">
+            <tr>
+                <td style="width:25%">
+                    <span>Supplier Code </span><br />
+                    <input type="text" id="txtSuppliercode" class="textboxStyle" placeholder="SupplierCode" maxlength="20" name="txtSuppliercode" value="@ViewBag.txtSuppliercode" />
+                </td>
+                <td style="width:25%">
+                    <span>Supplier Name </span><br />
+                    <input type="text" id="txtSupplierName" class="textboxStyle" placeholder="SupplierName" style="display: block;" maxlength="150" name="txtSupplierName" value="@ViewBag.txtSupplierName" />
+                </td>
+                <td style="padding-top:20px; width:50%" align="right">
+                    <button type="submit" name="Search" title="Search" id="btnSearch" value="Search" class="btn btn-primary"><span style="color:white" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button type="submit" name="Clear" id="btnClear" title="Refresh" value="Clear" class="btn btn-primary"><span style="color:white" class="glyphicon glyphicon-refresh "></span> Clear</button>
+                </td>
+            </tr>
+            <tr style="display:none;">
+                <td style="display:none">
+                    <span>Supplier Status </span>
+                    <select class="textboxStyle" name="ddlSupplierStatus" id="ddlSupplierStatus" disabled="disabled">
+                        <option value="0">--Select--</option>
+                        <option value="Active">Active</option>
+                        <option value="InActive">In Active</option>
+                    </select>
+                </td>
+                <td>
+                    <span>Request status </span>
+                    <select class="textboxStyle" name="ddlRequestStatus" id="ddlRequestStatus">
+                        <option value="0">--Select--</option>
+                        <option value="Draft">Draft</option>
+                        <option value="In-process">In-process</option>
+                        <option value="Reviewed">Reviewed</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </td>
+                <td>
+                    <span>Supplier Classfication </span>
+                    @Html.DropDownList("ddlSup_Clasification", Model.SupplierClassification, new { @class = "textboxStyle", @id = "ddlSup_Clasification" })
+                </td>
+                <td>
+                    <span>Request Type </span>
+                    <select class="textboxStyle" name="ddlRequestType" id="ddlRequestType">
+                        <option value="0">--Select--</option>
+                        <option value="onboarding">Onboarding</option>
+                        <option value="Renewal">Renewal</option>
+                        <option value="Modification">Modification</option>
+                        <option value="Activation">Activation</option>
+                        <option value="Deactivation">Deactivation</option>
+                    </select>
+                </td>
+                <td style="padding-top:20px;" align="right">
+                    <button type="submit" name="Search" title="Search" id="btnSearch" value="Search" class="btn btn-primary"><span style="color:white" class="glyphicon glyphicon-search"></span>Search</button>
+                    <button type="submit" name="Clear" id="btnClear" title="Refresh" value="Clear" class="btn btn-primary"><span style="color:white" class="glyphicon glyphicon-refresh "></span>Clear</button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered table-hover",
+                htmlAttributes: new { id = "Activequeue" },
+                columns: grid.Columns(
+                    //grid.Column("ActiheaderGid", comm.Sorter("ActiheaderGid", "Supp HeaderGid", grid)),
+                    grid.Column(format: @<input type="hidden" name="ActiheaderGid" value="@item.ActiheaderGid" /> ),
+                    grid.Column("SlNo",format: item => item.WebGrid.Rows.IndexOf(item) + 1, style:"slno"),
+                    grid.Column("SupplierCode", "Supplier Code"),
+                    grid.Column("SupplierName", "Supplier Name", style: "collargeBreak"),
+                    grid.Column("SupplierClassificationName", "Supplier Classfication"),
+                    //grid.Column("RequestTypeName", comm.Sorter("RequestTypeName", "RequestType Name", grid)),
+                    //grid.Column("RequestStatusName", comm.Sorter("RequestStatusName", "RequestStatus Name", grid)),
+                    grid.Column("SupplierStatusName", "Supplier Status"),
+                    //grid.Column("ActivityCount", comm.Sorter("ActivityCount", "Activity Count", grid)),
+                    grid.Column(header: "Action", style: "action",
+                format: @<text>
+                        <a><span onclick="EditProduct(@item.ActiheaderGid)">Activate</span></a>
+                        <a style="display:none"><span onclick="EditProduct(@item.ActiheaderGid)">Proceed</span></a>
+                        @*)*@
+                </text>)))
+        </div>
+        @*if (Model.SupplierActiveList.Count == 0)
+            {
+                <div class="gridMessage">
+                    Record Not found
+                </div>
+            }
+            else
+            {
+                <div class="gridCount">
+                    Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b>
+                    Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>
+                </div>
+            }*@
+    </div>
+}
+<div id="ForPartialView"></div>
+
+<script>
+    $("#Activequeue td:nth-child(1),#Activequeue th:nth-child(1)").hide();
+    $("#Activequeue td:nth-last-child(1)").show();
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            cache: false,
+            width: 967,
+            height: 680
+        });
+
+        $('#Activequeue tr th:nth-child(7)').addClass("nosort");
+        $('#Activequeue').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+    });
+    function NewActivation() {
+        objDialog.load('../SupplierActivationQueue/SupplierActivation?' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Activation' });
+        objDialog.dialog("open");
+    }
+    function EditProduct(id) {
+        // alert(id);
+        objDialog.load('../SupplierActivationQueue/SupplierActivation?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Activation' });
+        objDialog.dialog("open");
+    }
+    $(document).ready(function () {
+
+        //$('#btnSearch').click(function () {
+        //    var supp_code = $('#txtSuppliercode').val();
+        //  var supp_name = $('#txtSupplierName').val();
+        //  var supp_status = $("#ddlSupplierStatus option:selected").text();
+        //  var supp_class = $("#ddlSup_Clasification option:selected").text();
+        //  var Reqstype = $("#ddlRequestType option:selected").text();
+        //  var ReqsStatus = $("#ddlRequestStatus option:selected").text();
+
+        //  if (supp_code == '' && supp_name == '' && supp_status == '--Select--' && supp_class == '--Select--' && Reqstype == '--Select--' && ReqsStatus == '--Select--')
+        // {
+        //     alert('Should be fill anyone filter');
+        //     return false;
+        // }
+
+        //});
+        //var ff = ViewBag.Result;
+        //alert(ff);
+        //if( ff= "success")
+        //{
+        //    jAlert('Successfully Activated',"Message");
+        //}
+
+
+        $('#btnClear').click(function () {
+            // alert('hh');
+            //$('#txtSupplierCode').val('');
+            $('#txtSupplierName').val('');
+            $("#ddlSupplierStatus").val('0');
+            // $("#ddlSup_Clasification").attr('selectedIndex', 0);
+            $("#ddlSup_Clasification").val('0');
+            $("#ddlRequestType").val('0');
+            $("#ddlRequestStatus").val('0');
+            $('#txtSuppliercode').val('');
+            // alert( $('#txtSuppliercode').val())
+
+        });
+
+    });
+</script>

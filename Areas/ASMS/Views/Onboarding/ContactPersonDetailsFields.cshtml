@@ -1,0 +1,217 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierContactPersonDetails
+<div id="cp1">
+    @{
+        //SupDataModel dm = new SupDataModel();
+        //SupplierContactPersonDetails cd = new SupplierContactPersonDetails();
+        //cd.lstDesignation = new SelectList(dm.GetDesignation(), "_DesignationID", "_DesignationName");
+    }
+    <div id="cp2">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:33%">
+                    <input type="hidden" id="SessionSupplierContactPersonGid" name="SessionSupplierContactPersonGid" />
+                    <span>Name</span><br />
+                    <input type="text" name="_SupContactPersonName" id="_SupContactPersonName" class="textboxStyle" />
+                </td>
+                <td style="width:33%">
+                    <span>Designation</span><br />
+                    <input type="text" name="_DesignationName" id="_DesignationName" class="textboxStyle" />
+                    @*@Html.DropDownListFor(j => j.selectedDesignationID, cd.lstDesignation, "--select--", new { @class = "textboxStyle", @id = "selectedDesignationID" })*@
+                </td>
+                <td style="width:33%">
+                    <span>Location</span><br />
+                    <input type="text" name="_SupContactPersonLocation" id="_SupContactPersonLocation" class="textboxStyle" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:33%">
+                    <span>Mobile No</span><br />
+                    <input type="text" name="_SupContactPersonMobileNo" id="_SupContactPersonMobileNo" class="textboxStyle" />
+                </td>
+                <td style="width:33%">
+                    <span>Phone No</span><br />
+                    <input type="text" name="_SupContactPersonPhoneNo" id="_SupContactPersonPhoneNo" class="textboxStyle" />
+                </td>
+                <td style="width:33%">
+                    <span>Email Id</span><br />
+                    <input type="text" name="_SupContactPersonEmailId" id="_SupContactPersonEmailId" class="textboxStyle" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;">
+                    <button onclick="SaveContactPersonDetails()" id="btnSaveContactPersonDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                    <button id="btnClearContactPersonDetails" onclick="ClearContactPersonDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#SessionSupplierContactPersonGid").val("0");
+        $("#_SupContactPersonPhoneNo,#_SupContactPersonMobileNo").keypress(function (event) {
+            return isAlphaNumericWithSingleQuote(event);
+        });
+        $("#_DesignationName").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#_SupContactPersonName").keypress(function (event) {
+            return isAlphaNumericWithSingleQuote(event);
+        });
+        $("#_SupContactPersonLocation").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#_SupContactPersonEmailId").change(function () {
+            if (isValidEmail($("#_SupContactPersonEmailId").val()) == false) {
+                jAlert("Invalid Email Id", "Error", function () {
+                    $("#_SupContactPersonEmailId").focus();
+                });
+
+                return false;
+            }
+        });
+
+      //  $("#selectedDesignationID").addClass('required');
+        $("#_SupContactPersonName").addClass('required');
+
+        $("#_SupContactPersonName").attr("maxlength", "128");
+        $("#_SupContactPersonLocation").attr("maxlength", "64");
+        $("#_SupContactPersonPhoneNo").attr("maxlength", "12");
+        $("#_SupContactPersonMobileNo").attr("maxlength", "10");
+        $("#_SupContactPersonEmailId").attr("maxlength", "128");
+
+        //if ($("#selectedDesignationID").val().trim() != "") {
+        //    $("#selectedDesignationID").removeClass('required');
+        //    $("#selectedDesignationID").addClass('valid');
+        //}
+        //else {
+        //    $("#selectedDesignationID").removeClass('valid');
+        //    $("#selectedDesignationID").addClass('required');
+        //}
+        if ($("#_SupContactPersonName").val().trim() != "") {
+            $("#_SupContactPersonName").removeClass('required');
+            $("#_SupContactPersonName").addClass('valid');
+        }
+        else {
+            $("#_SupContactPersonName").removeClass('valid');
+            $("#_SupContactPersonName").addClass('required');
+        }
+       
+        $("#_SupContactPersonName").keyup(function () {
+            IsMandatoryContactPerson(this);
+        });
+       
+        //$("#selectedDesignationID").change(function () {
+        //    IsMandatoryContactPerson(this);
+        //});
+
+    });
+    function IsMandatoryContactPerson(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function SaveContactPersonDetails() {
+        var cpname = $("#_SupContactPersonName").val();
+        var designation = $("#_DesignationName").val();
+        var cplocation = $("#_SupContactPersonLocation").val();
+        var mobileno = $("#_SupContactPersonMobileNo").val();
+        var phoneno = $("#_SupContactPersonPhoneNo").val();
+        var emailid = $("#_SupContactPersonEmailId").val();
+        var ids = parseInt($("#SessionSupplierContactPersonGid").val());
+        if ($.trim(cpname) == null || $.trim(cpname) == "") {
+            jAlert("Please Enter Contact Person Name.", "Error", function () {
+                $("#_SupContactPersonName").focus();
+            });
+            return false;
+        }
+        //if ($.trim(designation) == "0" || $.trim(designation) == "") {
+        //    jAlert("Please Select Designation.", "Error", function () {
+        //        $("#selectedDesignationID").focus();
+        //    });
+        //    return false;
+        //}
+
+        var objContactPersonDetails = {
+            "_SupContactPersonID": ids,
+            "_SupContactPersonName": cpname,
+            "_DesignationName": designation,
+            "_SupContactPersonLocation": cplocation,
+            "_SupContactPersonMobileNo": mobileno,
+            "_SupContactPersonPhoneNo": phoneno,
+            "_SupContactPersonEmailId": emailid
+           
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateContactPersonDetails", objContactPersonDetails, function (data) {
+                if (data == 0) { return false; } else {
+                    ClearContactPersonDetails();
+                    jAlert("Successfully Inserted", "success"); $("#SessionSupplierContactPersonGid").val("0");
+                    $("#ForContactPersonDetails").load("../onboarding/ContactPersonDetailsIndex?" + new Date().getTime());
+                }
+            },'json' );
+
+        }
+        else {
+            $.post("../Onboarding/EditContactPersonDetailsSave", objContactPersonDetails, function (data) {
+                if (data == 0) { jAlert("Something went wrong.", "Error"); } else {
+                    ClearContactPersonDetails();
+                    jAlert("Successfully Updated", "success"); $("#SessionSupplierContactPersonGid").val("0");
+                    $("#ForContactPersonDetails").load("../onboarding/ContactPersonDetailsIndex?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearContactPersonDetails() {
+        $("#SessionSupplierContactPersonGid").val("0");
+        $("#_SupContactPersonName").val("");
+        $("#_DesignationName").val("");
+        $("#_SupContactPersonLocation").val("");
+        $("#_SupContactPersonMobileNo").val("");
+        $("#_SupContactPersonPhoneNo").val("");
+        $("#_SupContactPersonEmailId").val("");
+        $("#_SupContactPersonName").focus();
+
+      //  $("#selectedDesignationID").removeClass('valid');
+        $("#_SupContactPersonName").removeClass('valid');
+
+      //  $("#selectedDesignationID").addClass('required');
+        $("#_SupContactPersonName").addClass('required');
+    }
+    function SearchContactPersonDetails() {
+        var cpname = $("#_SupContactPersonName").val();
+        var designation = $("#_DesignationName").val();
+        var cplocation = $("#_SupContactPersonLocation").val();
+        var mobileno = $("#_SupContactPersonMobileNo").val();
+        var phoneno = $("#_SupContactPersonPhoneNo").val();
+        var emailid = $("#_SupContactPersonEmailId").val();
+        var ids = parseInt($("#SessionSupplierContactPersonGid").val());
+       
+        var objContactPersonDetails = {
+            "_SupContactPersonID": ids,
+            "_SupContactPersonName": cpname,
+            "_DesignationName": designation,
+            "_SupContactPersonLocation": cplocation,
+            "_SupContactPersonMobileNo": mobileno,
+            "_SupContactPersonPhoneNo": phoneno,
+            "_SupContactPersonEmailId": emailid
+
+        };
+        $.post("../Onboarding/SearchContactPersonDetails", objContactPersonDetails, function (data) {
+            if (data == 0) { return false; } else {
+                $("#SessionSupplierContactPersonGid").val("0");
+                $("#ForContactPersonDetails").load("../onboarding/ContactPersonDetailsIndex?" + new Date().getTime());
+            }
+            }, 'json');
+    }
+</script>
+

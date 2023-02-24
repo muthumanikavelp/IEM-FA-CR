@@ -1,0 +1,150 @@
+﻿@model IEM.Areas.IFAMS.Models.AssetSplitModel
+@using IEM.Common;
+@{
+    int rowval = 0;
+    CmnFunctions cmn =new CmnFunctions();
+    var grid = new WebGrid(source: Model.SplitModel, canPage: false, canSort: false, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "dummyhidefunction()");
+}
+
+@using (Html.BeginForm())
+{
+   <div id="_gridfull">
+    <div class="well">
+
+        <div class="row">
+
+            <div class="col-sm-9">
+
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+
+                    <tr>
+                       @*<td>
+
+                            <div>
+
+                                <span> Aset Description </span>
+                                <br />
+                                <input type="text" name="splitfilterhp" id="txtHpFilter" readonly="readonly" value="@ViewBag.shpfilter" class="textboxStyleSearch" maxlength="20" />
+
+                            </div>
+
+                        </td>*@
+                        <td>
+
+                            <div>
+
+                                <span> Asset ID </span>
+                                <br />
+                                <input type="text" name="splitfilter1hp" id="txtHpFilter1" value="@ViewBag.shpfilter1" class="textboxStyleSearch"  />
+                            </div>
+
+                        </td>
+                        <td>
+
+                           
+
+                            <span></span>
+                            <br />
+
+                            <button class="btn btn-primary" type="button" id="btnsearch" value="SEARCH" onclick="searchhep()"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+                        <td>
+
+                            <span></span>
+                            <br />
+
+                            <button class="btn btn-primary" type="button" id="btnclear" value="Clear" onclick="refresh()" ><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+
+                        </td>
+
+                    </tr>
+
+                </table>
+
+            </div>
+        </div>
+
+         <div   style="margin-top:17px; height:250px; overflow:scroll"  class="overflowx overflowy ">
+
+            @grid.GetHtml(fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive", mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+        grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+        grid.Column("assetdetDetid", cmn.Sorter("assetdetails_assetdet_id", "Asset Id", grid), style: "col-lg-10 MidColumn15Center"),
+        grid.Column(header:"Action", canSort:false, style: "action",
+        format: @<text> 
+                
+             <a title='click here to pick' id="@item.assetdetDetid" onclick='spHel(id)'> <span class='glyphicon glyphicon-ok'> </span></a>
+             
+             </text>)
+            ))
+
+             @if (ViewBag.Message != null)
+             {
+                <div class="table-bordered" align="center">
+                    <b> @ViewBag.Message</b>
+                </div>
+             }
+
+        </div>
+        <br />
+      @* <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records:@grid.TotalRowCount</span>*@
+</div>
+</div>
+}
+
+<script type="text/javascript">
+
+    function spHel(splitfilter1) {
+       //alert(splitfilter1);
+        $('#txtSFilter1').val(splitfilter1);
+        @*$.ajax({
+            type: 'post',
+            url: '@Url.Action("SplitHelp", "AssetSplit")?' + '&' + new Date().getTime(),
+            data: {},
+            success: function () {*@
+                window.parent.jQuery('#splithelp').dialog('close');
+                //return false;
+                $.post('@Url.Action("SplitSummary", "AssetSplit")?splitfilter1=' + splitfilter1 + '&command=SEARCH' + '&' + new Date().getTime());
+            //    alert();
+            //}
+            //});
+    }
+    
+
+    function searchhep()
+    {
+        var splitfilter1hp = $('#txtHpFilter1').val();
+        var splitfilterhp = $('#txtHpFilter').val(); 
+       // alert(splitfilter1hp);
+        // alert(splitfilterhp);
+        showProgress();
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("SplitHelp", "AssetSplit")?splitfilter1hp=' + splitfilter1hp + '&' + 'splitfilterhp=' + '&' + splitfilterhp + '&' + 'command=SEARCH' + '&' + new Date().getTime(),
+            data: {},
+            success: function (data) {
+               
+                $("#_gridfull").empty().append(data);
+                hideProgress();
+            },
+            error: function(){}
+        });
+    }
+
+    function refresh()
+    {
+       // alert('jhsgdfui');
+        $.ajax({
+            url: '@Url.Action("SplitHelp", "AssetSplit")?' + new Date().getTime(),
+            data: {},
+            success: function (data) {
+                $("#_gridfull").empty().append(data);
+
+            },
+            error: function () { }
+        });
+        
+    }
+
+</script>

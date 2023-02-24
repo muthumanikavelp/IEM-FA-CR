@@ -1,0 +1,284 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<script type="text/javascript">
+    var _currDTTab = 0;
+    $(function () {
+        $("#DTtabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Onlien/Memo Rejection Mails</span>
+    </div>
+    <div class="well">
+        <div id="DTtabs" style="font-size:12px;">
+            <ul>
+                <li><a style="font-size: 11px;" href="#tabs-1">Single Update</a></li>
+                <li><a style="font-size: 11px;" href="#tabs-2">Bulk Update</a></li>
+            </ul>
+            <div>
+                <div id="tabs-1">
+                    <table class="myTableStyleTabNew" style="width:100%;">
+                        <tr>
+                            <td width="25%" style="padding: 0px 10px">
+                                <span>Bounce From</span>
+                                <br />
+                                <input type="text"
+                                       id="txtBounceFrom"
+                                       onkeypress="return isEvent(event)"
+                                       maxlength="10"
+                                       class="fstextbox fsDatepicker" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px">
+                                <span>Bounce To</span>
+                                <br />
+                                <input type="text"
+                                       id="txtBounceTo"
+                                       onkeypress="return isEvent(event)"
+                                       maxlength="10"
+                                       class="fstextbox fsDatepicker" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>PayMode</span>
+                                <br />
+                                <select name="ddlPayMode" id="ddlPayMode" class="fstextbox"
+                                        data-bind="options: PaymentModeArray, optionsText: 'Text', optionsValue:'Id', value:0"></select>
+                            </td>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>Amount</span>
+                                <br />
+                                <input type="text"
+                                       id="txtAmount"
+                                       @*onkeypress="return isNumberKey(event)"*@
+                                       maxlength="10"
+                                       class="fstextbox" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>Supplier Code</span>
+                                <br />
+                                <input type="hidden" id="hdfSupplierCode" value="0" />
+                                <input type="text"
+                                       id="txtSupplierCode"
+                                       class="fstextbox" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px">
+                                <span>Supplier Name</span>
+                                <br />
+                                <input type="hidden" id="hdfSupplierName" value="0" />
+                                <input type="text"
+                                       id="txtSupplierName"
+                                       class="fstextbox" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>Employee Code</span>
+                                <br />
+                                <input type="hidden" id="hdfEmpCodeId" value="0" />
+                                <input type="text"
+                                       id="txtEmpCode"
+                                       class="fstextbox" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>Employee Name</span>
+                                <br />
+                                <input type="hidden" id="hdfEmpName" value="0" />
+                                <input type="text"
+                                       id="txtEmpName"
+                                       class="fstextbox" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="25%" style="padding: 0px 10px;"></td>
+                            <td width="25%" style="padding: 0px 10px"></td>
+                            <td width="25%" style="padding: 0px 10px;"></td>
+                            <td width="25%" style="padding: 12px 10px; text-align:right;">
+                                <button class="btn btn-primary" accesskey="q" id="btnsearch" data-bind="click: $root.searchFilter" type="button" style="margin-top:10px;  color:white;">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                                    Search
+                                </button>
+                                <button class="btn btn-primary" accesskey="c" data-bind="click: $root.clearFilter" type="button" style="margin-top:10px;  color:white;">
+                                    <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                                    Clear
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                    <div style="width:100%; overflow:scroll; height:100%; margin-top: 15px; min-height:425px; max-height:450px;" data-bind="visible: EFTRejectionArray().length > 0">
+                        <table id="gvRejectionMails" class="tableSmall table-bordered table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%; min-width:50px;">
+                                        SLNo
+                                    </th>
+                                    <th style="width:10%; min-width:100px;" class="colDate">
+                                        Bounce Date
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Memo No
+                                    </th>
+                                    <th style="width:15%; min-width:120px;">
+                                        Bank Name
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        PV No
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Amount
+                                    </th>
+                                    <th style="width:10%; min-width:150px;">
+                                        Supplier/Employee
+                                    </th>
+                                    <th style="width:22%; min-width:200px;">
+                                        Supplier/Employee Name
+                                    </th>
+                                    <th style="width:8%; min-width:60px;" class="nosort">
+                                        Select
+                                        <input type="checkbox" id="chkHSelete">
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="ContentECF" data-bind="foreach:{ data: EFTRejectionArray, afterRender: DatatableCall }, visible: EFTRejectionArray().length > 0">
+                                <tr>
+                                    <td>
+                                        <span data-bind="text: SlNo"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: BounceDate"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: MemoNo"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: BankName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: PVNo"></span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <span data-bind="text: $root.formatNumber(Amount)"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ClaimType"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: EmployeeSupplierName"></span>
+                                    </td>
+                                    <td style="text-align: center;" class="nosort">
+                                        <input type="checkbox" data-bind="attr: { name: 'chk_'+ PvId, id: 'chk_'+ PvId }, event:{ change:$root.checkChange }" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br />
+                    <div style="width:100%; padding-right:15px; vertical-align:middle; text-align:right;">
+                        <button class="btn btn-success" accesskey="m" id="btnGeneratePayment" data-bind="visible: EFTRejectionArray().length > 0, click: $root.search" type="button" style="margin-top:10px; width:150px; color:white;">
+                            <span style="color:white;" class="glyphicon glyphicon-ok"></span>
+                            Send Email Alert
+                        </button>
+                    </div>
+                    <div style="width:100%; padding:0px; vertical-align:middle ;">
+                        <div id="loadingImg" style="display:none  ; text-align:center;" class="pageHeading">
+                            Mail Sending... Please Wait...
+                        </div>
+                    </div>
+                </div>
+                <div id="tabs-2">
+                    <table class="myTableStyleTabNew" style="width:100%;">
+                        <tr>
+                            <td width="25%" style="padding: 0px 10px">
+                                <span>Bounce Date</span>
+                                <br />
+                                <input type="text"
+                                       id="txtBulkBounceDate"
+                                       onkeypress="return isEvent(event)"
+                                       maxlength="10"
+                                       class="fstextbox fsDatepicker required" />
+                            </td>
+                            <td width="25%" style="padding: 0px 10px;">
+                                <span>PayMode</span>
+                                <br />
+                                <select name="ddlBulkPayMode" id="ddlBulkPayMode" class="fstextbox"
+                                        data-bind="options: PaymentModeArray, optionsText: 'Text', optionsValue:'Id', value:0, optionsCaption:'-Select All-'"></select>
+                            </td>
+                            <td width="50%" style="padding: 12px 10px;">
+                                <button class="btn btn-primary" accesskey="q" id="btnBulksearch" data-bind="click: $root.searchBulkFilter" type="button" style="margin-top:10px;  color:white;">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                                    Search
+                                </button>
+                                <button class="btn btn-primary" accesskey="c" data-bind="click: $root.clearBulk" type="button" style="margin-top:10px;  color:white;">
+                                    <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                                    Clear
+                                </button>
+                            </td>
+                        </tr>
+
+                    </table>
+                    <table class="tableSmall table-bordered table-hover table-responsive" style="width:40%;" data-bind="visible: EFTBulkRejectionArray().length > 0">
+                        <thead>
+                            <tr>
+                                <th style="width:10%; min-width:50px;">
+                                    SLNo
+                                </th>
+                                <th style="width:35%; min-width:100px;">
+                                    Bounce Date
+                                </th>
+                                <th style="width:35%; min-width:120px;">
+                                    Paymode
+                                </th>
+                                <th style="width:20%; min-width:100px;">
+                                    Count
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: EFTBulkRejectionArray, visible: EFTBulkRejectionArray().length > 0">
+                            <tr>
+                                <td align="center">
+                                    <span data-bind="text: SlNo"></span>
+                                </td>
+                                <td align="center">
+                                    <span data-bind="text: BounceDate"></span>
+                                </td>
+                                <td align="left">
+                                    <span data-bind="text: PayMode"></span>
+                                </td>
+                                <td align="center">
+                                    <span data-bind="text: Count"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br />
+                    <div style="width:100%; padding-right:15px; vertical-align:middle; text-align:left ;">
+                        <button class="btn btn-success" accesskey="m" data-bind="visible: EFTBulkRejectionArray().length > 0, click: $root.searchBulk" type="button" style="margin-top:10px; width:150px; color:white;">
+                            <span style="color:white;" class="glyphicon glyphicon-ok"></span>
+                            Send Email Alert
+                        </button>
+                    </div>
+                    <div style="width:100%; padding:0px; vertical-align:middle ;">
+                        <div id="loadingImgBulk" style="display:none  ; text-align:center;" class="pageHeading">
+                            Mail Sending... Please Wait...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    var UrlDet = "@Url.Action("GetSingleRejectionDetails", "EFT")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsRejectionMails.js")" type="text/javascript"></script>

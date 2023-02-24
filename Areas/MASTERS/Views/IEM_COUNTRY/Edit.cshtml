@@ -1,0 +1,251 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_country
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display:none ;">
+                <input name="DocNameID" id="_countrygid" type="text" placeholder="DocName ID" data-val="true" value="@Model.country_gid" />
+
+            </td>
+        </tr>
+       
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Country Code </span>
+                <br />
+                    <input name="DocNameeName" id="_countrycode" @ViewBag.viewmode type="text" maxlength="16" data-val="true"
+                           value="@Model.country_code" class="fstextbox valid" style="display: block;" />
+                
+            </td>
+        </tr>       
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Country Name </span>
+                <br />
+                    <input name="DocNameeName" id="_countryname" @ViewBag.viewmode type="text" maxlength="32" data-val="true"
+                           value="@Model.country_name" class="fstextbox valid " style=" display: block;" />
+                
+            </td>
+        </tr>
+        
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Currency</span>
+                <br />
+                <div id="txtDocGrpName">
+                    @*@Html.DropDownListFor(m => m.selectedcurrency_gid, Model.Getcurrency, Model.currency_name, new { @class = "textboxStyle ", @style = "display: block", @id = "currency_gid" })*@
+                    <select name="depat_gid" id="currency_gid" class="fstextbox chosen-select" @ViewBag.viewmode>
+                        <option value="0">Select</option>
+                        @foreach (var pitem in Model.Getcurrency)
+                        {
+                            var childitemfilter = Model.Getcurrency.Where(m => m.Value == pitem.Value);
+                            if (childitemfilter != null)
+                            {
+                                foreach (var citem in childitemfilter)
+                                {
+                                    string selectedValueddel = "";
+                                    if (Model.selectedcurrency_gid.ToString() == citem.Value)
+                                    {
+                                        selectedValueddel = "selected='selected'";
+                                    }
+                                    <option value="@citem.Value" @selectedValueddel>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+
+                </div>
+            </td>
+        </tr>
+      
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center ;">
+               
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()" style="margin-top:10px;  color:white;">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                        </button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()" style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                    }
+            
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                        </button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                        </button>
+                    }
+            </td>
+        </tr>
+    </table>
+
+
+}
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+        $("#currency_gid").chosen({});
+        $("#currency_gid_chosen").addClass("mychosen").css('width', '100%');
+
+        $("#_countrycode").focus();
+        $("#_countrycode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_countryname").focus();
+        $("#_countryname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+    });
+    $("#_countrycode").keyup(function () {
+        var txtSupplierName = $("#_countrycode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_countrycode").removeClass('required');
+            $("#_countrycode").addClass('valid');
+        }
+        else {
+            $("#_countrycode").removeClass('valid');
+            $("#_countrycode").addClass('required');
+        }
+    });
+    $("#_countryname").keyup(function () {
+        var txtSupplierName = $("#_countryname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_countryname").removeClass('required');
+            $("#_countryname").addClass('valid');
+        }
+        else {
+            $("#_countryname").removeClass('valid');
+            $("#_countryname").addClass('required');
+        }
+    });
+    function Update() {
+
+        var countrycode = $("#_countrycode").val();      
+        var countryname = $("#_countryname").val();      
+        var countrygid = $("#_countrygid").val();       
+        var currencyname = $('#currency_gid').val();       
+      
+        if (countrycode!= "" || countryname!= "" || currencyname!=0) {
+          
+            var CategoryModel = { "country_gid": countrygid, "country_code": countrycode, "country_name": countryname, "selectedcurrency_gid": currencyname };
+
+            $.post('../IEM_COUNTRY/EditCountry', CategoryModel,
+            function (data) {
+               
+                if (data!="success")
+                {
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else
+                {
+                    jAlert("Record Updated Successfully !", "Information", function (r) {
+                        if (r == true) {
+                            window.parent.jQuery('#ForPartialView').dialog('close');
+                            location = '../IEM_COUNTRY/Index';
+                        }
+                    });
+                }          
+               
+
+
+            }, 'json');
+        }
+        
+        
+        
+    }
+    function DeleteType() {
+        var countrygid = $('#_countrygid').val();
+        jConfirm("Do you want to delete this Country ? ", "Delete Country", function (j) {
+            if (j == true) {
+                var model = { "country_gid": countrygid }
+                $.post('../IEM_COUNTRY/DeleteCountry', model,
+                     //function (data) {                        
+                     //    if (data = "Sucess") {
+                     //        jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                     //            if (r = true) { location = '../IEM_COUNTRY/Index'; }
+                     //        });
+                     //    }
+                     //    else {
+                     //        jAlert(data, "Information", function (r) {
+                     //            if (r = true) { location = '../IEM_COUNTRY/Index'; }
+                     //        });
+                     //    }
+                     //}
+                     function (data) {
+                         if (data == "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_COUNTRY/Index'; }
+                             });
+                         }
+                         else {
+                             jAlert(data, "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_COUNTRY/Index'; }
+                             });
+                         }
+                     }
+                     , 'json');
+            }
+        });
+    }
+    $(".ui-icon-closethick").click(function () {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+      //  $('#gridcountry').find('tr').css('background', 'none');
+    });
+    function goToIndex() {
+      //  $('#gridcountry').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>
+
+

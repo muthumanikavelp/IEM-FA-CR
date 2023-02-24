@@ -1,0 +1,189 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.EntityGstvendor>
+@using IEM.Common
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    string IsChecker =@ViewBag.IsChecker;
+    //string IsChecker ="Y";
+    //string EnableData = (IsChecker == "X" ? "disabled" : "");
+    string AddData = (IsChecker == "Y" ? "visible" : "hidden");
+    string EnableData = IsChecker == "Y" ? "visible" : (IsChecker == "N" ? "visible" : "hidden");
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">GST </span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well" style="padding:10px;">
+        <table class="myTableStyleTabNew" style="width:85%;">
+            <tr>
+                <td style="width:50%; padding:0px 10px 0px 3px;">
+                    @*<span> Threshold  </span>
+                    <br />
+                    <input type="text"
+                           name="threshold"
+                           id="txtThreshold"
+                           value="@ViewBag.filter"
+                           class="fstextbox"
+                           maxlength="10" />*@
+
+                </td>
+                <td style="width:50%; padding:0px 10px 0px 3px;">
+                    @*<span> Actuals  </span>
+                    <br />
+                    <input type="text"
+                           name="actuals"
+                           id="txtActuals"
+                           value="@ViewBag.filter1"
+                           class="fstextbox"
+                           maxlength="10" />*@
+
+                </td>
+                 
+                <td style="padding:0px 10px 0px 3px;">
+                    @*<button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                            style="margin-top:20px;color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                    </button>*@
+                </td>
+                <td style="padding:0px 10px 0px 3px;">
+                    @*<button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit"
+                            style="margin-top:20px;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Refresh
+                    </button>*@
+                </td>
+
+                <td style="padding:0px 10px 0px 3px;">
+                    @*<button type="button" formaction="" value="Export Excel" onclick="#" class="btn btn-primary" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-export"></span> Export Excel
+                    </button>*@
+                </td>
+
+                <td style="padding:0px 10px 0px 3px;">
+                    <button type="button" value="New Country" onclick="NewType()" class="btn btn-primary"  style="visibility:@AddData; margin-top:20px;color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span> Add GST
+                    </button>
+                </td>
+            </tr>
+
+        </table>
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+          htmlAttributes: new { id = "gridgstvendor" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        ( 
+                            grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                         grid.Column(header: "GST Registered", columnName: "suppliergst_app"), 
+                            grid.Column(header: "State", columnName: "suppliergst_state"),
+                            grid.Column(header: "GSTIN", columnName: "suppliergst_tin"),
+                            grid.Column(header: "Business Vertical", columnName: "suppliergst_vertical"), 
+                            grid.Column(header: "Action", style: "action", 
+                            format: @<text>            
+                                @Html.Raw("<a style='text-decoration:none;' title='View'  onclick='ViewType(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")         
+                               @if (IsChecker == "N" && item.approved_status == "P")
+                                { 
+                                        @Html.Raw("<a style='text-decoration:none;' title='Edit' " + @EnableData + "  onclick='EditType(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>") 
+                                }
+                                else if (IsChecker == "Y" )
+                                {
+                                    @Html.Raw("<a style='text-decoration:none;' title='Edit' " + @EnableData + "  onclick='EditType(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")  
+                                }              
+                                @*@Html.Raw("<a style='text-decoration:none;' title='Delete'  onclick='DeleteCountry(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")*@
+                            </text>))))
+
+        </div>
+
+    </div>
+} 
+<div id="ForPartialView">
+    
+</div>
+
+<script type="text/javascript">
+        var objDialog;
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilter").focus();
+        });
+
+
+        $('#gridgstvendor tr th:nth-child(5)').addClass("nosort");
+        $('#gridgstvendor').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+        $("#txtFilter").focus();
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter1").focus();
+        $("#txtFilter1").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter2").focus();
+        $("#txtFilter2").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 750,
+            height: 450
+
+        });
+
+
+    });
+
+    function NewType() {
+        objDialog.load('../gstvendor/Create_Vendor');
+        objDialog.dialog({ title: 'Add GST' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function EditType(id) {
+        objDialog.load('../gstvendor/Edit_Vendor?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit GST ' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../gstvendor/Edit_Vendor?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View GST' });
+        objDialog.dialog("open");
+    }
+    
+    function DeleteCountry(id) {
+        objDialog.load('../gstvendor/Edit_Vendor?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Vendor ' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+        ko.utils.postJson(UrlDet + '?ViewType=20&FileName=Country&' + new Date().getTime());
+    }
+
+
+    function refresh() {
+        location = '../GstVendor/Index';
+    }
+    function isEvent(evt) {
+        return false;
+    }
+            </script>

@@ -1,0 +1,203 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "pipsummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lstprSum, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+
+    int rowNum = 0;
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+<head>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <style>
+        .tblstyle tr td {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<b>
+    <span style="color: rgb(52, 108, 196);">PIP/IT Inputs Summary</span>
+</b>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="panel panel-default">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+
+                
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>PR Ref No</span>
+                            <br />
+                        </div>
+
+                        <div>
+                            <input type="text"
+                                   name="txtprrefno"
+                                   id="txtPRrefno"
+                                   value="@ViewBag.txtprrefno"
+                                   class="textboxStyle "
+                                   style="display:block"
+                                   placeholder="Enter PR Ref No" />
+                        </div>
+                    </td>
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>PR Date</span>
+                            <br />
+                        </div>
+
+                        <div>
+                            <input type="text"
+                                   name="txtprdate"
+                                   id="txtPRdate"
+                                   value="@ViewBag.txtprdate"
+                                   class="textboxStyle "
+                                   style="display:block"
+                                   maxlength="10"
+                                   placeholder="Enter PR Date" readonly />
+                        </div>
+                    </td>
+
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>Branch</span>
+                            <br />
+                        </div>
+
+                        <div>
+
+                            @Html.DropDownList("dropBranch", Model.ddlBranch, "--Select Branch--", new { @class = "textboxStyle ", @id = "dropBranch" })
+
+                            @*@Html.DropDownList("dropBranch", Model.ddlBranch, "--Select Branch--", new { @class = "textboxStyleSearch ", @id = "dropBranch" })*@
+
+                        </div>
+                    </td>
+                    <td style="padding-top:30px;">
+                        <div>
+                            <span>
+                                <button  class="btn btn-primary" name="command" type="submit" value="SEARCH" id='btnsearch'><span class="glyphicon glyphicon-search" style="color:white;"></span>Search</button>
+                                @*<button class="glyphicon glyphicon-search" onclick="Type()" style="margin-top:17px;border:none;box-shadow: none;font-size: 1.9em;background-color:rgb(245, 245, 245);;" name="command" type="submit" value="SEARCH" id='btnsearch'></button>*@
+                            </span>
+                        </div>
+
+                    </td>
+                    <td style="padding-top:30px;">
+                        @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:15px;"></span></a>*@
+                        <button id="btnrefresh"  type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-refresh cursorpointer" style="color:white;"></span>Refersh</button>
+                    </td>
+                    <td style="padding-top:30px;">
+                        <button id="btnCancel" type="button" onclick="pipclear()" class="btn btn-primary"><span class="glyphicon glyphicon-remove-circle cursorpointer" style="color:white;"></span>Clear</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+        @if (ViewBag.Message != null)
+        {
+        <div align="center">
+            <label class="control-label">@ViewBag.Message</label>
+        </div>
+        }
+        @if (ViewBag.Error != null)
+        {
+        <div align="center">
+            <label>@ViewBag.Error</label>
+        </div>
+        }
+
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+
+        @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+        //Here I am going to add checkbox column
+        //grid.Column("srNo", "srNo", style: "col-sm-1"),
+                      grid.Column("Prgid", objCmnFunctions.Sorter("Prgid", "Prgid.", grid), style: "MidColumn5"),
+             grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "MidColumn5"),
+               grid.Column("prRefNo", objCmnFunctions.Sorter("prRefNo", "PR Ref No.", grid), style: "MidColumn5"),
+                 grid.Column("prDate", objCmnFunctions.Sorter("prDate", "PR Date", grid), style: "MidColumn5"),
+                  grid.Column("prBranch", objCmnFunctions.Sorter("prBranch", "Branch", grid), style: "MidColumn20"),
+                       grid.Column("prDept", objCmnFunctions.Sorter("prDept", "Department", grid), style: "MidColumn5"),
+                          grid.Column("prDesc", objCmnFunctions.Sorter("prDesc", "Description", grid), style: "MidColumn40"),
+                              grid.Column("prReqFor", objCmnFunctions.Sorter("prReqFor", "Request by", grid), style: "MidColumn10"),
+                            grid.Column("prStatus", objCmnFunctions.Sorter("prStatus", "Status", grid), style: "MidColumn20"),
+
+              grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+
+        <button class="btn btn-link" name="command" onclick="InputsonPr(id)"
+                id="@item.prGid" title="View" type="button">
+            Inputs
+        </button>
+             @*   @Html.Raw("<a data-modal='' href='../PIPInputsOnPR/pipinputsonpr1/" + item.prGid + "' id='" + @item.prGid + "' title='Inputs'> Inputs <span value='Review' name='command' class='btn btn-link'></span> </a>")*@
+
+                    </text>)))
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+    </div>
+
+
+
+    <script type="text/javascript">
+        // will trigger when the document is ready
+        $("#grid td:nth-child(1),#grid th:nth-child(1)").hide();
+        $("#grid td:nth-last-child(1)").show();
+        $(document).ready(function () {
+            $('tfoot a').click(function () {
+
+                $('form').attr('action', $(this).attr('href')).submit();
+
+                return false;
+            });
+            //function dateformat() {
+            //    dateformat: 'dd/mm/yy';
+            //}
+            $("#txtPRdate").datepicker({
+
+                dateFormat: 'dd/mm/yy',
+                maxDate: new Date()
+            });
+            function Type() {
+
+                location = '@Url.Action("PipSummary", "PIPITInputSummary")?'+ new Date().getTime();
+            };
+
+
+        });
+        function InputsonPr(id)
+        {
+            location = '@Url.Action("PipInputsOnPr1", "PIPInputsOnPR")?id=' + id + '&' + new Date().getTime(); 
+        }
+        function refresh() {
+            location = '@Url.Action("PipSummary", "PIPITInputSummary")?'+new Date().getTime();
+        }
+        //    alert('hi');
+        //    location = "../PIPITInputSummary/PipSummary";
+        //}
+        function pipclear()
+        {
+           // $("#dropBranch").val(0);
+            $("#txtPRrefno").val('');
+            $("#txtPRdate").val('');
+        }
+    </script>
+}

@@ -1,0 +1,144 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_expnature>
+            @using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Expense Nature </span>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well" style="padding:10px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                            <div class="input-append">
+                                <span> Expense Name </span>
+                                <br />
+                                <input type="text"
+                                       name="filter_name"
+                                       id="txtFilterName"
+                                       value="@ViewBag.filter_name"
+                                       class="fstextbox "
+                                       autocomplete="off"
+                                       maxlength="64" />
+                            </div>
+                        </td>
+
+                <td style="width:75%; padding:0px 10px 0px 3px;">
+
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                             style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                
+                            
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" 
+                                    type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                       
+                    <button type="button" value="New Expense Cat" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                        <span style="color:white;" class="glyphicon glyphicon-plus"></span> New Expense Nature
+                    </button>
+
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+
+                 </td>
+                    </tr>
+                </table>         
+
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+    htmlAttributes: new { id = "gridexpnature" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+          grid.Column(header: "Expense Name", columnName: "expnature_name"),
+       grid.Column(header: "Travel Mode", columnName: "expnature_istravel"),
+ grid.Column(header: "Active", columnName: "expnature_active"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.expnature_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.expnature_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteExpnature(" + item.expnature_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+        </div>
+           
+       </div>
+}
+<div id="ForPartialView"></div>
+<div id="ForPartialViewfordelete"></div>
+<div id="ForPartialViewforedit"></div>
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilterName").focus();
+        });
+        $('#gridexpnature tr th:nth-child(5)').addClass("nosort");
+        $('#gridexpnature').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+
+        $("#txtFilterName").focus();
+        $("#txtFilterName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });        
+        objDialog = $("[id$='ForPartialView']");       
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width:400
+        });        
+       });
+
+    function NewType() {
+        objDialog.load('../IEM_EXPNATURE/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Expense Nature' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_EXPNATURE/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Expense Nature' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_EXPNATURE/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Expense Nature' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+        ko.utils.postJson(UrlDet + '?ViewType=10&FileName=ExpenseNature&' + new Date().getTime());
+    }
+
+    function DeleteExpnature(id) {
+        objDialog.load('../IEM_EXPNATURE/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Expense Nature' });
+        objDialog.dialog("open");
+        return false;
+    }
+    
+    function refresh() {
+        location = '../IEM_EXPNATURE/Index';
+    }
+</script>

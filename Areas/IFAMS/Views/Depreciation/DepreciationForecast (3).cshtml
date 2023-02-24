@@ -1,0 +1,118 @@
+﻿@model IEM.Areas.IFAMS.Models.Depreciation
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "verificationimport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    DataModel ifdm = new DataModel();
+    var date = ifdm.Format(DateTime.Today.ToShortDateString());
+}
+<b>
+    <span id="spanFinal" style="color: rgb(52, 108, 196);">Depreciation Run-Final</span>
+</b>
+
+    <div class="well">
+
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>
+                        Depreciation Month
+                    </span><span></span><br />
+                    <input type="text" readonly="readonly" class="textboxStyleBig " id="txtmonthpicker" name="txtmonthpicker" />
+                </td>
+            </tr>
+        </table><br />
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <button id="btnpreRun" class="btn btn-primary" value="RunDepreciation" type="submit" onclick="rUN()" name="command"> <span class="glyphicon glyphicon-cog" style="color:white;"></span> Run </button>
+                </td>
+                <td class="myTableStyleTabNew">
+                    <div>
+                        @using (Html.BeginForm())
+                        {
+
+                            <a class="btn btn-primary " style="color:white;" href="../Depreciation/FARDetailedExport" id="reportDownloadExcel">
+                                <span class="glyphicon glyphicon-export" style="color:white;"></span>   Excel
+                            </a>   }
+
+                    </div>
+                </td>                
+                <td>
+                    <button onclick="" class="btn btn-primary" id="btnCleans" name="command" type="button" value="Clear"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+        <div>           
+        </div>
+    </div>
+
+<script type="text/javascript">
+    var nowDate = new Date();
+    var today = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(), 0, 0, 0, 0);
+    $('#txtmonthpicker').val('@date')
+    $("#spanFinal").hide(0);  
+    $(document).ready(function () {
+        $('#txtmonthpicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true, 
+            dateFormat: 'MM-yy',
+            yearRange: new Date().getFullYear().toString() + ':' + (new Date().getFullYear() + 2).toString(),
+           // startdate: today,
+            minDate: new Date(new Date().getYear(), new Date().getMonth() - 1, +1)
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));                
+            }); 
+        });
+    });
+  
+    $("#btnCleans").click(function () {
+        $('#txtmonthpicker').val('@date')
+        $("#btnFianlRun").attr("disabled", true);
+        $("#btnpreRun").attr("disabled", false);
+        $("#spanPre").show();
+        $("#spanFinal").hide(0);
+        $("input[name='FinalCheck']").attr("checked", false);
+    });
+
+    function rUN() {
+        var txtmonthpicker = $("#txtmonthpicker").val();
+        var model = {
+            "_date": txtmonthpicker.trim(),
+        };
+        showProgress();
+        $.post('../Depreciation/DepreciationRunNew?command=ForecasteRun', model,
+            function (data) {
+                if (data == "RAN") {
+                    hideProgress(); 
+                    jAlert("Depreciation ran successfully!", "Information", function (r) {
+                        if (r == true) {
+                            location = '../Depreciation/DepreciationForecast';
+                        }
+                    });
+                }
+                else {
+                    hideProgress();
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) { hideProgress(); return false; }
+                    });
+                    return false;
+                }
+            }, 'json');
+    }
+
+
+   
+   
+
+</script>

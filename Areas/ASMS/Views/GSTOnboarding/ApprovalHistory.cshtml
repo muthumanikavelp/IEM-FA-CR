@@ -1,0 +1,129 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@using System.Data;
+@model IEnumerable<IEM.Areas.ASMS.Models.SupplierHeader>
+@{
+    SupDataModel dm = new SupDataModel();
+    List<SupplierHeader> lst = new List<SupplierHeader>();
+    lst = dm.GetAllRequestHistory().ToList();
+    if (lst.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No records Found";
+    }
+    else
+    {
+        DataTable dt = new DataTable();
+        dt = dm.GetSupplierName(Convert.ToInt32(Session["SupplierHeaderGid"]));
+        ViewBag.Code1 = dt.Rows[0]["supplierheader_suppliercode"].ToString();
+        ViewBag.Name1 = dt.Rows[0]["supplierheader_name"].ToString().ToUpper();
+        if (lst.Count > 0)
+        {
+            ViewBag.nextapprover1 = dt.Rows[0]["nextapprover"].ToString().ToUpper();
+        }
+        ViewBag.NoRecordsFound = "";
+    }
+}
+<div id="wgApprovalHistory">
+    
+        @{
+            var grid = new WebGrid(lst, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgApprovalHistory", ajaxUpdateCallback: "DummyFunction30()");
+            int rowcount = 0;
+        }
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:30%;">
+                    <span>Supplier Code</span><br />
+                    <input type="text" id="txtSupCodeRequestType1" class="textboxStyle" name="txtSupCodeRequestType" disabled value="@ViewBag.Code1">
+                </td>
+                <td style="width:70%;">
+                    <span>Supplier Name</span><br />
+                    <input type="text" id="txtSupNameRequestType" class="textboxStyle" name="txtSupNameRequestType" disabled value="@ViewBag.Name1">
+                    @*<textarea id="txtSupNameRequestType1" style="width:300px;height:20px;" class="textboxStyleMedium80" name="txtSupNameRequestType" disabled>@ViewBag.Name1</textarea>*@
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:100%; text-align:center;"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:100%; text-align:center;">
+                    <label style="font-size:12px;" class="label label-danger">@ViewBag.nextapprover1</label>
+                    @*<span style="color:red;">@ViewBag.nextapprover1</span>*@
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridApprovalHistory" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                        grid.Columns(
+                        grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_ApprovalStage", "Action By", canSort: false),
+                        grid.Column("_ApprovalDate", "Action Date", canSort: false),
+                        grid.Column("_Raiser", "Emp ID-Name", canSort: false),
+                        grid.Column("_OwnerName", "Owner ID-Name", canSort: false),
+                        grid.Column("_RequestType", "Request Type", canSort: false),
+                        grid.Column("_Requeststatus", "Request Status", canSort: false),
+                        grid.Column("_Remarks", "Remarks", canSort: false)))
+        </div>
+    
+    <div style="text-align:right; padding-right:25px; margin-top:10px;" class="divforbutton">
+        <button id="btnPrevApprovalHistory" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-backward"></span> Prev</button>
+    </div>
+</div>
+<script type="text/javascript">
+    $("#btnPrevApprovalHistory").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 8);
+    });
+</script>
+<style>
+    .textboxStyleMedium80a {
+        margin-top: 5px;
+        width: 200%;
+        height: 27px;
+        padding: 4px 8px;
+        font-size: 13px;
+        color: #000;
+        line-height: 1.42857143;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    }
+
+        .textboxStyleMedium80a:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+        }
+
+        .textboxStyleMedium80a::-moz-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+
+        .textboxStyleMedium80a:-ms-input-placeholder {
+            color: #999;
+        }
+
+        .textboxStyleMedium80a::-webkit-input-placeholder {
+            color: #999;
+        }
+
+        .textboxStyleMedium80a[disabled],
+        .textboxStyleMedium80a[readonly],
+        fieldset[disabled] .textboxStyle {
+            cursor: not-allowed;
+            background-color: #eee;
+            opacity: 1;
+        }
+</style>

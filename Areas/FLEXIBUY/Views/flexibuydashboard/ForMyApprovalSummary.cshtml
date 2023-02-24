@@ -1,0 +1,242 @@
+﻿@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    prsummodel objd = new prsummodel();
+    List<flexibuydashboard> lstDashBoard = new List<flexibuydashboard>();
+    if (Session["ForMyApprovalSearch"] != null)
+    {
+        lstDashBoard = (List<flexibuydashboard>)Session["ForMyApprovalSearch"];
+    }
+  
+    if (lstDashBoard == null || lstDashBoard.Count ==0)
+    {
+        ViewBag.IsSearched = "no";
+        if (TempData["type"] != null)
+        {
+             var lstfor = (string)TempData["type"];
+            lstDashBoard = objd.getMyApprovaldetails(lstfor).ToList();
+            lstDashBoard = lstDashBoard.Where(a => a.category.Equals(lstfor)).ToList();
+        }
+      
+    }
+    if (lstDashBoard.Count == 0)
+    {
+        ViewBag.NoRecordsDashBoard = "NoRecords";
+        ViewBag.NoRecordsFoundDashBoard = "No Records Found";
+    }
+
+}
+<div id="ForMyApprovalSummary">
+    @{
+        //var grid = new WebGrid(lstDashBoard, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "ForMyApprovalSummary", ajaxUpdateCallback: "FBForMyApproval()");
+        var grid = new WebGrid(lstDashBoard, canSort: false, canPage: false);
+        int rowcount = 0;
+    }
+    <div class="container">
+        <div class="overflowy">
+            <div>
+                @grid.GetHtml(
+                             htmlAttributes: new { id = "wgridForMyApprovalFB" },
+                             tableStyle: "tableSmall table-bordered",
+                             mode: WebGridPagerModes.All,
+                             columns:
+                             grid.Columns(
+                        //grid.Column("dsno", objCmnFunctions.Sorter("dsno", "SNo", grid), canSort: false),
+                        //grid.Column("dgid", objCmnFunctions.Sorter("dgid", "ID", grid), canSort: false),
+                                 grid.Column("S.No.", format: item => rowcount = rowcount + 1, canSort: false),
+                                      grid.Column("category", objCmnFunctions.Sorter("category", "Doc Type", grid)),
+                                      grid.Column("Doc No.", format: @<text>
+                                        <a onclick="ViewDetailsForMyApproval(id, name, this)" id="@item.dgid" name="@item.statusId" title="Click Here To Approve"><span class="btn btn-link">@item.docNo </span></a>
+                                    </text>),
+                                      //grid.Column("docNo", objCmnFunctions.Sorter("docNo", "Doc No.", grid)),
+                                      grid.Column("ddate", objCmnFunctions.Sorter("ddate", "Doc Date", grid)),
+                                      grid.Column("raiser", objCmnFunctions.Sorter("raiser", "Raiser", grid)),
+                                      grid.Column("description", objCmnFunctions.Sorter("description", "Description", grid)),
+                                      grid.Column("status", objCmnFunctions.Sorter("status", "Status", grid)),
+                                      grid.Column("amount", objCmnFunctions.Sorter("amount", "Amount", grid), style: "amountright"),
+                                      grid.Column(header: "Action Link", canSort: false, style: "action",
+                              format: @<text>
+                                        @*<a title="Select" onclick='ViewDetails(this)'><span class="btn btn-link">Select</span></a>*@
+                                        @*<button class="glyphicon glyphicon-edit" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewDetails(id,value,this)" id="@item.dgid" value="@item.statusId"  title="Edit" type="button"></button>*@
+                                        <a onclick="ViewDetailsForMyApproval(id, name, this)" id="@item.dgid" name="@item.statusId" title="Click Here To Approve"><span class="btn btn-link">Proceed</span></a>
+                            </text>)
+        )
+)
+                @*@if (@ViewBag.NoRecordsDashBoard == "NoRecords")
+                {
+                    <div class="borderStyle">
+                        <center>
+                            @ViewBag.NoRecordsFoundDashBoard
+                        </center>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+                    </div>
+                }*@
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function FBForMyApproval() {
+
+    }
+    $(document).ready(function () {
+        $('#wgridForMyApprovalFB tr th:nth-child(1)').addClass("nosort");
+        $('#wgridForMyApprovalFB tr th:nth-child(9)').addClass("nosort");
+        $('#wgridForMyApprovalFB').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+    function ViewDetailsForMyApproval(id, name, element) {
+         
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var categoryname = tds.eq(1).text();
+        var viewfor = "checker";
+
+        if (categoryname == "PAR") {
+            location = "@Url.Action("Index", "PARNew")?pargid=" + id + "&viewtype=checker&" + new Date().getTime();
+            @*location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor + '&' + new Date().getTime();*@
+        }
+        else if (categoryname == "PO") {
+            if (name == 2) {
+                location = '@Url.Action("POChecker", "PO")/' + id + '/2';
+                @*var objraiser =
+                  {
+                      "podetGid": id,
+                      "viewfor": viewfor
+                      //"dash": dashboard
+                  };
+                $.ajax({
+                    url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                    type: 'GET',
+                    data: objraiser,
+                    success: function (data) {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });*@
+            }
+            else if (name == 4) {
+                location = '@Url.Action("POChecker", "PO")/' + id + '/3';
+                @*var viewfordelmat = "delmat";
+                var objraiser =
+                  {
+                      "podetGid": id,
+                      "viewfor": viewfordelmat
+                      // "dash": dashboard
+                  };
+                $.ajax({
+                    url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                    type: 'GET',
+                    data: objraiser,
+                    success: function (data) {
+                        location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });*@
+            }
+        }
+        else if (categoryname == "WO") {
+
+            if (name == 2) {
+                location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfor + '&' + new Date().getTime();
+                @*var objraiser =
+                           {
+                               "woheadGid": id,
+                               "viewfor": viewfor
+                           };
+                $.ajax({
+                    url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                    type: 'GET',
+                    data: objraiser,
+                    success: function (data) {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });*@
+            }
+            else if (name == 4) {
+                var viewfordelmat = "delmat";
+                location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfordelmat + '&' + new Date().getTime();
+                @*var objraiser =
+                           {
+                               "woheadGid": id,
+                               "viewfor": viewfordelmat
+                           };
+                $.ajax({
+                    url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                    type: 'GET',
+                    data: objraiser,
+                    success: function (data) {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });*@
+            }
+        }
+
+        else if (categoryname == "PR") {
+
+            if (name == 7) {
+                location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=pipinputs&" + new Date().getTime();
+                @*location = ('@Url.Action("pipinputsonpr1", "PIPInputsOnPR")?id=' + id + '&' + new Date().getTime());*@
+            }
+            else if (name == 3) {
+                location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=supervisor&" + new Date().getTime();
+                @*location = ('@Url.Action("index", "Prsupervisior")?id=' + id + '&' + new Date().getTime());*@
+            }
+            else if (name == 4) {
+                location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=delmat&" + new Date().getTime();
+                @*location = ('@Url.Action("DelmateView", "Delmet")?id=' + id + '&' + new Date().getTime());*@
+            }
+        }
+        else if (categoryname == "CBF") {
+
+            if (name == 2) {
+
+                @*location = ('@Url.Action("CbfChck", "CbfCheckerraiser")?lnid=' + id + '&lsviewfor=Checker' + '&' + new Date().getTime());*@
+                location = ('@Url.Action("CBFChecker", "CBF")/' + id + '/2');
+            }
+            else if (name == 4) {
+                @*location = ('@Url.Action("CbfChck", "CbfCheckerraiser")?lnid=' + id + '&lsviewfor=delmat' + '&' + new Date().getTime());*@
+                location = ('@Url.Action("CBFChecker", "CBF")/' + id + '/4');
+            }
+            else {
+
+                @*location = ('@Url.Action("CbfChck", "CbfCheckerraiser")?lnid=' + id + '&lsviewfor=Approval' + '&' + new Date().getTime());*@
+                location = ('@Url.Action("CBFChecker", "CBF")/' + id + '/3');
+            }
+
+        }
+        else if (categoryname == "GRN") {
+
+            location = ('@Url.Action("grnconfirmation", "GRN")?grnheadgid=' + id + '&' + new Date().getTime());
+
+        }
+
+    }
+
+
+</script>
+

@@ -1,0 +1,351 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.PhysicalVerificationAsset
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "VerificationImport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    CmnFunctions obj = new CmnFunctions();
+    //var grid = new WebGrid(
+    //                   source: Model.ImpModel,
+    //                     canPage: true,
+    //                     rowsPerPage: 20,
+    //                     canSort: true,
+    //                     ajaxUpdateContainerId: "grid"
+    //                   );
+    //int id = @grid.PageIndex;
+
+    //int rowVal = 0;
+}
+
+
+<style type="text/css">
+
+    .rcorners2 {
+    border-radius: 25px;
+    border: 2px solid #8AC007;
+    padding: 20px; 
+    width: 600px;
+    height: 210px; 
+    margin-left:255px;
+       
+}
+
+</style>
+
+
+<b>
+    <span style="color: rgb(52, 108, 196);"> Verification Import</span>
+</b>
+<div class="well">
+
+
+    <div id="VerificationImport">
+        
+            <div class="rcorners2">
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+
+                            <span>Financial Year</span>
+                            <br />
+                            @*@Html.DropDownListFor( "--Select--", new { @class = "textboxStyleSearch", @id = "FinancialYear", @name = "FinancialYear" })*@
+
+                            <select class="textboxStyleSearch" id="FinancialYear"> </select>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Select file</span><br />
+                            <form id="uploadforPhysicalAsset">
+                                <input class="textboxStyleSearch" id="fileUploadPhysicalAsset" name="fileUploadPhysicalAsset" type="file" onchange="checkfile(this)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                            </form>
+                        </td>
+
+                        <td>
+                            <span>&nbsp;</span><br />
+                            <div style="font-weight:bold">
+                                <a class="btn" data-modal="" href="../PhysicalVerificationAsset/PhysicalAssetdownloadsexcel" id="DownloadTemplate">
+                                    Download Template
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Select Sheet</span>
+                            <br />
+                            @Html.DropDownListFor(model => model.SheetName, Enumerable.Empty<SelectListItem>(), "-------Select-------", new { @class = "textboxStyleSearch", @id = "ddlSelectsheetName", @name = "ddlSelectsheetName" })
+
+                        </td>
+                        <td>
+                            <span>&nbsp;</span><br />
+                            <button id="btnverificationsubmit" class="btn btn-primary" value="Upload" onclick="VerificationAsset()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>&nbsp;
+
+                            &nbsp;<button id="btncanpayclear" onclick="txtClear()" class="btn btn-warning" value="clear"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Clear</button>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="myTableStyleTabNew" align="center">
+                <tr></tr>
+            </table>
+
+       
+    </div>
+
+
+</div>
+<div id="Uploaddatastatus"></div>
+
+<script type="text/javascript">
+
+    var sheet;
+    var Financialyear;
+
+
+
+
+
+
+    $(document).ready(function () {
+
+
+
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("FinancialYearDrop", "PhysicalVerificationAsset")?' + new Date().getTime(),
+                type: "GET",
+                success: function (data) {
+                    //$("#FinancialYear").empty();
+                    //$("#FinancialYear").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        
+                            var opt = new Option(data[i].FinancialYear, data[i].Fid);
+                            $('#FinancialYear').append(opt);
+                        
+                    }
+                }
+            });
+        });
+
+
+    });
+
+
+
+
+
+    function VerificationAsset() {
+
+
+        if ($("#fileUploadPhysicalAsset").val() == null || $("#fileUploadPhysicalAsset").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+        }
+
+
+        //$('#FinancialYear').select(function () {
+
+
+        //    alert(sheet);
+        //});
+
+        sheet = $("#ddlSelectsheetName option:selected").text();
+        Financialyear = $("#FinancialYear option:selected").text();
+
+
+        if (Financialyear == null || Financialyear == "0" || Financialyear == "-------Select-------") {
+            jAlert("Please select a Financialyear", "Message");
+            $("#FinancialYear").focus();
+            return false;
+        }
+
+        // $('input[type=file]').change(function () {
+        //});
+            var filePath = $('#fileUploadPhysicalAsset').val();
+            
+            if (filePath == "" || filePath == "undefined") {
+                jAlert("Please Select a Excel File to Upload", "Message");
+                $("#fileUploadPhysicalAsset").focus();
+                return false;
+            }
+      
+
+
+        
+        if (sheet == null || sheet == "0" || sheet == "-------Select-------") {
+            jAlert("Please select a sheet", "Message");
+            $("#ddlSelectsheetName").focus();
+            return false;
+        }
+        else {
+
+            var objsheet =
+                 {
+                     "SheetName": sheet,
+                     "FinancialYear": Financialyear
+                 };
+            $.ajax({
+                url: "@Url.Action("Makerupdate", "PhysicalVerificationAsset")?" + new Date().getTime(),
+                type: 'POST',
+                cache: false,
+                data: objsheet,
+                success: function (data) {
+                    if (data == "Success") {
+                        $("#fileUploadPhysicalAsset").val("");
+                        $("#theuploadformtrfma").val('');
+
+                        $("#Uploaddatastatus").dialog({
+                            autoOpen: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+                            width: 350,
+                            height: 300,
+                            resizable: false
+                        });
+                        $("#Uploaddatastatus").load("@Url.Action("Uploadstatus", "PhysicalVerificationAsset")?ddlSelectsheet=" + sheet + '&Financialyear='+Financialyear +'&' + new Date().getTime());
+                        $("#Uploaddatastatus").dialog({ title: 'Upload Summary' });
+                        $("#Uploaddatastatus").dialog("open");
+                    }
+                    else if(data=="Please Select Current Financial Year"){
+                    
+                        jAlert("Please Select Current Financial Year!!!", "Message");
+                        txtClear();
+                        $("#FinancialYear").focus();
+                    }
+                    else {
+                        jAlert(" \tInvalid template." + "\n\t\t" + "   Please refer template.", "Message");
+                        $("#fileUploadPhysicalAsset").val("")
+                        @*window.parent.jQuery('#forAttachment').dialog('close');
+                    objforAttachment.load('@Url.Action("BulkTransfer", "AssetTransfer")?' + new Date().getTime());
+                    objforAttachment.dialog({ title: 'Make Bulk Transfer' });
+                    objforAttachment.dialog("open");*@
+                        txtClear();
+                        return false;
+                    }
+                },
+                error: function () {
+                    jAlert("Please refer template.", "Message");
+                    @*window.parent.jQuery('#forAttachment').dialog('close');
+                    objforAttachment.load('@Url.Action("BulkTransfer", "AssetTransfer")?' + new Date().getTime());
+                    objforAttachment.dialog({ title: 'Make Bulk Transfer' });
+                    objforAttachment.dialog("open");
+                    $("#fileUploadPhysicalAsset").val("")*@
+                    txtClear();
+                    return false;
+                }
+            });
+        }
+    }
+
+
+
+
+
+
+
+
+
+    function checkfile(sender) {
+        var validExts = new Array(".xlsx", ".xls");
+        var fileExt = sender.value;
+        fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+        if (validExts.indexOf(fileExt) < 0) {
+            jAlert("Invalid file selected, valid files are of " +
+                     validExts.toString() + " types.");
+            txtClear();
+
+        }
+        else {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#uploadforPhysicalAsset');
+            form.attr("action", "../PhysicalVerificationAsset/UploadFilesnew");
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#fileUploadPhysicalAsset').val());
+            form.submit();
+            getsheets();
+
+        }
+    }
+
+
+    function getsheets() {
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '../PhysicalVerificationAsset/UploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                $("#ddlSelectsheetName").empty();
+                $("#ddlSelectsheetName").append("<option value='0' >-------Select-------</option>");
+                if (result == "undefined" || result == "") {
+                    jAlert("Please Upload File with Data", "Message");
+                    txtClear();
+                    return false;
+                }
+                else {
+                    var err = result[0].SheetName;
+
+                    if (result.length > 0) {
+                        var stylesSelect = $('#ddlSelectsheetName');
+                        stylesSelect.attr('disabled', false);
+                        for (var i = 0; i < result.length; i++) {
+                            $("#ddlSelectsheetName").append("<option value=" + result[i].SheetId + " >" + result[i].SheetName + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSelectsheetName');
+                        stylesSelect.attr('disabled', true);
+                    }
+
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                jAlert(err, "Error");
+                return false;
+            }
+        });
+    }
+
+
+    function txtClear() {
+
+
+        $('#FinancialYear').val(0);
+
+
+        var fileUpload = $("[id*=fileUploadPhysicalAsset]");
+        var id = fileUpload.attr("id");
+        var name = fileUpload.attr("name");
+
+        //Create a new FileUpload element.
+        var newFileUpload = $("<input type = 'file' class='textboxStyleSearch' onchange='checkfile(this)' accept='.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel' />");
+
+        fileUpload.after(newFileUpload);
+
+        fileUpload.remove();
+
+        newFileUpload.attr("id", id);
+        newFileUpload.attr("name", name);
+
+        $("#ddlSelectsheetName").empty();
+        $("#ddlSelectsheetName").append("<option value='0' >-------Select-------</option>");
+
+    }
+</script>

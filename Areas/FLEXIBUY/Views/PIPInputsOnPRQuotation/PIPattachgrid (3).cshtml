@@ -1,0 +1,90 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@{
+    ViewBag.Title = "PIPattachgrid";
+    int rowcount = 0;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment", ajaxUpdateCallback: "gridattachment()");
+    grid.Pager(WebGridPagerModes.All);
+
+}
+<div class="overflowx" id="gridattachment" style="padding:10px;">
+
+
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered ",
+                    htmlAttributes: new { id = "gridattachmentpip" },
+                    columns: grid.Columns
+                    (
+                    grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                                    grid.Column("attachedDate", Sorter("attachedDate", "Attachment Date", grid)),
+                                    grid.Column("fileName", Sorter("fileName", "File name", grid),
+                                    format: @<text>
+                                        <a title='click here to download' onclick='DownloadPIPAttachment("@item.filename")'>
+                                            @item.filename
+                                        </a></text>),
+                                   grid.Column("description", Sorter("description", "Description", grid)),
+                        grid.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+                            <input type="button" value="Delete" class="btn btn-link" onclick="attachmentDetele(id)" id="@item.filename" title="Delete" />
+            </text>)
+             ))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+
+</div>
+
+
+
+
+
+<script>
+    function DownloadPIPAttachment(filename) {
+        //alert(filename);
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("Downloaded", "PIPInputsOnPRQuotation")?' + new Date().getTime(), prattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../../PIPInputsOnPRQuotation/Download' }
+        }, 'json');
+
+    }
+    function attachmentDetele(filename) {
+
+
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("DeleteAttachmentList", "PIPInputsOnPRQuotation")?'+ new Date().getTime(), prattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+               // location = location.href;
+            }
+            else {
+                jAlert("Record Deleted Successfully.");
+                $('#gridattachmentpip').load('@Url.Action("PIPattachgrid", "PIPInputsOnPRQuotation")?' + new Date().getTime()); 
+            }
+        }, 'json');
+    }
+</script>

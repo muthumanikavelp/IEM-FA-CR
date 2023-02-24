@@ -1,0 +1,352 @@
+﻿@using IEM.Areas.EOW.Models;
+@model IEnumerable<IEM.Areas.EOW.Models.SupClassificationModel>
+<div id="wgnm">
+    @{
+        //ViewBag.Title = "Slab Master";
+        //Layout = null;
+        //WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, ajaxUpdateContainerId: "wg", ajaxUpdateCallback: "HideElements()");
+        //int rowVal = 0;
+        Layout = null;
+        WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, ajaxUpdateContainerId: "wg", ajaxUpdateCallback: "HideElements()");
+        //grid.Bind(Model);
+        int rowVal = 0;
+        
+    }
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span> SlabName </span>
+          <br/>
+                <input name="_ClassificationName"
+                       id="slabname"
+                       type="text"
+                       class="fstextbox valid"
+                        maxlength="50" disabled="disabled"
+                       value="@Session["slabname"]" />
+
+            </td>
+            <td>
+                <input id="SlabRangeParentid"
+                       type="text"
+                       hidden="hidden" value="@Session["slabId"]" />
+
+                <input name="_ClassificationName"
+                       id="SlabRangeGid"
+                       type="text"
+                       class="fstextbox"
+                       hidden="hidden"
+                       value="@Session["slabname"]" />
+
+            </td>
+            @*<td>
+                    <div>
+                        <button type="button" id="SubmitSlabRanges" class="btn btn-primary" value="Save" onclick=""><span class="glyphicon glyphicon-plus" style="color:white;"></span>Add Slab Ranges</button>
+                    </div>
+                </td>*@
+        </tr>
+        <tr>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span id="lblSlabRangeName">Slab Range Name</span>
+                <br />
+                <input type="text"
+                       name="SlabRangeName"
+                       id="SlabRangeName"
+                       value="@ViewBag.SlabRangeName" maxlength="16"
+                       class="fstextbox required"/>
+            </td>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span id="lblSlabRangeFrom">Slab Range From</span>
+                <br />
+                <input type="text"
+                       name="SlabRangeFrom"
+                       id="SlabRangeFrom"
+                       value="@ViewBag.SlabRangeFrom" maxlength="13" 
+                       class="fstextbox required" />
+            </td>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span id="lblSlabRangeTo">Slab Range To</span>
+                <br />
+                <input type="text"
+                       name="SlabRangeTo"
+                       id="SlabRangeTo"
+                       value="@ViewBag.SlabRangeTo" maxlength="13" 
+                       @*onkeypress="return isNumberKey(event)"*@
+                       class="fstextbox required" />
+            </td>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" style="margin-top:20px" onclick="SaveSlab()">
+                <span class="glyphicon glyphicon-floppy-disk" style="color:white; font-size:12px;"></span> Save</button>
+                
+            </td>
+        </tr>
+    </table>
+
+
+    <div class="table-responsive" style="margin-top:10px;" id="gridid">
+        @grid.GetHtml(
+                htmlAttributes: new { id = "gridEmployeeRoleid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+//grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+                                        grid.Column(header: "Slab Range Name", columnName: "Slabrange_Name"),
+                                                          grid.Column(header: "Slab Range From", columnName: "Slabrange_From"),
+                                                 grid.Column(header: "Slab Range To", columnName: "Slabrange_To"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                <input type="hidden" name="Holiday_gid" id="gridSlabrange_Name_@item.Slabrange_Slabgid" value="@item.Slabrange_Name" />
+                                <input type="hidden" name="Holiday_gid" id="gridSlabrange_From_@item.Slabrange_Slabgid" value="@item.Slabrange_From" />
+                                <input type="hidden" name="Holiday_gid" id="gridSlabrange_To_@item.Slabrange_Slabgid" value="@item.Slabrange_To" />
+
+
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='Edit(" + item.Slabrange_Slabgid + "," + item.Slabid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='Deleteedit(" + item.Slabrange_Slabgid + "," + item.Slabid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>)))
+
+    </div>   
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()">
+                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+               
+            </td>
+        </tr>
+    </table>
+    </div>
+
+<script>
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialView1').dialog('close');
+        location.reload();
+    }
+    $("#SlabRangeTo").keyup(function () {
+        var txtSupplierName = $("#SlabRangeTo").val();
+        if (txtSupplierName.trim() != "") {
+            $("#SlabRangeTo").removeClass('required');
+            $("#SlabRangeTo").addClass('valid');
+        }
+        else {
+            $("#SlabRangeTo").removeClass('valid');
+            $("#SlabRangeTo").addClass('required');
+        }
+
+    });
+    $("#SlabRangeFrom").keyup(function () {
+        var txtSupplierName = $("#SlabRangeFrom").val();
+        if (txtSupplierName.trim() != "") {
+            $("#SlabRangeFrom").removeClass('required');
+            $("#SlabRangeFrom").addClass('valid');
+        }
+        else {
+            $("#SlabRangeFrom").removeClass('valid');
+            $("#SlabRangeFrom").addClass('required');
+        }
+
+    });
+    $("#SlabRangeName").keyup(function () {
+        var txtSupplierName = $("#SlabRangeName").val();
+        if (txtSupplierName.trim() != "") {
+            $("#SlabRangeName").removeClass('required');
+            $("#SlabRangeName").addClass('valid');
+        }
+        else {
+            $("#SlabRangeName").removeClass('valid');
+            $("#SlabRangeName").addClass('required');
+        }
+
+    });
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    function Deleteedit(id, parentid)
+    { 
+        var taxModel = {
+            "Slabid": id
+        };
+        jConfirm("Do you want to delete this SlabRange ? ", "Delete SlabRange", function (j) {
+            if (j == true) {
+                $.post('../SlabMaster/Deleteslabrangeedit', taxModel,
+                     function (data) {
+                         if (data != "success") {                            
+                             jAlert(data, "Information");
+                             return false;
+                         } else {
+                             $("#wgnm").load('../SlabMaster/Edit?id=' + parentid + '&viewfor=edit&' + new Date().getTime());
+                         }
+                         //else {
+                         //    window.parent.jQuery('#ForPartialView1').dialog('close');
+                         //    location = '../SlabMaster/Slab';
+                         //}
+                     }, 'json');
+            }
+            else { return false; }
+        });
+    }
+    function Edit(id,parentid)
+    {
+        $("#SlabRangeName").val($("#gridSlabrange_Name_" + id + "").val());
+        $("#SlabRangeFrom").val($("#gridSlabrange_From_" + id + "").val());
+        $("#SlabRangeTo").val($("#gridSlabrange_To_" + id + "").val());
+        $("#SlabRangeGid").val(id);
+        $("#SlabRangeParentid").val(parentid);
+
+        $("#SlabRangeName,#SlabRangeFrom,#SlabRangeTo").removeClass("required").removeClass("valid");
+        $("#SlabRangeName,#SlabRangeFrom,#SlabRangeTo").addClass("valid");
+    }
+    function SaveSlab() {
+        var slabname = document.getElementById('slabname');
+        if (slabname.value == "" || slabname.value == null) {
+            jAlert("Please Enter Slab Name", "Information");
+            return
+        }
+        
+        var SlabParentid = $("#SlabRangeParentid").val();
+        var SlabRangeGid = $("#SlabRangeGid").val();
+        var Slabrange_Name = $("#SlabRangeName").val();
+        var Slabrange_From = $("#SlabRangeFrom").val();
+        var Slabrange_To = $("#SlabRangeTo").val();
+    
+        if (Slabrange_Name == "" || Slabrange_Name == null || Slabrange_From == "" || Slabrange_From == null || Slabrange_To == "" || Slabrange_To == null) {
+            jAlert("You Can't Add Empty Values", "Information");
+            return
+        }
+      
+      //  if (Slabrange_From < Slabrange_To) {
+            var Student = {
+                "Slabrange_Name": Slabrange_Name,
+                "Slabrange_From": Slabrange_From,
+                "Slabrange_To": Slabrange_To,
+                "Slabname": slabname.value,
+                "Slabid": SlabRangeGid
+            };
+        
+            $.ajax({
+                url: '../SlabMaster/SaveSlab/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    isSuccess = result;
+                },
+                error: function (result) {
+                    isSuccess = result;
+                }
+
+            })
+        .done(function () {
+            if (isSuccess == "1") {
+                tr.find('.edit, .display').toggle();
+                jAlert("Successfully Added", "Information", function (r) {
+                    if (r == true) {
+                        //window.parent.jQuery('#ForPartialView1').dialog('close');
+                        $("#wgnm").load('../SlabMaster/Edit?id=' + SlabParentid + '&viewfor=edit&' + new Date().getTime());
+                    }
+                });
+
+            }
+            else if (isSuccess == "EXSIST") {
+                jAlert("Slab Name Already Exists", "Information");
+
+            }
+            else if (isSuccess == "Maxval") {
+                jAlert("from value must be greater then existing max value", "Information", function (r) {
+                    if (r == true) {
+                       
+                    }
+                });
+
+            }
+            else if (isSuccess == "sub") {
+                jAlert("Successfully Saved", "Information", function (r) {
+                    if (r == true) {
+                        $("#wgnm").load('../SlabMaster/Edit?id=' + SlabParentid + '&viewfor=edit&' + new Date().getTime());
+                       //location.reload();
+                    }
+                });
+            }
+            else if (isSuccess == "Can't Insert Less Than Slab To Range") {
+                jAlert("Can't Insert Less Than Slab To Range", "Information", function (r) {
+                    if (r == true) {
+                    }
+                });
+
+            }
+            else if (isSuccess == "Please Enter Correct Flow Range") {
+                jAlert("Please Enter Correct Flow Range", "Information", function (r) {
+                    if (r == true) {
+                    }
+                });
+            }
+            else if (isSuccess == "Slab Range To Value Must Be Greater Then Slab Range From Value") {
+                jAlert("Slab Range To Value Must Be Greater Then Slab Range From Value", "Information", function (r) {
+                    if (r == true) {
+                    }
+                });
+            }
+            else if (isSuccess == "This Slab Range Based On Some Other Delmat Matrix") {
+                jAlert("This Slab Range Based On Some Other Delmat Matrix", "Information", function (r) {
+                    if (r == true) {
+                    }
+                });
+            }
+            else if (isSuccess == "This Slab  Based On Some Other Delmat Matrix") {
+                jAlert("This Slab  Based On Some Other Delmat Matrix", "Information", function (r) {
+                    if (r == true) {
+                    }
+                });
+            }
+        });
+      //  }
+     //  else {
+     //      jAlert("Slab Range To Value Must Be Greater Then Slab Range From Value", "Information");
+    //   }
+    }
+    $(document).ready(function () {
+        $("#SlabRangeFrom").keypress(function (event) {
+            if (event.shiftKey == true) {
+                event.preventDefault();
+            }
+            if ((event.keyCode >= 48 && event.keyCode <= 57) ||
+                //(event.keyCode >= 96 && event.keyCode <= 105) ||
+                event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 37 ||
+                event.keyCode == 39 || event.keyCode == 46 || event.keyCode == 190) {
+            } else {
+                event.preventDefault();
+            }
+            if ($(this).val().indexOf('.') !== -1 && event.keyCode == 190)
+                event.preventDefault();
+            //if a decimal has been added, disable the "."-button
+
+        });
+
+        $("#SlabRangeTo").keypress(function (event) {
+            if (event.shiftKey == true) {
+                event.preventDefault();
+            }
+            if ((event.keyCode >= 48 && event.keyCode <= 57) ||
+                //(event.keyCode >= 96 && event.keyCode <= 105) ||
+                event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 37 ||
+                event.keyCode == 39 || event.keyCode == 46 || event.keyCode == 190) {
+            } else {
+                event.preventDefault();
+            }
+            if ($(this).val().indexOf('.') !== -1 && event.keyCode == 190)
+                event.preventDefault();
+            //if a decimal has been added, disable the "."-button
+
+        });
+
+    });
+</script>

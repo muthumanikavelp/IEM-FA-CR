@@ -1,0 +1,185 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@using System.Data
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetLocalexpdata(Session["EcfGid"].ToString(), "T").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+        ViewBag.NoRecords = "total";
+        Session["EcfamountExcelamt"] = remamount.ToString();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var gridTravelmode = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "wgTravelmodettlocal", ajaxUpdateCallback: "DummyFunction()");
+    int rowValExpense = 0;
+}
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+</style>
+<br />
+<div id="wgTravelmodettlocal">
+    <div class="table-responsive">
+        <div style="max-height: 350px;">
+            @gridTravelmode.GetHtml(
+                        htmlAttributes: new { id = "wgTravelmodettlocal" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   gridTravelmode.Columns(gridTravelmode.Column("S.No", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                             gridTravelmode.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesNames", "Nature of Expenses", gridTravelmode), canSort: false, style: "a"),
+                                                            gridTravelmode.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", gridTravelmode), canSort: false, style: "d"),
+                                                            gridTravelmode.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", gridTravelmode), canSort: false, style: "d"),
+                                                                       gridTravelmode.Column(header: "GL No", canSort: false, style: "c",
+                                            format: @<text>
+                                                                        <table id="tblglno" style="width: 155%;">
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <label style="font-weight:normal;" id="RefException">@item.ClaimMonth</label>
+                                                                                    @Html.Raw("<a title='view' onclick='EmpExpenseglno(" + item.TravelMode_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                            </text>),
+                                      gridTravelmode.Column("raisermodeId", objCmnFunctions.Sorter("raisermodeId", "Employee Code", gridTravelmode), canSort: false, style: "c"),
+                                     gridTravelmode.Column("raisermodeName", objCmnFunctions.Sorter("raisermodeName", "Employee Name", gridTravelmode), canSort: false, style: "d"),
+                    //gridTravelmode.Column("Branch", objCmnFunctions.Sorter("Branch", "Branch", gridTravelmode), canSort: false),
+                    gridTravelmode.Column("ClaimPeriodFrom", objCmnFunctions.Sorter("ClaimPeriodFrom", "From Date", gridTravelmode), canSort: false, style: "c"),
+                    gridTravelmode.Column("ClaimPeriodTo", objCmnFunctions.Sorter("ClaimPeriodTo", "To Date", gridTravelmode), canSort: false, style: "c"),
+                    //gridTravelmode.Column("TravelModeName", objCmnFunctions.Sorter("TravelModeName", "Travel Mode", gridTravelmode), canSort: false),
+                    // gridTravelmode.Column("Rate", objCmnFunctions.Sorter("Rate", "Rate", gridTravelmode), canSort: false),
+                    //          gridTravelmode.Column("Distance", objCmnFunctions.Sorter("Distance", "Distance(Kms)", gridTravelmode), canSort: false),
+                              gridTravelmode.Column("FC", objCmnFunctions.Sorter("FC", "Business Segment(BU)", gridTravelmode), canSort: false, style: "a"),
+                               gridTravelmode.Column("CC", objCmnFunctions.Sorter("CC", "Cost Center(CC)", gridTravelmode), canSort: false, style: "d"),
+                      gridTravelmode.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", gridTravelmode), canSort: false, style: "a"),
+                               gridTravelmode.Column("OUCode", objCmnFunctions.Sorter("OUCode", "Location Code(OUCode)", gridTravelmode), canSort: false, style: "f"),
+                    //gridTravelmode.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", gridTravelmode), canSort: false, style: "colamountlarge"),
+                                              gridTravelmode.Column(header: "Amount",
+                        format: @<text>
+                                                @Html.Raw(String.Format("{0:#,##}",
+                                                 objCmnFunctions.GetINRAmount(Convert.ToString(@item.Amount)
+                        ))) </text>, style: "colamountlarge"),
+                        gridTravelmode.Column(header: "Action", canSort: false, style: "withd",
+                format: @<text>
+                            @Html.Raw("<a title='view' onclick='EmpExpensedetailsView(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+
+                </text>)))
+
+
+            @if (@ViewBag.NoRecords == "NoRecords")
+            {
+                <div class="borderStyle">
+                    <center>
+                        @ViewBag.NoRecordsFound
+                    </center>
+                </div>
+            }
+        </div>
+    </div>
+    @if (@ViewBag.NoRecords == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="left">
+                        Total Records : <label id="lblDirectorCountnew">@gridTravelmode.TotalRowCount</label>
+                    </td>
+                    <td align="right">
+                        <span>
+                            Total Payment Amount : <b>
+                                <label id="lblpayamtgg">
+                                    @objCmnFunctions.GetINRAmount(remamount.ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<style>
+    .c {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .a {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .d {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .f {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+
+    .withd {
+        width: 100px;
+        text-align: center;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        var rowcount = $("#lblDirectorCountnew").text();
+        if (rowcount == "0") {
+            $('#btnfrstsubmit').attr('disabled', false);
+        }
+        else {
+
+        } $('#btnfrstsubmit').attr('disabled', true);
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgTravelmodettlocal tr #id").click(function () {
+            $('#wgTravelmodettlocal').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

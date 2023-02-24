@@ -1,0 +1,209 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CbfSumModel objrep = new CbfSumModel();
+    var grid = new WebGrid();
+    var viewfor = (string)ViewBag.viewfor;
+    int rowcount = 0;
+    if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        if (Model.cbfPrdetarils == null)
+        {   //objDetails = objrep.getprdetail();
+            grid = new WebGrid(source: objDetails.cbfPrdetarils, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid1details", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+        }
+        else
+        {
+            grid = new WebGrid(source: Model.cbfPrdetarils, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid1details", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+        }
+
+    }
+    else
+    {
+        grid = new WebGrid(source: Model.cbfPrdetarils, canSort: false, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid1details", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+
+    }
+}
+<div id="prdetailsgrid">
+    <fieldset>
+        <legend style="border:none;">PR Details</legend>
+        <div>
+            @functions{
+                public static string sorter(string columnname, string columnheader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+                }
+            }
+            @if (grid.HasSelection)
+            {
+
+            }
+
+            <div id="grid_details" style="width:100%;">
+                @if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+                                {
+                                @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                    selectedRowStyle: "selectedrow",
+                    mode: WebGridPagerModes.All,
+                    htmlAttributes: new { id = "grid1details" },
+                    columns: grid.Columns(
+                             grid.Column("Sl", format: item => rowcount = rowcount + 1, canSort: false, style: "prd4"),
+                             grid.Column("productGroup", sorter("productGroup", "Product Group", grid), style: "prd15"),
+                             grid.Column("productCode", sorter("productCode", "Product Code", grid), style: "prd9"),
+                             grid.Column("productName", sorter("productName", "Product Name", grid), style: "prd15"),
+                             grid.Column("productDescription", sorter("productDescription", "Product Description", grid), style: "prd20"),
+                             grid.Column("unit", sorter("unit", "UOM", grid), style: "prd7"),
+                             grid.Column("qty", sorter("qty", "Qty", grid), style: "prd7"),
+                                      grid.Column("rate", sorter("rate", "Rate", grid), style: "prd9 rightAlign"),
+                                      grid.Column("costestimation", sorter("costestimation", "Cost Estimation", grid), style: "prd9 rightAlign")
+                    ))
+                                }
+                                else
+                                {
+                                @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                    selectedRowStyle: "selectedrow",
+                    mode: WebGridPagerModes.All,
+                    htmlAttributes: new { id = "grid1details" },
+                    columns: grid.Columns(
+                             grid.Column("Sl", format: item => rowcount = rowcount + 1, canSort: false, style: "prd4"),
+                             grid.Column("productGroup", sorter("productGroup", "Product Group", grid), style: "prd15"),
+                             grid.Column("productCode", sorter("productCode", "Product Code", grid), style: "prd9"),
+                             grid.Column("productName", sorter("productName", "Product Name", grid), style: "prd15"),
+                             grid.Column("productDescription", sorter("productDescription", "Product Description", grid), style: "prd20"),
+                             grid.Column("unit", sorter("unit", "UOM", grid), style: "prd7"),
+                             grid.Column("qty", sorter("qty", "Qty", grid), style: "prd7"),
+                             grid.Column("rate", sorter("rate", "Rate", grid), style: "prd9 rightAlign"),
+                                      grid.Column("costestimation", sorter("costestimation", "Cost Estimation", grid), style: "prd9 rightAlign"),
+
+                             grid.Column(header: "Action", canSort: false, style: "prd5",
+                    format: @<text>
+                                    <input type="checkbox" href="@item.prdetGid" value="@item.prdetGid" @ViewBag.viewmode class="btn btn-link" name="ids" onchange="searchfunction(value,this)" id="chk_id_@item.prdetGid" title="Select" />
+                    </text>)))
+                                }
+
+            </div>
+            @if (ViewBag.records != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:normal ;">
+                    @ViewBag.records
+                </h6>
+            </div>
+            }
+
+        </div>
+    </fieldset>
+
+
+</div>
+
+
+<script src="~/Scripts/Partial.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#cbf_dev, #inchartofaccount, #inbudgetline").keypress(function (event) {
+            return isNumber(event, this);
+        });
+    });
+    $(document).ready(function () {
+        $('#grid1details tr:has(td)').mouseover(function () {
+            $(this).addClass('row-highlight');
+        });
+        $('#grid1details tr').mouseout(function () {
+            $(this).removeClass('row-highlight');
+        })
+
+    })
+    function searchfunction(value, element) {
+        var row = $(element).closest("tr");
+        var qty = row.find("td:eq(6)").text();
+        var costestimation = row.find("td:eq(8)").text();
+        var unitprise = row.find("td:eq(7)").text();
+        $('#prqty').val(qty);
+        $('#prcostestimation').val(costestimation);
+        $('#unitprise').val(unitprise);
+        $("#grid1details td").find("input:checkbox").each(function () {
+            $('#grid_cbfdetails').show();
+            var id = $(this).attr('href')
+            if (value == id) {
+
+                if ($('#chk_id_' + value + '').is(":checked") == true) {
+                    $(this).closest('tr').css('background', '#ccc');
+
+                    var value1 = value;
+                    var prdegid =
+                    {
+                        "prdetailsGid": value
+                    };
+                    $.ajax({
+                        url: "../CbfRaiserEdit/EditCbfDetails/",
+                        type: 'POST',
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(prdegid),
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#grid_cbfdetails").load("../CbfRaiserEdit/EditCbfDetails?" + new Date().getTime());
+                                $('.display-mode').hide();
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+                    });
+                }
+                else if ($('#chk_id_' + value + '').is(":not(:checked)")) {
+                    $(this).closest('tr').css('background', 'none');
+                    $("#grid2 td").find("span[id=savecol]").each(function () {
+                        $('#grid2').find('tr').css('background', 'none');
+                        return false;
+                    });
+                    var value1 = value
+                    var prdegid =
+                    {
+                        "unchecked12": value1
+                    };
+                    $.ajax({
+                        url: "../CbfRaiserEdit/EditCbfDetails/",
+                        type: 'POST',
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(prdegid),
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#grid_cbfdetails").load("../CbfRaiserEdit/EditCbfDetails?" + new Date().getTime());
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+                    });
+                }
+
+
+            }
+            else {
+               // $(this).closest('tr').css('background', 'none');
+             //   $('#chk_id_' + id + '').attr('checked', false);
+
+            }
+
+        });
+    }
+</script>
+@*}*@
+
+
+

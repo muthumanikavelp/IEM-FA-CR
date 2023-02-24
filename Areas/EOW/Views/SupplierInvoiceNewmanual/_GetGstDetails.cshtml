@@ -1,0 +1,200 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common;
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    decimal remamount = 0;
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.Getgstdetls(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "T").ToList();
+
+
+        if (lst.Count > 0)
+        {
+            Session["gsttotal"] = lst[0].TaxAmt.ToString();
+        }
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].TaxAmt.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].TaxAmt.ToString());
+            }
+        }
+        ViewBag.NoRecordstolp = "total";
+        Session["gsttotal"] = remamount.ToString();
+        
+        ViewBag.invId = Session["invoiceGid"];
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordse = "no";
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+}
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var GridGstDtl = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "PoGstGrid", ajaxUpdateCallback: "DummyFunction()");
+    int rowValExpense = 0;
+}
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+
+    .ce {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 30px;
+        word-wrap: break-word;
+    }
+
+    .ae {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 350px;
+        word-wrap: break-word;
+    }
+
+    .de {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 75px;
+        word-wrap: break-word;
+    }
+
+    .ee {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 100px;
+        word-wrap: break-word;
+    }
+</style>
+<script type="text/javascript">
+    function EditTax1() {
+        alert('ffsdfdsf');
+    }
+
+
+   
+
+</script>
+<div style="width:100%; overflow:auto;" id="PoGstGrid">
+    <div class="table-responsive" style="max-height: 350px;">
+        @GridGstDtl.GetHtml(
+        htmlAttributes: new { id = "PoGstGrid" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        GridGstDtl.Columns(
+                           GridGstDtl.Column("#", canSort: false, style: "ce", format: item => rowValExpense = rowValExpense + 1),
+                                    GridGstDtl.Column("GstApplicable", objCmnFunctions.Sorter("GstApplicable", "GSNApplicable", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("Hsncode", objCmnFunctions.Sorter("Hsncode", "HSN Code", GridGstDtl), canSort: false, style: "de"),
+                           GridGstDtl.Column("HsnDesc", objCmnFunctions.Sorter("HsnDesc", "HSN Description", GridGstDtl), canSort: false, style: "ae"),
+                           GridGstDtl.Column("Subtax", objCmnFunctions.Sorter("Subtax", "Sub Tax", GridGstDtl), canSort: false, style: "ae"),
+                                    GridGstDtl.Column("TaxableAmt", objCmnFunctions.Sorter("TaxableAmt", "Taxable Amount", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("GstRate", objCmnFunctions.Sorter("GstRate", "Rate(%)", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("TaxAmt", objCmnFunctions.Sorter("TaxAmt", "Tax Amount", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column(header: "Action", canSort: false, style: "ce",
+            format: @<text>
+                                       
+                                        @Html.Raw("<a title='Edit' onclick='EditTaxDetails(" + item.InvoiceTaxGid + ");' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+
+            </text>)))
+    </div>
+
+@if (@ViewBag.NoRecordstolp == "total")
+{
+    <div>
+        <table style="width:100%">
+            <tr>
+                <td align="right">
+                    <div align="right">
+                        <span id="supplierpaymentdfr">
+                            Total GST TAX Amount : <b>
+                                <label style="display:none" id="suppliergstd">
+                                    @Session["gsttotal"]
+                                </label>
+                                <label id="suppliergst1">
+                                    @objCmnFunctions.GetINRAmount(@Session["gsttotal"].ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+}
+
+    @*<table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+            <thead>
+                <tr>
+                    <th style="width:10%; min-width:100px;" class="viewForIvoice">
+                        Action
+                    </th>
+                    <th style="width:12%; min-width:130px;">
+                        GSNApplicable
+                    </th>
+                    <th style="width:12%; min-width:120px;">
+                        HSN Code
+                    </th>
+                    <th style="width:20%; min-width:180px;">
+                        HSN Description
+                    </th>
+                    <th style="width:15%; min-width:200px;">
+                        Sub Tax
+                    </th>
+                    <th style="width:13%; min-width:100px;">
+                        Taxable Amount
+                    </th>
+                    <th style="width:8%; min-width:80px;">
+                        Rate(%)
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        Tax Amount
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: { data: GSTInvoiceTaxArray }">
+                <tr>
+                    <td align="center" class="viewForIvoice">
+                        <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer" data-bind="click: $root.ViewGSTTax"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                        @if (IsChecker == "N")
+        {
+        <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: $root.EditGSTTax"> <span class="glyphicon glyphicon-edit"> </span> </span>
+        <span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: $root.DeleteGSTTax"> <span class="glyphicon glyphicon-trash"> </span> </span>
+        @*}
+        </td>
+        <td align="center"><span data-bind="text: GsnApplicable"></span></td>
+        <td><span data-bind="text: HsnCode"></span></td>
+        <td><span data-bind="text: $root.ShortDescription(HsnDescription), attr: { title: HsnDescription }"></span></td>
+        <td><span data-bind="text: TaxSubType"></span></td>
+        <td align="right"><span data-bind="text: TaxableAmt"></span></td>
+        <td><span data-bind="text: Rate"></span></td>
+        <td align="right"><span data-bind="text: TaxAmt"></span></td>
+        </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="8" style="width:100%; padding-left:10px; text-align:left;">
+                    <span style="font-weight: normal;">Total Amount:</span><label data-bind="text: GSTTotalTaxAmt()" style="padding-left:3px;"></label>
+                </th>
+            </tr>
+        </tfoot>
+        </table>*@
+</div>
+

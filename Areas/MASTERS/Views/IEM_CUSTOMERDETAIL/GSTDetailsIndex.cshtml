@@ -1,0 +1,110 @@
+﻿@using IEM.Common
+@using IEM.Areas.MASTERS.Models
+@model  IEM.Areas.MASTERS.Models.EntityGstCustomer
+
+@{
+    CustmerDetail_DataModel dm = new CustmerDetail_DataModel();
+    List<EntityGstCustomer> lst = new List<EntityGstCustomer>();
+    if (lst == null || lst.Count == 0)
+    {
+        lst = dm.getcustomer();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["isFinancialReviewer"] != null)
+    {
+        ViewBag.isFinancialReviewer = (string)Session["isFinancialReviewer"];
+    }
+    else
+    {
+     ViewBag.isFinancialReviewer = "";
+    }
+    //string IsChecker = @ViewBag.IsChecker;
+    ////string IsChecker ="Y";
+    ////string EnableData = (IsChecker == "X" ? "disabled" : "");
+    //string AddData = (IsChecker == "Y" ? "visible" : "hidden");
+    //string EnableData = IsChecker == "Y" ? "visible" : (IsChecker == "N" ? "visible" : "visible");
+
+}
+<div id="ForGSTDetails">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "ForGSTDetails", ajaxUpdateCallback: "DummyFunction9()");
+        int rowVal = 0;
+    }
+    <div class="table-responsive" style="margin-top:10px; width:100%">
+        @grid.GetHtml(
+                htmlAttributes: new { id = "wgridGSTDetails" },
+                         tableStyle: "tableSmall table-bordered table-hover",
+                mode: WebGridPagerModes.All,
+                columns:
+                        grid.Columns(
+                        grid.Column("customergst_gid", objCmnFunctions.Sorter("customergst_gid", "ID", grid), canSort: false),
+                        grid.Column("S.No", style: "slno", format: item => rowVal = rowVal + 1, canSort: false),
+                        grid.Column("customergst_app", objCmnFunctions.Sorter("customergst_app", "Registered", grid), style: "colmedium"),
+                        grid.Column("customergst_state", objCmnFunctions.Sorter("customergst_state", "State", grid), style: "colmedium"),
+                        grid.Column("customergst_tin", objCmnFunctions.Sorter("customergst_tin", "GSTIN", grid), style: "colmedium"),
+                        grid.Column("customergst_vertical", objCmnFunctions.Sorter("customergst_vertical", "Business Vertical", grid), style: "colmedium"),
+                        grid.Column("customergst_status", objCmnFunctions.Sorter("customergst_status", "Status", grid), style: "colmedium"),
+                        grid.Column(header: "Actions", style: "action",
+                format: @<text>
+                            @Html.Raw("<a style='text-decoration:none;' title='View'  onclick='ViewType(" + item.customergst_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                            @Html.Raw("<a style='text-decoration:none;' title='Edit'  onclick='EditType(" + item.customergst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+</div>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#wgridGSTDetails td:nth-child(1),#wgridGSTDetails th:nth-child(1)").hide();
+        $("#wgridGSTDetails td:nth-last-child(1)").show();
+        curpagemode = '@ViewBag.PageMode';
+        if (curpagemode == "2" || curpagemode == "3" || curpagemode == "5") {
+            $("#wgridGSTDetails td:nth-child(8),#wgridGSTDetails th:nth-child(8)").hide();
+           // $("#wgridGSTDetails td:nth-last-child(8)").show();
+        }
+
+    });
+
+    function DummyFunction9() {
+        $("#wgridGSTDetails td:nth-child(1),#wgridGSTDetails th:nth-child(1)").hide();
+        $("#wgridGSTDetails td:nth-last-child(1)").show();
+        if (curpagemode == "2" || curpagemode == "3" || curpagemode == "5") {
+            $("#wgridGSTDetails td:nth-child(8),#wgridGSTDetails th:nth-child(8)").hide();
+        }
+    }
+    function EditType(id) {
+        debugger;
+        objDialog.load('../IEM_CUSTOMERDETAIL/GST_Edit_Customer?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Customer' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_CUSTOMERDETAIL/GST_Edit_Customer?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Customer' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DeleteCountry(id) {
+        objDialog.load('../IEM_CUSTOMERDETAIL/GST_Edit_Customer?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Customer' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+  
+</script>
+

@@ -1,0 +1,127 @@
+﻿@using System.Data
+@using IEM.Areas.MASTERS.Models
+@{
+
+    IEM_MST_DELMAT delm = new IEM_MST_DELMAT();
+    List<iem_mst_delmat> lst = new List<iem_mst_delmat>();
+    DataTable getdelmatexception = new DataTable();
+    getdelmatexception = delm.getdelmatException(Convert.ToString(Session["delmatgid"]));
+    if (getdelmatexception.Rows.Count > 0)
+    {
+        ViewBag.records = null;
+        foreach (DataRow dr in getdelmatexception.Rows)
+        {
+
+            lst.Add(
+            new iem_mst_delmat
+            {
+                // SNo = int.Parse(dr["SNo"].ToString()),
+                delmatexception_name = (dr["employee_name"].ToString()),
+                delmatexception_gid = int.Parse(dr["delmatexception_gid"].ToString()),
+                delmatexception_to = int.Parse(dr["delmatexception_to"].ToString()),
+
+                delmatexception_limit = decimal.Parse(dr["delmatexception_limit"].ToString())
+
+            });
+        };
+    }
+    else
+    {
+        ViewBag.records = "No Records Found";
+    }
+    //lst = delm.getdelmatException(int.Parse(Session["jhj"].ToString ())).ToList();
+    var grid = new WebGrid(lst, canSort: true);
+
+    using (Html.BeginForm())
+    {
+        <div id="gridec">
+            <div class="well" style="padding:10px;">
+
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:0px 10px 0px 3px;">
+                            <b>
+                                <span style="color: rgb(52, 108, 196); font-weight:bold ;">Delmat Exception</span>
+                            </b>
+                        </td>
+                        <td style="width:50%; padding:0px 10px 0px 3px;text-align:right;">
+                            <button type="button" value="Add Exception" id="_Delmatexception" onclick="DelmatExceptionType()"
+                                    class="btn btn-primary">
+                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span> Add Exception
+                            </button>
+                            @*<input type="button" id="_Delmatexception" class="btn btn-primary" value="Add Exception" onclick="DelmatExceptionType()" />*@
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="table-responsive" style="margin-top:10px; max-height: 330px;">
+                    @grid.GetHtml(
+       htmlAttributes: new { id = "wgridAttachment" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+                grid.Column(header: "Employee Name", columnName: "delmatexception_name"),
+             grid.Column(header: "Limit", columnName: "delmatexception_limit"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                    @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.delmatexception_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.delmatexception_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                    @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteTypeep(" + item.delmatexception_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>)))
+                </div>
+
+            </div>
+        </div>
+    }
+
+}
+<div id="ForPartialView"></div>
+<script type="text/javascript">
+    var objDialogexxp;
+    $(document).ready(function () {
+        //$('#wgridAttachment tr th:nth-child(3)').addClass("nosort");
+        //$('#wgridAttachment').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+        objDialogexxp = $("[id$='ForPartialView']");
+        objDialogexxp.dialog({
+            autoOpen: false,
+            modal: true
+        });
+    });
+
+    function DelmatExceptionType() {
+
+        objDialogexxp.load('../IEM_DELMAT/AddDelmatException');
+        objDialogexxp.dialog({
+            title: 'Add New Delmat Exception',
+            height: 220
+        });
+        objDialogexxp.dialog("open");
+        return false;
+    }
+    function DeleteTypeep(id) {
+
+        objDialogexxp.load('../IEM_DELMAT/Edit?id=' + id + '&viewfor=Delete');
+        objDialogexxp.dialog({ title: 'Delete Delmat Exception' });
+        objDialogexxp.dialog("open");
+        return false;
+    }
+    function EditType(id) {
+        objDialogexxp.load('../IEM_DELMAT/Edit?id=' + id + '&viewfor=edit');
+        objDialogexxp.dialog({ title: 'Edit Delmat Exception' });
+        objDialogexxp.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+
+        objDialogexxp.load('../IEM_DELMAT/Edit?id=' + id + '&viewfor=view');
+        objDialogexxp.dialog({ title: 'View Delmat Exception' });
+        objDialogexxp.dialog("open");
+        return false;
+    }
+
+</script>

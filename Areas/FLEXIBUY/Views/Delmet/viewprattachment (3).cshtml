@@ -1,0 +1,101 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+           @using IEM.Areas.FLEXIBUY.Models
+@{
+    var grid = new WebGrid();
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit" || viewfor=="clone")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    PrSumEntity obj = new PrSumEntity();
+    prsummodel objrep = new prsummodel();
+    obj.attachment = objrep.getattachmentdetails(Convert.ToString(Session["prgid"]), "PR");
+    grid = new WebGrid(source: obj.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment", ajaxUpdateCallback: "grid()");
+
+}
+
+
+    
+        <div id="createsupattachment" class="borderstyle panel panel-default">
+
+        </div>
+
+        <div class=" panel panel-default" id="gridattachment1">
+
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                          mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("S.no", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="button" disabled="disabled" value="Delete" class="btn btn-link" id="@item.attachGid" @ViewBag.viewmode title="Delete" onclick="attachmentDetele(id)" />
+                </text>)))
+
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@grid.TotalRowCount</span>
+    
+
+<script>
+    $(document).ready(function () {
+        if ('@ViewBag.viewmode' == 'disabled') {
+            $('#createsupattachment').hide(0);
+            $('#createsupattachmenttable').hide(0);
+            
+        }
+
+    });
+   
+
+
+    function back() {
+        window.parent.jQuery('#viewboqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+    }
+    function DownloadSupAttachment(filename) {
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("DownloadDocument", "PRRaiser")', supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                
+            } else { window.location = '@Url.Action("Download", "PRRaiser")' }
+        }, 'json');
+    }
+   
+</script>

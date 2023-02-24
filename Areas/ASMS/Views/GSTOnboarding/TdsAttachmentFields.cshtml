@@ -1,0 +1,314 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+
+@{
+    SupDataModel dm = new SupDataModel();
+    SupplierTaxDetails objSubAttachment = new SupplierTaxDetails();
+    objSubAttachment.lstTdsDocumentName = new SelectList(dm.GetDocumentNameAll(), "_DocumentNameID", "_DocumentName");
+
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+
+<div id="createtdsattachment">
+
+    <table class="myTableStyleTabpopup">
+        <tr>
+            <td>
+                <span>Document Name</span> <br />
+                @Html.DropDownListFor(n => n.selectedTdsDocumentNameID, objSubAttachment.lstTdsDocumentName, "-- Select --", new { @class = "textboxStyle", @id = "selectedTdsDocumentNameID" })
+            </td>
+            <td>
+                <input type="hidden" name="_TdsAttachmentID" id="_TdsAttachmentID" />
+                <span>Document Group</span><br />
+                @Html.DropDownListFor(n => n.selectedTdsDocumentGroupID,Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "textboxStyle", @id = "selectedTdsDocumentGroupID" })
+            </td>
+           
+            <td style="vertical-align:top;max-width:100px;">
+                <span>Select File</span><br />
+                <form id="theuploadform1">
+                    <input type="file" name="UploadFile" id="txtUploadTdsAttachmentFile" class="txtUploadTdsAttachmentFile" />
+                </form>
+                    @*<span>Document Date</span> <br />
+            <input name="_SupAttachDateCreate" class="textboxStyle" id="_SupAttachDateCreate" title="Document Date" type="text"  />*@
+</td>
+        </tr>
+        <tr>
+            <td>
+                <span>File Name</span> <br />
+                <input name="_TdsAttachedFileNameCreate" disabled id="_TdsAttachedFileNameCreate" class="textboxStyle" title="File Name" type="text" />
+            </td>
+            <td colspan="2">
+                <span>Description</span> <br />
+                <input name="_TdsAttachDescriptionCreate" id="_TdsAttachDescriptionCreate" class="textboxStyle" title="Description" type="text" />
+            </td>
+
+        </tr>
+        <tr>
+            <td colspan="3" style="text-align:right;padding-right:3%;">
+                <a name="btnSaveTdsAttachment" id="btnSaveTdsAttachment" class="btn btn-primary" onclick="SaveTdsAttachment()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnClearTdsAttachment" name="btnClearTdsAttachment" class="btn btn-primary" onclick="ClearTdsAttachmentFields()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</a>
+
+            </td>
+        </tr>
+    </table>
+    <br />
+
+    <script type="text/javascript">
+
+        function SaveTdsAttachment() {
+            var TdsAttachDocGroupID = $("#selectedTdsDocumentGroupID").val();
+            var TdsAttachDocNameID = $("#selectedTdsDocumentNameID").val();
+            //var SupAttachDate = $("#_SupAttachDateCreate").val();
+            var TdsAttachFileName = $("#_TdsAttachedFileNameCreate").val();
+            var TdsAttachDescription = $("#_TdsAttachDescriptionCreate").val();
+            if ($.trim(TdsAttachDocGroupID) == "" || $.trim(TdsAttachDocGroupID) == "0") {
+                jAlert("Please Select Document Group", "Error", function () {
+                    $("#selectedTdsDocumentGroupID").focus();
+                });
+                return false;
+            }
+            if ($.trim(TdsAttachDocNameID) == "" || $.trim(TdsAttachDocNameID) == "0") {
+                jAlert("Please Select Document Name", "Error", function () {
+                    $("#selectedTdsDocumentNameID").focus();
+                });
+                return false;
+            }
+            //if ($.trim(SupAttachDate) == "" || $.trim(SupAttachDate) == "0") {
+            //    jAlert("Please Select Document Date", "Error", function () {
+            //        $("#_SupAttachDateCreate").focus();
+            //    });
+            //    return false;
+            //}
+            if ($.trim(TdsAttachFileName) == "" || $.trim(TdsAttachFileName) == null) {
+                jAlert("Please Select Valid File", "Error", function () {
+                });
+                return false;
+            }
+            var objTdsAttachment = {
+                "selectedTdsDocumentGroupID": TdsAttachDocGroupID,
+                "selectedTdsDocumentNameID": TdsAttachDocNameID,
+                "_TdsAttachmentActualFileName": TdsAttachFileName,
+                "_TdsAttachmentDescription": TdsAttachDescription
+                //"_SupAttachDate": SupAttachDate
+            };
+            $.post('../Onboarding/CreateTdsAttachmentDetails', objTdsAttachment,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    ClearTdsAttachmentFields();
+                    $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                    $("#wgTdsAttachment").load("../Onboarding/TdsAttachmentDetails?" + new Date().getTime());
+                 
+                    jAlert("Successfully Inserted", "Success");
+                }
+            }, 'json');
+        }
+        function ClearTdsAttachmentFields() {
+            $("#txtUploadTdsAttachmentFile").val("");
+            $("#selectedTdsDocumentGroupID").val("0");
+            $("#selectedTdsDocumentNameID").val("0");
+            $("#_TdsAttachedFileNameCreate").val("");
+            //$("#_SupAttachDateCreate").val("");
+            $("#_TdsAttachDescriptionCreate").val("");
+            $("#selectedTdsDocumentGroupID").focus();
+
+            $("#selectedTdsDocumentGroupID").removeClass('valid');
+            $("#selectedTdsDocumentNameID").removeClass('valid');
+            //$("#_SupAttachDateCreate").removeClass('valid');
+          //  $("#_TdsAttachDescriptionCreate").removeClass('valid');
+            $("#selectedTdsDocumentGroupID").addClass('required');
+            $("#selectedTdsDocumentNameID").addClass('required');
+            //$("#_SupAttachDateCreate").addClass('required');
+           // $("#_TdsAttachDescriptionCreate").addClass('required');
+
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#_TdsAttachDescriptionCreate").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#selectedTdsDocumentGroupID").addClass('required');
+        $("#selectedTdsDocumentNameID").addClass('required');
+        //$("#_SupAttachDateCreate").addClass('required');
+      //  $("#_TdsAttachDescriptionCreate").addClass('required');
+
+        $("#_TdsAttachDescriptionCreate").attr("maxlength", "256");
+        $(".txtUploadTdsAttachmentFile").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform1');
+            form1.attr("action", "../Onboarding/UploadedFiles/?uploadfor=SA");
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe1");
+            form1.attr("file", $('#txtUploadTdsAttachmentFile').val());
+
+            var fname = $('#txtUploadTdsAttachmentFile').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#_TdsAttachedFileNameCreate").val(fname);
+            form1.submit();
+            return false;
+            //function getfilename(){
+
+            //var files = e.target.files;
+
+            //if (files.length > 0) {
+
+            //    if (window.FormData !== undefined) {
+            //        var data = new FormData();
+            //        for (var x = 0; x < files.length; x++) {
+
+            //            data.append("temp_" + x, files[x]);
+            //        }
+            //        var fname = $("#_TdsAttachedFileNameCreate").val();
+
+            //        $.ajax({
+            //            type: "POST",
+            //            url: '../Onboarding/UploadedFiles/?fname=' + fname + '&uploadfor=TDS',
+            //            contentType: false,
+            //            processData: false,
+            //            data: data,
+            //            success: function (result) {
+
+            //                $("#_TdsAttachedFileNameCreate").val(result);
+            //            },
+            //            error: function (xhr, status, p3, p4) {
+            //                var err = "Error " + " " + status + " " + p3 + " " + p4;
+            //                if (xhr.responseText && xhr.responseText[0] == "{")
+            //                    err = JSON.parse(xhr.responseText).Message;
+            //                console.log(err);
+            //            }
+            //        });
+            //    } else {
+            //        jAlert("This browser doesn't support HTML5 file uploads!","Warning");
+            //    }
+            //}
+            // }
+
+        });
+
+            //var pickerOpts = {
+            //    changeMonth: true,
+            //    changeYear: true,
+            //    yearRange: '1950:2100',
+            //    currentText: "Now",
+            //    dateFormat: "dd-mm-yy"
+            //};
+            //$("#_SupAttachDateCreate").datepicker(pickerOpts);
+    });
+    $("#selectedTdsDocumentGroupID").change(function () {
+        IsMandatoryTdsAttachment(this);
+    });
+    $("#selectedTdsDocumentNameID").change(function () {
+        IsMandatoryTdsAttachment(this);
+    });
+    //$("#_TdsAttachDescriptionCreate").keyup(function () {
+    //    IsMandatoryTdsAttachment(this);
+    //});
+    function IsMandatoryTdsAttachment(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+        @*$("#selectedTdsDocumentGroupID").change(function () {
+            var DocGroupID = $(this).val();
+
+            var objSupAttachment =
+           {
+               "selectedDocumentGroupID": DocGroupID
+           };
+            $.ajax({
+                url: '@Url.Action("GetDocumentName", "Onboarding")',
+                data: JSON.stringify(objSupAttachment),
+                type: 'POST',
+                cache:false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $("#selectedTdsDocumentNameID").empty();
+                    if (data.length > 0) {
+                        $("#selectedTdsDocumentNameID").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            $('#selectedTdsDocumentNameID').attr('disabled', false);
+                            $("#selectedTdsDocumentNameID").append("<option value=" + data[i]._DocumentNameID + " >" + data[i]._DocumentName + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#selectedTdsDocumentNameID").append("<option value='0' >--Select--</option>");
+                        $('#selectedTdsDocumentNameID').attr('disabled', true);
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong","Error");
+                }
+            });
+        });*@
+    $("#selectedTdsDocumentNameID").change(function () {
+        var DocGroupID = $(this).val();
+
+        var objSupAttachment =
+       {
+           "selectedDocumentNameID": DocGroupID
+       };
+        $.ajax({
+            url: '@Url.Action("GetDocumentGroupByID", "Onboarding")',
+            data: JSON.stringify(objSupAttachment),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedTdsDocumentGroupID").empty();
+                if (data.length > 0) {
+                    //   $("#selectedDocumentGroupID1").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedTdsDocumentGroupID').attr('disabled', false);
+                        $("#selectedTdsDocumentGroupID").append("<option value=" + data[i]._DocumentGroupID + " >" + data[i]._DocumentGroupName + "</option>");
+                    }
+                    var txtval = $("#selectedTdsDocumentGroupID").val();
+                    if (txtval.trim() != "" && txtval.trim() != "0") {
+                        $("#selectedTdsDocumentGroupID").removeClass('required');
+                        $("#selectedTdsDocumentGroupID").addClass('valid');
+                    }
+                    else {
+                        $("#selectedTdsDocumentGroupID").removeClass('valid');
+                        $("#selectedTdsDocumentGroupID").addClass('required');
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedTdsDocumentGroupID").append("<option value='0' >--Select--</option>");
+                    $('#selectedTdsDocumentGroupID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });
+
+</script>

@@ -1,0 +1,1023 @@
+﻿@{
+    ViewBag.Title = "PouchInward";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Pouch Inward</span>
+    </div>
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td width="20%" style="padding: 0px 10px 0px 3px;">
+                    <span>Received Date From </span>
+                    <br />
+                    <input type="text"
+                           id="txtSDateFrom"
+                           name="txtSDateFrom"
+                           value=""
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox required" />
+                </td>
+                <td width="20%" style="padding: 0px 10px">
+                    <span>Received Date To </span>
+                    <br />
+                    <input type="text"
+                           id="txtSDateTo"
+                           name="txtSDateTo"
+                           value=""
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox required" />
+                </td>
+                <td width="20%" style="padding: 0px 10px;">
+                    <span> Courier Name</span>
+                    <br />
+                    <input type="hidden" name="hdfSCourierId" id="hdfSCourierId" value="" />
+                    <input type="text"
+                           id="txtSCourierName"
+                           name="txtSCourierName"
+                           value=""
+                           class="fstextbox" />
+                </td>
+                <td width="20%" style="padding: 0px 10px;">
+                    <span> AWB No</span>
+                    <br />
+                    <input type="text"
+                           name="txtSAWBNo"
+                           id="txtSAWBNo"
+                           value=""
+                           maxlength="32"
+                           class="fstextbox" />
+                </td>
+                <td style="width:20%; padding:0px; vertical-align:bottom;">
+                    <button class="btn btn-primary" id="btnsearch" value="Search" accesskey="q" type="button" data-bind="click: function() { $root.search('0'); }" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                        Search
+                    </button>
+                    <button class="btn btn-primary" value="Clear" accesskey="c" data-bind="click: $root.ClearDetails " type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                        Clear
+                    </button>
+                    <button type="button" value="Add New" accesskey="a" data-bind="click: $root.showAdd" style="margin-top:10px; padding:5px 10px; font-size:12px; color:white;" class="btn btn-primary">
+                        <span style="color:white;" class="glyphicon glyphicon-plus"></span>
+                        Add New
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div style="width:100%; overflow:auto; height:100%; margin-top: 15px;">
+            <table id="gvPouchInward" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: InwardPouchDetails().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:50px;">
+                            SlNo
+                        </th>
+                        <th style="width:9%; min-width:110px;" class="colDate">
+                            Received Date
+                        </th>
+                        <th style="width:25%; min-width:150px;">
+                            Received From
+                        </th>
+                        <th style="width:20%; min-width:150px;">
+                            Courier Name
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            AWB No
+                        </th>
+                        <th style="width:5%; min-width:80px;">
+                            No Of Doc
+                        </th>
+                        <th style="width:18%; min-width:200px;" class="nosort">
+                            Remarks
+                        </th>
+                        <th style="width:8%; min-width:80px;" class="nosort">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tfoot data-bind="visible: InwardPouchDetails().length > 0">
+                    <tr>
+                        <th colspan="8" style="width:100%; padding-left:10px;">
+                            <span style="font-weight: normal;">Total No.Of Documents:</span><label id="lblTotalCount" style="padding-left:3px;">0</label>
+                        </th>
+                    </tr>
+                </tfoot>
+                <tbody data-bind="foreach:{ data: InwardPouchDetails, afterRender: DatatableCall }, visible: InwardPouchDetails().length > 0">
+                    <tr class="" data-bind="css: {'received' : ISEnable == 0}">
+                        <td style="width:5%; min-width:50px;" align="center">
+                            <span data-bind="text: SlNo"></span>
+                        </td>
+                        <td style="width:9%; min-width:110px;" align="center">
+                            <span data-bind="text: ReceivedDate"></span>
+                        </td>
+                        <td style="width:25%; min-width:150px; padding-left:5px;">
+                            <span data-bind="text: ReceivedFrom"></span>
+                        </td>
+                        <td style="width:20%; min-width:150px; padding-left:5px;">
+                            <span data-bind="text: Courier"></span>
+                        </td>
+                        <td style="width:10%; min-width:100px;" align="center">
+                            <span data-bind="text: AWBNo"></span>
+                        </td>
+                        <td style="width:5%; min-width:80px; padding-left:10px;">
+                            <span data-bind="text: Noofdocs"></span>
+                        </td>
+                        <td style="width:18%; min-width:200px; padding-left:5px;">
+                            <span data-bind="text: Remarks"></span>
+                        </td>
+                        <td style="width:8%; min-width:80px;" align="center">
+                            <span title="Edit" data-bind="click: $root.edit" style="padding-right:10px; cursor:pointer;"> <span class=" glyphicon glyphicon-edit"></span></span>
+                            <span title="Delete" data-bind="click: $root.delete" style="cursor:pointer;"> <span class="glyphicon glyphicon-trash"></span></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div style="display:none;" id="AddDialog">
+        <!--Add Pouch Inward -->
+        <div data-bind="ifnot: InwardPouch()">
+            <table class="myTableStyleTabNew tblstyles" align="center">
+                <tr>
+                    <td nowrap="nowrap">
+                        Sender Type
+                        <br />
+                        <input type="radio" id="id_AEmployee" data-bind="checked: $root.SenderTypeCode" name="modeANf" value="I" />
+                        Internal
+                        <input type="radio" id="id_AOthers" data-bind="checked: $root.SenderTypeCode" name="modeANf" value="E" />
+                        External
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span>Received From</span>
+                        <br />
+                        <input type="hidden" name="hdfASenderId" id="hdfASenderId" data-bind="value: $root.SenderId" />
+                        <input type="text"
+                               id="txtASenderName"
+                               name="txtASenderName"
+                               maxlength="128"
+                               data-bind="value: $root.Sender"
+                               class="textboxStyleBig required "
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> Received Date </span>
+                        <br />
+                        <input type="text"
+                               id="txtADate"
+                               name="txtADate"
+                               data-bind="value: $root.ReceivedDate"
+                               onkeypress="return isEvent(event)"
+                               class="textboxStyleBig required "
+                               style="width: 200px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span> Courier Name</span>
+                        <br />
+                        <input type="hidden" name="hdfACourierId" id="hdfACourierId" data-bind="value: $root.CourierId" />
+                        <input type="text"
+                               name="txtACurName"
+                               id="txtACurName"
+                               data-bind="value: $root.Courier"
+                               maxlength="128"
+                               class="textboxStyleBig required"
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> AWB No</span>
+                        <br />
+                        <input type="text"
+                               name="txtAAWBNo"
+                               id="txtAAWBNo"
+                               maxlength="32"
+                               data-bind="value: $root.AWBNo"
+                               class="textboxStyleBig required"
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> No Of Documents</span>
+                        <br />
+                        <input type="text"
+                               name="txtANoOfDocuments"
+                               id="txtANoOfDocuments"
+                               maxlength="4"
+                               data-bind="value: $root.Noofdocs"
+                               class="textboxStyleBig required"
+                               onkeypress="return isNumberKey(event)"
+                               style="width: 200px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5">
+                        <span> Remarks</span>
+                        <br />
+                        <input type="text"
+                               name="txtARemarks"
+                               id="txtARemarks"
+                               data-bind="value: $root.Remarks"
+                               class="textboxStyleBig"
+                               maxlength="225" />
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <div>
+                            <button type="button" id="btnCreate" class="btn btn-primary"  value="Submit" data-bind="click: $root.create">
+                                <span class="glyphicon glyphicon-download-alt" style="color:white;"></span>
+                                Submit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div style="display:none;" id="EditDialog">
+        <!--Edit Pouch Inward-->
+        <div data-bind="if: InwardPouch">
+            <table class="myTableStyleTabNew tblstyles" align="center">
+                <tr>
+                    <td nowrap="nowrap">
+                        Sender Type
+                        <br />
+                        <input type="radio" id="id_Employee" data-bind="checked: InwardPouch().SenderTypeCode" name="modeNf" value="I" />
+                        Internal
+                        <input type="radio" id="id_Others" data-bind="checked: InwardPouch().SenderTypeCode" name="modeNf" value="E" />
+                        External
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span>Received From</span>
+                        <br />
+                        <input type="hidden" name="hdfSenderId" id="hdfSenderId" data-bind="value: InwardPouch().SenderId" />
+                        <input type="text"
+                               id="txtSenderName"
+                               name="txtSenderName"
+                               maxlength="128"
+                               data-bind="value: InwardPouch().Sender"
+                               class="textboxStyleBig valid "
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> Received Date </span>
+                        <br />
+                        <input type="text"
+                               id="txtDate"
+                               name="txtDate"
+                               data-bind="value: InwardPouch().ReceivedDate"
+                               onkeypress="return isEvent(event)"
+                               class="textboxStyleBig valid "
+                               style="width: 200px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span> Courier Name</span>
+                        <br />
+                        <input type="hidden" name="hdfCourierId" id="hdfCourierId" data-bind="value: InwardPouch().CourierId" />
+                        <input type="text"
+                               name="txtCurName"
+                               id="txtCurName"
+                               data-bind="value: InwardPouch().Courier"
+                               maxlength="128"
+                               class="textboxStyleBig valid"
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> AWB No</span>
+                        <br />
+                        <input type="text"
+                               name="txtAWBNo"
+                               id="txtAWBNo"
+                               maxlength="32"
+                               data-bind="value: InwardPouch().AWBNo"
+                               class="textboxStyleBig valid"
+                               style="width: 200px;" />
+                    </td>
+                    <td width="25px"></td>
+                    <td>
+                        <span> No Of Documents</span>
+                        <br />
+                        <input type="text"
+                               name="txtNoOfDocuments"
+                               id="txtNoOfDocuments"
+                               maxlength="4"
+                               data-bind="value: InwardPouch().Noofdocs"
+                               class="textboxStyleBig valid"
+                               onkeypress="return isNumberKey(event)"
+                               style="width: 200px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5">
+                        <span> Remarks</span>
+                        <br />
+                        <input type="text"
+                               name="txtRemarks"
+                               id="txtRemarks"
+                               data-bind="value: InwardPouch().Remarks"
+                               class="textboxStyleBig"
+                               maxlength="225" />
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <div>
+                            <button type="button" id="btnUpdate" class="btn btn-primary" value="Submit" data-bind="click: $root.update">
+                                <span class="glyphicon glyphicon-download-alt" style="color:white;"></span>
+                                Submit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        //Search Record
+        var objDialogyAdd;
+        var objDialogyEdit;
+        $(document).ready(function () {
+            $('#btnsearch').attr('disabled', true);
+            objDialogyAdd = $("[id$='AddDialog']");
+            objDialogyAdd.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 780,
+                height: 300,
+                duration: 300
+            });
+
+            objDialogyEdit = $("[id$='EditDialog']");
+            objDialogyEdit.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 780,
+                height: 300,
+                duration: 300
+            });
+
+            $("#txtSDateFrom").datepicker({
+                yearRange: '1900:' + Presentyear,
+                changeMonth: true,
+                changeYear: true,
+                maxDate: 'd',
+                dateFormat: 'dd/mm/yy'
+            });
+            $("#txtSDateTo").datepicker({
+                yearRange: '1900:' + Presentyear,
+                changeMonth: true,
+                changeYear: true,
+                maxDate: 'd',
+                dateFormat: 'dd/mm/yy'
+            });
+
+            jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+                "date-uk-pre": function (a) {
+                    a = a.split(">")[1].split("<")[0];
+                    var ukDatea = a.split("/");
+                    return (ukDatea[2] + ukDatea[1] + ukDatea[0]) * 1;
+                },
+                "date-uk-asc": function (a, b) {
+                    return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+                },
+                "date-uk-desc": function (a, b) {
+                    return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+                }
+            });
+        });
+
+        $("#txtSDateFrom").change(function () {
+            checkValidationSearch();
+
+            var txtDate = $("#txtSDateFrom").val();
+            if (txtDate.trim() != "") {
+                $("#txtSDateFrom").removeClass('required');
+                $("#txtSDateFrom").addClass('valid');
+            }
+            else {
+                $("#txtSDateFrom").removeClass('valid');
+                $("#txtSDateFrom").addClass('required');
+            }
+        });
+
+        $("#txtSDateTo").change(function () {
+            checkValidationSearch();
+
+            var txtDate = $("#txtSDateTo").val();
+            if (txtDate.trim() != "") {
+                $("#txtSDateTo").removeClass('required');
+                $("#txtSDateTo").addClass('valid');
+            }
+            else {
+                $("#txtSDateTo").removeClass('valid');
+                $("#txtSDateTo").addClass('required');
+            }
+        });
+
+        $("#txtSCourierName").keyup(function (e) {
+            if (e.which != 13) {
+                $("#hdfSCourierId").val("0");
+            }
+
+            $("#txtSCourierName").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../Helper/GetAutoCompleteCourier",
+                        data: "{ 'txt' : '" + $("#txtSCourierName").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }))
+                        },
+                        error: function (response) {
+                            //alert(response.responseText);
+                        },
+                        failure: function (response) {
+                            //alert(response.responseText);
+                        }
+                    });
+                },
+                minLength: 1,
+                select: function (e, i) {
+                    $("#hdfSCourierId").val(i.item.val);
+                    $("#txtSCourierName").val(i.item.label);
+                }
+            });
+        });
+
+        $("#txtSCourierName").focusout(function () {
+            var hdfId = $("#hdfSCourierId").val();
+            var txtCurName = $("#txtSCourierName").val();
+            if (txtCurName.trim() != "" && (hdfId.trim() == "" || hdfId.trim() == "0")) {
+                $("#txtSCourierName").val("");
+            }
+        });
+
+        function AddPouch() {
+            $('#txtAAWBNo').val("");
+            $('#txtADate').val("");
+            $('#txtASenderName').val("");
+            $('#txtANoOfDocuments').val("");
+            $('#txtACurName').val("");
+            $('#hdfACourierId').val("0");
+            $('#hdfASenderId').val("0");
+            $("#txtARemarks").val("");
+
+            $('#AddDialog').attr("style", "display:block;");
+
+            objDialogyAdd.dialog({ title: 'Pouch Inward Entry', width: '780', height: '300' });
+            objDialogyAdd.dialog("open");
+
+            $("#txtADate").datepicker({
+                yearRange: '1900:' + Presentyear,
+                changeMonth: true,
+                changeYear: true,
+                maxDate: 'd',
+                dateFormat: 'dd/mm/yy'
+            });
+
+            $("#txtAAWBNo").keyup(function () {
+                checkValidation();
+
+                var txtAWBNo = $("#txtAAWBNo").val();
+                if (txtAWBNo.trim() != "") {
+                    $("#txtAAWBNo").removeClass('required');
+                    $("#txtAAWBNo").addClass('valid');
+                }
+                else {
+                    $("#txtAAWBNo").removeClass('valid');
+                    $("#txtAAWBNo").addClass('required');
+                }
+            });
+
+            $("#txtANoOfDocuments").keyup(function () {
+                checkValidation();
+
+                var txtNoOfDocuments = $("#txtANoOfDocuments").val();
+                if (txtNoOfDocuments.trim() != "") {
+                    $("#txtANoOfDocuments").removeClass('required');
+                    $("#txtANoOfDocuments").addClass('valid');
+                }
+                else {
+                    $("#txtANoOfDocuments").removeClass('valid');
+                    $("#txtANoOfDocuments").addClass('required');
+                }
+            });
+
+            $("#txtADate").change(function () {
+                checkValidation();
+
+                var txtDate = $("#txtADate").val();
+                if (txtDate.trim() != "") {
+                    $("#txtADate").removeClass('required');
+                    $("#txtADate").addClass('valid');
+                }
+                else {
+                    $("#txtADate").removeClass('valid');
+                    $("#txtADate").addClass('required');
+                }
+            });
+
+            $('input[type=radio][name=modeANf]').change(function () {
+                checkValidation();
+
+                $('#txtASenderName').val("");
+                $('#hdfASenderId').val("0");
+                $("#txtASenderName").removeClass('valid').removeClass('required');
+                $("#txtASenderName").addClass('required');
+            });
+
+            $("#txtASenderName").keyup(function (e) {
+                if (e.which != 13) {
+                    $("#hdfASenderId").val("0");
+                }
+
+                var chkBit = $("input[name=modeANf]:checked").val();
+
+                if (chkBit == 'E') {
+                    $("#txtASenderName").autocomplete("destroy");
+                }
+
+                if (chkBit == 'I') {
+                    $("#txtASenderName").autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: "../Helper/GetAutoCompleteBranchPouch",
+                                data: "{ 'txt' : '" + $("#txtASenderName").val() + "'}",
+                                dataType: "json",
+                                type: "POST",
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+                                    response($.map(data, function (item) {
+                                        return {
+                                            label: item.split('~')[1],
+                                            val: item.split('~')[0]
+                                        }
+                                    }))
+                                },
+                                error: function (response) {
+                                    //alert(response.responseText);
+                                },
+                                failure: function (response) {
+                                    //alert(response.responseText);
+                                }
+                            });
+                        },
+                        select: function (e, i) {
+                            $("#hdfASenderId").val(i.item.val);
+                            $("#txtASenderName").val(i.item.label);
+                        },
+                        minLength: 1
+                    });
+                }
+
+                var txtCurName = $("#txtASenderName").val();
+
+                if (chkBit == 'E') {
+                    $("#hdfASenderId").val("0");
+                    if (txtCurName.trim() != "") {
+                        $("#txtASenderName").removeClass('required');
+                        $("#txtASenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtASenderName").removeClass('valid');
+                        $("#txtASenderName").addClass('required');
+                    }
+                } else {
+                    var hdfSndId = $("#hdfASenderId").val();
+                    if (hdfSndId != "" && hdfSndId != "0" && txtCurName.trim() != "") {
+                        $("#txtASenderName").removeClass('required');
+                        $("#txtASenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtASenderName").removeClass('valid');
+                        $("#txtASenderName").addClass('required');
+                    }
+                }
+            });
+
+            $("#txtASenderName").focusout(function () {
+                checkValidation();
+
+                var chkBit = $("input[name=modeANf]:checked").val();
+                if (chkBit == 'I') {
+                    var hdfId = $("#hdfASenderId").val();
+                    var txtCurName = $("#txtASenderName").val();
+
+                    if (txtCurName.trim() != "" && hdfId.trim() != "" && hdfId.trim() != "0") {
+                        $("#txtASenderName").removeClass('required');
+                        $("#txtASenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtASenderName").removeClass('valid');
+                        $("#txtASenderName").addClass('required');
+                        $("#txtASenderName").val("");
+                    }
+                }
+
+                if (chkBit == 'E') {
+                    $("#hdfASenderId").val("0");
+                    var txtCurName = $("#txtASenderName").val();
+                    if (txtCurName.trim() != "") {
+                        $("#txtASenderName").removeClass('required');
+                        $("#txtASenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtASenderName").removeClass('valid');
+                        $("#txtASenderName").addClass('required');
+                    }
+                }
+            });
+
+            $("#txtACurName").keyup(function (e) {
+                if (e.which != 13) {
+                    $("#hdfACourierId").val("0");
+                }
+                $("#txtACurName").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: "../Helper/GetAutoCompleteCourier",
+                            data: "{ 'txt' : '" + $("#txtACurName").val() + "'}",
+                            dataType: "json",
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                response($.map(data, function (item) {
+                                    return {
+                                        label: item.split('~')[1],
+                                        val: item.split('~')[0]
+                                    }
+                                }))
+                            },
+                            error: function (response) {
+                                //alert(response.responseText);
+                            },
+                            failure: function (response) {
+                                //alert(response.responseText);
+                            }
+                        });
+                    },
+                    select: function (e, i) {
+                        $("#hdfACourierId").val(i.item.val);
+                        $("#txtACurName").val(i.item.label);
+
+                        var txtCurName = $("#txtACurName").val();
+                        if (txtCurName.trim() != "") {
+
+                            $("#txtACurName").removeClass('required');
+                            $("#txtACurName").addClass('valid');
+                        }
+                        else {
+                            $("#txtACurName").removeClass('valid');
+                            $("#txtACurName").addClass('required');
+                        }
+                    },
+                    minLength: 1
+                });
+            });
+
+            $("#txtACurName").focusout(function () {
+                checkValidation();
+
+                var hdfId = $("#hdfACourierId").val();
+                var txtCurName = $("#txtACurName").val();
+                if (txtCurName.trim() != "" && hdfId.trim() != "" && hdfId.trim() != "0") {
+                    $("#txtACurName").removeClass('required');
+                    $("#txtACurName").addClass('valid');
+                }
+                else {
+                    $("#txtACurName").removeClass('valid');
+                    $("#txtACurName").addClass('required');
+                    $("#txtACurName").val("");
+                }
+            });
+
+            $("#txtARemarks").focus(function () {
+                checkValidation();
+            });
+        }
+
+        function EditPouch() {
+            $('#EditDialog').attr("style", "display:block;");
+            objDialogyEdit.dialog({ title: 'Pouch Inward Entry', width: '780', height: '300' });
+            objDialogyEdit.dialog("open");
+
+            $("#txtDate").datepicker({
+                yearRange: '1900:' + Presentyear,
+                changeMonth: true,
+                changeYear: true,
+                maxDate: 'd',
+                dateFormat: 'dd/mm/yy'
+            });
+
+            $('#btnUpdate').attr('disabled', false);
+
+            $('input[type=radio][name=modeNf]').change(function () {
+                checkValidationEdit();
+
+                $('#txtSenderName').val("");
+                $('#hdfSenderId').val("0");
+                $("#txtSenderName").removeClass('valid').removeClass('required');
+                $("#txtSenderName").addClass('required');
+            });
+
+            $("#txtAWBNo").keyup(function () {
+                checkValidationEdit();
+
+                var txtAWBNo = $("#txtAWBNo").val();
+                if (txtAWBNo.trim() != "") {
+                    $("#txtAWBNo").removeClass('required');
+                    $("#txtAWBNo").addClass('valid');
+                }
+                else {
+                    $("#txtAWBNo").removeClass('valid');
+                    $("#txtAWBNo").addClass('required');
+                }
+            });
+
+            $("#txtNoOfDocuments").keyup(function () {
+                checkValidationEdit();
+
+                var txtNoOfDocuments = $("#txtNoOfDocuments").val();
+                if (txtNoOfDocuments.trim() != "") {
+                    $("#txtNoOfDocuments").removeClass('required');
+                    $("#txtNoOfDocuments").addClass('valid');
+                }
+                else {
+                    $("#txtNoOfDocuments").removeClass('valid');
+                    $("#txtNoOfDocuments").addClass('required');
+                }
+            });
+
+            $("#txtDate").change(function () {
+                checkValidationEdit();
+
+                var txtDate = $("#txtDate").val();
+                if (txtDate.trim() != "") {
+                    $("#txtDate").removeClass('required');
+                    $("#txtDate").addClass('valid');
+                }
+                else {
+                    $("#txtDate").removeClass('valid');
+                    $("#txtDate").addClass('required');
+                }
+            });
+
+            $("#txtSenderName").keyup(function (e) {
+                if (e.which != 13) {
+                    $("#hdfSenderId").val("0");
+                }
+
+                var chkBit = $("input[name=modeNf]:checked").val();
+
+                if (chkBit == 'E') {
+                    $("#txtSenderName").autocomplete("destroy");
+                }
+
+                if (chkBit == 'I') {
+                    $("#txtSenderName").autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: "../Helper/GetAutoCompleteBranch",
+                                data: "{ 'txt' : '" + $("#txtSenderName").val() + "'}",
+                                dataType: "json",
+                                type: "POST",
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+                                    response($.map(data, function (item) {
+                                        return {
+                                            label: item.split('~')[1],
+                                            val: item.split('~')[0]
+                                        }
+                                    }))
+                                },
+                                error: function (response) {
+                                    //alert(response.responseText);
+                                },
+                                failure: function (response) {
+                                    //alert(response.responseText);
+                                }
+                            });
+                        },
+                        select: function (e, i) {
+                            $("#hdfSenderId").val(i.item.val);
+                            $("#txtSenderName").val(i.item.label);
+                        },
+                        minLength: 1
+                    });
+                }
+
+                var txtSndName = $("#txtSenderName").val();
+                if (chkBit == 'E') {
+                    $("#hdfSenderId").val("0");
+                    if (txtSndName.trim() != "") {
+                        $("#txtSenderName").removeClass('required');
+                        $("#txtSenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtSenderName").removeClass('valid');
+                        $("#txtSenderName").addClass('required');
+                    }
+                } else {
+                    var hdfSndId = $("#hdfSenderId").val();
+                    if (hdfSndId != "" && hdfSndId != "0" && txtSndName.trim() != "") {
+                        $("#txtSenderName").removeClass('required');
+                        $("#txtSenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtSenderName").removeClass('valid');
+                        $("#txtSenderName").addClass('required');
+                    }
+                }
+            });
+
+            $("#txtSenderName").focusout(function () {
+                checkValidationEdit();
+
+                var chkBit = $("input[name=modeNf]:checked").val();
+                if (chkBit == 'I') {
+                    var hdfId = $("#hdfSenderId").val();
+                    var txtCurName = $("#txtSenderName").val();
+                    if (txtCurName.trim() != "" && hdfId.trim() != "" && hdfId.trim() != "0") {
+                        $("#txtSenderName").removeClass('required');
+                        $("#txtSenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtSenderName").removeClass('valid');
+                        $("#txtSenderName").addClass('required');
+                        $("#txtSenderName").val("");
+                    }
+                }
+                if (chkBit == 'E') {
+                    $("#hdfSenderId").val("0");
+                    var txtCurName = $("#txtSenderName").val();
+                    if (txtCurName.trim() != "") {
+                        $("#txtSenderName").removeClass('required');
+                        $("#txtSenderName").addClass('valid');
+                    }
+                    else {
+                        $("#txtSenderName").removeClass('valid');
+                        $("#txtSenderName").addClass('required');
+                    }
+                }
+            });
+
+            $("#txtCurName").keyup(function (e) {
+                if (e.which != 13) {
+                    $("#hdfCourierId").val("0");
+                }
+
+                $("#txtCurName").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: "../Helper/GetAutoCompleteCourier",
+                            data: "{ 'txt' : '" + $("#txtCurName").val() + "'}",
+                            dataType: "json",
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                response($.map(data, function (item) {
+                                    return {
+                                        label: item.split('~')[1],
+                                        val: item.split('~')[0]
+                                    }
+                                }))
+                            },
+                            error: function (response) {
+                                //alert(response.responseText);
+                            },
+                            failure: function (response) {
+                                //alert(response.responseText);
+                            }
+                        });
+                    },
+                    select: function (e, i) {
+                        $("#hdfCourierId").val(i.item.val);
+                        $("#txtCurName").val(i.item.label);
+
+                        var txtCurName = $("#txtCurName").val();
+                        if (txtCurName.trim() != "") {
+
+                            $("#txtCurName").removeClass('required');
+                            $("#txtCurName").addClass('valid');
+                        }
+                        else {
+                            $("#txtCurName").removeClass('valid');
+                            $("#txtCurName").addClass('required');
+                        }
+                    },
+                    minLength: 1
+                });
+            });
+
+            $("#txtCurName").focusout(function () {
+                checkValidationEdit();
+
+                var hdfId = $("#hdfCourierId").val();
+                var txtCurName = $("#txtCurName").val();
+                if (txtCurName.trim() != "" && hdfId.trim() != "" && hdfId.trim() != "0") {
+                    $("#txtCurName").removeClass('required');
+                    $("#txtCurName").addClass('valid');
+                }
+                else {
+                    $("#txtCurName").removeClass('valid');
+                    $("#txtCurName").addClass('required');
+                    $("#txtCurName").val("");
+                }
+            });
+
+            $("#txtRemarks").focus(function () {
+                checkValidationEdit();
+            });
+        }
+
+        function checkValidation() {
+            var chkBit = $("input[name=modeANf]:checked").val();
+            var _senderId = $("#hdfASenderId").val();
+            var _senderName = $("#txtASenderName").val();
+            var _date = $("#txtADate").val();
+            var _courierId = $("#hdfACourierId").val();
+            var _AWBNo = $("#txtAAWBNo").val();
+            var _NoOfDocuments = $("#txtANoOfDocuments").val();
+
+            if (((_senderId == "" || _senderId == "0") && chkBit == "I") || (_senderName == "" && chkBit == "E") || _date == "" || _courierId == "" || _courierId == "0" || _AWBNo == "" || _NoOfDocuments == "") {
+                $('#btnCreate').attr('disabled', true);
+            }
+            else {
+                $('#btnCreate').attr('disabled', false);
+            }
+        }
+
+        function checkValidationEdit() {
+            var chkBit = $("input[name=modeNf]:checked").val();
+            var _senderId = $("#hdfSenderId").val();
+            var _senderName = $("#txtSenderName").val();
+            var _date = $("#txtDate").val();
+            var _courierId = $("#hdfCourierId").val();
+            var _AWBNo = $("#txtAWBNo").val();
+            var _NoOfDocuments = $("#txtNoOfDocuments").val();
+
+            if (((_senderId == "" || _senderId == "0") && chkBit == "I") || (_senderName == "" && chkBit == "E") || _date == "" || _courierId == "" || _courierId == "0" || _AWBNo == "" || _NoOfDocuments == "") {
+                $('#btnUpdate').attr('disabled', true);
+            }
+            else {
+                $('#btnUpdate').attr('disabled', false);
+            }
+        }
+
+        function checkValidationSearch() {
+            var _dtFrm = $("#txtSDateFrom").val();
+            var _dtTo = $("#txtSDateTo").val();
+
+            if (_dtFrm.trim() == "" || _dtTo.trim() == "") {
+                $('#btnsearch').attr('disabled', true);
+            }
+            else {
+                $('#btnsearch').attr('disabled', false);
+            }
+        }
+
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+
+        function isEvent(evt) {
+            return false;
+        }
+    </script>
+
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsInwardPouch.js")" type="text/javascript"></script>

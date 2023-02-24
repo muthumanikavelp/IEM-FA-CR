@@ -1,0 +1,272 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@model  IEnumerable<IEM.Areas.MASTERS.Models.Entity_taxgst>
+@{
+    IEM_GST_TAX dm = new IEM_GST_TAX();
+    List<Entity_taxgst> lst = new List<Entity_taxgst>();
+    if (lst == null || lst.Count == 0)
+    {
+        lst = dm.uploadlist().ToList();
+    }
+    var geterror = ViewBag.geterror;
+   // var grid = new WebGrid(lst, canSort: false, canPage: true, rowsPerPage: 5);
+   // var grid = new WebGrid(canSort: false, ajaxUpdateContainerId: "GSTuploaddetails");
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(lst); 
+    int rowVal = 0;
+}
+
+
+@*<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />*@
+<div id="errpage" class="well" style="padding:10px;">
+    <div id="epage">
+        <div id="downloadexcel">
+
+            <table class="myTableStyleTabNew" style="width:75%;">
+                <tr>
+                    <td style="width:25%; padding:0px 5px;">
+                        <span>FileName</span>
+                        <form id="theuploadlocal">
+                            @*<input type="file" style="width: 95%;padding-top: 5px;" id="UploadFile" class="fileuploadlocal" name="UploadFile" />*@
+                            <input class="textboxStyleSearch" id="UploadFile" name="UploadFile" type="file" onchange="SAcheckfile(this)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                        </form>
+                    </td>
+                    @*<td>
+                        <span>Select Sheet</span>
+                        <br />
+                        @Html.DropDownListFor(model => Model.saleSheetname, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectSheetsa", @name = "ddlSelectSheetsa" })
+                    </td>*@
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <button id="btnfirstsubmit" class="btn btn-primary" value="Upload" type="submit" onclick="SaleMaker()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload </button>&nbsp;&nbsp;
+                        <button id="btncanpayclear" class="btn btn-primary" value="cancel" onclick="cancel()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear </button>&nbsp;&nbsp;
+                    </td>
+                   
+                    @*<td style="width:35%; padding:0px 5px;">
+                        <br />
+                        <button id="btnfrstsubmit" name="btnfrstsubmit" class="btn btn-primary" type="submit" onclick=""><span style="color:white" class="glyphicon glyphicon-upload"></span> Upload</button>
+                    </td>*@
+                    @*<td style="width:35%; padding:0px 5px;">
+                        <br />
+                        <div style="text-align:left;padding-right:20px;" class="divforbutton">
+                            <a name="btnerror" id="btnerror" class="btn btn-primary" onclick="clearall();">
+                                <span style="color:white;font-size:small;" class="glyphicon glyphicon-refresh">
+                                </span> Clear
+                            </a>
+                        </div>
+
+                    </td>*@
+                    <td>
+                        <br />
+                        <a name="btnerror" id="btnerror" class="btn btn-primary" href="../IEM_GST_TAX/downloadTemplets" style="margin-top:10px; margin-left:83%">
+                            <span style="color:white;font-size:small;" class="glyphicon glyphicon-floppy-save">
+                            </span> Download Excel
+                        </a>
+                    </td>
+                </tr>
+
+        </table>
+    </div>
+</div>
+@*----------------------------pandiaraj*@
+
+    
+    <div id="GSTuploaddetails" class="table-responsive" style="margin-top:10px; ">
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "taxgstida" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                        grid.Columns
+                        (
+                                    grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                                    // grid.Column(header: "SNo", columnName: "upload_sno", style: "name"),
+                    //grid.Column(header: "Gid", columnName: "uploadgid", style: "name"),
+                                     grid.Column(header: "Upload No", columnName: "uploadno", style: "name"),
+                                    grid.Column(header: "Filename", columnName: "upload_filename", style: "address"),
+                                     grid.Column(header: "Date", columnName: "uploaddate", style: "name"),
+                                     grid.Column(header: "No of Count", columnName: "upload_count", style: "name"),
+                                    grid.Column(header: "Upload Status", columnName: "Approvalstatus", style: "name"),
+                                    grid.Column(header: "Upload Remarks", columnName: "Remarks", style: "address"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                <input type="hidden" name="uploadgid" id="uploadgid" value="@item.uploadgid" />
+                                <input type="hidden" name="Status" id="Status" value="@item.Status" />
+                                @Html.Raw("<a title='Edit' style='text-decoration:none;' onclick='Viewupload(this)' id='viewdatas' > <span class='glyphicon glyphicon-eye-open'></span> </a>")
+                                @*@if (item.Status == "B")
+                                    {
+                                        @Html.Raw("<a title='Edit' style='text-decoration:none;' onclick='Viewupload(this)' id='viewdatas' > <span >Bulk Approved</span> </a>")
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw("<a title='Edit' style='text-decoration:none;' onclick='Viewupload(this)' id='viewdatas' > <span >Single Approved</span> </a>")
+                                    }*@
+
+                            </text>)))
+
+
+        @*<style type="text/css">
+            .name {
+                width: 30px;
+            }
+
+            .address {
+                width: 250px;
+            }
+
+            .gid {
+                visibility: hidden;
+                width: 0px;
+            }
+        </style>*@
+        <div id="ForGSTPartialView"></div>
+      
+    </div>
+    </div>
+<script>
+    //function Viewupload(element, id) {
+    function Viewupload(element) {
+        //var row = $(element).closest('tr');
+        //var tds = row.find('td');
+        //var uploadgid = tds.eq(1).text();
+        //var type = tds.eq(6).text();
+        //var uploadgid = row.find('[name=uploadgid]').val();
+        //var type = row.find('[name=upload_status]').val();
+        //alert(type);
+        var row = $(element).closest('tr');
+        var uploadgid = row.find('[name=uploadgid]').val();
+        var type = row.find('[name=Status]').val();
+       
+        objDialog1.load('../IEM_GST_TAX/bulkcreate?id=' + uploadgid + '&type=' + type);
+        objDialog1.dialog({ title: 'Uploaded List' });
+        objDialog1.dialog("open");
+    }
+    $(document).ready(function () {
+        var group = $("#hid_role").val();
+        document.getElementById("downloadexcel").style.visibility = "visible";
+        if (group != "TXGSTMKR") {
+            document.getElementById("downloadexcel").style.visibility = "hidden";
+          //  $("#uploaddetails").css("margin-top", "-85px");
+        } 
+            $('#taxgstida tr th:nth-child(5)').addClass("nosort");
+            $('#taxgstida').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+    });
+
+    //$(function () {
+    //    $("#btnfrstsubmit").click(function () {
+    //        var xhr = new XMLHttpRequest();
+    //        var upload = new FormData();
+    //        upload.append("file", document.getElementById('UploadFile').files[0]);
+    //        xhr.open("POST", "/IEM_GST_TAX/UploadFileslocal/", true);
+    //        xhr.send(upload);
+
+    //        xhr.addEventListener("upload", function (event) { 
+    //            alert(event.target.response);
+    //        }, false); 
+    //        var uploadgid = 0;
+    //        var type = "x";
+    //        objDialog1.load('../IEM_GST_TAX/bulkcreate?id=' + uploadgid + '&type=' + type);
+    //        objDialog1.dialog({ title: 'Upload List' });
+    //        objDialog1.dialog("open");
+    //        return false;
+    //    });
+
+    //});
+
+    function SAcheckfile(sasender) {
+        showProgress();
+        var validExtension = new Array(".xlsx", ".xls");
+        var fileExte = sasender.value;
+        fileExte = fileExte.substring(fileExte.lastIndexOf('.'));
+        if (validExtension.indexOf(fileExte) < 0) { 
+            jAlert("Invalid file selected, valid files are " + validExtension.toString() + " types.");
+            cancel(); 
+        } 
+        else {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#theuploadlocal');
+            var up = $('#UploadFile').val();                       
+            form.attr("action", "../IEM_GST_TAX/UploadFilesnew");
+            form.attr("method", "post");
+            form.attr("encodeing", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#UploadFile').val());
+            form.submit();
+            //getsheetnamess();  
+        } hideProgress();
+    }
+
+
+    function SaleMaker() {
+        if ($("#UploadFile").val() == null || $("#UploadFile").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+
+        }
+        else {
+            showProgress();
+            $.ajax({
+                url: "@Url.Action("UploadFileslocal", "IEM_GST_TAX")",
+                type: 'post',
+            cache: false,
+            data: {},
+            success: function (data) {
+                if (data == "Success") {
+                    hideProgress();
+                    jAlert("GST TAX Details succesfully uploaded! ");
+                  /*  objDialog.dialog({
+                        autoOpen: false,
+                        modal: true,
+                        show: 'fade-in',
+                        close: 'fade-out',
+                        width: 360,
+                        height: 250,
+                        resizable: false
+                    });
+                    $("#UploadFile").val("");
+                    objDialog.load("Url.Action("SaleUploadstatus", "AssetSale")?ddlSelectSheetsa=" + sheet + '&' + new Date().getTime());
+                    objDialog.dialog({ title: 'Upload Summary' });
+                    objDialog.dialog("open");*/
+                }
+                else {
+                    hideProgress();
+                    var uploadgid = 0;
+                    var type = "x";
+                    objDialog1.load('../IEM_GST_TAX/bulkcreate?id=' + uploadgid + '&type=' + type);
+                    objDialog1.dialog({ title: 'Upload Listxx' });
+                    objDialog1.dialog("open");
+                    cancel();
+                    return false;
+                }
+            },
+            error: function () {
+                // alert("error");
+                hideProgress();
+                jAlert("Please refer template.", "Message");
+                @*window.parent.jQuery('#ForPartialViews').dialog('close');
+                objDialog.load('@Url.Action("BulkSale", "AssetSale")?' + new Date().getTime());
+                objDialog.dialog({ title: 'Make Bulk Sale'});
+                $("#fileUploadSaMaker").val("")*@
+                cancel();
+                return false;
+            }
+            });
+           
+    }
+    }
+
+    function cancel() {
+        var fileUpload = $("[id*=UploadFile]");
+        //Create a new FileUpload element.
+        var newFileUpload = $(" <input class='textboxStyleSearch' id='UploadFile' name='UploadFile' type='file' onchange='SAcheckfile(this)' accept='.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'>");
+        fileUpload.after(newFileUpload);
+        fileUpload.remove();
+    }
+
+    //pandiaraj
+</script>

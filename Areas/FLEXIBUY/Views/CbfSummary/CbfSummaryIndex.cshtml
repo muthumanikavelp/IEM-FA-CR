@@ -1,0 +1,418 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "cbfsummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var grid = new WebGrid();
+    int rowNum = 0;
+    if (Session["FlexiDash"] != null)
+    {
+        flexibuydashboard dash = new flexibuydashboard();
+        List<flexibuydashboard> lst = new List<flexibuydashboard>();
+        lst = (List<flexibuydashboard>)Session["FlexiDash"];
+       // grid = new WebGrid(lst, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridContent", selectionFieldName: "SelectedRow");
+        grid = new WebGrid(lst, canPage: false, canSort: false);
+        int id = @grid.PageIndex;
+    }
+    else
+    {
+       // grid = new WebGrid(Model.cbfSum, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridContent", selectionFieldName: "SelectedRow");
+        grid = new WebGrid(Model.cbfSum, canPage: false, canSort: false);
+        int id = @grid.PageIndex;
+    }
+
+
+
+}
+<head>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <style>
+        .tblstyle tr td {
+            padding: 10px;
+        }
+    </style>
+</head>
+<input type="hidden" id="hid_group" value="@Model.result" />
+<div class="well">
+    <span class="pageHeading">CBF Summary</span>
+    @*<span style="color: rgb(52, 108, 196);">CBF Summary</span>*@
+
+    @using (Html.BeginForm())
+    {
+         @*@Html.AntiForgeryToken()*@
+         @*<div class="panel panel-default">
+    <table class="myTableStyleTabNew tblstyle">
+         <br />
+         <tr>
+             <td></td>
+             <td></td>
+
+             <td nowrap="nowrap">
+                 <div>
+                     <span>CBF Number</span>
+                     <br />
+                     <input type="text"
+                            name="txtcbfno"
+                            value="@ViewBag.txtcbfno"
+                            class="textboxStyle"
+                        />
+                 </div>
+             </td>
+
+             <td nowrap="nowrap">
+                 <div>
+                     <span>CBF Date</span>
+                     <br />
+                     <input type="text"
+                            id="txtcbfdate"
+                            name="txtcbfdate"
+                            value="@ViewBag.txtcbfdate"
+                            class="textboxStyle"
+                            />
+                 </div>
+             </td>
+
+             <td nowrap="nowrap">
+                 <div>
+                     <span>Select CBF Mode</span>
+                     <br />
+                     <select id="txtcbfmode"
+                             class="textboxStyle"
+                             name="txtcbfmode"
+                             >
+                         <option value="0">--Select CBF Mode--</option>
+                         <option value="PR">PR</option>
+                         <option value="PAR">PAR</option>
+                     </select>
+
+
+                 </div>
+             </td>
+
+             <td nowrap="nowrap">
+                 <div>
+                     <span>Status</span>
+                     <br />
+                     <select name="txtstatus" id="ddlstatus" class="textboxStyle100">
+                         <option value="0">Select Status</option>
+                         @foreach (var pitem in Model.statuslist)
+                         {
+                             var childitemfilter = Model.statuslist.Where(m => m.Value == pitem.Value);
+                             if (childitemfilter != null)
+                             {
+                                 foreach (var citem in childitemfilter)
+                                 {
+                                     string selectedValue = "";
+                                     if (@Model.statusgid == Convert.ToInt32(citem.Value))
+                                     {
+                                         selectedValue = "selected='selected'";
+                                     }
+
+                                     <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                 }
+                             }
+                         }
+                     </select>
+
+
+
+                 </div>
+             </td>
+             <td>
+                 <div>
+                     <span>
+                         <br />
+                         <button id="searchid" class="btn btn-primary" type="submit" name="command" title="Search" value="SEARCH">
+                             <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                         </button>
+                     </span>
+                 </div>
+             </td>
+             <td>
+                 <div>
+                     <span>
+                         <br />
+                         <button type="button" id="btncancel" class="btn btn-primary" value="clear" onclick="refresh()">
+                             <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                         </button>
+                     </span>
+                 </div>
+             </td>
+             <td>
+                 <div>
+                     <span>
+
+                         @if (@grid.TotalRowCount != 0)
+                         {
+                             <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                         }
+                     </span>
+                 </div>
+             </td>
+
+             <td>
+
+                 <div>
+                     <span>
+                         <br />
+                         <button type="button" value="Raised CBF" id="raise_cbf" class="btn btn-primary cursorpointer" onclick="submit12()">
+                             <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span>  Raise CBF
+                         </button>
+                     </span>
+                 </div>
+             </td>
+         </tr>
+     </table>
+       </div>*@
+            <div style="float:right">
+                <button type="button" value="Raised CBF" id="raise_cbf" class="btn btn-success cursorpointer" onclick="submit12()">
+                    <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span>  Raise CBF
+                </button>
+            </div>
+       
+        @*if (ViewBag.Message != null)
+        {
+            <div align="center">
+                <label class="control-label">@ViewBag.Message</label>
+            </div>
+        }
+        if (@ViewBag.Error != null)
+        {
+            <div align="center">
+                <label>@ViewBag.Error</label>
+            </div>
+        }*@
+        <div style="overflow-x:scroll; width:100%">
+            @if (Session["FlexiDash"] != null)
+            {
+                @grid.GetHtml(
+                       tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                            htmlAttributes: new { id = "grid" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid.Columns
+                            (
+                    grid.Column("Sl", format: a => rowNum = rowNum + 1),
+                    grid.Column("cbfMode", "CBF Mode"),
+                    grid.Column("cbfNo", "CBF No"),
+                    grid.Column("cbfDate", "CBF Date"),
+                    grid.Column("cbfEnddate", "CBF End Date"),
+                    grid.Column("cbfRequestfor", "Dept"),
+                    grid.Column("fincon_Bugt", "Fincon Budgeted"),
+                    grid.Column("cbfAmo", "CBF Amount"),
+                    grid.Column("cbfProjectOwner", "CBF Project Owner"),
+                    grid.Column("cbfDevi_Amo", "Deviation Amount", style: "amountright"),
+                    grid.Column("cbfDescription", "Description"),
+                    grid.Column("cbfStatus", "Status"),
+                    grid.Column(header: "Action",
+                            format: @<text>
+                    @if (@item.cbfStatus == "Draft" || @item.cbfStatus == "Rejected")
+                    {
+                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash " style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" id="@item.cbfGid" type="button"></button>
+                        <button class="glyphicon glyphicon-remove " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+                    }
+                    else if (@item.cbfStatus == "Approved")
+                    {
+                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" type="button"></button>
+                        <button class="glyphicon glyphicon-remove " style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+                    }
+                    else
+                    {
+                        <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" type="button"></button>
+                        <button class="glyphicon glyphicon-remove " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+
+                    }
+            <button class="glyphicon glyphicon-question-sign"  style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="RaiseTicket(id)" id="@item.cbfNo" title="Raise Tickets" type="button"></button>
+            @*<a title="Raise Tickets" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" id="@item.cbfNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>*@
+
+                            </text>)))
+            }
+            else
+            {
+                @grid.GetHtml(
+                       tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                            htmlAttributes: new { id = "grid" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid.Columns
+                            (
+                        grid.Column("Sl", format: a => rowNum = rowNum + 1),
+                        grid.Column("cbfMode", "CBF Mode"),
+                        grid.Column("cbfNo", "CBF No"),
+                        grid.Column("cbfDate", "CBF Date"),
+                        grid.Column("cbfEnddate", "CBF End Date"),
+                        grid.Column("cbfRequestfor", "Dept"),
+                        grid.Column("fincon_Bugt", "Fincon Budgeted"),
+                        grid.Column("cbfAmo", "CBF Amount", style: "amountright"),
+                        grid.Column("cbfProjectOwner", "CBF Project Owner"),
+                        grid.Column("cbfDevi_Amo", "Deviation Amount", style: "amountright"),
+                        grid.Column("cbfStatus", "Status"),
+                        grid.Column("cbfDescription", "Description"),
+                        grid.Column(header: "Action", 
+                            format: @<text>
+                        @if (@item.cbfStatus == "Draft" || @item.cbfStatus == "Rejected")
+                        {
+                            <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                            <button class="glyphicon glyphicon-edit" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                            <button class="glyphicon glyphicon-trash " style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" id="@item.cbfGid" type="button"></button>
+                            <button class="glyphicon glyphicon-remove " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+                        }
+                        else if (@item.cbfStatus == "Approved")
+                        {
+                            <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                            <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                            <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" type="button"></button>
+                            <button class="glyphicon glyphicon-remove " style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+                        }
+                        else
+                        {
+                            <button class="glyphicon glyphicon-eye-open" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="viewcbfraise(id)" id="@item.cbfGid" title="View" type="button"></button>
+                            <button class="glyphicon glyphicon-edit" disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="editcbfraise(id)" id="@item.cbfGid" title="Edit" type="button"></button>
+                            <button class="glyphicon glyphicon-trash " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" name="command" onclick="deletecbfraise(id)" title="Delete" type="button"></button>
+                            <button class="glyphicon glyphicon-remove " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="cancelcbfraise(id)" id="@item.cbfGid" name="command" title="Cancel" type="button"></button>
+
+                        }
+            @*<a title="Raise Tickets" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" id="@item.cbfNo" onclick="RaiseTicket(id)"> <span class="glyphicon glyphicon-question-sign"></span> </a>*@
+            <button class="glyphicon glyphicon-question-sign" style="border:none;box-shadow: none;font-size: 1.0em;background-color: rgb(255, 255, 255);" onclick="RaiseTicket(id)" id="@item.cbfNo" title="Raise Tickets" type="button"></button>
+                            </text>)))
+                Session["FlexiDash"] = null;
+            }
+
+            @{
+        Session["FlexiDash"] = null;
+            }
+        </div>
+         <input hidden="hidden" id="hidPopUp" value="" />
+            <div id="ForPopUpRT"></div>
+        @Html.HiddenFor(x => x.des, new { id = "page" })
+        @*@section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+
+            @Scripts.Render("~/bundles/jqueryui")
+            @Styles.Render("~/Content/themes/base/css")*@
+        
+        
+        
+    }
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('tfoot a').click(function () {
+
+                    $('form').attr('action', $(this).attr('href')).submit();
+
+                    return false;
+                });
+                //$('th a, tfoot a').click(function () {
+                //    $('form').attr('action', $(this).attr('href')).submit();
+                //    return false;
+                //});
+                $("#txtcbfdate").datepicker({
+                    dateFormat: 'dd-mm-yy'
+                });
+
+                //praveen
+                var group = $("#hid_group").val();
+                if (group == "notExists") {
+                    $("#raise_cbf").attr("disabled", true);
+                }
+
+                $('#grid tr th:nth-child(13)').addClass("nosort");
+                $('#grid').dataTable({
+                    "aoColumnDefs": [{
+                        "aTargets": ["nosort"],
+                        "bSortable": false
+                    }]
+                }).css("width", "99%");
+            });
+            $("#searchid,#btncancel").live('click', function () {
+                var group = $("#hid_group").val();
+                if (group == "notExists") {
+                    $("#raise_cbf").attr("disabled", true);
+                }
+            });
+            function viewcbfraise(id) {
+                view = "view";
+                
+              @*location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=' + view + '&' + new Date().getTime();*@
+              location = '@Url.Action("Edit", "CBF")/' + id + '/0';
+
+                // location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=view';
+            }
+            function refresh() {
+                $("#txtcbfno").val('');
+                $("#txtcbfdate").val('');
+                $("#txtcbfmode").val('0');
+                $("#ddlstatus").val('0');            
+                location = "@Url.Action("CbfSummaryIndex", "CbfSummary")";
+            }
+            function editcbfraise(id) {
+                //location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=edit';
+                var edit = "edit";
+                
+                @*location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=' + edit + '&' + new Date().getTime();*@
+                location = '@Url.Action("Edit", "CBF")/' + id;
+            }
+            function deletecbfraise(id) {
+                //location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=delete';
+                var delete1 = "delete";
+                @*location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=' + delete1 + '&' + new Date().getTime();*@
+                location = '@Url.Action("Edit", "CBF")/' + id + '/2';
+            }
+            function cancelcbfraise(id) {
+                //location = '../CbfRaiserEdit/CbfRaiserEdit?lnid=' + id + '&lsviewfor=cancel';
+                @*var cancel = "cancel";
+                location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=' + cancel + '&' + new Date().getTime();*@
+                location = '@Url.Action("CBFChecker", "CBF")/' + id + '/5';
+            }
+            function submit12() {
+                // location = '../CbfRaiser/CbfRaiser';
+                location = '@Url.Action("Edit", "CBF")';
+                //  $("#txtcbfno").val(refno);
+            }
+            if ('@ViewBag.cbfmode' != null) {
+                var selectedvalue = '@ViewBag.cbfmode';
+                $('#txtcbfmode').val(selectedvalue);
+            }
+
+            if ('@ViewBag.status' != null) {
+                var selectedvalue = '@ViewBag.status';
+                $('#txtstatus').val(selectedvalue);
+            }
+            var objRT;
+            function RaiseTicket(cbfno) {
+                var refflagname = "CBF";
+                var itemrefno = cbfno;
+                if ($('#hidPopUp').val() == "") {
+                    $("#hidPopUp").val("iem");
+                    objRT = $("[id$='ForPopUpRT']");
+                    objRT.dialog({
+                        autoOpen: false,
+                        modal: true,
+                        cache: false,
+                        show: 'fade-in',
+                        close: 'fade-out'
+                    });
+                }
+                objRT.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+                objRT.dialog({
+                    title: 'Raise Ticket',
+                    width: 1100,
+                    height: 500
+                });
+                objRT.dialog("open");
+            }
+            function Download() {
+                location = "../CbfSummary/downloadsexcel";
+            }
+        </script>
+   
+</div>

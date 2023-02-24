@@ -1,0 +1,120 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.SupClassificationModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading"> Delmat Range</span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span>Slab Name</span>
+                        <br />
+                        <input type="text"
+                               name="filter"
+                               id="txtFilter"
+                               value="@ViewBag.filter"
+                               class="fstextbox"
+                               maxlength="32" />
+                    </td>
+
+                    <td style="width:75%; padding:0px 10px 0px 3px;">
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="button"
+                                style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+
+
+                        <button type="button" value="NewSlab" name="newslab" onclick="NewSlabAdd()" class="btn btn-primary"
+                                style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span>New Slab
+                        </button>
+
+                    </td>
+                </tr>
+            </table>
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+       htmlAttributes: new { id = "gridSlabid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+             grid.Column(header: "Slab Name", columnName: "Slabname"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewSlab(" + item.Slabid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditSlab(" + item.Slabid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteSlab(" + item.Slabid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>            
+        </div>
+    }
+    <div id="ForPartialView1"></div>
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+            objDialog = $("[id$='ForPartialView1']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true
+
+            });
+
+            $('#gridSlabid tr th:nth-child(3)').addClass("nosort");
+            $('#gridSlabid').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+        });
+        function NewSlabAdd() {
+            var value = "0";
+            objDialog.load('../SlabMaster/NewSlabCreation?name=' + value + '&viewfor=new&' + new Date().getTime());
+            objDialog.dialog({ title: 'Add New Slab', width: '850' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditSlab(id) {
+            objDialog.load('../SlabMaster/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit Slab', width: '850' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewSlab(id) {
+
+            objDialog.load('../SlabMaster/View?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View Slab', width: '350' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteSlab(id) {
+
+            objDialog.load('../SlabMaster/View?id=' + id + '&viewfor=Delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete Slab', width: '350' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function refresh() {
+            location = '../SlabMaster/Slab';
+        }
+    </script>

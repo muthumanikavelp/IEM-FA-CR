@@ -1,0 +1,241 @@
+﻿@{
+    ViewBag.Title = "ApproversDocs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">Query Screen</span>
+<div ng-app="QueryApp">
+    <div class="well" ng-controller="QueryController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            <div style="width:45%;float:left;">
+              Search &nbsp;  <input type="text" ng-model="searchQ.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right;">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+             @*<input style="float:right" type="button" value="Export" ng-click="ExportDoc()" />*@
+                <button class="btn-sm btn-primary" style="float:right" ng-click="ExportDoc()">
+                    <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>
+            </div>
+        </div>
+        <div style="width:100%" id="divData">
+            <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                <thead>
+                    <tr class="SortText">
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:7%;" class="cursorpointer">
+                            <span ng-click="SortQueryData('DocType')"> Doc Type</span>
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocType'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.DocType" />
+                        </th>
+                        <th style="width:15%;" class="cursorpointer">
+                            <span ng-click="SortQueryData('DocRefNumber')">Ref Number</span>
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocRefNumber'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.DocRefNumber" />
+                        </th>
+                        <th style="width:15%;" class="cursorpointer" >
+                            <span ng-click="SortQueryData('DocDate')">Doc Date</span>
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocDate'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.DocDate" />
+                        </th>
+                        <th style="width:15%;" class="cursorpointer" >
+                            <span ng-click="SortQueryData('DocAmount')">Doc Amount</span> 
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocAmount'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.DocAmount" />
+                        </th>
+                        <th style="width:10%;" class="cursorpointer" >
+                            <span ng-click="SortQueryData('Status')">Status</span>
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='Status'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.Status" />
+                        </th>
+                        <th style="width:25%;" class="cursorpointer" >
+                            <span ng-click="SortQueryData('DocDescription')">Description</span>
+                            <span class="glyphicon sort-icon" ng-show="sortKey=='DocDescription'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="searchQ.DocDescription" />
+                        </th>
+                        <th style="width:10%;">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="FilteredItemsQ > 0" ng-repeat="myapproval in myapprovals |orderBy:sortKey:reverse | filter:searchQ:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:10%;">
+                            {{myapproval.DocType}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocRefNumber}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocDate}}
+                        </td>
+                        <td style="width:20%;">
+                            {{myapproval.DocAmount}}
+                        </td>
+                        <td style="width:10%;">
+                            {{myapproval.Status}}
+                        </td>
+                        <td style="width:27%;">
+                            {{myapproval.DocDescription}}
+                        </td>
+                        <td style="width:10%;" align="center">
+                            <a ng-click="ViewDoc(myapproval.DocGid,myapproval.DocType)" title="View">
+                                <span class="glyphicon glyphicon-eye-open"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="FilteredItemsQ < 1">
+                    <tr>
+                        <td colspan="7" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItemsQ > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItemsQ"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItemsQ}}
+            </div>
+        </div>
+    </div>
+    @*<iframe id="txtArea1" style="display:none"></iframe>
+    <button id="btnExport" onclick="fnExcelReport();"> EXPORT </button>*@
+</div>
+<script type="text/javascript">
+    var queryApp = angular.module('QueryApp', ['ui.bootstrap']);
+
+
+    queryApp.config(['$httpProvider', function ($httpProvider) {
+
+        $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+
+        var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+
+        $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    }]);
+
+
+    queryApp.service("queryservice", function ($http) {
+        this.GetQueryScreenData = function () {
+            var url = '@Url.Action("GetQueryScreenData", "Print")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    queryApp.controller('QueryController', function ($scope, queryservice) {
+
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        GetQueryScreenData();
+       
+        function GetQueryScreenData() {
+            var getData = queryservice.GetQueryScreenData();
+            getData.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "")
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.myapprovals = Data0;
+                $scope.FilteredItemsQ = $scope.myapprovals.length;
+
+            }, function () {
+                alert('Error While Loading record');
+            });
+        }
+        $scope.ViewDoc = function (docgid, doctype) {
+
+            var url;
+            if (doctype == 'PAR')
+                url = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + docgid + '&viewfor=view&' + new Date().getTime();
+            else if (doctype == 'PR')
+                url = '../PrSummary/ViewPRDetails/' + docgid;
+            else if (doctype == 'CBF')
+                url = '@Url.Action("Edit", "CBF")/' + docgid + '/0';
+            else if (doctype == 'PO')
+                url = '@Url.Action("RaisePO", "PO")/' + docgid + '/0';
+            else if (doctype == 'WO')
+                url = '@Url.Action("Index", "WONew")?wogid=' + docgid + '&viewtype=view&' + new Date().getTime();
+
+            window.open(url, "_blank");
+        }
+        $scope.SortQueryData = function (keyname) {
+            $scope.sortKey = keyname;   //set the sortKey to the param passed
+            $scope.reverse = !$scope.reverse; //if true make it false and vice versa
+        }
+        $scope.ExportDoc = function () {
+            location = '@Url.Action("DTtoExcell", "Print")?' + new Date().getTime();
+        }
+    });
+    queryApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+    //function fnExcelReport() {
+    //    var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
+    //    var textRange; var j = 0;
+    //    tab = document.getElementById('tblExpp'); // id of table
+
+    //    for (j = 0 ; j < tab.rows.length ; j++) {
+    //        tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
+    //        //tab_text=tab_text+"</tr>";
+    //    }
+
+    //    tab_text = tab_text + "</table>";
+    //    tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+    //    tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+    //    tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+    //    var ua = window.navigator.userAgent;
+    //    var msie = ua.indexOf("MSIE ");
+
+    //    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+    //    {
+    //        txtArea1.document.open("txt/html", "replace");
+    //        txtArea1.document.write(tab_text);
+    //        txtArea1.document.close();
+    //        txtArea1.focus();
+    //        sa = txtArea1.document.execCommand("SaveAs", true, "Say Thanks to Sumit.xls");
+    //    }
+    //    else                 //other browser not tested on IE 11
+    //        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+    //    return (sa);
+    //}
+</script>

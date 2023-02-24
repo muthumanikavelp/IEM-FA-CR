@@ -1,0 +1,103 @@
+﻿@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div>
+                    Employee Code
+                </div>
+                <div class="input-append">
+                    <input type="text"
+                           id="EmployeeCode"
+                           name="txtEmpcode"
+                           value="@ViewBag.filter"
+                           class="textboxStyle required"
+                           style="display: block;width:250px;" />
+                </div>
+                <div style="display:none">
+                    <input type="text"
+                           id="EmployeeId"
+                           name="txtEmployeeId"
+                           value="@ViewBag.filter"
+                           class="textboxStyleSearch"
+                           style="display: block;width:250px;" />
+                </div>
+            </td>
+            <td>
+                <a title="view"><span class="glyphicon glyphicon-search" style="margin: 29px 10px 0px 9px;" onclick="Serach()"></span></a>
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" style="margin: 21px 20px 10px 10px;" onclick="Save()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span>Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<div id="ForPartialRoleEmployeeSearch"></div>
+<input type="hidden" id="hid_empl" value="" />
+<script type="text/javascript">
+    var objDialogRoleEmployeeSearch;
+    $(document).ready(function () {
+        if ($("#hid_empl").val() == "") {
+            objDialogRoleEmployeeSearch = $("[id$='ForPartialRoleEmployeeSearch']");
+            $("#hid_empl").val("s");
+            objDialogRoleEmployeeSearch.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+            });
+        }
+        $("#hid_empl").val("");
+    });
+    function Serach() {
+
+        objDialogRoleEmployeeSearch.load('../RoleEmployee/EmployeeAddSearch');
+        objDialogRoleEmployeeSearch.dialog({ title: 'Employee Details', width: '700', height: '500' });
+        objDialogRoleEmployeeSearch.dialog("open");
+    }
+    function Save() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        var Employeeid = $("#Empid").val();
+        if (EmployeeCode == null || EmployeeCode == "") {
+            jAlert("You Can't Add Empty Values", "Information");
+            return false;
+        }
+        var Student = {
+            "Employeeid": Employeeid,
+            "EmployeeCode": EmployeeCode
+        };
+        $.ajax({
+            url: '../RoleEmployee/EmploeeRoleAdd',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        MapEmployee();
+                    }
+                });
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+        })
+    }
+
+    function GotoIndex() {
+        objDialogAdd.remove();
+        location.reload();
+    }
+</script>

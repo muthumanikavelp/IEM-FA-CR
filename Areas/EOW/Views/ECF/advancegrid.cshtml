@@ -1,0 +1,145 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Common
+@using IEM.Areas.EOW.Models
+@{
+    decimal remamount = 0;
+    DataTable getadvancetype = new DataTable();
+    List<GetAdvancetype> list = new List<GetAdvancetype>();
+    List<EOW_arfraising> getadvancedetails = new List<EOW_arfraising>();
+    ArfRaising rais = new ArfRaising();
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+
+    getadvancetype = rais.SelectAdvance(Session["QEcfGid"].ToString());
+
+    for (int tr = 0; getadvancetype.Rows.Count > tr; tr++)
+    {
+        if (remamount == 0)
+        {
+            remamount = Convert.ToDecimal(getadvancetype.Rows[tr]["ecfarf_amount"].ToString());
+        }
+        else
+        {
+            remamount = remamount + Convert.ToDecimal(getadvancetype.Rows[tr]["ecfarf_amount"].ToString());
+        }
+    }
+
+    foreach (DataRow dr in getadvancetype.Rows)
+    {
+        getadvancedetails.Add(
+        new EOW_arfraising
+        {
+            ecfarf_gid = Convert.ToInt32(dr["ecfarf_gid"].ToString()),
+            ecfarf_ecf_gid = Convert.ToInt32(dr["ecfarf_ecf_gid"].ToString()),
+            ecfarf_advancetype = Convert.ToString(dr["ecfarf_advancetype_gid"].ToString()),
+            ecfarf_desc = Convert.ToString(dr["ecfarf_desc"]),
+            ecfarf_liq_date = Convert.ToString(dr["ecfarf_liq_date"].ToString()),
+            ecfarf_po_no = Convert.ToString(dr["ecfarf_po_no"].ToString()),
+            ecfarf_cbf_no = Convert.ToString(dr["ecfarf_cbf_no"].ToString()),
+            ecfarf_fc_code = Convert.ToString(dr["ecfarf_fc_code"].ToString()),
+            ecfarf_cc_code = Convert.ToString(dr["ecfarf_cc_code"].ToString()),
+            ecfarf_product_code = Convert.ToString(dr["ecfarf_product_code"].ToString()),
+            ecfarf_ou_code = Convert.ToString(dr["ecfarf_ou_code"]),
+            ecfarf_amount = objCmnFunctions.GetINRAmount(dr["ecfarf_amount"].ToString()),
+        });
+    };
+
+    WebGrid grid = new WebGrid(source: getadvancedetails, canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+
+    int rowVal = 0;
+}
+@*<link href="@Url.Content(" ~ />Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content(" ~ />Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+
+
+@using (Html.BeginForm())
+{
+    <div class="table-responsive" id="advancegrid" style="padding-right: 10px;max-height: 350px;">
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridExpense" },
+                                 tableStyle: "tableSmall table-bordered",
+                                columns: grid.Columns
+                                (
+
+                                grid.Columns(
+        //grid.Column("S No", format: item => rowVal = rowVal + 1),
+                        grid.Column("ecfarf_advancetype", Sorter("ecfarf_advancetype", "Advance Type", grid), style: "aexpempdel"),
+                              grid.Column("ecfarf_desc", Sorter("ecfarf_desc", "Description", grid), style: "dexpempdel"),
+                              grid.Column("ecfarf_liq_date", Sorter("ecfarf_liq_date", "Liquidation Date", grid), style: "aexpempdel"),
+                              grid.Column("ecfarf_po_no", Sorter("ecfarf_po_no", "PO No", grid), style: "aexpempdel"),
+                              grid.Column("ecfarf_cbf_no", Sorter("ecfarf_cbf_no", "CBF No", grid), style: "aexpempdel"),
+                               grid.Column("ecfarf_fc_code", Sorter("ecfarf_fc_code", "Business Segment(BU)", grid), style: "aexpempdel"),
+                               grid.Column("ecfarf_cc_code", Sorter("ecfarf_cc_code", "Cost Center(CC)", grid), style: "dexpempdel"),
+                              grid.Column("ecfarf_product_code", Sorter("ecfarf_product_code", "Product Code", grid), style: "aexpempdel"),
+                               grid.Column("ecfarf_ou_code", Sorter("ecfarf_ou_code", "Location Code(OUCode)", grid), style: "fexpempdel"),
+                                grid.Column(header: "Amount",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                                 objCmnFunctions.GetINRAmount(Convert.ToString(@item.ecfarf_amount)
+                        ))) </text>, style: "colamountlarge"))))
+    </div>
+    <div>
+        <table style="width:100%">
+            <tr>
+                <td align="right">
+                    <span>
+                        Total Advance Amount : <b>
+                            <label id="Ecfrowtolamtdisp">
+                                @objCmnFunctions.GetINRAmount(remamount.ToString())
+                            </label>
+                        </b>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+
+    .cexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .aexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .fexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+</style>

@@ -1,0 +1,165 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    //Layout = null;
+    ViewBag.Title = "Product List";
+    int rowNum = 0;
+    var grid = new WebGrid(source: Model.lstproduct, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "prodgrid");
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+ <div id="ProductDetailgrid1">
+        <table class="myTableStyleTabpopup">
+            <tr>
+                <td>
+                    <span>Product Code</span>
+                    <br />
+                    <input type="text"
+                           name="prodcode"
+                           id="txtprodcode"
+                           value="@TempData["code"]"
+                           class="textboxStyle"
+                            />
+                </td>
+                <td>
+                    <span>Product Name</span>
+                    <br />
+                    <input type="text"
+                           name="prodname"
+                           id="txtprodname"
+                           value="@TempData["name"]"
+                           class="textboxStyle"
+                           />
+                </td>
+                <td style="padding-top:20px;">
+                    <div>
+                        <span>
+                            <button class="btn btn-primary" onclick="searchproduct()" id="btnsearch" value="search" name="command"
+                                    type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                            </button>
+                        </span>
+                    </div>
+                </td>
+                <td style="padding-top:20px;">
+                    <div>
+                        <span>
+                            <button class="btn btn-primary" onclick="webgridrefresh()" id="btnrefresh" value="Clear" name="command"
+                                    type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                            </button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+     </table>
+            @grid.GetHtml(
+        tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "prodgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+        (
+        grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "MidColumn5"),
+        grid.Column("product_Code", objCmnFunctions.Sorter("product_Code", "Product Code", grid), style: "col-sm-1"),
+        grid.Column("product_Name", objCmnFunctions.Sorter("product_Name", "Product Name", grid), style: "col-sm-1"),
+        grid.Column("product_Description", objCmnFunctions.Sorter("product_Description", "Product Description", grid), style: "col-sm-3"),
+        grid.Column(header: "Action", canSort: false, style: "action",
+        format: @<text>
+            <input type="button" onclick="productcode(this,id)" id="@item.product_gid" class="btn btn-link" title="Select" value="Select" />
+        </text>)))
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+
+</div>
+
+}
+    @*<script src="~/Scripts/Partial.js"></script>*@
+    <script>
+        function searchproduct() {
+            var prod_gid = $("#prodid").val();
+            var prodcode = $('#txtprodcode').val();
+            var prodname = $('#txtprodname').val();
+
+            var objownersearch = {
+                "product_Name": prodname,
+                "product_Code": prodcode,
+                "product_gid":prod_gid
+            };
+            $.ajax({
+                url: '@Url.Action("SearchProd", "PRRaiser")?' + new Date().getTime(),
+                type: 'POST',
+                data: objownersearch,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#ProductDetailgrid1").load('@Url.Action("getprodlist", "PRRaiser")?id=' + prod_gid + '&' + 'listfor=search' + '&' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+
+        function webgridrefresh() {
+            var prod_gid = $("#prodid").val();
+            $("#txtprodcode").val("");
+            $("#txtprodname").val("");
+            $("#ProductDetailgrid1").load('@Url.Action("getprodlist", "PRRaiser")?id=' + prod_gid + '&' + 'listfor=refresh' + '&' + new Date().getTime());
+        }
+        function productcode(element, id1) {
+            var row = $(element).closest('tr');
+            var Parproduct =
+           {
+               "product_gid": id1
+           };
+
+            $.post('@Url.Action("productdetails", "PRRaiser")', Parproduct,
+                function (data) { if (data >0) {jAlert('Already You Have Raise This Product Please Select Any Other Product') } else { 
+            var pc = row.find('td:eq(1)').text();
+            var pn = row.find('td:eq(2)').text();
+            var pd = row.find('td:eq(3)').text();
+            var id = $('#rowid').val();
+            $('#product_Code' + id + '').val(pc);
+            $('#product_Name' + id + '').val(pn);
+            $('#product_Description' + id + '').val(pd);
+            $('#productgid' + id + '').val(id1);
+            objDialog1.dialog('close');
+       
+        }
+                }, 'json');
+        }
+        //function SearchProdPR(code) {
+        //    var prod_gid = $("#prodid").val();
+        //    prod_code = $("#ProdCodeSearch").val();
+        //    prod_name = $("#ProdNameSearch").val();
+        //    if (code == 2) {
+        //        prod_code = "";
+        //        prod_name = "";
+        //    }
+        //    var objSearchProd = {
+        //        "product_gid": prod_gid,
+        //        "product_Code": prod_code,
+        //        "product_Name": prod_name
+        //    };
+        //    $.post('../PRRaiser/SearchProd', objSearchProd,
+        //    function (data) {
+        //        if (data != 0) {
+        //            $("#prodgrid").empty().append(data);
+        //        }
+        //      //  $("#ProductDetailgrid").load('../PRRaiser/getprodlist?id=' + prod_gid + '&listfor=search&' + new Date().getTime());
+        //        setTimeout(function () {
+        //            $("#ProdCodeSearch").val(prod_code);
+        //            $("#ProdNameSearch").val(prod_name);
+        //        }, 50);
+
+        //    }, 'json');
+        //}
+    </script>

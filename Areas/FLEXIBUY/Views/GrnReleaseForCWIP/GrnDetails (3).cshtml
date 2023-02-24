@@ -1,0 +1,519 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.GRNInward
+@using IEM.Common;
+@{
+    ViewBag.Title = "grndetails";
+    WebGrid grid = new WebGrid(source: Model.objInwardList, canSort: true, canPage: false, rowsPerPage: 2, ajaxUpdateContainerId: "grndetails", ajaxUpdateCallback: "dummyfun()");
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+
+}
+<input type="hidden" id="hid_chkresult" value="@Model.chkResult" />
+<input type="hidden" id="hid_grndetailsgid" />
+<input type="hidden" id="hid_receivedqty" />
+<input type="hidden" id="hid_poshipmentgid" />
+@*<div id="grndetails">
+    <br />*@
+<div id="grncwipdetail" class="container-fluid overflowx overflowy">
+
+    @grid.GetHtml(
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grndetailsgrid" },
+        columns: grid.Columns
+            (
+         grid.Column("SNo", format: a => rowNum = rowNum + 1),
+         grid.Column("slno", obj.Sorter("slno", "Sl", grid)),
+         grid.Column("grndetgid", obj.Sorter("grndetgid", "grndetgid", grid)),
+         grid.Column("grnReleaseGid", obj.Sorter("grnReleaseGid", "grnReleaseGid", grid)),
+         grid.Column("poshipmentGid", obj.Sorter("poshipmentGid", "poshipmentGid", grid)),
+         grid.Column("productGroup", obj.Sorter("productGroup", "Product Group", grid), style: "MidColumn30"),
+         grid.Column("productCode", obj.Sorter("productCode", "Product Code", grid), style: "MidColumn30"),
+         grid.Column("productName", obj.Sorter("productName", "Product Name", grid), style: "MidColumn50"),
+         grid.Column("uomcode", obj.Sorter("uomcode", "Units", grid), style: "MidColumn30"),
+         grid.Column("quantReceived", obj.Sorter("quantReceived", "Received Quantity", grid)),
+         grid.Column("receivedDate", obj.Sorter("receivedDate", "Received Date", grid), style: "MidColumn30"),
+         grid.Column("assetSlno", obj.Sorter("assetSlno", "Asset Slno", grid),
+       format: @<text><span class="display" id="lblasset">@item.assetSlno</span>
+    <input type="hidden" value="@item.IsSerial" name="hfSlNo" class="hiddenSlNo" />
+    <input type="text" id="inasset_@item.grndetgid" name="inasset"
+           href="@item.grndetgid" value="@item.assetSlno" style="width:100%;"
+           class="edit textboxStyle" /> </text>,style:"MidColumn30"),
+
+                 grid.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+                    @*<span class="glyphicon glyphicon-floppy-open  display-mode add-btn"><label id="sdf34" hidden="hidden"> @rowNum</label></span>*@
+                    <a><span class='glyphicon glyphicon-floppy-save edit savegrn-btn Color '><label id="sdf34" hidden="hidden"> @item.grndetgid</label></span></a>
+    @if (@item.IsSerial == "M")
+    {                 
+        <a><span class='glyphicon glyphicon-edit display editgrn-btn Color'><label id="sdf67" hidden="hidden"> @item.grndetgid</label> </span></a>
+        }            
+        <a><span class='glyphicon glyphicon-remove edit cancelgrn-btn Color'> <label id="sdf000-" hidden="hidden"> @item.grndetgid</label></span></a>
+            </text>),
+          grid.Column(header: "Select", canSort: false, style: "action",
+                     format: @<text>
+            <input type="hidden" name="hidgrndetgidnew" id="hidgrndetgidnew" value="chkselect__@rowNum" />
+            <input type="checkbox" href="@item.grndetgid" value="@item.grndetgid"
+                   class="btn btn-link chkb" name="ids"
+                   onclick="GrnforCwipSelection()"
+                   id="chkselect__@rowNum" title="Select" />
+                    </text>)
+                         ))
+</div>
+
+@if (@ViewBag.records != null || @ViewBag.records == "")
+{ <div class="borderStyle btnCenter">
+        @ViewBag.records
+    </div>
+}
+
+    @*</div>*@
+    <br />
+    <div id="grnbranchdetails">
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td></td>
+                <td>
+                    <span>Branch Name</span>
+                    <br />
+                    <input type="text" id="txt_branchName" class="textboxStyle100" disabled="disabled" />
+                    <a id="btnsearch" onclick="GetBranch()"><span class="glyphicon glyphicon-search cursorpointer"></span></a>
+                </td>
+                <td></td>
+                <td>
+                    <span>Address</span>
+                    <br />
+                    <input type="text" id="txt_addr" class="textboxStyle100" disabled="disabled" />
+                </td>
+                <td></td>
+                <td>
+                    <span>Incharge ID</span>
+                    <br />
+                    <input type="hidden" id="txt_incharge_gid" name="txt_incharge_gid" />
+                    <input type="text" id="txt_incharge" class="textboxStyle100"  />
+                </td>
+                <td></td>
+                <td>
+                    <span>Address</span>
+                    <br />
+                    <input type="text" id="txt_addr1" class="textboxStyle100" disabled="disabled" />
+                </td>
+                <td>
+                    <div>
+                        <span></span>
+                        <br />
+                        <button type="button" id="btnUpdate" class="btn btn-primary" value="Cancel" onclick="BranchUpdate()">
+                            <span style="color:white;" class="glyphicon glyphicon-floppy-save"></span> Update
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+<div id="cwipbranch"></div>
+<input type="hidden" id="hid_location" />
+<input type="hidden" id="hid_branchgid" />
+<input type="hidden" id="hidcheckedids" name="hidcheckedids" />
+<script>
+    var dt;
+    var tr = $("#grndetailsgrid").find('tr');
+    // $("#podetailgrid td:nth-child(10),#podetailgrid th:nth-child(10)").hide();
+    $("#grndetailsgrid tr .Color").click(function () {
+        $('#grndetailsgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    $("#grndetailsgrid td:nth-child(3),#grndetailsgrid th:nth-child(3)").hide();
+    $("#grndetailsgrid td:nth-child(4),#grndetailsgrid th:nth-child(4)").hide();
+    $("#grndetailsgrid td:nth-child(5),#grndetailsgrid th:nth-child(5)").hide();
+    $("#grndetailsgrid td:nth-child(1),#grndetailsgrid th:nth-child(1)").hide();
+    $(document).ready(function () {
+        $("#grnbranchdetails").hide();
+        //var tr = $(this).parents('tr:first');
+        //var unitprice = tr.find('td:eq(9)').text();
+        $(".edit").hide();
+        var flag = 0;
+        $('.editgrn-btn').on('click', function () {
+            if (flag == 0) {
+                flag = 1;
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+            }
+        });
+        $('.cancelgrn-btn').on('click', function () {
+            flag = 0;
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+
+
+        $('.savegrn-btn').on('click', function () {
+
+            var flag = 0;
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var assetSlno = tr.find("#inasset_" + row.trim() + "").val();
+            var grndetgid = tr.find("td:eq(2)").text();
+
+            if (assetSlno == null || assetSlno == "") {
+                jAlert("Asset Slno should not be Empty", "Error");
+                return false;
+            }
+            else {
+                $('.edit').hide();
+                var objInward =
+                {
+                    "grndetgid": grndetgid,
+                    "assetSlno": assetSlno
+                };
+                $.ajax({
+                    url: '@Url.Action("GrnReleaseTemp", "GrnReleaseForCWIP")',
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    data: objInward,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#grncwipdetail").load('@Url.Action("GrnReleaseTempSave", "GrnReleaseForCWIP")?' + new Date().getTime());
+                            var chkidss = $("#hidcheckedids").val();
+                            //   var arr = new Array(chkidss.split(","));
+                            var arr = chkidss.split(',');
+                            for (var i = 0; i < arr.length; i++) {
+
+                                $("#grndetailsgrid tbody tr").each(function () {
+                                    var id2 = $(this).find($("input[name$=hidgrndetgidnew]")).val();
+                                    setTimeout(function () {
+                                        if ($.inArray(id2, arr) !== -1) {
+                                            $('#' + id2 + '').attr('checked', true);
+                                            $(this).css('background-color', '#ccc');
+                                            $("#grnbranchdetails").show();
+                                            if (dt != null) {
+                                                $("#cwipbranch").empty().append(dt);
+                                            }
+
+                                        }
+                                    }, 200);
+
+                                    //alert(id2);
+                                    //alert(arr[i]);
+                                    //if (arr[i] == id2) {
+                                    //    $('#' + id2 + '').attr('checked', true);
+                                    //    $(this).css('background-color', '#ccc');
+                                    //}
+                                });
+                            }
+
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            }
+        });
+
+        $("#txt_incharge").keyup(function (e) {
+            if (e.which != 13) {
+                $("[name=txt_incharge_gid]").val("0");
+            }
+
+            $("#txt_incharge").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetEmployeeAutoComplete", "WONew")?' + new Date().getTime(),
+                        data: "{ 'searchtext' : '" + $("#txt_incharge").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }));
+                        },
+                        error: function (response) {
+                        },
+                        failure: function (response) {
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("[name=txt_incharge_gid]").val(i.item.val);
+                    $("#txt_incharge").val(i.item.label);
+                },
+                minLength: 1
+            });
+
+        });
+
+        $("#txt_incharge").focusout(function () {
+            var hdfId = $("[name=txt_incharge_gid]").val();
+            var txtCurName = $("#txt_incharge").val();
+         
+            if (txtCurName.trim() != "" && (hdfId.trim() == "" || hdfId.trim() == "0")) {
+                $("#txt_incharge").val("");
+            }
+        });
+
+    });
+    var res = 0;
+    var quant = 0;
+    var poship = 0;
+    var chkids = "";
+    function GrnforCwipSelection() {
+        //$("#grndetailsgrid tbody tr").each(function (i, row) {
+        //    var $actualRow = $(row);
+        //    if ($actualRow.find('input[type=checkbox]').prop('checked') == true) {
+        //        $actualRow.css('background-color', '#ccc');
+        //    }
+        //    else {
+        //        $actualRow.css('background-color', 'white');
+        //    }
+
+        //    var i = 0;
+        //    var ChkResult = "";
+        //    var qty = "";
+        //    var shipid = "";
+        //    var assetSlno="";
+        //    $actualRow.find("input[type=checkbox]").each(function () {
+        //        var tempassetno = "";
+        //        var id = $(this).attr('value')
+        //        var id2 = $(this).attr('id')
+        //        if ($('#' + id2 + '').is(":checked") == true) {
+        //            $("#grnbranchdetails").show();
+        //            ChkResult += $(this).closest('tr').find('td:eq(2)').text() + ",";
+        //            qty += $(this).closest('tr').find('td:eq(9)').text() + ",";
+        //            shipid += $(this).closest('tr').find('td:eq(4)').text() + ",";
+        //            tempassetno = $(this).closest('tr').find('td:eq(11)').text();
+        //            if (tempassetno == null || $.trim(tempassetno).toString() == "") {
+
+        //                $('#' + id2 + '').attr('checked', false);
+        //                if ($('#' + id2 + '').find('input[type=checkbox]').prop('checked') == false) {
+        //                    $('#' + id2 + '').css('background-color', 'white')
+        //                }
+        //            }
+        //            else {
+        //                assetSlno += tempassetno;
+        //                $('#' + id2 + '').attr('checked', true);
+        //            }
+        //        }
+        //    });
+
+        //    ChkResult = ChkResult.substring(0, ChkResult.length - 1);
+        //    res = ChkResult;
+        //    qty = qty.substring(0, qty.length - 1);
+        //    quant = qty;
+        //    shipid = shipid.substring(0, shipid.length - 1);
+        //    poship = shipid;
+        //});
+        
+        $("#hid_grndetailsgid").val("");
+        $("#hid_receivedqty").val("");
+        //   $("#hid_poshipmentgid").val("");
+        var ChkResult = "";
+        var qty = "";
+        var shipid = "";
+        var checkedids = "";
+        var rowcnt = 0;
+        var errormsgs = "";
+        $("#grndetailsgrid tbody tr").each(function () {
+            rowcnt = rowcnt + 1;
+            var assetno = $(this).find('td:eq(11)').text();
+            var id2 = $(this).find($("input[name$=hidgrndetgidnew]")).val();
+            var slno = $(this).find($("input[name$=hfSlNo]")).val();
+            if ($('#' + id2 + '').is(":checked") == true) {
+
+                if ((assetno.toString().trim() == "" || assetno == null) && $.trim(slno) == "M") {
+                    $('#' + id2 + '').attr('checked', false);
+                    $(this).css('background-color', '#fff');
+                    if (errormsgs == "") {
+                        errormsgs = "Please Enter Asset Number.Row Number(" + rowcnt.toString() + ")";
+                    }
+                    else {
+                        errormsgs += "\nPlease Enter Asset Number.Row Number(" + rowcnt.toString() + ")";
+                    }
+                }
+                else {
+                    if (checkedids == "") {
+                        checkedids = id2;
+                    }
+                    else {
+                        checkedids += "," + id2;
+                    }
+                    $('#' + id2 + '').attr('checked', true);
+                    $(this).css('background-color', '#ccc');
+                    $("#grnbranchdetails").show();
+                    if (ChkResult == "") {
+                        ChkResult = $(this).find('td:eq(2)').text();
+                    }
+                    else {
+                        ChkResult += "," + $(this).find('td:eq(2)').text();
+                    }
+                    if (qty == "") {
+                        qty = $(this).find('td:eq(9)').text();
+                    }
+                    else {
+                        qty += "," + $(this).find('td:eq(9)').text();
+                    }
+                    if (shipid == "") {
+                        shipid = $(this).find('td:eq(4)').text();
+                    }
+                    else {
+                        shipid += "," + $(this).find('td:eq(4)').text();
+                    }
+                }
+            }
+
+        });
+
+        //   ChkResult = ChkResult.substring(0, ChkResult.length - 1);
+
+        res = ChkResult;
+        // qty = qty.substring(0, qty.length - 1);
+        quant = qty;
+
+        // shipid = shipid.substring(0, shipid.length - 1);
+
+        poship = shipid;
+        chkids = checkedids;
+        var chkidsnew = new Array(chkids);
+        $("#hidcheckedids").val(chkidsnew);
+        var grndetailsgid = new Array(res);
+        $("#hid_grndetailsgid").val(grndetailsgid);
+        var receivedQty = new Array(quant);
+        $("#hid_receivedqty").val(receivedQty);
+        var poshipmentgid = new Array(poship);
+        $("#hid_poshipmentgid").val(poshipmentgid);
+        var grndetailsgid = $("#hid_grndetailsgid").val();
+
+
+        if (grndetailsgid == null || grndetailsgid == "") {
+            $("#grnbranchdetails").hide();
+        }
+        if (errormsgs.toString().trim() != "") {
+            jAlert(errormsgs, "Error", function () {
+                errormsgs = "";
+                return false;
+            });
+            return false;
+        }
+    }
+    function BranchUpdate() {
+        //  var res = 0;
+        //  var quant = 0;
+        //  var poship = 0;
+        //  var ChkResult = "";
+        //  var qty = "";
+        //  var shipid = "";
+        //  $("#grndetailsgrid tbody tr").each(function () {
+        //      var id2 = $(this).find($("input[name$=hidgrndetgidnew]")).val();
+        //      if ($('#' + id2 + '').is(":checked") == true) {
+        //          if (ChkResult == "") {
+        //              ChkResult = $(this).find('td:eq(2)').text();
+        //          }
+        //          else {
+        //              ChkResult += "," + $(this).find('td:eq(2)').text();
+        //          }
+        //          if (qty == "") {
+        //              qty = $(this).find('td:eq(9)').text();
+        //          }
+        //          else {
+        //              qty += "," + $(this).find('td:eq(9)').text();
+        //          }
+        //          if (shipid == "") {
+        //              shipid = $(this).find('td:eq(4)').text();
+        //          }
+        //          else {
+        //              shipid += "," + $(this).find('td:eq(4)').text();
+        //          }
+        //      }
+        //  });
+        //  ChkResult = ChkResult.substring(0, ChkResult.length - 1);
+        //  res = ChkResult;
+        ////  qty = qty.substring(0, qty.length - 1);
+        //  quant = qty;
+        //  shipid = shipid.substring(0, shipid.length - 1);
+        //  poship = shipid;
+        //  var grndetailsgid = new Array(res);
+        //  $("#hid_grndetailsgid").val(grndetailsgid);
+        //  var receivedQty = new Array(quant);
+        //  $("#hid_receivedqty").val(receivedQty);
+        //  var poshipmentgid = new Array(poship);
+        //  $("#hid_poshipmentgid").val(poshipmentgid);
+        //  var grndetailsgid = $("#hid_grndetailsgid").val();
+
+
+        var tr = $(this).parents('tr:first');
+        var row = $(this).text();
+        var quantReceived = $("#hid_receivedqty").val();
+        var grndetailsgid = $("#hid_grndetailsgid").val();
+        var location = $("#hid_location").val();
+        var branchName = $("#txt_branchName").val();
+        var branchaddress = $("#txt_addr1").val();
+        var inchargeId = $("#txt_incharge").val();
+        var branchgid = $("#hid_branchgid").val();
+        var poshipmentgid = $("#hid_poshipmentgid").val();
+        var empgid = $("#txt_incharge_gid").val();
+        if (empgid == 0 || empgid == "" || empgid == "undefined") {
+            jAlert("Please Select Valid Branch Incharge", "Warning", function () {
+                return false;
+            });
+            return false;
+        }
+        var objbranch =
+      {
+          "grndetGid": grndetailsgid,
+          "location": location,
+          "branchName": branchName,
+          "address": branchaddress,
+          "inchargeID": inchargeId,
+          "releasedqty": quantReceived,
+          "branchgid": branchgid,
+          "poshipmentgid": poshipmentgid,
+          "empgid": empgid
+      };
+        $.ajax({
+            url: '@Url.Action("BranchUpdate", "GrnReleaseForCWIP")',
+            type: 'POST',
+            data: objbranch,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    dt = data;
+                    $("#cwipbranch").empty().append(data);
+                }
+                @*$("#cwipbranch").load('@Url.Action("BranchUpdate","GrnReleaseForCWIP")')*@
+                //$("#poEditgrid1").empty().append(data);
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+    }
+    var objbranch;
+    function GetBranch() {
+        if ($("#hid_cwipbranch").val() == "") {
+            $("#hid_cwipbranch").val("branch");
+            objbranch = $("[id$='branchdetailscwip']");
+            objbranch.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                cache: false,
+                async: false
+
+            });
+        }
+        objbranch.load('@Url.Action("BranchDetailsForCwip", "GrnReleaseForCWIP")?listfor=listfor&' + new Date().getTime());
+        objbranch.dialog({ title: 'Branch Details', width: '800', height: '400' });
+        objbranch.dialog("open");
+    }
+</script>

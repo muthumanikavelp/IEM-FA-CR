@@ -1,0 +1,206 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_expensecategory>
+@using IEM.Common;
+@{
+    iem_mst_expensesubcategory ecfexpense = (iem_mst_expensesubcategory)ViewBag.expensecatsubcat;
+    
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Expense Category </span>
+</div>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well" style="padding:10px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                                <span>Expense Nature</span>
+                                <br />
+                    <select name="expnatTypee" id="TravelModeIde" class="fstextbox  chosen-select">
+                        <option value="0">-----Select----</option>
+                        @foreach (var pitem in ecfexpense.Getexpnature)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.filter2 == pitem.Value)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+
+
+                            
+                        </td>
+
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span>Expense Cat Code </span>
+                        <br />
+                        <input type="text"
+                               name="expcat_code"
+                               id="txtExpCatCode"
+                               value="@ViewBag.expcat_code"
+                               class="fstextbox "
+                               style="display: block;"
+                               autocomplete="off"
+                               maxlength="32" />
+                </td>
+
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span>Expense Cat Name </span>
+                        <br />
+                        <input type="text"
+                               name="expcat_name"
+                               id="txtExpCatName"
+                               value="@ViewBag.expcat_name"
+                               class="fstextbox "
+                               style="display: block;"
+                               autocomplete="off"
+                               maxlength="64" />
+                </td>
+
+                <td style="width:40%; padding:0px 10px 0px 3px;">
+
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" 
+                            style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+              
+                               <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command"
+                                        type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                 
+                    <button type="button" value="New Expense Cat" onclick="NewGroup()" class="btn btn-primary" style="margin-top:20px;color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-plus"></span> New Expense Category
+                    </button>
+
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+
+                
+                  </td>
+                    </tr>
+                </table>               
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+    htmlAttributes: new { id = "gridexpcat" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+          grid.Column(header: "Expense Cat Code", columnName: "expcat_code"),
+       grid.Column(header: "Expense Cat Name", columnName: "expcat_name"),
+ grid.Column(header: "Expense Nature", columnName: "expnature_name"),
+grid.Column(header: "GlNo", columnName: "gl_no"),
+grid.Column(header: "Active", columnName: "expcat_active"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.expcat_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditExpcat(" + item.expcat_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteExpCat(" + item.expcat_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+        </div>
+          
+    </div>
+
+}
+<div id="ForPartialViewGLCode"></div>
+<div id="ForPartialView"></div>
+<div id="ForPartialViewfordelete"></div>
+<div id="ForPartialViewforedit"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialogyGLCode;
+    var objDialogforedit;
+    $(document).ready(function () {
+
+        $("#TravelModeIde").chosen({});
+        $("#TravelModeIde_chosen").addClass("mychosen").css('width', '100%');
+
+        $(function () {
+            $("#txtExpCatCode").focus();
+        });
+        $('#gridexpcat tr th:nth-child(7)').addClass("nosort");
+        $('#gridexpcat').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+
+     
+        $("#txtExpCatCode").focus();
+        $("#txtExpCatCode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtExpCatName").focus();
+        $("#txtExpCatName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        objDialog = $("[id$='ForPartialView']");
+
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            height:350
+        });
+
+            objDialogyGLCode = $("[id$='ForPartialViewGLCode']");
+            objDialogyGLCode.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 920,
+                height: 310
+            });
+       
+      
+
+    });
+
+    function NewGroup() {
+        objDialog.load('../IEM_EXPENSECATEGORY/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Expense Category' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function EditExpcat(id) {
+        objDialog.load('../IEM_EXPENSECATEGORY/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Expense Category' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_EXPENSECATEGORY/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Expense Category' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DeleteExpCat(id) {
+        objDialog.load('../IEM_EXPENSECATEGORY/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Expense Category' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+        ko.utils.postJson(UrlDet + '?ViewType=11&FileName=ExpenseCategory&' + new Date().getTime());
+    }
+
+    function refresh() {
+        location = '../IEM_EXPENSECATEGORY/Index';
+    }
+</script>

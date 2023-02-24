@@ -1,0 +1,216 @@
+﻿@model  IEM.Models.CygnetSearchModel
+@using IEM.Models
+@{
+    ViewBag.Title = "Invoice Search";  
+    CygnetDataModel objd = new CygnetDataModel();
+    CygnetSearchModel objcyg = new CygnetSearchModel();
+    List<CygnetSearchModel> lstTempInvoice = new List<CygnetSearchModel>();
+    lstTempInvoice = (List<CygnetSearchModel>)TempData["SearchItems"];
+
+    if (lstTempInvoice == null)
+    {
+        ViewBag.IsSearched = "no";
+        if (Session["invoiceGid"] != null)
+        {            
+            lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+        }
+        else
+        {
+            lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+        } 
+    }
+    if (lstTempInvoice.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+@{
+
+    var gridTempInvoice = new WebGrid(lstTempInvoice, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempPayment", ajaxUpdateCallback: "DummyFunction()");
+    int rowVal = 0;
+}
+}
+
+<div class="table-responsive" id="InvoiceSearchParams">
+    <br />
+    <div class="well table-responsive" style="width: 99%;border-color: #43B6F5;border-width: 1px;padding: 0px;">
+        <table class="myTableStyleTab" style="width: 99%;">
+            <tr>
+                <td style="width:35%">
+                    <span>Pan No. </span>
+                    <input type="text"
+                           name="supname"
+                           id="supname"
+                           value="@ViewBag.PanNo"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="width:35%">
+                    <span> Supplier Name </span>
+                    <input type="text"
+                           name="supname"
+                           id="supname"
+                           value="@ViewBag.suppliername"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="width:35%">
+                    <span>GSTN No.</span>
+                    <input type="text"
+                           name="supname"
+                           id="supname"
+                           value="@ViewBag.GSTNNo"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td>
+                    <span>Invoice No</span><br />
+                    <input type="text"
+                           name="supname"
+                           id="supname"
+                           value="@ViewBag.InvoiceNo"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="padding-left: 15px;">
+                    <span>Invoice From Date</span><br />
+                    <input class="textboxStyle required" type="text" value="@ViewBag.InvoiceFromDate" id="txtInvoiceFromdate" maxlength="10" placeholder="dd-mm-yyyy" />
+                </td>
+
+                <td style="padding-left: 15px;">
+                    <span>Invoice To Date</span><br />
+                    <input class="textboxStyle required" type="text" value="@ViewBag.InvoiceToDate" i id="txtInvoiceTodate" maxlength="10" placeholder="dd-mm-yyyy" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="SearchInvoice()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-search"></span> Search</button>
+                    </span>
+                </td>
+                <td>
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="SelectClear()" style="margin-top:20px;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </span>
+                </td>
+            </tr>
+        </table>
+        <div id="divInvoiceGrid" class="overflowy" style="max-height: 380px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+                }
+            }
+            @gridTempInvoice.GetHtml(
+             htmlAttributes: new { id = "wgriPayment" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+                columns:
+                            gridTempInvoice.Columns
+                    (
+                                 gridTempInvoice.Columns(
+                                 gridTempInvoice.Column(header: "Action", canSort: false, style: "action",
+                        format: @<text>
+
+                            <input type="checkbox" disabled="disabled" id="chkInvoice" name="chkInvoice" value="@item.Cygnet_gid);" /> <span style="padding-left:10px;">Select</span>
+                        </text>),
+                        gridTempInvoice.Column("SlNo", style: "slno", format: item => rowVal = rowVal + 1),
+                        gridTempInvoice.Column("Cygnet_InvoiceNo", Sorter("Cygnet_InvoiceNo", "Invoice No.", gridTempInvoice), style: "colmediumCenter"),
+                        gridTempInvoice.Column("Cygnet_InvoiceDate", Sorter("Cygnet_InvoiceDate", "Invoice Date", gridTempInvoice), style: "colmediumBreak"),
+                        gridTempInvoice.Column("Cygnet_TaxableAmt", Sorter("Cygnet_TaxableAmt", "Taxable Amount", gridTempInvoice), style: "colextralargeBreak"),
+                        gridTempInvoice.Column("Cygnet_CGSTAmt", Sorter("Cygnet_CGSTAmt", "CGST Amount", gridTempInvoice), style: "colextralargeBreak"),
+                        gridTempInvoice.Column("Cygnet_SGSTAmt", Sorter("Cygnet_SGSTAmt", "SGST Amount", gridTempInvoice), style: "colextralargeBreak"),
+                        gridTempInvoice.Column("Cygnet_IGSTAmt", Sorter("Cygnet_IGSTAmt", "IGST Amount", gridTempInvoice), style: "colmediumBreak"),
+                        gridTempInvoice.Column("Cygnet_InvoiceAmt", Sorter("Cygnet_InvoiceAmt", "Invoice Amount", gridTempInvoice), style: "colmediumCenter")
+                     )))
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="gridMessage" style="width:100%">
+                    @ViewBag.Message
+                </div>
+            }
+            @if (ViewBag.Message == null)
+            {
+                <div class="gridCount" style="text-align:left;">Page <b>@(gridTempInvoice.PageIndex + 1)</b> of <b>@gridTempInvoice.PageCount</b> - Total No Of Records: <b>@gridTempInvoice.TotalRowCount</b></div>
+            }
+        </div>
+        <table>
+            <tr>
+                <td>
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnProceed" value="Search" type="button" onclick="CreateECFInvoice()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-search"></span> Proceed</button>
+                    </span>
+                </td>
+                <td>
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnClear" value="Clear" type="button" onclick="ClearSelection()" style="margin-top:20px;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+    function DummyFunction()
+    {
+
+    }
+    function CreateECFInvoice()
+    {
+        var array = "";
+        $('input.chkInvoice:checkbox:checked').each(function (index) {
+            array += $(this).attr('Cygnet_gid') + "|";
+        });
+        if (array == "") {
+            jAlert("Please select atleast one Invoice!", "Message");
+            return false;
+        }
+        var ObjCygnet = {
+            "Cgynet_Gid": array 
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SupplierSearchnew", "SupplierInvoiceNew")',
+            data: ObjCygnet,
+            success: function (data) {
+                var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime() + '&listfor=search';
+                $("#searchgrid").load(url);
+            },
+            error: function () {
+            }
+        });
+    }
+    function ClearSelection() {
+
+    } 
+    function Selectsearch() {
+        //alert(1);
+        var empcode = $('#supcode').val();
+        var empname = $('#supname').val();
+        var objownersearch = {
+            "empName": empname,
+            "empCode": empcode
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SupplierSearchnew", "SupplierInvoiceNew")',
+            data: objownersearch,
+            success: function (data) {
+                var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime() + '&listfor=search';
+                $("#searchgrid").load(url);
+            },
+            error: function () {
+            }
+        });
+    }
+    function fn_gridshow() {
+        $("#grid td:nth-child(2),#grid th:nth-child(2)").show();
+    }
+</script>

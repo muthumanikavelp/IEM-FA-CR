@@ -1,0 +1,176 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+@{
+    //Layout = null;
+    ViewBag.Title = "Service List";
+}
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var grid = new WebGrid(source: Model.lstproduct, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "servgrid");
+    grid.Pager(WebGridPagerModes.All);
+}
+     @*<span style="color: rgb(52, 108, 196);">Service List</span>*@
+    @*<h3>Service List</h3>*@
+@using (Html.BeginForm())
+    {
+    @Html.AntiForgeryToken()
+<div  id="ServiceDetailgrid1">
+    <table class="myTableStyleTabpopup">
+        <tr>
+            <td>
+                <span>Service Code</span>
+                <br />
+                <input type="text"
+                       name="txtservcode"
+                       id="txtservcode"
+                       value="@TempData["code"]"
+                       class="textboxStyle" />
+            </td>
+            <td>
+                <span>Service Name</span>
+                <br />
+                <input type="text"
+                       name="txtservname"
+                       id="txtservname"
+                       value="@TempData["name"]"
+                       class="textboxStyle" />
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    <span>
+                        <button class="btn btn-primary" onclick="searchservice()" id="btnsearch" value="search" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+                    </span>
+                </div>
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    <span>
+                        <button class="btn btn-primary" onclick="webgridrefresh()" id="btnrefresh" value="Clear" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                        </button>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "servgrid" },
+        columns: grid.Columns
+            (
+             grid.Column("srNo", objCmnFunctions.Sorter("srNo", "Sl",grid), style: "MidColumn5"),
+             grid.Column("service_Code", objCmnFunctions.Sorter("service_Code", "Service Code", grid), style: "col-sm-1"),
+             grid.Column("service_Name", objCmnFunctions.Sorter("service_Name", "Service Name", grid), style: "col-sm-1"),
+             grid.Column("service_Description", objCmnFunctions.Sorter("service_Description", "Service Description", grid), style: "col-sm-1"),
+             grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                <input type="button" onclick="servicecode(this,id)" id="@item.product_gid" class="btn btn-link" title="Select" value="Select" />
+            @*<input type="button" onclick="servicecode(@item.product_gid)" id="@item.product_gid" class="btn btn-link" title="Select" value="Select" />*@
+
+                @*<input type="button" onclick="samplefunction1(id)" id="@item.service_code" class="btn btn-link" title="Select" value="Select" />*@
+                    </text>)))
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+        </div>
+}
+
+    <script src="~/Scripts/Partial.js"></script>
+    <script>
+        function servicecode(element, id1) {
+            //alert("hi");
+            var row = $(element).closest('tr');
+           // alert(id1);
+           // alert('hellow');
+            var Parproduct =
+           {
+               "product_gid": id1
+           };
+            //    $.post('../PRRaiser/productdetailsservice'
+            //        , Parproduct,
+            //        function (data)
+            //        {
+            //            if (data > 0) { jAlert('Already You Have Raise This Service Please Select Any Other Service') } else {
+            //    var pc = row.find('td:eq(0)').text();
+            //    var pn = row.find('td:eq(1)').text();
+            //    var pd = row.find('td:eq(2)').text();
+            //    var id = $('#rowid').val();
+            //    $('#service_Code' + id + '').val(pc);
+            //    $('#service_Name' + id + '').val(pn);
+            //    $('#service_Description' + id + '').val(pd);
+
+            //    $('#productgid1' + id + '').val(id1);
+            //    objDialog2.dialog('close');
+
+            //}
+            //        }, 'json');
+            $.ajax({
+                url: "@Url.Action("productdetailsservice", "PRRaiser")",
+                type: 'POST',
+                data: Parproduct,
+                success: function (data) {
+
+                    if (data > 0) { jAlert('Already You Have Raise This Service Please Select Any Other Service') } else {
+                        var pc = row.find('td:eq(1)').text();
+                        var pn = row.find('td:eq(2)').text();
+                        var pd = row.find('td:eq(3)').text();
+                        var id = $('#rowid').val();
+                        $('#service_Code' + id + '').val(pc);
+                        $('#service_Name' + id + '').val(pn);
+                        $('#service_Description' + id + '').val(pd);
+
+                        $('#product_gid' + id + '').val(id1);
+                        //alert(id1);
+                        objDialog2.dialog('close');
+                    }
+                }
+            });
+        }
+
+        function searchservice() {
+            var serv_gid = $("#servid").val();
+            var servcode = $('#txtservcode').val();
+            var servname = $('#txtservname').val();
+
+            var objownersearch = {
+                "service_Name": servname,
+                "service_Code": servcode,
+                "product_gid": serv_gid
+            };
+            $.ajax({
+                url: '@Url.Action("SearchService", "PRRaiser")?' + new Date().getTime(),
+                type: 'POST',
+                data: objownersearch,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#ServiceDetailgrid1").load('@Url.Action("getservlist", "PRRaiser")?id=' + serv_gid + '&' + 'listfor=search' + '&' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+
+        function webgridrefresh() {
+            var serv_gid = $("#servid").val();
+            $("#txtservcode").val("");
+            $("#txtservname").val("");
+            $("#ServiceDetailgrid1").load('@Url.Action("getservlist", "PRRaiser")?id=' + serv_gid + '&' + 'listfor=refresh' + '&' + new Date().getTime());
+        }
+
+    </script>
+
+    @*<script src="~/Scripts/Partial.js"></script>
+    <script>
+
+
+
+    </script>*@
+

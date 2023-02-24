@@ -1,0 +1,378 @@
+﻿@using IEM.Helper;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Physical Receipt</span>
+    </div>
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                    <span>Received Date From </span>
+                    <br />
+                    <input type="text"
+                           id="txtDateFrom"
+                           onkeypress="return isEvent(event)"
+                           name="txtDateFrom"
+                           class="fstextbox required" />
+                </td>
+                <td style="width:20%; padding:0px 10px;">
+                    <span>Received Date To </span>
+                    <br />
+                    <input type="text"
+                           id="txtDateTo"
+                           name="txtDateTo"
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox required" />
+                </td>
+                <td style="width:20%; padding:0px 10px;">
+                    <span> Courier Name</span>
+                    <br />
+                    <input type="hidden" name="hdfCourierId" id="hdfCourierId" value="" />
+                    <input type="text"
+                           id="txtCourierName"
+                           name="txtCourierName"
+                           class="fstextbox" />
+                </td>
+                <td style="width:20%; padding:0px 10px;">
+                    <span> AWB No</span>
+                    <br />
+                    <input type="text"
+                           name="AWBNo"
+                           id="AWBNoId"
+                           maxlength="32"
+                           class="fstextbox" />
+                </td>
+                <td style="width:20%; padding:0px; vertical-align:bottom;">
+                    <button class="btn btn-primary" id="btnsearch" accesskey="q" data-bind="click: function(){$root.search(1); }" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span>
+                        Search
+                    </button>
+                    <button class="btn btn-primary" accesskey="c" data-bind="click: $root.ClearSearch" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-refresh"></span>
+                        Clear
+                    </button>
+
+                </td>
+            </tr>
+        </table>
+        <div style="width:100%; overflow:auto; height:100%; margin-top: 15px;">
+            <table class="tableSmall table-bordered table-hover table-responsive" id="gvReceipting" data-bind="visible: PouchInwardArray().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:40px;">
+                            SlNo
+                        </th>
+                        <th style="width:9%; min-width:110px;" class="colDate">
+                            Received Date
+                        </th>
+                        <th style="width:15%; min-width:150px;">
+                            Received From
+                        </th>
+                        <th style="width:15%; min-width:150px;">
+                            Courier Name
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            AWB No
+                        </th>
+                        <th style="width:6%; min-width:80px;">
+                            No Of Doc
+                        </th>
+                        <th style="width:16%; min-width:200px;" class="nosort">
+                            Remarks
+                        </th>
+                        @*<th style="width:8%; min-width:100px;">
+                                Sender Type
+                            </th>
+                            <th style="width:12%; min-width:150px;">
+                                Sender
+                            </th>*@
+                        <th style="width:4%; min-width:50px;" class="nosort">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tfoot data-bind="visible: PouchInwardArray().length > 0">
+                    <tr>
+                        <th colspan="8" style="width:100%; padding-left:10px;">
+                            <span style="font-weight: normal;">Total No.Of Documents:</span><label id="lblTotalCount" style="padding-left:3px;"></label>
+                        </th>
+                    </tr>
+                </tfoot>
+                <tbody data-bind="foreach:{ data: PouchInwardArray, afterRender: DatatableCall }, visible: PouchInwardArray().length > 0">
+                    <tr class="" data-bind="css: {'received' : ISEnable == 0}">
+                        <td align="center">
+                            <span data-bind="text: SlNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ReceivedDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ReceivedFrom"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Courier"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: AWBNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Noofdocs"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Remarks"></span>
+                        </td>
+                        @*<td>
+                                <span data-bind="text: SenderType"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: Sender"></span>
+                            </td>*@
+                        <td align="center">
+                            @*<a title="View" data-bind="click: function(){ $root.view(Id);}"> <span class=" glyphicon glyphicon-eye-open"></span></a>*@
+                            <span title="View" data-bind="click: function(){ $root.view(Id);}" style="color:blue; cursor:pointer;"> Select</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:none" id="shwPhysicalReceiptDet">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:33%; padding:0px 5px;">
+                    <input type="hidden" id="hdfPouch_GId" name="hdfPouch_GId" value="0" />
+                    <span>Received Date</span>
+                    <br />
+                    <input type="text"
+                           id="lblReceivedDate"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+                <td style="width:33%; padding:0px 5px;">
+                    <span>Courier Name</span>
+                    <br />
+                    <input type="text"
+                           id="lblCourier"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+                <td style="width:33%; padding:0px 5px;">
+                    <span>Sender Type </span>
+                    <br />
+                    <input type="text"
+                           id="lblSenderType"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:33%; padding:5px;">
+                    <span>Received From </span>
+                    <br />
+                    <input type="text"
+                           id="lblReceivedFrom"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+                <td style="width:33%; padding:5px;">
+                    <span>AWB No </span>
+                    <br />
+                    <input type="text"
+                           id="lblAWBNo"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+                <td style="width:33%; padding:5px;">
+                    <span>No. of. Docs </span>
+                    <br />
+                    <input type="text"
+                           id="lblNoofDocs"
+                           disabled="disabled"
+                           class="fstextbox" />
+                </td>
+
+            </tr>
+            @*<tr>
+                <td style="width:33%; padding:0px 5px;">
+                   <span>Sender Name</span>
+                        <br />
+                        <input type="text"
+                               id="lblSenderName"
+                               disabled="disabled"
+                               class="fstextbox" />
+                            </td>
+                            <td style="width:33%; padding:0px 5px;">
+                                    <span>Keyed By </span>
+                                    <br />
+                                    <input type="text"
+                                           id="lblKeyedBy"
+                                           disabled="disabled"
+                                           class="fstextbox"/>
+                                </td>
+                        </tr>*@
+        </table>
+        <div style="width:100%; overflow:auto; margin-top: 15px; ">
+            <table id="tblInnerDet" class="tableSmall table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width:5%;">
+                            SlNo<br />
+                            <input type="hidden" id="hdfPRGId" name="hdfPRGId" value="0" />
+                            <input type="text"
+                                   id="txtSlNo"
+                                   data-bind="value: $root.PIInnerDetails().length + 1"
+                                   style="text-align:center; background-color: gainsboro;"
+                                   disabled="disabled"
+                                   class="fstextbox" />
+                        </th>
+                        <th style="width:10%;">
+                            Doc. Type
+                            <br />
+                            <select id="ddlPRDocType" class="fstextbox" data-bind="foreach: {data: DocTypeArray}">
+                                <option data-bind="attr: {value: Id}, text: Combo">-- Select All --</option>
+                            </select>
+                        </th>
+                        <th style="width:16%;">
+                            Doc. Ref. No
+                            <br />
+                            <input type="text"
+                                   id="txtPRDocRefNo"
+                                   class="fstextbox" />
+                            <span data-bind="click: $root.ViewDocument" style="position:absolute; margin-left: -22px; margin-top: 4px;cursor: pointer;"> <span class="glyphicon glyphicon-search" style="font-size:15px;"></span></span>
+                        </th>
+                        <th style="width:15%;">
+                            Physical Verification
+                            <br />
+                            <select id="ddlPRVerification" class="fstextbox">
+                                <option value="Y">OK</option>
+                                <option value="N">NOT OK</option>
+                            </select>
+                        </th>
+                        <th style="width:14%;">
+                            Inward No
+                            <br />
+                            <input type="text"
+                                   id="txtPRInwardNo"
+                                   disabled="disabled"
+                                   style="background-color: gainsboro;"
+                                   class="fstextbox" />
+                        </th>
+                        <th style="width:10%;">
+                            ECF Amount
+                            <br />
+                            <input type="text"
+                                   id="txtPRECFAmount"
+                                   disabled="disabled"
+                                   style="background-color: gainsboro;"
+                                   class="fstextbox" />
+                        </th>
+                        <th style="width:23%;">
+                            Remarks
+                            <br />
+                            <input type="text"
+                                   id="txtPRRemarks"
+                                   class="fstextbox" />
+                        </th>
+                        <th style="width:7%;" align="center">
+                            Action
+                            <br />
+                            <a title="Create" accesskey="c" data-bind="click: $root.create" style="cursor: pointer; width:15px; padding-right:5px;"> <span class="glyphicon glyphicon-plus" style="color:white"></span></a>
+                            <a title="Refresh" accesskey="r" data-bind="click: $root.ClearDetails" style="cursor: pointer; width:15px;"> <span class="glyphicon glyphicon-refresh" style="color:white"></span></a>
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: PIInnerDetails">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: SlNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: DocType"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: DocRefNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PhysicalVerification"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: InwardNo"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(EcfAmount)"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Remarks"></span>
+                        </td>
+                        <td align="center">
+                            <span title="Edit"  data-bind="click: $root.edit" style="cursor: pointer; width:15px;"> <span class=" glyphicon glyphicon-edit"></span></span>
+                            <span title="Delete" data-bind="click: $root.delete" style="cursor: pointer; width:15px;"> <span class="glyphicon glyphicon-trash"></span></span>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+            <br />
+        </div>
+    </div>
+    @*<div style="display:none;" id="ShowDocumentDet">
+            <table width="100%" class="myTableStyleTabNew" data-bind="foreach: DocDetails, visible: DocDetails().length > 0">
+                <tr>
+                    <td style="width:50%; padding:0px 5px; position:relative;">
+                        <span>Document Type</span>
+                        <br />
+                        <label class="lblFrom" data-bind="text: DocType"></label>
+                    </td>
+                    <td style="width:50%; padding:0px 5px;">
+                        <span>Document No</span>
+                        <br />
+                        <label class="lblFrom" data-bind="text: DocNo"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:50%; padding:0px 5px; position:relative;">
+                        <span>Document Amount</span>
+                        <br />
+                        <label class="lblFrom" data-bind="text: DocAmount"></label>
+                    </td>
+                    <td style="width:50%; padding:0px 5px;">
+                        <span>Type</span>
+                        <br />
+                        <label class="lblFrom" data-bind="text: Type"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="width:100%; padding:0px 5px; position:relative;">
+                        <span>Name</span>
+                        <br />
+                        <label class="lblFrom" data-bind="text: Name"></label>
+                    </td>
+                </tr>
+            </table>
+            <div class="borderStyle" data-bind="visible: DocDetails().length == 0">
+                @HelperHtml.NoRecFound()
+            </div>
+        </div>*@
+    @*</div>*@
+    <div style="display:none;" id="ShwECFDet">
+
+    </div>
+<script>
+    var MUrlDet = "@Url.Action("GetPouchInward", "PhysicalReceipting")"
+    var MUrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsPhysicalReceipting.js")" type="text/javascript"></script>

@@ -1,0 +1,274 @@
+﻿@using IEM.Areas.EOW.Models
+@using IEM.Common
+@model IEnumerable<IEM.Areas.EOW.Models.SelectCourier>
+@{
+    ViewBag.Title = "CentralTeamInward";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canSort: false, canPage: false);
+    int rowVal = 0;
+
+    CmnFunctions obj = new CmnFunctions();
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<b><span style="color: rgb(52, 108, 196);">Petty Cash Transfer </span></b>
+<br />
+<br />
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" align="left">
+                    <tr>
+                        <td>
+                            <span>ARF From</span>
+                            <br />
+                            <input type="text"
+                                   id="ARFFromId"
+                                   name="ARFFrom"
+                                   value="@ViewBag.ARFFrom"
+                                   class="textboxStyle"
+                                   style="width: 113px;" />
+                        </td>
+                        <td>
+                            <span>ARF To</span>
+                            <br />
+                            <input type="text"
+                                   name="ARFTo"
+                                   id="ARFToId"
+                                   value="@ViewBag.ARFTo"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                        </td>
+                        <td>
+                            <span>ARF Amount</span>
+                            <br />
+                            <input type="text"
+                                   name="ARFAmount"
+                                   id="ARFAmountId"
+                                   value="@ViewBag.ARFAmount"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                        </td>
+                        
+                        <td>
+                            <span>ARF No</span>
+                            <br />
+                            <input type="text"
+                                   name="ARFNo"
+                                   id="ARFNoId"
+                                   value="@ViewBag.ARFNo"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                        </td>
+                        <td>
+                                <span>Raiser Code</span>
+                                <br />
+                            <input type="text"
+                                   name="RaiserCode"
+                                   id="RaiserCodeId"
+                                   value="@ViewBag.RaiserCode"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                            </td>
+                        <td>
+                            <span>Raiser Name</span>
+                            <br />
+                            <input type="text"
+                                   name="RaiserName"
+                                   id="RaiserNameId"
+                                   value="@ViewBag.RaiserName"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                        </td>
+                        <td>
+                            <span>Branch Code</span>
+                            <br />
+                            <input type="text"
+                                   name="BranchCode"
+                                   id="BranchCodeId"
+                                   value="@ViewBag.BranchCode"
+                                   class="textboxStyle"
+                                   style="width: 140px;" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <table class="myTableStyleTabNew" align="right">
+            <tr>
+                <td valign="top">
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:0px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                </td>
+                <td>
+                    <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="Clear()" style="margin-top:0px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+                <td>
+                    <button name="command" class="btn btn-primary" id="reportDownloadExcel" style="margin-top: 0px;" onclick="Download()" type="button" value="Excel Download"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Excel</button>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top:-30px;width:99.8%" id="mainll" class=" overflowy overflowx">
+            
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered table-hover table-responsive ",
+                htmlAttributes: new { id = "GridECFReportLoad" },
+                columns: grid.Columns
+                (
+                      grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                      grid.Column("ARF_No", "ARF No"),
+                      grid.Column("ARF_Date_To", "ARF Date"),
+                      grid.Column("ARF_Amount", "ARF Amount"),
+                      grid.Column("RaiserCode", "Raiser Code"),
+                      grid.Column("RaiserName", "Raiser Name"),
+                      grid.Column(header: "Action", canSort: false, style: "action", format:
+                        @<text>
+                            <input type="hidden" id="ECFId_@item.ECF_Id" name="RaiserName" value="@item.ECF_Id" />
+                            <span class="btn btn-link Color" onclick="ChangePettycash(@item.ECF_Id)" id="newmap_@item.ECF_Id">Change PettyCash</span>
+                            <span class="btn btn-link Color" onclick="ChangePettycashLog(@item.ECF_Id)" id="newmap_@item.ECF_Id">ViewLog</span>
+                        </text>)
+
+                )))
+
+        </div>
+        <br />
+
+    </div>
+}
+<div id="forpartialviewforempsearch"></div>
+<div id="PartialViewForLog"></div>
+
+<script>
+    $(document).ready(function()
+    {
+        $('#GridECFReportLoad').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        $("#ARFFromId").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+        $("#ARFToId").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+    });
+    $(document).ready(function () {
+        objDialogyinwardempse = $("[id$='forpartialviewforempsearch']");
+        objDialogyinwardempse.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+    });
+
+    $(document).ready(function () {
+        objDialogyPettyChangeLog = $("[id$='PartialViewForLog']");
+        objDialogyPettyChangeLog.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+    });
+
+    $(document).ready(function () {
+        $("#RaiserCodeId").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/ECF/AutocompleteEmployeeCode",
+                    type: "POST",
+                    dataType: "json",
+                    data: { RaiserCode: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.RaiserCode, value: item.RaiserCode };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#RaiserNameId").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/ECF/AutocompleteEmployeeName",
+                    type: "POST",
+                    dataType: "json",
+                    data: { RaiserName: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.RaiserName, value: item.RaiserName };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#BranchCodeId").autocomplete({
+            source: function (request, response) {              
+                $.ajax({
+                    url: "/CentrolReport/getAutocompleteBranch",
+                    type: "POST",
+                    dataType: "json",
+                    data: { BranchCode: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.BranchCode, value: item.BranchCode };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    function Download() {
+        location = "../CentrolReport/downloadexcel";
+    }
+    function Clear() {
+        location = '@Url.Action("TransferPettyCash", "CentrolReport")';
+    }
+    function ChangePettycash(id)
+    {
+        var Ecfgid = $("#ECFId_" + id + "").val();
+        var url = "@(Html.Raw(Url.Action("TransferPettyCashPopup", "CentrolReport")))";
+        objDialogyinwardempse.load(url + '?ecf_gid=' + Ecfgid + '&' + new Date().getTime());
+        objDialogyinwardempse.dialog({
+            title: 'PettyCashChange', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        objDialogyinwardempse.dialog("open");
+    }
+    function ChangePettycashLog(id)
+    {
+        var Ecfgid = $("#ECFId_" + id + "").val();
+        var url = "@(Html.Raw(Url.Action("TransferPettyCashLogPopup", "CentrolReport")))";
+        objDialogyPettyChangeLog.load(url + '?ecf_gid=' + Ecfgid + '&' + new Date().getTime());
+        objDialogyPettyChangeLog.dialog({
+            title: 'PettyCashChangeLog', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        objDialogyPettyChangeLog.dialog("open");
+    }
+</script>
+
+
+

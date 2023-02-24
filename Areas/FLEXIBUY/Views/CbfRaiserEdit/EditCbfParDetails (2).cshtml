@@ -1,0 +1,1601 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+
+    var grid = new WebGrid(source: Model.cbfDetails, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "cbfdetails", ajaxUpdateCallback: "Dummycbf()");
+    grid.Pager(WebGridPagerModes.All);
+    int rowNum = 0;
+    int add2 = 0;
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+        Session["ViewBag"] = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        Session["ViewBag"] = "disabled";
+    }
+}
+<style>
+    cursor {
+        cursor: pointer;
+    }
+
+    /*panelwidth {
+        width: 100%;
+    }
+
+    .lblwth {
+        width: 170px;
+    }
+
+    .txtwth {
+        width: 150px;
+    }*/
+</style>
+
+<script type="text/javascript">
+    function calll(id) {
+       
+        var tr = $(this).parents('tr:first');
+        var row = id;
+        var pargid = $("#pargid").val();
+        var productgid = $("#ProductGid" + row.trim() + "").val();
+        var productgroup = $("#ProductGroup" + row.trim() + "").val();
+        var productcode = $("#productcode" + row.trim() + "").val();
+        var prodctname = $("#productname" + row.trim() + "").val();
+        var description = $("#description" + row.trim() + "").val();
+        var uom = $("#uom_" + row.trim() + "").val();
+        var qty = $("#qty_" + row.trim() + "").val();
+        var untiprize = $("#unitprize_" + row.trim() + "").val();
+        var total = $("#total_" + row.trim() + "").val();
+        var remarks = $("#remarks" + row.trim() + "").val();
+        var chartofaccount = $("#chartofaccount" + row.trim() + "").val();
+        var fccc = $("#fccc" + row.trim() + "").val();
+        var budgetline = $("#inbudgetline_" + "fccc" + row.trim() + "").val();
+        var attachment = $("#Attach" + row.trim() + "").val();
+
+        if (productgroup == null || productgroup == "" || productgroup == 0) {
+            jAlert("Please Enter Product Group.", "Error");
+            return false;
+        }
+        if (productcode == null || productcode == "") {
+            jAlert("Please Enter Product Code.", "Error");
+            return false;
+        }
+
+        if (prodctname == null || prodctname == "") {
+            jAlert("Please Enter Product Name", "Error");
+            return false;
+        }
+        if (description == null || description == "") {
+            jAlert("Please Enter Description.", "Error");
+            return false;
+        }
+        if (uom == null || uom == "" || uom == 0) {
+            jAlert("Please Select uom", "Error");
+            return false;
+        }
+        if (qty == null || qty == "") {
+            jAlert("Please Enter Qty.", "Error");
+            return false;
+        }
+        if (untiprize == null || untiprize == "") {
+            jAlert("Please Enter Unit Amount.", "Error");
+            return false;
+        }
+
+        if (total == null || total == "") {
+            jAlert("Total Amount Should Not Be Null", "Error");
+            return false;
+        }
+
+        var finalamt = 0;
+        var pardetailsgid = 0;
+        var actualpardetailsgid = 0;
+        actualpardetailsgid = $("#hidpardetailsgid").val();
+        $("#grid2 tr").each(function () {
+            var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+            var totalamt1 = $(this).find('[name=intotal]').val();
+            var totalamt = $(this).find('[name=intotalnew]').val();
+            if (isNaN(totalamt) == false) {
+                finalamt = parseInt(totalamt) + parseInt(finalamt);
+            }
+            if (actualpardetailsgid == pardetailsgid) {
+
+                if (isNaN(totalamt1) == false) {
+                    finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                }
+            }
+
+        });
+
+        if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+            jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                $('#total_' + id + '').val("");
+                $('#qty_' + id + '').val("");
+                $('#unitprize_' + id + '').val("");
+                return false;
+            });
+            return false;
+        }
+
+        if (remarks == null || remarks == "") {
+            jAlert("Please Any Remarks.", "Error");
+            return false;
+        }
+        if (chartofaccount == null || chartofaccount == "") {
+            jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+            return false;
+        }
+        if (fccc == null || fccc == "" || fccc == 0) {
+            jAlert("Please Select FCCC Code.", "Error");
+            return false;
+        }
+        if (budgetline == null || budgetline == "") {
+            jAlert("Please Enter Budject Line.", "Error");
+            return false;
+        }
+        $("#cbf_amt").val(total);
+        var UserModel =
+           {
+               "prdetailsGid": pargid,
+               "productgid": productgid,
+               "productGroupId": productgroup,
+               "productcode": productcode,
+               "productName": prodctname,
+               "description": description,
+               "uomGid": uom,
+               "qty": qty,
+               "unitAmt": untiprize,
+               "total": total,
+               "remarks": remarks,
+               "chartOfAccount": chartofaccount,
+               "fccc": fccc,
+               "budgetLine": budgetline
+           };
+        $.ajax({
+            url: "../CbfRaiserEdit/Editsave/",
+            type: 'POST',
+            data: UserModel,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#cbfpardetails").empty().append(data);
+                }
+                
+
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+
+    }
+    function cancel(element) {
+
+        var flag = confirm('Are you sure to cancel');
+        if (flag) {
+            $(element).parents("tr").remove();
+        }
+    }
+    var objDialog1;
+    function getprogroup(id, title) {
+        $("#rowid").val(title);
+
+        if ($("#ss").val() == "") {
+            $("#ss").val('asd');
+            objDialog1 = $("[id$='productserviewpopup']");
+            objDialog1.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                cache: false,
+                width: 800,
+                height: 700
+            });
+
+        }
+        var id1 = id.value;
+        $("#editprodgid").val(id1);
+        objDialog1.load('../CbfRaiserEdit/EditGetProductList?lnid=' + id1);
+        objDialog1.dialog({ title: 'Product List' });
+        objDialog1.dialog("open");
+    }
+
+    $(function () {
+        $('.add').on('click', function () {
+            if ($(this).val() != "") {
+                $("#pargid").val($(this).val());
+                var existrow = $('.save-btn1').length;
+                // debugger      
+               
+                if (existrow == 0) {
+                    var index = $("#grid tbody tr").length + 1;
+                    var productgroup = "ProductGroup" + index;
+                    var productgid = "ProductGid" + index;
+                    var productcode = "productcode" + index;
+                    var productname = "productname" + index;
+                    var description = "description" + index;
+                    var uom = "uom_" + index;
+                    var qty = "qty_" + index;
+                    var unitprize = "unitprize_" + index;
+                    var total = "total_" + index;
+                    var remarks = "remarks" + index;
+                    var chartofaccount = "chartofaccount" + index;
+                    var FCCC = "fccc" + index;
+                    var budgetline = "inbudgetline_" + "fccc" + index;
+                    var attach = "Attach_" + index;
+                    var Save = "Save_" + index;
+                    var Cancel = "Cancel_" + index;
+                    $.ajax({
+                        url: '../CbfRaiserEdit/GetProductGroup/',
+                        data: '{}',
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#" + productgroup + "").empty();
+                                $("#" + productgroup + "").append("<option value='Select' >Select</option>");
+                                for (var i = 0; i < data.length; i++) {
+                                    $("#" + productgroup + "").append("<option value=" + data[i].productGroupId + " >" + data[i].productGroupIdName + "</option>");
+
+                                }
+                            }
+                        },
+                        error: function (result) {
+                            alert("Error");
+                        }
+
+                    });
+                    $.ajax({
+                        url: '../CbfRaiserEdit/GetUom/',
+                        data: '{}',
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#" + uom + "").empty();
+                                $("#" + uom + "").append("<option value='Select' >Select</option>");
+                                for (var i = 0; i < data.length; i++) {
+                                    $("#" + uom + "").append("<option value=" + data[i].uomGid + " >" + data[i].uomCode + "</option>");
+                                }
+                            }
+                        },
+                        error: function (result) {
+                            alert("Error");
+                        }
+
+                    });
+                    var newRow = '<tr class="alternate-row"><td class="parsl"></td><td class="parproductgroup" ><span> <select id="' + productgroup + '" title="' + index + '" name="txtstatus" onchange="getprogroup(this,title,value)" class="textboxStyleBig" style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                         '<td style="display:none;"><span> <input id="' + productgid + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                        '<td class="parproductCode"><span> <input id="' + productcode + '" class="textboxStyleBig" readonly="readonly" type="text"  /></span></td>' +
+                         '<td class="parproductName"><span> <input id="' + productname + '" class="textboxStyleBig" readonly="readonly" type="text"  /></span></td>' +
+                         '<td class="parDescription"><span> <input id="' + description + '" class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                         '<td class="parProductUOM"><span> <select id="' + uom + '" class="textboxStyleBig"  name="ddluom"  style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                         '<td class="parQTY"><span><input id="' + qty + '" type="text"  onkeypress="return isNumber1(event, this);"  class="textboxStyleBig" onkeyup="multi(this)"/></span></td>' +
+                         '<td class="parunitAmt"><span><input id="' + unitprize + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  onkeyup="multi1(this)" type="text"/></span></td>' +
+                         '<td class="parTotal"><span><input id="' + total + '" class="textboxStyleBig" readonly="readonly" onkeypress="return isNumber1(event, this);" name="intotalnew" type="text"/></span></td>' +
+                         '<td class="parRemarks"><span><input id="' + remarks + '" class="textboxStyleBig" maxlength="256" type="text"/></span></td>' +
+                         '<td class="parchartofaccount"><span><input id="' + chartofaccount + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  type="text"/></span></td>' +
+                         '<td class="parFCCC"><span><input id="' + FCCC + '" onchange="change(id, value)" class="textboxStyleBig" onkeypress="return isNumber1(event, this);" type="text"/></span><span class="glyphicon glyphicon-search edit searchpop"  id="' + FCCC + '" onclick="NewSearch(id)"></span></td>' +
+                         '<td class="parbudgetline"><span><input id="' + budgetline + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);" type="text"/></span></td> ' +
+                         '<td class="parBOQ"><span> <input type="button" value="Attach BOQ" class="btn btn-link" style="padding:3px;" id="' + attach + '" onclick="Newboq1(name,this)" name="0" title="BOQ" /></span></td>' +
+                         '<td class="parAct"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+               '</tr>';
+                    $("#grid2 tbody").append(newRow);
+                    $('#btnSave').removeAttr('disabled');
+                }
+                else {
+                    jAlert("First Save Your Pervious record", "Message");
+                }
+            }
+            else {
+                jAlert("Select Any Par Details Line Item", "Message");
+
+            }
+        });
+
+
+        $('.edit ').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+        $('.delete-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text().split(" ");
+            $('#grid2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+            var deleteval =
+                {
+                    "cbfDetGid": row[1],
+                    "unchecked12": row[2]
+                }
+            $.ajax({
+                url: "../CbfRaiserEdit/CbfDeletePar/",
+                type: 'POST',
+
+                data: deleteval,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfpardetails").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        })
+
+        $('.save-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text().split(" ");
+            
+            var productgroup = tr.find("#productgroup_" + row[2].trim() + "").val();
+            var productcode = tr.find("#txtproductcode_" + row[2].trim() + "").val();
+            var prodctname = tr.find("#txtproductname_" + row[2].trim() + "").val();
+            var description = tr.find("#txtdescription_" + row[2].trim() + "").val();
+            var uom = tr.find("#uomddl_" + row[2].trim() + "").val();
+            var qty = tr.find("#inqty_" + row[2].trim() + "").val();
+            var unit = tr.find("#inunit_" + row[2].trim() + "").val();
+            var total = tr.find("#intotal_" + row[2].trim() + "").val();
+            var remark = tr.find("#inremarks").val();
+            var charttoaccount = tr.find("#inchartofaccount_" + row[2].trim() + "").val();
+            var Fccc = tr.find("#infcccgetpoup_" + row[2].trim() + "").val();
+           // var budgetline = tr.find("#inbudgetline_" + row[2].trim() + "").val();
+            var budgetline = "1";
+           
+            if (productgroup == null || productgroup == "" || productgroup == 0) {
+                jAlert("Please Enter Product Group.", "Error");
+                return false;
+            }
+            if (productcode == null || productcode == "") {
+                jAlert("Please Enter Product Code.", "Error");
+                return false;
+            }
+
+            if (prodctname == null || prodctname == "") {
+                jAlert("Please Enter Product Name", "Error");
+                return false;
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (unit == null || unit == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+
+            var finalamt = 0;
+            var pardetailsgid = 0;
+            var actualpardetailsgid = 0;
+            actualpardetailsgid = $("#hidpardetailsgid").val();
+            $("#grid2 tr").each(function () {
+                var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+                var totalamt1 = $(this).find('[name=intotal]').val();
+                var totalamt = $(this).find('[name=intotalnew]').val();
+                if (isNaN(totalamt) == false) {
+                    finalamt = parseInt(totalamt) + parseInt(finalamt);
+                }
+                if (actualpardetailsgid == pardetailsgid) {
+
+                    if (isNaN(totalamt1) == false) {
+                        finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                    }
+                }
+
+            });
+
+            if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+                jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                    $('#total_' + id + '').val("");
+                    $('#qty_' + id + '').val("");
+                    $('#unitprize_' + id + '').val("");
+                    return false;
+                });
+                return false;
+            }
+
+            if (remark == null || remark == "") {
+                jAlert("Please Any Remarks.", "Error");
+                return false;
+            }
+            if (charttoaccount == null || charttoaccount == "") {
+                jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                return false;
+            }
+            if (Fccc == null || Fccc == "" || Fccc == 0) {
+                jAlert("Please Select FCCC Code.", "Error");
+                return false;
+            }
+            if (budgetline == null || budgetline == "") {
+                jAlert("Please Enter Budject Line.", "Error");
+                return false;
+            }
+
+            $('.edit').hide();
+            var UserModel =
+            {
+
+                "cbfDetGid": row[1],
+                "unchecked12": row[2],
+                "uomGid": uom,
+                "qty": qty,
+                "unitAmt": unit,
+                "total": total,
+                "remarks": remark,
+                "Fccc": Fccc,
+                "budgetline": budgetline
+
+
+            };
+            //alert(UserModel);
+            if (row[1] != "" && row[1] != "0") {
+                $.ajax({
+                    url: "../CbfRaiserEdit/editupdate/",
+                    type: 'POST',
+
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(UserModel),
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#cbfpardetails").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            }
+            else {
+                $.ajax({
+                    url: "../CbfRaiserEdit/Editsave/",
+                    type: 'POST',
+                    data: UserModel,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#cbfpardetails").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            }
+
+        });
+    });
+    function Dummycbf() {
+        function calll(id) {
+           
+            var tr = $(this).parents('tr:first');
+            var row = id;
+            var pargid = $("#pargid").val();
+            //alert(pargid);
+            var productgroup = $("#ProductGroup" + row.trim() + "").val();
+            var productcode = $("#productcode" + row.trim() + "").val();
+            var prodctname = $("#productname" + row.trim() + "").val();
+            var description = $("#description" + row.trim() + "").val();
+            var uom = $("#uom_" + row.trim() + "").val();
+            var qty = $("#qty_" + row.trim() + "").val();
+            var untiprize = $("#unitprize_" + row.trim() + "").val();
+            var total = $("#total_" + row.trim() + "").val();
+            var remarks = $("#remarks" + row.trim() + "").val();
+            var chartofaccount = $("#chartofaccount" + row.trim() + "").val();
+            var fccc = $("#fccc" + row.trim() + "").val();
+            var budgetline = $("#budgetline" + row.trim() + "").val();
+            var attachment = $("#Attach" + row.trim() + "").val();
+
+            if (productgroup == null || productgroup == "" || productgroup == 0) {
+                jAlert("Please Enter Product Group.", "Error");
+                return false;
+            }
+            if (productcode == null || productcode == "") {
+                jAlert("Please Enter Product Code.", "Error");
+                return false;
+            }
+
+            if (prodctname == null || prodctname == "") {
+                jAlert("Please Enter Product Name", "Error");
+                return false;
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+            if (uom == null || uom == "" || uom == 0) {
+                jAlert("Please Select uom", "Error");
+                return false;
+            }
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (untiprize == null || untiprize == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+
+            var finalamt = 0;
+            var pardetailsgid = 0;
+            var actualpardetailsgid = 0;
+            actualpardetailsgid = $("#hidpardetailsgid").val();
+            $("#grid2 tr").each(function () {
+                var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+                var totalamt1 = $(this).find('[name=intotal]').val();
+                var totalamt = $(this).find('[name=intotalnew]').val();
+                if (isNaN(totalamt) == false) {
+                    finalamt = parseInt(totalamt) + parseInt(finalamt);
+                }
+                if (actualpardetailsgid == pardetailsgid) {
+
+                    if (isNaN(totalamt1) == false) {
+                        finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                    }
+                }
+
+            });
+
+            if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+                jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                    $('#total_' + id + '').val("");
+                    $('#qty_' + id + '').val("");
+                    $('#unitprize_' + id + '').val("");
+                    return false;
+                });
+                return false;
+            }
+
+            if (remarks == null || remarks == "") {
+                jAlert("Please Any Remarks.", "Error");
+                return false;
+            }
+            if (chartofaccount == null || chartofaccount == "") {
+                jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                return false;
+            }
+            if (fccc == null || fccc == "" || fccc == 0) {
+                jAlert("Please Select FCCC Code.", "Error");
+                return false;
+            }
+            if (budgetline == null || budgetline == "") {
+                jAlert("Please Enter Budject Line.", "Error");
+                return false;
+            }
+            $("#cbf_amt").val(total);
+            var UserModel =
+               {
+                   "prdetailsGid": pargid,
+                   "productGroupId": productgroup,
+                   "productcode": productcode,
+                   "productName": prodctname,
+                   "description": description,
+                   "uomGid": uom,
+                   "qty": qty,
+                   "unitAmt": untiprize,
+                   "total": total,
+                   "remarks": remarks,
+                   "chartOfAccount": chartofaccount,
+                   "fccc": fccc,
+                   "budgetLine": budgetline
+               };
+            $.ajax({
+                url: "../CbfRaiserEdit/Editsave/",
+                type: 'POST',
+                data: UserModel,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#cbfpardetails").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+        }
+        function cancel(element) {
+
+            var flag = confirm('Are you sure to cancel');
+            if (flag) {
+                $(element).parents("tr").remove();
+            }
+        }
+        var objDialog1;
+        function getprogroup(id, title) {
+            $("#rowid").val(title);
+
+            if ($("#ss").val() == "") {
+                $("#ss").val('asd');
+                objDialog1 = $("[id$='productserviewpopup']");
+                objDialog1.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 600,
+                    height: 400
+                });
+
+            }
+            var id1 = id.value;
+            $("#editprodgid").val(id1);
+            objDialog1.load('../CbfRaiserEdit/EditGetProductList?lnid=' + id1);
+            objDialog1.dialog({ title: 'Product List' });
+            objDialog1.dialog("open");
+        }
+
+        $(function () {
+
+            $('.add').on('click', function () {
+                if ($(this).val() != "") {
+                   
+                    $("#pargid").val($(this).val());
+                    var existrow = $('.save-btn1').length;
+                    debugger
+                    if (existrow == 0) {
+                        var index = $("#grid tbody tr").length + 1;
+                        var productgroup = "ProductGroup" + index;
+                        var productcode = "productcode" + index;
+                        var productname = "productname" + index;
+                        var description = "description" + index;
+                        var uom = "uom_" + index;
+                        var qty = "qty_" + index;
+                        var unitprize = "unitprize_" + index;
+                        var total = "total_" + index;
+                        var remarks = "remarks" + index;
+                        var chartofaccount = "chartofaccount" + index;
+                        var FCCC = "fccc" + index;
+                        var budgetline = "budgetline" + index;
+                        var attach = "Attach_" + index;
+                        var Save = "Save_" + index;
+                        var Cancel = "Cancel_" + index;
+                        $.ajax({
+                            url: '../CbfRaiserEdit/GetProductGroup/',
+                            data: '{}',
+                            type: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                if (data == 0) {
+                                    jAlert("Error Occured", "Error", function () {
+                                        return false;
+                                    });
+                                    return false;
+                                }
+                                else {
+                                    $("#" + productgroup + "").empty();
+                                    $("#" + productgroup + "").append("<option value='Select' >Select</option>");
+                                    for (var i = 0; i < data.length; i++) {
+                                        $("#" + productgroup + "").append("<option value=" + data[i].productGroupId + " >" + data[i].productGroupIdName + "</option>");
+
+                                    }
+                                }
+                            },
+                            error: function (result) {
+                                alert("Error");
+                            }
+
+                        });
+                        $.ajax({
+                            url: '../CbfRaiserEdit/GetUom/',
+                            data: '{}',
+                            type: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                if (data == 0) {
+                                    jAlert("Error Occured", "Error", function () {
+                                        return false;
+                                    });
+                                    return false;
+                                }
+                                else {
+                                    $("#" + uom + "").empty();
+                                    $("#" + uom + "").append("<option value='Select' >Select</option>");
+                                    for (var i = 0; i < data.length; i++) {
+                                        $("#" + uom + "").append("<option value=" + data[i].uomGid + " >" + data[i].uomCode + "</option>");
+                                    }
+                                }
+                            },
+                            error: function (result) {
+                                alert("Error");
+                            }
+
+                        });
+                        //     var newRow = '<tr class="alternate-row"><td></td><td><span> <select id="' + productgroup + '" title="' + index + '" name="txtstatus" onchange="getprogroup(this,title,value)" class="textboxStyle" style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                        //        '<td><span> <input id="' + productcode + '" class="textboxStyle" readonly="readonly" type="text" style="width:100px"  /></span></td>' +
+                        //          '<td><span> <input id="' + productname + '" class="textboxStyle" readonly="readonly" type="text"  style="width:100px" /></span></td>' +
+                        //          '<td><span> <input id="' + description + '" class="textboxStyle" readonly="readonly" type="text" style="width:200px"  /></span></td>' +
+                        //          '<td><span> <select id="' + uom + '" class="textboxStyle"  name="ddluom"  style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                        //          '<td><span><input id="' + qty + '" type="text"  onkeypress="return isNumber1(event, this);"  class="textboxStyle" onkeyup="multi(this)"/></span></td>' +
+                        //          '<td><span><input id="' + unitprize + '" class="textboxStyle" onkeypress="return isNumber1(event, this);"  onkeyup="multi1(this)" type="text"/></span></td>' +
+                        //          '<td><span><input id="' + total + '" class="textboxStyle" readonly="readonly" onkeypress="return isNumber1(event, this);" name="intotalnew" type="text"/></span></td>' +
+                        //          '<td><span><input id="' + remarks + '" class="textboxStyle" maxlength="256" type="text"/></span></td>' +
+                        //          '<td><span><input id="' + chartofaccount + '" class="textboxStyle" onkeypress="return isNumber1(event, this);"  type="text"/></span></td>' +
+                        //          '<td><span><input id="' + FCCC + '" onchange="change(id, value)" class="textboxStyle" onkeypress="return isNumber1(event, this);" type="text"/></span><span class="glyphicon glyphicon-search edit searchpop" id="' + FCCC + '" onclick="NewSearch(id)"></span></td>' +
+                        //          '<td><span><input id="' + budgetline + '" class="textboxStyle" onkeypress="return isNumber1(event, this);" type="text"/></span></td> ' +
+                        //          '<td><span> <input type="button" value="Attach BOQ" class="btn btn-link" id="' + attach + '" onclick="Newboq12(id)" title="BOQ" /></span></td>' +
+                        //          '<td><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+                        //'</tr>';
+
+                        var newRow = '<tr class="alternate-row"><td class="parsl"></td><td class="parproductgroup" ><span> <select id="' + productgroup + '" title="' + index + '" name="txtstatus" onchange="getprogroup(this,title,value)" class="textboxStyleBig" style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                         '<td style="display:none;"><span> <input id="' + productgid + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                        '<td class="parproductCode"><span> <input id="' + productcode + '" class="textboxStyleBig" readonly="readonly" type="text"  /></span></td>' +
+                         '<td class="parproductName"><span> <input id="' + productname + '" class="textboxStyleBig" readonly="readonly" type="text"  /></span></td>' +
+                         '<td class="parDescription"><span> <input id="' + description + '" class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                         '<td class="parProductUOM"><span> <select id="' + uom + '" class="textboxStyleBig"  name="ddluom"  style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                         '<td class="parQTY"><span><input id="' + qty + '" type="text"  onkeypress="return isNumber1(event, this);"  class="textboxStyleBig" onkeyup="multi(this)"/></span></td>' +
+                         '<td class="parunitAmt"><span><input id="' + unitprize + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  onkeyup="multi1(this)" type="text"/></span></td>' +
+                         '<td class="parTotal"><span><input id="' + total + '" class="textboxStyleBig" readonly="readonly" onkeypress="return isNumber1(event, this);" name="intotalnew" type="text"/></span></td>' +
+                         '<td class="parRemarks"><span><input id="' + remarks + '" class="textboxStyleBig" maxlength="256" type="text"/></span></td>' +
+                         '<td class="parchartofaccount"><span><input id="' + chartofaccount + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  type="text"/></span></td>' +
+                         '<td class="parFCCC"><span><input id="' + FCCC + '" onchange="change(id, value)" class="textboxStyleBig" onkeypress="return isNumber1(event, this);" type="text"/></span><span class="glyphicon glyphicon-search edit searchpop" style="position:absolute; z-index:10; top:13px; right:7px;" id="' + FCCC + '" onclick="NewSearch(id)"></span></td>' +
+                         '<td class="parbudgetline"><span><input id="' + budgetline + '" class="textboxStyleBig" onkeypress="return isNumber1(event, this);" type="text"/></span></td> ' +
+                         '<td class="parBOQ"><span> <input type="button" value="Attach BOQ" class="btn btn-link" style="padding:3px;" id="' + attach + '" onclick="Newboq1(name,this)" name="0" title="BOQ" /></span></td>' +
+                         '<td class="parAct"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+               '</tr>';
+                        $("#grid2 tbody").append(newRow);
+                        $('#btnSave').removeAttr('disabled');
+                    }
+                    else {
+                        jAlert("First Save Your Pervious record", "Message");
+                    }
+                }
+                else {
+                    jAlert("Select Any Par Details Line Item", "Message");
+
+                }
+            });
+
+
+            $('.edit ').hide();
+            $('.edit-btn, .cancel-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+
+            });
+            $('.delete-btn').on('click', function () {
+
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text().split(" ");
+                $('#grid2').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+                var deleteval =
+                    {
+                        "cbfDetGid": row[1],
+                        "unchecked12": row[2]
+                    }
+                $.ajax({
+                    url: "../CbfRaiserEdit/CbfDeletePar/",
+                    type: 'POST',
+
+                    data: deleteval,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#cbfpardetails").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            })
+
+            $('.save-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text().split(" ");
+              
+                var productgroup = tr.find("#productgroup_" + row[2].trim() + "").val();
+                var productcode = tr.find("#txtproductcode_" + row[2].trim() + "").val();
+                var prodctname = tr.find("#txtproductname_" + row[2].trim() + "").val();
+                var description = tr.find("#txtdescription_" + row[2].trim() + "").val();
+                var uom = tr.find("#uomddl_" + row[2].trim() + "").val();
+                var qty = tr.find("#inqty_" + row[2].trim() + "").val();
+                var unit = tr.find("#inunit_" + row[2].trim() + "").val();
+                var total = tr.find("#intotal_" + row[2].trim() + "").val();
+                var remark = tr.find("#inremarks").val();
+                var charttoaccount = tr.find("#inchartofaccount_" + row[2].trim() + "").val();
+                var Fccc = tr.find("#infcccgetpoup_" + row[2].trim() + "").val();
+                var budgetline = tr.find('#inbudgetline_' + row[2].trim() + "").val();
+
+
+                if (productgroup == null || productgroup == "" || productgroup == 0) {
+                    jAlert("Please Enter Product Group.", "Error");
+                    return false;
+                }
+                if (productcode == null || productcode == "") {
+                    jAlert("Please Enter Product Code.", "Error");
+                    return false;
+                }
+
+                if (prodctname == null || prodctname == "") {
+                    jAlert("Please Enter Product Name", "Error");
+                    return false;
+                }
+                if (description == null || description == "") {
+                    jAlert("Please Enter Description.", "Error");
+                    return false;
+                }
+                if (qty == null || qty == "") {
+                    jAlert("Please Enter Qty.", "Error");
+                    return false;
+                }
+                if (unit == null || unit == "") {
+                    jAlert("Please Enter Unit Amount.", "Error");
+                    return false;
+                }
+
+                if (total == null || total == "") {
+                    jAlert("Total Amount Should Not Be Null", "Error");
+                    return false;
+                }
+
+                var finalamt = 0;
+                var pardetailsgid = 0;
+                var actualpardetailsgid = 0;
+                actualpardetailsgid = $("#hidpardetailsgid").val();
+                $("#grid2 tr").each(function () {
+                    var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+                    var totalamt1 = $(this).find('[name=intotal]').val();
+                    var totalamt = $(this).find('[name=intotalnew]').val();
+                    if (isNaN(totalamt) == false) {
+                        finalamt = parseInt(totalamt) + parseInt(finalamt);
+                    }
+                    if (actualpardetailsgid == pardetailsgid) {
+
+                        if (isNaN(totalamt1) == false) {
+                            finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                        }
+                    }
+
+                });
+
+                if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+                    jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                        $('#total_' + id + '').val("");
+                        $('#qty_' + id + '').val("");
+                        $('#unitprize_' + id + '').val("");
+                        return false;
+                    });
+                    return false;
+                }
+
+                if (remark == null || remark == "") {
+                    jAlert("Please Any Remarks.", "Error");
+                    return false;
+                }
+                if (charttoaccount == null || charttoaccount == "") {
+                    jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                    return false;
+                }
+                if (Fccc == null || Fccc == "" || Fccc == 0) {
+                    jAlert("Please Select FCCC Code.", "Error");
+                    return false;
+                }
+                if (budgetline == null || budgetline == "") {
+                    jAlert("Please Enter Budject Line.", "Error");
+                    return false;
+                }
+
+                $('.edit').hide();
+                var UserModel =
+                {
+
+                    "cbfDetGid": row[1],
+                    "unchecked12": row[2],
+                    "uomGid": uom,
+                    "qty": qty,
+                    "unitAmt": unit,
+                    "total": total,
+                    "remarks": remark,
+                    "Fccc": Fccc,
+                    "budgetline": budgetline
+
+
+                };
+                //alert(UserModel);
+                if (row[1] != "" && row[1] != "0") {
+                    $.ajax({
+                        url: "../CbfRaiserEdit/editupdate/",
+                        type: 'POST',
+                        contentType: "application/json; charset=utf-8",
+                        data: JSON.stringify(UserModel),
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#cbfpardetails").empty().append(data);
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+                    });
+                }
+                else {
+                    $.ajax({
+                        url: "../CbfRaiserEdit/Editsave/",
+                        type: 'POST',
+                        data: UserModel,
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#cbfpardetails").empty().append(data);
+                            }
+
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+                    });
+                }
+
+            });
+        });
+    }
+</script>
+
+@*@using (Html.BeginForm())
+    {
+        <div style="margin-top:-39px;">
+
+            <span style="color: rgb(52, 108, 196);">CBF Details</span>
+            <br /><br />
+
+        </div>*@
+<fieldset>
+    
+    
+        <table style="width:100%;">
+            <tr>
+                <td style="vertical-align:bottom; width:50%;">
+                    <legend style="border:none;">CBF Details</legend>
+                </td>
+                <td style="text-align:right; width:50%;">
+                    <button class="btn btn-primary add"
+                            type="button"
+                            name="command"
+                            style="padding:3px 8px; font-size:12px; "
+                            value="@Session["pardetails_gid"]"
+                            id="addnewrows" @ViewBag.viewmode>
+                        Add CBF Details
+                    </button>
+                </td>
+            </tr>
+        </table>
+   
+    <div id="cbfdetails">
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+
+        <div style="width:100%; height:150px; overflow:auto;">
+            @if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+            {
+
+                @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered myTab",
+                    htmlAttributes: new { id = "grid2" },
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns(
+                    grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "parsl"),
+                         grid.Column("productgroup", sorter("productgroup", "Product Group", grid), style: "parproductgroup", format: @<text>
+                        <select name="productgroup1" id="productgroup_@item.attch_Gid" disabled="disabled" style="width:100%" title="@item.attch_Gid" onchange="getprogroup(this,title,value)" class=" textboxstyle edit">
+                            <option value="0">Select</option>
+
+                            @{
+                                var childitemfilter = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                                if (childitemfilter != null)
+                                {
+                                    foreach (var citem in Model.productGroupList)
+                                    {
+                                        string selectedValue = "";
+                                        if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                    }
+                                }
+                            }
+                        </select>
+                        <select name="productgroup1" id="productgroup1" disabled="disabled" style="width:100%" class="textboxStyle display">
+                            <option value="0">Select</option>
+                            <optgroup label="@item.productgroupid">
+                                @{
+                                    var childitemfilter12 = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                                    if (childitemfilter12 != null)
+                                    {
+                                        foreach (var citem in Model.productGroupList)
+                                        {
+                                            string selectedValue = "";
+                                            if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </optgroup>
+                        </select></text>),
+                    grid.Column("productgid",format: @<text><span class="display"><label id="lblproductgid">@item.productgid</label></span><input type="text" disabled="disabled" id="txtproductgid_@item.attch_Gid" value="@item.productgid" title="@item.productgid" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("productCode", sorter("productCode", "Product Code", grid), style: "parproductCode", format: @<text><span class="display"><label id="lblproductcode">@item.productCode</label></span><input type="text" id="txtproductcode_@item.attch_Gid" value="@item.productCode" title="@item.productCode" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("productName", sorter("productName", "Product Name", grid), style: "parproductName", format: @<text><span class="display"><label id="lblproductname">@item.productName</label></span><input type="text"  id="txtproductname_@item.attch_gid" value="@item.productName" class="edit textboxStyleBig" title="@item.productName" /></text>),
+                    grid.Column("description", sorter("description", "Product Description", grid), style: "parDescription", format: @<text><span class="display"><label id="lbldescription">@item.description</label></span><input type="text" id="txtdescription_@item.attch_gid" value="@item.description" class="edit textboxStyleBig" title="@item.description" /></text>),
+                    grid.Column("uom", sorter("uom", "UOM", grid), style: "parProductUOM", format: @<text>
+                    <select name="ddluom" id="uomddl_@item.attch_Gid" class="textboxStyleBig edit">
+                        <option value="0">Select</option>
+
+                        @{
+                            var childitemfilter12 = Model.uomList.Where(m => m.Value == @item.uomGid);
+                            if (childitemfilter12 != null)
+                            {
+                                foreach (var citem in Model.uomList)
+                                {
+                                    string selectedValue = "";
+                                    if (Convert.ToInt32(@item.uomGid) == Convert.ToInt32(citem.Value))
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+
+                    </select>
+                    <span class="display">
+                        <select name="ddluom" id="uomddl_@item.attch_Gid" disabled="disabled" class="textboxStyleBig display">
+                            <option value="0">Select</option>
+                            <optgroup label="@item.uom">
+                                @{
+                                    var childitemfilter = Model.uomList.Where(m => m.Value == @item.uomGid);
+                                    if (childitemfilter != null)
+                                    {
+                                        foreach (var citem in Model.uomList)
+                                        {
+
+                                            string selectedValue = "";
+                                            if (Convert.ToInt32(@item.uomGid) == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </optgroup>
+                        </select>
+                    </text>),
+                    grid.Column("qty", sorter("qty", "QTY", grid), style: "parQTY", format: @<text>  <span class="display"><label id="lblqty">@item.qty</label></span><input type="text" title="@item.qty" id="inqty_@item.attch_gid" name="inqty" class="edit textboxStyleBig" onkeypress="return isNumber1(event, this);" value="@item.qty" href="@item.attch_gid" onkeyup="multInputs(title,value,this)" /> </text>),
+                    grid.Column("unitAmt", sorter("unitAmt", "Unit Amount", grid), style: "parunitAmt rightAlign", format: @<text>  <span class="display"><label id="lblunit">@item.unitAmt</label></span> <input type="text" id="inunit_@item.attch_gid" name="inunit" onclick="multInputs1(id, value)" onkeypress="return isNumber1(event, this);" href="@item.attch_gid" value="@item.unitAmt" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("total", sorter("total", "Total", grid), style: "parTotal rightAlign", format: @<text>  <span class="display "><label id="lbltotal">@item.total</label> </span> <input type="text" id="intotal_@item.attch_gid" name="intotal" readonly="readonly" href="@item.attch_gid" onkeypress="return isNumber1(event, this);" value="@item.total" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("remarks", sorter("remarks", "Remarks", grid), style: "parRemarks", format: @<text>  <span class="display"><label id="lblremarks">@item.remarks</label> </span><input type="text" maxlenth="264" id="inremarks" value="@item.remarks" class="edit textboxStyleBig" />  </text>),
+                    grid.Column("chartofaccount", sorter("chartofaccount", "Chart Of Account", grid), style: "parchartofaccount", format: @<text>  <span class="display"><label id="lblchartofaccount">@item.chartOfAccount</label> </span> <input type="text" id="inchartofaccount_@item.attch_gid" disabled="disabled" value="@item.chartOfAccount" onkeypress="return isNumber1(event, this);" readonly="readonly" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("Fccc", sorter("Fccc", "FCCC", grid), style: "parFCCC", format: @<text>  <span class="display"><label id="lblfccc">@item.fccc</label> </span><input type="text" id="infcccgetpoup_@item.attch_gid" value="@item.fccc" readonly="readonly" onkeypress="return isNumber1(event, this);" class="edit textboxStyleBig" /><span class="glyphicon glyphicon-search edit searchpop pntrStyle" id="@item.attch_gid" onclick="NewSearch(id)"></span> </text> ),
+                    grid.Column("budgetline", sorter("budgetline", "Budget line", grid), style: "parbudgetline", format: @<text>  <span class="display"><label id="inbudgetline_@item.attch_gid">@item.budgetLine</label> </span><input type="text" id="inbudgetline_@item.attch_gid" value="@item.budgetLine" onkeypress="return isNumber1(event, this);" class="edit textboxStyleBig" />  </text>),
+                    grid.Column(header: "BOQ", canSort: false, style: "parBOQ",
+                    format: @<text>
+                        <input type="button" value="View BOQ" class="btn btn-link" onclick="Newboqview12(id)" id="@item.cbfDetGid" title="BOQ" />
+                    </text>)))
+            }
+            else
+            {
+
+                @grid.GetHtml(
+                         tableStyle: "tableSmall table-bordered myTab",
+                    htmlAttributes: new { id = "grid2" },
+                    columns: grid.Columns(
+                      grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "parsl"),
+                         grid.Column("productgroup", sorter("productgroup", "Product Group", grid), style: "parproductgroup", format: @<text>
+                    <select name="productgroup1" id="productgroup_@item.attch_Gid"  title="@item.attch_Gid" onchange="getprogroup(this,title,value)" class=" textboxStyleBig edit">
+                        <option value="0">Select</option>
+
+                        @{
+                            var childitemfilter = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                            if (childitemfilter != null)
+                            {
+                                foreach (var citem in Model.productGroupList)
+                                {
+                                    string selectedValue = "";
+                                    if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+
+                    </select>
+
+                    <select name="productgroup1" id="productgroup1" disabled="disabled" class="textboxStyleBig display">
+                        <option value="0">Select</option>
+                        <optgroup label="@item.productgroupid">
+                            @{
+                                var childitemfilter12 = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                                if (childitemfilter12 != null)
+                                {
+                                    foreach (var citem in Model.productGroupList)
+                                    {
+                                        string selectedValue = "";
+                                        if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                    }
+                                }
+                            }
+                        </optgroup>
+                    </select></text>),
+                    grid.Column("productgid",format: @<text><span class="display">
+                        <label id="lblproductgid">@item.productgid</label>
+                    </span><input type="text" disabled="disabled" id="txtproductgid_@item.attch_Gid" value="@item.productgid" title="@item.productgid" class="edit textboxStyleBig" /> </text>),
+                                 grid.Column("productCode", sorter("productCode", "Code", grid), style: "parproductCode", format: @<text><span class="display">
+                        <label id="lblproductcode">@item.productCode</label>
+                    </span><input type="text" id="txtproductcode_@item.attch_Gid" value="@item.productCode" readonly="readonly" title="@item.productCode" class="edit textboxStyleBig " /> </text>),
+                    grid.Column("productName", sorter("productName", "Product Name", grid), style: "parproductName", format: @<text><span class="display"><label id="lblproductname">@item.productName</label></span><input type="text" id="txtproductname_@item.attch_gid" value="@item.productName" readonly="readonly" class="edit textboxStyleBig " title="@item.productName" /></text>),
+                    grid.Column("description", sorter("description", "Product Description", grid), style: "parDescription", format: @<text><span class="display">
+                        <label id="lbldescription">@item.description</label>
+                    </span><input type="text" id="txtdescription_@item.attch_gid" value="@item.description" readonly="readonly" class="edit textboxStyleBig " title="@item.description" /></text>),
+                    grid.Column("uom", sorter("uom", "UOM", grid), style: "parProductUOM", format: @<text>
+                        <select name="ddluom" id="uomddl_@item.attch_Gid" class="textboxStyleBig edit">
+                            <option value="0">Select</option>
+
+                            @{
+                                var childitemfilter12 = Model.uomList.Where(m => m.Value == @item.uomGid);
+                                if (childitemfilter12 != null)
+                                {
+                                    foreach (var citem in Model.uomList)
+                                    {
+                                        string selectedValue = "";
+                                        if (Convert.ToInt32(@item.uomGid) == Convert.ToInt32(citem.Value))
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+
+                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                    }
+                                }
+                            }
+
+                        </select>
+
+                    <span class="display">
+                        <select name="ddluom" id="uomddl" disabled="disabled" class="textboxStyleBig display">
+                            <option value="0">Select</option>
+                            <optgroup label="@item.uom">
+                                @{
+                                    var childitemfilter = Model.uomList.Where(m => m.Value == @item.uomGid);
+                                    if (childitemfilter != null)
+                                    {
+                                        foreach (var citem in Model.uomList)
+                                        {
+
+                                            string selectedValue = "";
+                                            if (Convert.ToInt32(@item.uomGid) == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </optgroup>
+                        </select>
+                                                        </text>),
+                    grid.Column("qty", sorter("qty", "QTY", grid), style: "parQTY", format: @<text>
+                    <span class="display"><label id="lblqty">@item.qty</label></span><input type="text" title="@item.qty" id="inqty_@item.attch_gid" name="inqty" class="edit textboxStyleBig" onkeypress="return isNumber1(event, this);" value="@item.qty" href="@item.attch_gid" onkeyup="multInputs(title,value,this)" /> </text>),
+                    grid.Column("unitAmt", sorter("unitAmt", "Unit Amount", grid), style: "parunitAmt", format: @<text>  <span class="display"><label id="lblunit">@item.unitAmt</label></span> <input type="text" id="inunit_@item.attch_gid" name="inunit" onclick="multInputs1(id, value)" onkeypress="return isNumber1(event, this);" href="@item.attch_gid" value="@item.unitAmt"  class="edit textboxStyleBig" /> </text>),
+                    grid.Column("total", sorter("total", "Total", grid), style: "parTotal", format: @<text>  <span class="display "><label id="lbltotal">@item.total</label> </span> <input type="text" id="intotal_@item.attch_gid" name="intotal" readonly="readonly" href="@item.attch_gid" onkeypress="return isNumber1(event, this);" value="@item.total"  class="edit textboxStyleBig" /> </text>),
+                    grid.Column("remarks", sorter("remarks", "Remarks", grid), style: "parRemarks", format: @<text>  <span class="display"><label id="lblremarks">@item.remarks</label> </span><input type="text" maxlenth="264" id="inremarks" value="@item.remarks" class="edit textboxStyleBig" />  </text>),
+                    grid.Column("chartofaccount", sorter("chartofaccount", "Chart Of Account", grid), style: "parchartofaccount", format: @<text>  <span class="display"><label id="lblchartofaccount">@item.chartOfAccount</label> </span> <input type="text" id="inchartofaccount_@item.attch_gid" value="@item.chartOfAccount" onkeypress="return isNumber1(event, this);" style="width:100px" readonly="readonly" class="edit textboxStyleBig" /> </text>),
+                    grid.Column("Fccc", sorter("Fccc", "FCCC", grid), style: "parFCCC", format: @<text>  <span class="display"><label id="lblfccc">@item.fccc</label> </span><input type="text" id="infcccgetpoup_@item.attch_gid" value="@item.fccc" onkeypress="return isNumber1(event, this);" onchange="change(id, value)" class="edit textboxStyleBig" /><span  class="glyphicon glyphicon-search edit searchpop pntrStyle" id="@item.attch_gid" onclick="NewSearch(id)"></span> </text> ),
+                    grid.Column("budgetline", sorter("budgetline", "Budget line", grid), style: "parbudgetline", format: @<text>  <span class="display"><label id="inbudgetline_@item.attch_gid">@item.budgetLine</label> </span><input type="text" id="inbudgetline_@item.attch_gid" value="@item.budgetLine" onkeypress="return isNumber1(event, this);" class="edit textboxStyleBig" />  </text>),
+                    grid.Column(header: "BOQ", canSort: false, style: "parBOQ",
+                    format: @<text>
+                        <input type="button" value="Attach BOQ" class="btn btn-link boqattacg display" style="padding:3px;" disabled="disabled" name="@item.cbfDetGid" onclick="Newboq1(name, this)" id="@item.attch_gid" title="BOQ" />
+                        <input type="button" value="Attach BOQ" class="btn btn-link boqattacg edit" style="padding:3px;" name="@item.cbfDetGid" onclick="Newboq1(name,this)" id="@item.attch_gid" title="BOQ" />
+                    </text>),
+                    grid.Column(header: "Action", canSort: false, style: "parAct",
+                    format: @<text>
+                        <input type="hidden" name="pardetailsgid" id="pardetailsgid" value="@item.prdetailsGid" />
+                        <span class='glyphicon glyphicon-floppy-save edit save-btn' @ViewBag.viewmode style="cursor:pointer; margin-top:3px;" title="Save"> <label id="sdf34" hidden="hidden">@item.cbfDetGid @item.attch_gid</label></span>
+                        <span class='glyphicon glyphicon-edit display edit-btn cursor' @ViewBag.viewmode style="cursor:pointer; margin-top:3px;" title="Edit"><label id="sdf67" hidden="hidden"> @item.cbfDetGid @item.attch_gid</label> </span>
+                        <span class='glyphicon glyphicon-trash display delete-btn cursor' @ViewBag.viewmode style="cursor:pointer; margin-top:3px;" title="Delete"><label id="sdf8989" hidden="hidden"> @item.cbfDetGid @item.attch_gid</label> </span>
+                        <span class='glyphicon glyphicon-remove edit cancel-btn cursor' @ViewBag.viewmode style="cursor:pointer; margin-top:3px;" title="Cancel"> <label id="sdf000-" hidden="hidden">@item.cbfDetGid @item.attch_gid</label></span>
+
+                    </text>)))
+            }
+
+            
+
+
+            <div >
+                <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@Model.cbfDetails.Count</span>
+            </div>
+</div>
+</div>
+
+
+
+@if (ViewBag.records != null)
+{  <div align="center" class="borderStyle">
+        <h6 class="row" style="font-weight:normal ;">
+            @ViewBag.records
+        </h6>
+    </div>
+}
+<label id="para"></label>
+<p id="add" style="display:none"></p>
+<input type="hidden" id="rowid" />
+
+</fieldset>
+<input type="hidden" hidden="hidden" id="pargid">
+
+@*}*@
+<div id="productserviewpopup"></div>
+<div id="forficcnew"></div>
+<input hidden="hidden" id="viewboqdate" />
+<input type="hidden" id="editprodgid">
+
+<script>
+    function Newboqview12(id) {
+        objDialogforboq.load('@Url.Action("CBFAttachmentIndex", "CbfRaiser")?cbfdetid=' + id + '&viewtype=view&' + new Date().getTime());
+      @*objDialogforboq.load('@Url.Action("BoqAttached", "CbfRaiser")?id=' + id + '&viewfor=view&' + new Date().getTime());*@
+        objDialogforboq.dialog({ title: 'View BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    $('.search').click(function () {
+    });
+    var objDialogforficc;
+    function NewSearch(id) {
+        if ($('#hidden').val() == "") {
+            $('#hidden').val(id);
+            objDialogforficc = $("[id$='forficcnew']");
+            objDialogforficc.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 500
+            })
+        }
+        objDialogforficc.load('../CbfRaiserEdit/CreateSerachEdit?id=' + id + '&' + new Date().getTime());
+        objDialogforficc.dialog({ title: 'Select FCCC Code' });
+        objDialogforficc.dialog("open");
+
+    }
+    function change(id, value) {
+        var lsFccc = $('#' + id + '').val()
+
+        $.post('../CbfRaiserEdit/fcccsearchtext?lsFccc=' + lsFccc,
+              function (data) {
+                  if (data == "") {
+                      jAlert("Fccc Code Mismatch,Please Enter Correct Correct Fccc Code", "Error");
+                      $('#' + id + '').val(data)
+                  }
+                  else {
+                      $('#' + id + '').val(data)
+                  }
+
+              }
+         , 'json');
+
+    }
+    $(document).ready(function () {
+        $("#grid2 td:nth-child(3),#grid2 th:nth-child(3)").hide();
+        var add = 0;
+        $("#grid2 td").find("input[name=intotal]:text").each(function () {
+            add += Number($(this).val());
+
+        });
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+
+        $("#inbudgetline").keypress(function (event) {
+            return isNumber1(event, this);
+
+        });
+    });
+    function Newboq12(id) {
+        $('#viewboqdate').val("1");
+
+        //  objDialogforboq.load('../CbfRaiserEdit/Viewboqattachment?id=' + id + '&' + new Date().getTime());
+        objDialogforboq.load('@Url.Action("CBFAttachmentIndex", "CbfRaiser")?cbfdetid=' + id + '&viewtype=view&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'View BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    function Newboq1(name,element) {
+
+        if (name == 0) {
+            $('#viewboqdate').val("1")
+        }
+        else {
+            $('#viewboqdate').val("2")
+
+        }
+        var cbfdetid = "";
+        var id = "";
+        if (name != '' && name != '0') {
+
+            cbfdetid = name;
+        }
+        else {
+            var row = $(element).closest('tr');
+            var idtemp = row.find('td:eq(0)').text();
+            id = idtemp;
+        }
+        if (isNaN(cbfdetid)) {
+            cbfdetid = "";
+        }
+       
+        if (id == null || id == "" || isNaN(id)) {
+            
+            if (parseInt($("#grid2 tbody tr").length) > 0) {
+               
+                var tempid = parseInt($("#grid2 tbody tr").length);
+                id = tempid.toString();
+            }
+        }
+      
+        objDialogforboq.load('@Url.Action("CBFAttachmentIndex", "CbfRaiser")?rowum=' + id + '&cbfdetid=' + cbfdetid + '&viewtype=edit&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'Attach BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+
+    var dat = 0;
+    var value1 = 0;
+    function multInputs(title, value, element) {
+
+        var id1 = $(element).attr('href');
+        $('#intotal_' + id1 + '').val(value * $('#inunit_' + id1 + '').val());
+        var add = 0;
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+
+    }
+    function multi(element) {
+        var add = 0;
+        var str = $(element).attr("id").split("_");
+        var id = str[1];
+        $('#total_' + id + '').val($('#qty_' + id + '').val() * $('#unitprize_' + id + '').val());
+
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+
+            add += Number($(this).val());
+
+        });
+        $("#grid2 td").find("input[name=intotal]:text").each(function () {
+
+            add += Number($(this).val());
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+
+    }
+    function multi1(element) {
+        var add = 0;
+        var str = $(element).attr("id").split("_");
+        var id = str[1];
+        $('#total_' + id + '').val($('#qty_' + id + '').val() * $('#unitprize_' + id + '').val());
+
+        var finalamt = 0;
+        var pardetailsgid = 0;
+        var actualpardetailsgid = 0;
+        actualpardetailsgid = $("#hidpardetailsgid").val();
+        $("#grid2 tr").each(function () {
+            var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+            var totalamt1 = $(this).find('[name=intotal]').val();
+            var totalamt = $(this).find('[name=intotalnew]').val();
+            if (isNaN(totalamt) == false) {
+                finalamt = parseInt(totalamt) + parseInt(finalamt);
+            }
+            if (actualpardetailsgid == pardetailsgid) {
+
+                if (isNaN(totalamt1) == false) {
+                    finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                }
+            }
+
+        });
+
+        if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+            jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                $('#total_' + id + '').val("");
+                $('#qty_' + id + '').val("");
+                $('#unitprize_' + id + '').val("");
+                return false;
+            });
+            return false;
+        }
+
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+
+            add += Number($(this).val());
+
+        });
+        $("#grid2 td").find("input[name=intotal]:text").each(function () {
+
+            add += Number($(this).val());
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+
+    }
+    function multInputs1(id, value) {
+        $("#grid2 td").find("input[name=inunit]:text").each(function () {
+            var variable = "inunit_"
+            var id2 = $(this).attr('href')
+            var mult = 0;
+            var total = 0;
+            var value2 = value;
+
+            $("#inunit_" + id2 + "").keypress(function (event1) {
+                return isNumber1(event1, this);
+            });
+            if (id == variable + id2) {
+
+                $("#inunit_" + id2 + "").keyup(function () {
+                    $('#intotal_' + id2 + '').val($('#inqty_' + id2 + '').val() * $('#inunit_' + id2 + '').val());
+
+                    var finalamt = 0;
+                    var pardetailsgid = 0;
+                    var actualpardetailsgid = 0;
+                    actualpardetailsgid = $("#hidpardetailsgid").val();
+                    $("#grid2 tr").each(function () {
+                        var pardetailsgid = $(this).find('[name=pardetailsgid]').val();
+                        var totalamt1 = $(this).find('[name=intotal]').val();
+                        var totalamt = $(this).find('[name=intotalnew]').val();
+                        if (isNaN(totalamt) == false) {
+                            finalamt = parseInt(totalamt) + parseInt(finalamt);
+                        }
+                        if (actualpardetailsgid == pardetailsgid) {
+
+                            if (isNaN(totalamt1) == false) {
+                                finalamt = parseInt(totalamt1) + parseInt(finalamt);
+                            }
+                        }
+
+                    });
+
+                    if (parseInt(finalamt) > parseInt($('#parcostestimation123').val())) {
+                        jAlert("Amount Should not Exceed PAR Value", "Error", function () {
+                            $('#total_' + id + '').val("");
+                            $('#qty_' + id + '').val("");
+                            $('#unitprize_' + id + '').val("");
+                            return false;
+                        });
+                        return false;
+                    }
+
+                    var add = 0;
+                    $("#grid2 td").find("input[name=intotal]:text").each(function () {
+                        add += Number($(this).val());
+                    });
+                    $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+                        add += Number($(this).val());
+                    });
+                    $("#para1").text("Grand Total : " + add);
+                    getadd(add);
+
+                });
+            }
+        });
+    }
+
+    function getadd(valu) {
+        $("#cbf_amt").val(valu);
+    }
+
+
+
+
+</script>

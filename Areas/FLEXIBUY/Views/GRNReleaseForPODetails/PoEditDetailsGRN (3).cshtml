@@ -1,0 +1,100 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poraiser
+@using IEM.Common;
+@{
+    ViewBag.Title = "poraiser";
+    WebGrid grid = new WebGrid(source: Model.objlist, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "poEditgrid1", ajaxUpdateCallback: "dummyfun()");
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+
+}
+<input type="hidden" id="hid_cbfamount" value="@Model.cbfheadAmount" />
+<input type="hidden" id="hid_devamount" value="@Model.devamount" />
+<input type="hidden" id="hid_cbfqty" value="@Model.cbfdetailsQty" />
+
+<div id="poEditgrid1">
+    <div class="container-fluid overflowx">
+        @grid.GetHtml(
+                  tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "podetailgrid1" },
+        columns: grid.Columns
+            (
+         grid.Column("Sl", format: a => rowNum = rowNum + 1),
+         grid.Column("cbfno", obj.Sorter("cbfno", "CBF Number", grid),canSort:false),
+                  grid.Column("prodservicegid", obj.Sorter("prodservicegid", "prodservGid", grid), canSort: false),
+                  grid.Column("uomgid", obj.Sorter("uomgid", "uom gid", grid), canSort: false),
+                  grid.Column("prodservicegroup", obj.Sorter("prodservicegroup", "Product Group", grid), style: "MidColumn50", canSort: false),
+                   grid.Column("prodservicecode", obj.Sorter("prodservicecode", "Product Code", grid), style: "MidColumn50", canSort: false),
+                  grid.Column("prodservicename", obj.Sorter("prodservicename", "Product Name", grid), style: "MidColumn50", canSort: false),
+                  grid.Column("prodservicedesc", obj.Sorter("prodservicedesc", "Product Description", grid), style: "MidColumn50", canSort: false),
+                  grid.Column("units", obj.Sorter("units", "Units", grid), style: "MidColumn30", canSort: false),
+          grid.Column("quantity", obj.Sorter("quantity", "Quantity", grid), format: @<text>
+            <span id="qty">@item.Quantity</span>
+            <input type="button"
+                   id="@item.podetGid" value="Shipment"
+                   class="btn btn-link display Color" onclick="shipmentfun(id)"
+                   style="width:100px;margin-top: -9px;" /></text>, style: "MidColumn30 rightAlign",canSort:false),
+                                               grid.Column("unitPrice", obj.Sorter("unitPrice", "Unit Price", grid), style: "MidColumn30 rightAlign", canSort: false),
+                                               grid.Column("discount", obj.Sorter("discount", "Discount(%)", grid), style: "MidColumn20 rightAlign", canSort: false),
+                                               grid.Column("baseamount", obj.Sorter("baseamount", "Base Amount", grid), style: "MidColumn30 rightAlign", canSort: false),
+                                               grid.Column("tax1", obj.Sorter("tax1", "Taxes", grid), style: "MidColumn20 rightAlign", canSort: false),
+                                               grid.Column("tax2", obj.Sorter("tax2", "Other Charges", grid), style: "MidColumn20 rightAlign", canSort: false),
+                           //grid.Column("tax3", obj.Sorter("tax3", "Tax(%)-3", grid), style: "MidColumn20 rightAlign"),
+                //  grid.Column("poRemaingAmount", obj.Sorter("poRemaingAmount", "poRemaingAmount", grid), style: "MidColumn20"),
+                                               grid.Column("total", obj.Sorter("total", "Total(Incl.Tax)", grid), style: "MidColumn20 rightAlign", canSort: false)))
+    </div>
+    @if (@ViewBag.records != null || @ViewBag.records == "")
+    {
+        <div class="borderStyle btnCenter">
+            @ViewBag.records
+        </div>
+    }
+    <input type="hidden" id="hid_unitprice" />
+    <input type="hidden" id="hid_baseamount" />
+</div>
+<script>
+    $("#podetailgrid td:nth-child(2),#podetailgrid th:nth-child(2)").hide();
+    $("#podetailgrid td:nth-child(3),#podetailgrid th:nth-child(3)").hide();
+    //  $("#podetailgrid td:nth-child(7),#podetailgrid th:nth-child(7)").hide();
+
+    var tr = $("#podetailgrid").find('tr');
+    $("#podetailgrid tr .Color").click(function () {
+        $('#podetailgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+
+    $("#podetailgrid1 td:nth-child(3),#podetailgrid1 th:nth-child(3)").hide();
+    $("#podetailgrid1 td:nth-child(4),#podetailgrid1 th:nth-child(4)").hide();
+    //  $("#podetailgrid td:nth-child(7),#podetailgrid th:nth-child(7)").hide();
+
+    var tr = $("#podetailgrid1").find('tr');
+    $("#podetailgrid1 tr .Color").click(function () {
+        $('#podetailgrid1').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    function shipmentfun(id) {
+        var value1 = id;
+        var prhegid =
+        {
+            "podetGid": value1
+        };
+        $.ajax({
+            url: "@Url.Action("Shipment", "GRNReleaseForPODetails")",
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(prhegid),
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#poshipment").empty().append(data);
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+
+    }
+</script>

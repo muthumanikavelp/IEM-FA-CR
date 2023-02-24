@@ -1,0 +1,166 @@
+﻿@model  IEnumerable<IEM.Areas.FLEXIBUY.Models.pardetailtransfer>
+@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+}
+<script src="~/Scripts/angular.min.js"></script>
+<div ng-app="partrans">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">PAR Transfer Report</span></b></legend>
+            <br />
+            <div style="text-align:right;">
+                <a style="text-align:right; color:white;" onclick="exportexcel()" class="btn btn-primary glyphicon glyphicon-export" data-modal="" id="reportDownloadExcel">
+                    Excel
+                </a>
+            </div>
+            <br />
+            <div ng-controller="cbfController">
+                <div>
+                    @*<input ng-model="search.$" class="col-lg-10 textboxStyle" />*@
+                    <table class="tableSmall table-bordered table-hover table-responsive">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th style="width:5%;">
+                                    S.No
+                                </th>
+                                <th style="width:15%;">
+                                    PAR NO<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.parheader_refno">
+                                </th>
+                                <th style="width:10%;">
+                                    Request For<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailsrequestfor">
+                                </th>
+                                <th style="width:20%;">
+                                    Line Description<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetails_desc">
+                                </th>
+                                <th style="width:10%;">
+                                    Line Amount<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailslineamount">
+                                </th>
+                                <th style="width:10%;">
+                                    Utilized Amount<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailsutilizedamount">
+                                </th>
+                                <th style="width:10%;">
+                                    Transfer In<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailstransferinamount">
+                                </th>
+                                <th style="width:10%;">
+                                    Transfer Out<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailstransferoutamount">
+                                </th>
+                                <th style="width:10%;">
+                                    Balance Amount<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.pardetailsbalencedamount">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody ng-repeat="partrans_details in partrans_details | filter:search:strict | orderBy:predicate:reverse">
+                            <tr>
+                                <td style="width:5%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{partrans_details.parheader_refno}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailsrequestfor}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{partrans_details.pardetails_desc}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailslineamount}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailsutilizedamount}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailstransferinamount}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailstransferoutamount}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{partrans_details.pardetailsbalencedamount}}
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var myApp = angular.module('partrans', []);
+        myApp.service("partranService", function ($http) {
+            this.getparDetailsList = function () {
+                return $http.get("../partransfer/GetparDetails?" + new Date().getTime());
+            };
+
+        });
+        myApp.controller('cbfController', function ($scope, partranService) {
+            GetparDetails();
+            function GetparDetails() {
+                var getData = partranService.getparDetailsList();
+                getData.then(function (emp) {
+                    $scope.partrans_details = emp.data;
+                }, function () {
+                    alert('Error');
+                });
+            }
+
+        });
+        function exportexcel() {
+            location = "../partransfer/downloadsexcel?" + new Date().getTime();
+        }
+
+    </script>
+
+    @*<div id="pardetails">
+
+            <b>
+                <span style="color: rgb(52, 108, 196);">PAR Transfer Report</span>
+            </b>
+            @if (ViewBag.process != "process")
+            {
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+                             tableStyle: "table table-bordered table-hover table-responsive",
+                            htmlAttributes: new { id = "griddetails" },
+                            columns: grid.Columns
+                                (
+                    //Here I am going to add checkbox column
+                            grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "MidColumn5"),
+                    //grid.Column("SNo", format: a => rowNum = rowNum + 1),
+                                                grid.Column("parheader_refno", objCmnFunctions.Sorter("parheader_refno", "PAR NO", grid)),
+                                                           grid.Column("pardetailsrequestfor", objCmnFunctions.Sorter("pardetailsrequestfor", "Request For", grid), style: "MidColumn10"),
+                                                           grid.Column("pardetails_desc", objCmnFunctions.Sorter("pardetails_desc", "Line Description", grid), style: "MidColumn10"),
+                                                           grid.Column("pardetailslineamount", objCmnFunctions.Sorter("pardetailslineamount", "Line Amount", grid), style: "MidColumn5"),
+                                                           grid.Column("pardetailsutilizedamount", objCmnFunctions.Sorter("pardetailsutilizedamount", "Utilized Amount", grid), style: "MidColumn10"),
+                                                           grid.Column("pardetailstransferinamount", objCmnFunctions.Sorter("pardetailstransferinamount", "Transfer In", grid), style: "MidColumn10"),
+                                                           grid.Column("pardetailstransferoutamount", objCmnFunctions.Sorter("pardetailstransferoutamount", "Transfer Out", grid), style: "MidColumn10"),
+                                                           grid.Column("pardetailsbalencedamount", objCmnFunctions.Sorter("pardetailsbalencedamount", "Balance Amount", grid), style: "MidColumn10")))
+
+            }
+
+
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount  Total No of Records :@grid.TotalRowCount</label>
+        </div>*@

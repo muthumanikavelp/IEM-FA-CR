@@ -1,0 +1,123 @@
+﻿<div class="table-responsive" style="padding-right: 10px;">
+    <div align="right" style="padding-bottom:5px;">
+        <button type="button" id="btnempNewExppense" value="New Payment" onclick="NewPayment()" class="btn btn-primary">
+            <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New Payment
+        </button>
+    </div>
+    @Html.Partial("_EmpPaymentDetails")
+</div>
+<br />
+<div id="ForPartialViewEmpPaymentmew"></div>
+<div id="ForPartialViewPaymentmodepopup"></div>
+
+<script type="text/javascript">
+    var objDialogPaymentmodepopup;
+    $(document).ready(function () {
+        objDialogPaymentmodepopup = $("[id$='ForPartialViewPaymentmodepopup']");
+        objDialogPaymentmodepopup.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'PPX ',
+            width: 950,
+            height: 400
+        });
+
+    });
+
+    var objDialogPayment;
+    $(document).ready(function () {
+        window.parent.jQuery('#ForPartialViewPaymentmodepopup').dialog('close');
+        objDialogPayment = $("[id$='ForPartialViewEmpPaymentmew']");
+        objDialogPayment.length = 1;
+        objDialogPayment.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 680,
+            height: 330
+        });
+
+    });
+
+    function NewPayment() {
+        var url = '@Url.Action("_EmpPaymentCreate", "EmployeeClaimNewPetty")?' + new Date().getTime();
+        objDialogPayment.load(url);
+        //objDialogPayment.load('../EmployeeClaimNewPetty/_EmpPaymentCreate?' + new Date().getTime());
+        objDialogPayment.dialog({ title: 'New Payment' });
+        objDialogPayment.dialog("open");
+    }
+    function EmpPaymentEdit(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../EmployeeClaimNewPetty/_Emplistaddp', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_EmpPaymentEdit", "EmployeeClaimNewPetty")?id=' + id + '&viewfor=edit&' + new Date().getTime();
+                objDialogPayment.load(url);
+                //objDialogPayment.load('../EmployeeClaimNewPetty/_EmpPaymentEdit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+                objDialogPayment.dialog({ title: 'Edit Payment' });
+                objDialogPayment.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpPaymentView(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../EmployeeClaimNewPetty/_Emplistaddp', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_EmpPaymentEdit", "EmployeeClaimNewPetty")?id=' + id + '&viewfor=view&' + new Date().getTime();
+                objDialogPayment.load(url);
+                //objDialogPayment.load('../EmployeeClaimNewPetty/_EmpPaymentEdit?id=' + id + '&viewfor=view&' + new Date().getTime());
+                objDialogPayment.dialog({ title: 'View Payment' });
+                objDialogPayment.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpPaymentDelete(id) {
+        jConfirm("Do you want to delete Employeee Payment...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpPaymentmodel = { "Paymentgid": id }
+                $.post('../EmployeeClaimNewPetty/EmpPaymentDelete', EmpPaymentmodel,
+              function (data) {
+                  if (data == 0) {
+                      jAlert("Error.", "Error");
+                      return false;
+                      location = location.href;
+                  } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      @*var url = "@(Html.Raw(Url.Action("_EmpPaymentDetails", "EmployeeClaimNewPetty")))";
+                      $("#wgempPayment").load(url);*@
+                      //$("#wgempPayment").load("../EmployeeClaimNewPetty/_EmpPaymentDetails?" + new Date().getTime());
+                      var url = '@Url.Action("_EmpPaymentDetails", "EmployeeClaimNewPetty")?' + new Date().getTime();
+                      $("#wgempPayment").load(url);
+                      objDialogPayment.dialog("close"); window.parent.jQuery('#ForPartialViewEmpPaymentmew').dialog('close');
+                  }
+              }, 'json');
+            }
+        });
+    }
+</script>

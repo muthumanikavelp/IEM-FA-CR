@@ -1,0 +1,147 @@
+﻿@model  IEnumerable<IEM.Areas.ASMS.Models.adhoc_model>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Adhoc Master Maintenance </span>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span> Supplier Code  </span>
+                    <br />
+                    <input type="text"
+                           name="filter_code"
+                           id="txtFilterCode"
+                           value="@ViewBag.filter_code"
+                           class="fstextbox"
+                           maxlength="50" />
+
+
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span> Supplier Name  </span>
+                    <br />
+                    <input type="text"
+                           name="filter_name"
+                           id="txtFilterName"
+                           value="@ViewBag.filter_name"
+                           class="fstextbox"
+                           maxlength="70" />
+
+                </td>
+                <td style="width:50%; padding:0px 10px 0px 3px;">
+
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command"
+                            type="submit" style="margin-top:20px;color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                    </button>
+                    <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear"
+                            name="command" type="submit" style="margin-top:20px;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                    </button>
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;display:none;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+             htmlAttributes: new { id = "gridadhoc" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                        grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                         grid.Column(header: "Supplier Code", columnName: "Audit_suppliercode"),
+                         grid.Column(header: "Supplier Name", columnName: "Audit_suppliername"),
+                         grid.Column(header: "State Name", columnName: "statename"),
+                           grid.Column(header: "Supplier GSTRegNo", columnName: "Audit_suppliergstin"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View History' onclick='ViewType(" + item.supplierheader_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.supplierheader_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteType(" + item.supplierheader_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+        </div>
+    </div>
+}
+<div id="ForPartialView"></div>
+<div id="ForPartialView1"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialog1;
+
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 500,
+            height: 250,
+            duration: 300
+        });
+
+
+
+        objDialog1 = $("[id$='ForPartialView1']");
+        objDialog1.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 900,
+            height: 700,
+            duration: 300
+        });
+
+        $('#gridadhoc tr th:nth-child(4)').addClass("nosort");
+        $('#gridadhoc').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+    });
+
+
+    function EditType(id) {
+        objDialog.load('../Adhocmaster/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Update Adhoc Vendor' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "Adhocmaster")"
+        ko.utils.postJson(UrlDet + '?ViewType=26&FileName=Adhoc Master&' + new Date().getTime());
+    }
+    function ViewType(id) {
+        objDialog1.load('../Adhocmaster/View?id=' + id);
+        objDialog1.dialog({ title: 'View Adhoc Vendor' });
+        objDialog1.dialog("open");
+        return false;
+    }
+    function DeleteType(id) {
+        objDialog.load('../Adhocmaster/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Adhoc Vendor' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function refresh() {
+        location = '../Adhocmaster/Index';
+    }
+
+</script>

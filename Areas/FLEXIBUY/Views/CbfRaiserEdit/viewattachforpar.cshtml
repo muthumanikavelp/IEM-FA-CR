@@ -1,0 +1,124 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    int rowcount = 0;
+
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment", ajaxUpdateCallback: "grid()");
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+
+
+
+    <div id="attach">
+        <div id="createsupattachment1254" class="borderstyle panel panel-default">
+
+            <table class="myTableStyleTab" align="center" id="hidetisforview">
+                <tr>
+                    <td>
+                        <span>Document Date</span> <br />
+                        <input type="text" disabled="disabled" name="Cbf_AttachDate" id="_AttachDate" value="@Model.attachmentDate" maxlength="10" title="Document Date" class="textboxStyle valid" />
+                    </td>
+                    <td>
+                        <span>Select File</span><br />
+                        @*<input type="file" disabled="disabled" name="UploadFile" id="txtUploadFile" multiple />*@
+                        <form id="frmDeactivation">
+                            @Html.TextBoxFor(m => m.boqfile, new { @id = "txtUploadFile", type = "file", @class = "txtUploadSupAttachmentFile" })
+                        </form>
+                    </td>
+                    <td>
+                        <span>File Name</span> <br />
+                        <input name="_AttachedFileName" disabled="disabled" readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" value="@Model.attachment1" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span>Description</span> <br />
+                        <input name="_AttachDescription" disabled="disabled" id="_AttachDescription" class="textboxStyle" title="Description" type="text" value="@Model.des" />
+                    </td>
+                    <td>
+                        <input type="button" name="btnSaveSupAttachment" disabled="disabled" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="button" class="btn btn-primary" disabled="disabled" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                    </td>
+                </tr>
+                @*<tr>
+                <td colspan="4" style="text-align:right;padding-right:5%;">
+
+                    <input type="button" name="btnSaveSupAttachment" disabled="disabled" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+
+                    <input type="button" class="btn btn-primary" disabled="disabled" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                    <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />
+                </td>
+            </tr>*@
+
+            </table>
+        </div>
+
+        <div class=" panel panel-default" id="gridattachment1">
+
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                          mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("attachGid", Sorter("attachGid", "Sl", grid)),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachmentpar("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="button" value="Delete" class="btn btn-link" id="@item.attachGid" disabled="disabled" title="Delete" />
+                </text>)))
+
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@grid.TotalRowCount</span>
+    </div>
+
+<script>
+    if ('@ViewBag.viewmode' == "disabled") {
+        $("#gridattachment td:nth-child(5),#gridattachment th:nth-child(5)").hide();
+        $("#createsupattachment1254").hide();
+    }
+    function DownloadSupAttachmentpar(filename) {
+
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../CbfRaiserEdit/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                
+            } else { window.location = '../CbfRaiserEdit/Download' }
+        }, 'json');
+
+    }
+    function back() {
+        window.parent.jQuery('#viewboqattachment').dialog('close');
+    }
+</script>

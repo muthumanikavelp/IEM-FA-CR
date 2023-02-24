@@ -1,0 +1,153 @@
+﻿ @model  IEnumerable<IEM.Areas.EOW.Models.TravelClassEntity>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, canSort: true);
+    int rowVal = 0;
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">Travel Class</span>
+</b>
+<br />
+<br />
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" style="margin-left:-4px;">
+                    <tr>
+                        <td>
+                            <div class="input-append ">
+                                <span>Travel Class</span>
+                                <br />
+                                <input type="text"
+                                       name="filter_role"
+                                       id="txtFilter"
+                                       value="@ViewBag.filter_role"
+                                       class="textboxStyleSearch" 
+                                       maxlength="32"
+                                       style="width: 200px;height: 35px;" />
+                            </div>
+                        </td>
+                        <td>
+                            <span>Travel Mode</span>
+                            <br />
+                            @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.Rolelist, "-----Select-----", new { @class = "form-control ", @style = "display: block;width: 200px;height: 35px;margin-bottom: -5px;", @id = "TravelModeIndexId", @Name = "Rolelist"})
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="refresh()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:20px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:8px;">
+                            <button type="button" value="New Document Group" onclick="NewTravel()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Travel Class</button>
+                            <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning">
+                                <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:9px;" class="overflowy overflowx">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+            htmlAttributes:new{id="gridTravelClassid"},
+            tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("TravelClass", Sorter("TravelClass", "Travel Class", grid), canSort: true),
+                grid.Column("TravelMode", Sorter("TravelMode", "Travel Mode", grid), canSort: true),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @*<input  name="EmployeeId" id="Role" value="@item.ModeId" />*@
+                    <a title="View"> <span class="glyphicon glyphicon-eye-open" id="Color" onclick="View(@item.TravelId)"></span></a>
+                    <a title="Edit"> <span class=" glyphicon glyphicon-edit" id="Color" onclick="Edit(@item.TravelId)"></span></a>
+                    <a title="Delete"> <span class="glyphicon glyphicon-trash" id="Color" onclick="DeleteMode(@item.TravelId)"></span></a>
+                </text>))))
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:normal ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+        <br/>
+        <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> - <span class="myTableStyleTabNew">  Total No Of Records:@grid.TotalRowCount</span>
+    </div>
+}
+<div id="ForPartialViewMode"></div>
+<script type="text/javascript">
+    var objDialogTravel;
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilter").focus();
+        });
+        objDialogTravel = $("[id$='ForPartialViewMode']");
+        objDialogTravel.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 350,
+            height: 250
+        });
+        var tr = $("#gridTravelClassid").find('tr');
+        $("#gridTravelClassid tr #Color").click(function () {
+            $('#gridTravelClassid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+       });
+    function NewTravel() {
+        objDialogTravel.load('../TravelClass/TravelAdd');
+        objDialogTravel.dialog({ title: 'Add New TravelClass' });
+        objDialogTravel.dialog("open");
+    }
+    function Edit(id) {
+        objDialogTravel.load('../TravelClass/TravelEdit?id=' + id +'&'+ new Date().getTime());
+        objDialogTravel.dialog({ title: 'Edit TravelClass' });
+        objDialogTravel.dialog("open");
+    }
+    function View(id) {
+        objDialogTravel.load('../TravelClass/TravelView?id=' + id +'&'+ new Date().getTime());
+        objDialogTravel.dialog({ title: 'View TravelClass' });
+        objDialogTravel.dialog("open");
+    }
+    function DeleteMode(id) {
+        objDialogTravel.load('../TravelClass/TravelDelete?id=' + id +'&'+ new Date().getTime());
+        objDialogTravel.dialog({ title: 'Delete Travel Class' });
+        objDialogTravel.dialog("open");
+    }
+    function refresh() {
+        $("#txtFilter").val('');
+        $("#TravelModeIndexId").val('');
+        location='../TravelClass/TravelIndex'
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "ModeOfTravel")"
+        ko.utils.postJson(UrlDet + '?ViewType=14&FileName=TravelClass&' + new Date().getTime());
+    }
+</script>
+

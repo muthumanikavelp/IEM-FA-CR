@@ -1,0 +1,239 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using IEM.Common;
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CmnFunctions obj = new CmnFunctions();
+    CbfSumModel objrep = new CbfSumModel();
+    var grid = new WebGrid();
+    int recordcount = 0;
+    int rowNum = 0;
+    if (Model.Employeedetails == null)
+    {
+        ViewBag.Title = "Index";
+        objDetails.Employeedetails = new List<Employee_gid>();
+        grid = new WebGrid(source: objDetails.Employeedetails, canSort: true, canPage: false, ajaxUpdateContainerId: "searchgrid");
+        TempData["records"] = "No Records Found";
+    }
+    else
+    {
+        grid = new WebGrid(source: Model.Employeedetails, canSort: true, canPage: false, ajaxUpdateContainerId: "searchgrid");
+        TempData["records"] = "";
+    }
+}
+<div id="employeegird">
+
+     <span style="color:rgb(52,108,196);">Approval Details</span>
+
+    <div class="borderStyle panel panel-default" id="employee_details">
+
+        <table align="center">
+            <tr>
+                <td>
+                    <span>Employee Id</span>
+                    <br />
+                    <input type="text"
+                           name="txtemployeeno"
+                           class="textboxStyle "   
+                           maxlength="10"                       
+                           id="txtemployee_no" />
+                </td>
+                <td align="left">
+                    <br />
+                    <a onclick="employdetails()"> <span class=" glyphicon glyphicon-search cursorpointer"></span> </a>&nbsp;&nbsp;
+                </td>
+                <td>
+                    <br />&nbsp;
+                </td>
+                <td>
+                    <span>Approval Date</span>
+                    <br />
+                    <input type="text"
+                           id="ParApproval_date"
+                           value=""
+                           maxlength="10"
+                           readonly="readonly"
+                           class="textboxStyle required" />
+                </td>
+                <td>
+                    <br />
+                    <button class="btn btn-primary"
+                            type="button"
+                            name="command"
+                            value="Add Approver"
+                            onclick="Add()">
+
+                        Add Approver
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <br />
+        <div id="emplgrid" style="margin-left:20px;margin-right:20px;height:100px;overflow:auto;">
+            @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                                    grid.Column("SlNo", obj.Sorter("SlNo", "Sl", grid)),
+                                    @*grid.Column("employeeGid", obj.Sorter("employeeGid", "ID", grid), format: @<text><span id="lblempgid">@item.employeeGid</span></text> ),*@
+ grid.Column("empCode", obj.Sorter("empCode", "Employee Code", grid), format: @<text><span id="lblempcode">@item.empCode</span></text>),
+                                    grid.Column("empName", obj.Sorter("empName", "Employee Name", grid), format: @<text><span id="lblempname">@item.empName</span></text>),
+                                     grid.Column("empdesignation", obj.Sorter("empdesignation", "Employee Designation", grid), format: @<text><span id="lblempdesign">@item.empdesignation</span></text>),
+                                 grid.Column("Approvaldate", obj.Sorter("Approvaldate", "Approval Date", grid), format: @<text><span id="lblApprovaldate">@item.Approvaldate</span></text>),
+                                    grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                        <a><span class="btn btn-link btnselect" id="@item.employeeGid" onclick="selectdelete(id)">Delete</span></a>
+                    </text>)))
+            @if (@TempData["records"] != null || @TempData["records"] == "")
+            {
+                <div class="borderStyle">
+                    @TempData["records"]
+                </div>
+            }
+        </div>
+
+        <input id="employee_gid" hidden="hidden" />
+        <input id="employee_name" hidden="hidden" />
+        <input id="employee_code" hidden="hidden" />
+        <input id="employee_designation" hidden="hidden" />
+    </div>
+</div>
+<script type="text/javascript">
+    var objDialognew;
+    function employdetails() {
+        if ($('#employeeserach').val() == "") {
+            $('#employeeserach').val('ads');
+            objDialognew = $("[id$='forempsearch']");
+            objDialognew.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 920,
+                height: 395,
+                resizable: false
+            });
+        }
+        objDialognew.load('../ParRaiser/searchEmp');
+        objDialognew.dialog({ title: 'Search and Add Employee' });
+        objDialognew.dialog("open");
+    }
+    $("#ParApproval_date").change(function () {
+        if ($("#ParApproval_date").val() == "") {
+            $("#ParApproval_date").addClass("required");
+            $("#ParApproval_date").removeClass("valid");
+        }
+        else {
+            $("#ParApproval_date").addClass("valid");
+            $("#ParApproval_date").removeClass("required");
+        }
+
+    });
+
+    $("#txtemployee_no").change(function () {
+        if ($("#txtemployee_no").val() == "") {
+            $("#txtemployee_no").addClass("required");
+            $("#txtemployee_no").removeClass("valid");
+        }
+        else {
+            $("#txtemployee_no").addClass("valid");
+            $("#txtemployee_no").removeClass("required");
+        }
+
+    });
+
+
+    $("#ParApproval_date").datepicker(
+              {
+                  maxDate: new Date(),
+                  changeMonth: true,
+                  changeYear: true,
+                  yearRange: '1950:2100',
+                  currentText: "Now",
+                  dateFormat: "dd-mm-yy",
+
+              });
+    function Add() {
+        var txtemployeenumber = $('#txtemployee_no').val();
+        var employee_gid = $('#employee_gid').val();
+        var employee_name = $('#employee_name').val();
+        var employee_code = txtemployeenumber;
+        var employee_designation = $('#employee_designation').val();
+        var employee_approvaldate = $('#ParApproval_date').val();
+        if (txtemployeenumber == null || txtemployeenumber == "") {
+            jAlert("Please Select Any Employee_Gid", "Message");
+            return false;
+        }
+        if (employee_approvaldate == null || employee_approvaldate == "") {
+            jAlert("Please Selet Approval Date", "Message");
+            return false;
+        }
+        var Employee_details = {
+            "employeeGid": employee_gid,
+            "empCode": employee_code,
+            "empName": employee_name,
+            "empdesignation": employee_designation,
+            "Approvaldate": employee_approvaldate,
+        };
+
+        $.ajax({
+            url: "../ParRaiser/Approvaldetailssave/",
+            type: 'POST',
+            data: Employee_details,
+            success: function (data) {              
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {                   
+                        $("#employeegird").empty().append(data);
+
+                        jAlert("Inserted Successfully", "Message");                   
+                }
+            },
+            error: function () {
+                jAlert("Please Enter Valid Employee Id", "Message");
+            }
+
+        });
+        $('#txtfinalApprovaldate_id').val(employee_approvaldate);
+
+    }
+    function selectdelete(id) {
+
+        var employee = {
+            "employeeGid": id
+
+        };
+        $.ajax({
+            url: "../ParRaiser/Approvaldelete/",
+            type: 'POST',
+            data: employee,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#employeegird").empty().append(data);
+
+                    jAlert("Delete Successfully", "Message");
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+    }
+
+</script>

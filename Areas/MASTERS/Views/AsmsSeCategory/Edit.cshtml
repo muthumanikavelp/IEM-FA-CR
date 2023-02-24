@@ -1,0 +1,175 @@
+﻿@model IEM.Areas.MASTERS.Models.SECategoryModel
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+}
+
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td colspan="2" style="display:none;">
+                <input name="SECategoryID" id="txtSECategoryID" type="text" maxlength="128" placeholder="SECategory ID" data-val="true" class="form-control " style="display: block;" value="@Model.seCategoryID" />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%">
+                <span>Supplier Evaluation Category </span>
+                <br />
+                    <input name="SECategoryeName" id="txtSECategoryName" type="text" data-val="true" value="@Model.seCategoryName" class="textboxStyle valid " style="display: block;" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="text-align:right; width:100%;">
+
+                @if (@ViewBag.viewmode == "")
+                {
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="UpdateSECategory()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                }
+                @if (@ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" class="btn btn-danger" value="Delete" onclick="Delete()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                }
+                @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                }
+                else if (@ViewBag.viewmode == "disabled")
+                {
+                    <button type="button" class="btn btn-warning" value="Close" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Close</button>
+                }
+            </td>
+        </tr>
+    </table>
+
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtSECategoryName").focus();
+        $("#txtSECategoryName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+    $("#txtSECategoryName").keyup(function () {
+        var txtSupplierName = $("#txtSECategoryName").val();
+        if (txtSupplierName.trim() != "") {
+            CheckFields();
+            $("#txtSECategoryName").removeClass('required');
+            $("#txtSECategoryName").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtSECategoryName").removeClass('valid');
+            $("#txtSECategoryName").addClass('required');
+            CheckFields();
+        }
+    });
+    function UpdateSECategory() {
+        var seCategoryName = $("#txtSECategoryName").val();
+        var seCategoryID = $("#txtSECategoryID").val();
+        var seCategoryModel =
+            {
+                "seCategoryID": seCategoryID
+            , "seCategoryName": seCategoryName.trim()
+            };
+
+        $.post('../AsmsSeCategory/Edit', seCategoryModel,
+        function (data) {
+            if (data != null) {
+                jAlert("Duplicate Record!", "Message", function (r) {
+                    if (r == true) {
+                        return false;
+                    }
+                });
+                return false;
+            }
+            else {
+                jAlert("Record Updated Successfully!", "Message", function (r) {
+                    if (r == true) {
+                        location = '../AsmsSeCategory/Index';
+                    }
+                });
+            }
+        }, 'json');
+    }
+
+    function Delete() {
+        var seCategoryID = $("#txtSECategoryID").val();
+        var seCategoryModel =
+                {
+                    "seCategoryID": seCategoryID
+                };
+        jConfirm("Do you want to delete this Category?", "Message", function (callback) {
+            if (callback == true) {
+                $.post('../AsmsSeCategory/Delete', seCategoryModel,
+                     function (data) {
+                         if (data == null) {
+                             jAlert("Record Deleted Successfully!!!", "Message", function (r) {
+                                 if (r == true) {
+                                     location = '../AsmsSeCategory/Index';
+                                 }
+                             });
+                         }
+                         else {
+                             jAlert('Can Not Delete this, Its Based On Some Other category!!!', 'Message', function (r) {
+                                 if (r == true) {
+                                     return false;
+                                 }
+                             });
+
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    //$(".ui-icon-closethick").click(function () {
+    //    $('#gridId').find('tr').css('background', 'none');
+    //});
+    function goToIndex() {
+        //$('#gridId').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+
+    function CheckFields() {
+        var ErrCount = 0;
+        if ($("#txtSECategoryName").val().trim() == "" || $("#txtSECategoryName").val() == null) {
+            ErrCount = 1;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>
+
+
+

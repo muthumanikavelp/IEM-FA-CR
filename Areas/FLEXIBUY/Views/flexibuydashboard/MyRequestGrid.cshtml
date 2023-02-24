@@ -1,0 +1,220 @@
+﻿@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+@*@model IEnumerable<IEM.Areas.FLEXIBUY.Models.flexibuydashboard>*@
+
+@{
+    CmnFunctions objCmn = new CmnFunctions();
+    prsummodel objd = new prsummodel();
+    List<flexibuydashboard> lstDashBoard = new List<flexibuydashboard>();
+    
+    lstDashBoard = (List<flexibuydashboard>)Session["DashSearchItems_fb"];
+    if (lstDashBoard == null)
+    {
+        //ViewBag.IsSearched = "no";
+        lstDashBoard = objd.getMyRequest().ToList();
+    }
+}
+
+<div id="ForMyRequests">
+    @{
+        var grid = new WebGrid(lstDashBoard, canSort: false, canPage: false);
+        int rowcount = 0;
+    }
+    <div class="table-responsive">
+        @grid.GetHtml(
+            htmlAttributes: new { id = "wgridMyRequests" },
+            tableStyle: "tableSmall table-bordered table-hover ",
+            columns: grid.Columns(
+            grid.Column("SlNo", format: item => rowcount = rowcount + 1, canSort:false, style: "slno"),
+                         grid.Column("category", "Doc Type", style: "colmediumCenter"),
+                         grid.Column("docNo", "Doc No", style: "colmedium"),
+                         grid.Column("ddate", "Doc Date", style: "colmediumCenter"),
+                         grid.Column("raiser", "Raiser", style: "collargeBreak"),
+                         grid.Column("requestfor", "Department", style: "colmedium"),
+                         grid.Column("description", "Description", style: "collargeBreak"),
+                         grid.Column("status", "Status", style: "colmediumCenter"),
+                         grid.Column("amount", "Amount", format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmn.GetINRAmount(Convert.ToString(@item.amount)))) </text>, style: "colamountlarge"),
+                                  grid.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+                        @if (item.status == "Draft")
+                        {   
+                            <a onclick="editpardetails(id,this)" id="@item.dgid" title="Submit"><span class="btn btn-link">Proceed</span></a>
+                        }
+                        else if (item.status == "Inprocess")
+                        {   
+                            <a onclick="viewpardetails(id,this)" id="@item.dgid" title="View"><span class="btn btn-link">View</span></a>
+                            <a title="Raise Tickets" onclick="RaiseTicket(this)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+                        }
+                        else
+                        {
+                            <a onclick="editpardetails(id,this)" id="@item.dgid" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                            <a title="Raise Tickets" onclick="RaiseTicket(this)"> <span class="glyphicon glyphicon-question-sign"></span> </a>
+                        }
+            </text>)))
+    </div>
+    <input hidden="hidden" id="hidPopUp" value="" />
+    <div id="ForPopUpRT"></div>
+</div>
+<script type="text/javascript">
+
+
+    function viewpardetails(id, element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var categoryname = tds.eq(1).text();
+        var viewfor = "view";
+
+        if (categoryname == "PAR") {
+            location = "@Url.Action("Index", "PARNew")?pargid=" + id + "&viewtype=view&" + new Date().getTime();
+            @*location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor + '&' + new Date().getTime();*@
+        }
+        else if (categoryname == "PO") {
+            location = '@Url.Action("RaisePO", "PO")/' + id + '/0';
+
+
+            @*var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+
+        }
+        else if (categoryname == "WO") {
+            location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfor + '&' + new Date().getTime();
+            @*var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+
+        }
+        else if (categoryname == "PR") {
+            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=view&" + new Date().getTime();
+            @*location = '@Url.Action("ViewPRDetails", "PrSummary")?id=' + id + '&' + new Date().getTime();*@
+        }
+        else if (categoryname == "CBF") {
+
+            @*location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=' + viewfor + '&' + new Date().getTime();*@
+            location = '@Url.Action("Edit", "CBF")/' + id;
+        }
+        else if (categoryname == "GRN") {
+            location = '@Url.Action("GrnInwardViewDetails", "GrnSelectionPo")?grnheadGid=' + id + '&viewfor=' + viewfor + '&' + new Date().getTime();
+        }
+
+    }
+    function editpardetails(id, element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var categoryname = tds.eq(1).text();
+        var viewfor = "edit";
+
+        if (categoryname == "PAR") {
+
+            location = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + id + '&viewfor=' + viewfor + '&' + new Date().getTime();
+        }
+        else if (categoryname == "PO") {
+            location = '@Url.Action("RaisePO", "PO")/' + id;
+            @*var objraiser =
+           {
+               "podetGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("PoEditDetails", "PoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    location = '@Url.Action("PoEdit", "PoRaiserEdit")?' + new Date().getTime();
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+        }
+
+        else if (categoryname == "WO") {
+            location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfor + '&' + new Date().getTime();
+            @*var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+
+        }
+        else if (categoryname == "PR") {
+
+            location = '@Url.Action("EditPRDetails", "PrSummary")?id=' + id + '&' + new Date().getTime();
+        }
+        else if (categoryname == "CBF") {
+
+            @*location = '@Url.Action("CbfRaiserEdit", "CbfRaiserEdit")?lnid=' + id + '&lsviewfor=edit' + '&' + new Date().getTime();*@
+            location = '@Url.Action("Edit", "CBF")/' + id;
+        }
+        else if (categoryname == "GRN") {
+            location = '@Url.Action("GrnInwardViewDetails", "GrnSelectionPo")?grnheadGid=' + id + '&viewfor=' + viewfor + '&' + new Date().getTime();
+        }
+
+    }
+    var objRT;
+    function RaiseTicket(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var refflagname = tds.eq(1).text();
+        var itemrefno = tds.eq(2).text();
+        if ($('#hidPopUp').val() == "") {
+            $("#hidPopUp").val("iem");
+            objRT = $("[id$='ForPopUpRT']");
+            objRT.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                //show: 'fade-in',
+                //close: 'fade-out'
+            });
+        }
+        objRT.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+        objRT.dialog({
+            title: 'Raise Ticket',
+            width: 1100,
+            height: 500
+        });
+        objRT.dialog("open");
+    }
+</script>

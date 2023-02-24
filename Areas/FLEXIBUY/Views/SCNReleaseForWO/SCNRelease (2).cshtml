@@ -1,0 +1,116 @@
+﻿@using IEM.Common
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<script src="~/Scripts/angular.min.js"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div ng-app="WORelease">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">SCN Release For WO</span></b></legend>            
+            <br />
+            <div ng-controller="WOReleaseController">
+                <div class="table-responsive">
+                    @*<input ng-model="search.$" class="col-lg-10 textboxStyle" />*@
+                    <table class="tableSmall table-bordered table-hover table-responsive">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th style="width:5%; display:none;">
+                                    Wo HeadGid
+                                </th>
+                                <th style="width:5%;">
+                                    S.No
+                                </th>
+                                <th style="width:10%;">
+                                    WO Date<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poDate">
+                                </th>
+                                <th style="width:15%;">
+                                    WO NO<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poRefNo">
+                                </th>
+
+                                <th style="width:20%;">
+                                    Vendor Name<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.vendorName">
+                                </th>
+                                <th style="width:10%;">
+                                    Status<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.status">
+                                </th>
+                                <th style="width:10%;">
+                                    WO Amount<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poAmount">
+                                </th>
+                                <th style="width:10%;">
+                                    Action<br />
+                                </th>
+
+                            </tr>
+                        </thead>
+                        <tbody ng-repeat="WORelease_details in WORelease_details | filter:search:strict | orderBy:predicate:reverse">
+                            <tr>
+                                <td style="width:10%; display:none;">
+                                    {{WORelease_details.poDetgid}}
+                                </td>
+                                <td style="width:5%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{WORelease_details.poDate}}
+                                </td>
+                                <td style="width:15%;">
+                                    {{WORelease_details.poRefNo}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{WORelease_details.vendorName}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{WORelease_details.status}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{WORelease_details.poAmount}}
+                                </td>
+                                <td style="width:10%;">
+                                    <input class="btn btn-link" name="command" onclick="GrnRelease(this)"
+                                           value="Release" title="Release" type="button" />
+                                </td>
+
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<script type="text/javascript">
+    var myApp = angular.module('WORelease', []);
+    myApp.service("WOtranService", function ($http) {
+        this.getWODetailsList = function () {
+            return $http.get("../SCNReleaseForWO/GetWODetails?" + new Date().getTime());
+        };
+
+    });
+    myApp.controller('WOReleaseController', function ($scope, WOtranService) {
+        GetWODetails();
+        function GetWODetails() {
+            var getData = WOtranService.getWODetailsList();
+            getData.then(function (emp) {
+                $scope.WORelease_details = emp.data;
+            }, function () {
+                alert('Error');
+            });
+        }
+
+    });
+    function GrnRelease(element) {
+        var row = $(element).closest('tr');
+        var wohead = row.find('td:eq(0)').text();       
+        location = '../SCNReleaseForWODetails/Index?wodetails=' + wohead;
+    }
+
+</script>

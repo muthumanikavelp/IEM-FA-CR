@@ -1,0 +1,215 @@
+﻿@model  IEM.Areas.EOW.Models.Retention_Release
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    DataTable getadvancetype = new DataTable();
+    List<Retention_Release> list = new List<Retention_Release>();
+    RetentionRelease rais = new RetentionRelease();
+    getadvancetype = rais.debitgrid(Session["ecf"].ToString(), Session["invoice"].ToString());
+    foreach (DataRow row in getadvancetype.Rows)
+    {
+        list.Add(
+        new Retention_Release
+        {
+            creditpaymode = Convert.ToString(row["ecfcreditline_pay_mode"].ToString()),
+            creditref_no = Convert.ToString(row["ecfcreditline_ref_no"].ToString()),
+            creditbecificary = Convert.ToString(row["gl_name"]),
+            creditamount = Convert.ToString(Session["balance"]),
+            creditdesc = Convert.ToString(row["ecfcreditline_desc"].ToString())
+
+        });
+    };
+  
+    WebGrid grid = new WebGrid(source: list, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div id="pppay">   
+    <div style="margin-top:-17px;width:700px; margin-left:-9px;" id="paygrid" class="container overflowy">
+        <span>Dummy Invoice No</span>
+        <input type="text"
+               name="txtinBalance_amount"
+               id="txtinBalance_amount"
+               value="@Session["dummy_invoice"]"
+               class="textboxStyle valid" readonly="readonly"
+               style="display: block;width:334px; " />
+        <br />
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+           tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+        columns: grid.Columns
+            (
+                //Here I am going to add checkbox column
+                //grid.Column("creditline_gid ", Sorter("creditline_gid ", "SNo", grid), canSort: false),
+         grid.Column("creditpaymode", Sorter("creditpaymode", "Debit", grid), canSort: false),
+          //grid.Column("creditref_no", Sorter("creditref_no", "RefNo", grid), canSort: false),
+         grid.Column("creditbecificary", Sorter("creditbecificary", "Gl Name", grid), canSort: false),
+                           grid.Column("creditdesc", Sorter("creditdesc", "Description", grid), canSort: false),
+         grid.Column("creditamount", Sorter("creditamount", "Amount", grid), canSort: false)
+              ))
+    </div>
+</div>
+<script type="text/javascript">
+   
+        @*$('#expense_gid').change(function () {
+
+            var ddlid = $(this).val();
+
+            var expensen =
+                {
+                    "expense_gid": ddlid
+                };
+
+            $.ajax({
+                url: '@Url.Action("expcategory", "RetentionRelease")',
+
+                data: JSON.stringify(expensen),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (data) {
+
+                    $("#expensecate_gid").empty();
+
+                    if (data.length > 0) {
+                        // $("#taxsubtype_gid").append("<option value='0' >--Select Tax Sub Type--</option>");
+
+                        for (var i = 0; i < data.length; i++) {
+                            $('#expensecate_gid').attr('disabled', false);
+
+                            $("#expensecate_gid").append("<option value=" + data[i].expensecate_gid + " >" + data[i].expensecate_name + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#expensecate_gid").append("<option value='0' >--Select Expense Category--</option>");
+                        $('#expensecate_gid').attr('disabled', true);
+                    }
+                    if (data.length == null) {
+
+                    }
+                },
+                error: function (result) {
+                    alert("Error");
+                }
+            });
+        });
+
+        $('#expensecate_gid').change(function () {
+
+            var ddlid = $(this).val();
+
+            var expensensub =
+                {
+                    "expensecate_gid": ddlid
+                };
+
+            $.ajax({
+                url: '@Url.Action("expsubcategory", "RetentionRelease")',
+
+                data: JSON.stringify(expensensub),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (data) {
+
+                    $("#expensesubcat_gid").empty();
+
+                    if (data.length > 0) {
+                        // $("#taxsubtype_gid").append("<option value='0' >--Select Tax Sub Type--</option>");
+
+                        for (var i = 0; i < data.length; i++) {
+                            $('#expensesubcat_gid').attr('disabled', false);
+
+                            $("#expensesubcat_gid").append("<option value=" + data[i].expensesubcate_gid + " >" + data[i].expensesubcate_name + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#expensesubcat_gid").append("<option value='0' >--Select Expense Sub Category--</option>");
+                        $('#expensesubcat_gid').attr('disabled', true);
+                    }
+                    if (data.length == null) {
+
+                    }
+                },
+                error: function (result) {
+                    alert("Error");
+                }
+            });
+        });
+
+        function Savepaymentdebit() {
+            var Relese = $("#txtreleaseamount").val();
+
+            var invoice_ecf_gid = $("#invoice_ecf_gid").val();
+            var invoice_credit_gid = $("#invoice_credit_gid").val();
+            var expense_gid = $("#expense_gid").val();
+            var expensecate_gid = $("#expensecate_gid").val();
+            var expensesubcat_gid = $("#expensesubcat_gid").val();
+            var fc_gid = $("#fc_gid").val();
+            var cc_gid = $("#cc_gid").val();
+            var fccc_gid = $("#fccc_gid").val();
+            var product_code = $("#product_code").val();
+            var ou_code = $("#ou_code").val();
+            var _amount = $("#_amount").val();
+            var _Descri = $("#_Descri").val();
+            if (Relese == _amount) {
+                if (product_code == "" || ou_code == "" || _amount == "" || _Descri == "" || invoice_ecf_gid == "" || invoice_credit_gid == "" || expense_gid == "" || expensecate_gid == "" || expensesubcat_gid == "" || fc_gid == "" || cc_gid == "" || fccc_gid == "") {
+                    //$('#btnsave').attr('disabled', false);
+                    jAlert('All Fields Are Required Except Remarks', "Error");
+                    return;
+                }
+                else {
+
+                    var Student = {
+
+                        "expense_gid": expense_gid,
+                        "invoice_gid": invoice_credit_gid,
+                        "invoice_ecf_gid": invoice_ecf_gid,
+                        "expensecate_gid": expensecate_gid,
+                        "expensesubcate_gid": expensesubcat_gid,
+                        "fc_gid": fc_gid,
+                        "fccc_gid": fccc_gid,
+                        "cc_gid": cc_gid,
+                        "product_code": product_code,
+                        "ou_code": ou_code,
+                        "creditamount": _amount,
+                        "creditdesc": _Descri
+                    };
+                    $.ajax({
+                        url: '../RetentionRelease/RetentionRelease_debitsave/',
+                        data: JSON.stringify(Student),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+
+                            if (result != "Success" && result != "success") {
+                                jAlert(result, "Error");
+                                return;
+                            }
+                            else {
+
+                                jAlert('Record inserted Successfully !', "Error");
+
+                            }
+                        },
+                    });
+                }
+            }
+            else
+            {
+                jAlert('Release Amount Must Be Equal To Debit Amount', "Error");
+            }
+        }*@
+
+
+    </script>

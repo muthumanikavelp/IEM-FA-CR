@@ -1,0 +1,209 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_auditsubgroup
+@using IEM.Areas.MASTERS.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }    
+    
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Audit SubGroup Name</span>
+                    <br />
+                    <input name="CategoryName" id="txteditauditsubgroupname" maxlength="64" type="text" class="textboxStyle valid" style="width:249px;" data-val="true" value="@Model.auditsubgroup_name" @ViewBag.viewmode/>
+                    <input type="hidden" id="auditsubgroupid" value="@Model.auditsubgroup_gid">
+                </div>
+            </td>
+        </tr>
+        <tr>
+           
+            <td>
+                <div class="input-append">
+                    <span>Group Name</span>
+                    <br />
+                    @if (ViewBag.viewmode == "disabled")
+                    {
+                        @Html.DropDownListFor(g => g.groupname, Model.selctgroupname, "--Select --", new { @class = "textboxStyle valid", @style = "width: 250px;height:30px;", @id = "audiutgroupgid", @onchange = "checkauditeditgroup()", @disabled = "disabled" })
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(g => g.groupname, Model.selctgroupname, "--Select--", new { @class = "textboxStyle valid", @style = "width: 250px;height:30px;", @id = "audiutgroupgid", @onchange = "checkauditeditgroup()" })
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(function () {
+            $("#txteditauditsubgroupname").focus();
+        });
+
+        $("#txteditauditsubgroupname").focus();
+        $("#txteditauditsubgroupname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+
+    $("#txteditauditsubgroupname").keypress(function () {
+        var txtSupplierName = $("#txteditauditsubgroupname").val();
+        if (txtSupplierName.trim() == "") {
+            $("#txteditauditsubgroupname").removeClass('valid');
+            $("#txteditauditsubgroupname").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#txteditauditsubgroupname").removeClass('required');
+            $("#txteditauditsubgroupname").addClass('valid');
+          
+            CheckFieldsHeader();
+        }
+    });
+
+    function checkauditeditgroup() {
+        var sdfsdf = $("#audiutgroupgid").val();
+
+        if (sdfsdf == "--Select --" || sdfsdf == 0) {
+            CheckFieldsHeader();
+            $("#audiutgroupgid").removeClass('valid');
+            $("#audiutgroupgid").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#audiutgroupgid").removeClass('required');
+            $("#audiutgroupgid").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }  
+
+    $(".ui-icon-closethick").click(function () {
+        $('#gridauditsubgroup').find('tr').css('background', 'none');
+    });
+
+
+    function CheckFieldsHeader()
+    {
+        var ErrCount = 0;
+
+        if ($("#txteditauditsubgroupname").val() == "" || $("#txteditauditsubgroupname").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#audiutgroupgid").val() == "--Select --" || $("#audiutgroupgid").val() == 0) {
+            ErrCount = 2;
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+    function goToIndex()
+    {
+        $('#gridauditsubgroup').find('tr').css('background', 'none');
+        window.parent.jQuery('#forauditsub').dialog('close');
+    }
+    function DeleteType() {
+        var locationgid = $("#auditsubgroupid").val();
+        jConfirm("Do you want to delete this AuditGroup? ", "Delete AuditGroup", function (j) {
+            if (j == true) {
+                var model = { "auditsubgroup_gid": locationgid }
+                $.post('../IEM_AUDITSUBGROUP/DeleteAuditsubgroup', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) {
+                                     location = '../IEM_AUDITSUBGROUP/Index';
+                                 }
+                             });
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    function Update() {
+
+        var auditsubgroupname = $("#txteditauditsubgroupname").val().trim();
+        var auditgroupgid = $("#audiutgroupgid").val().trim();
+        var auditsubgid = $("#auditsubgroupid").val();
+        var CategoryModel = {
+            "auditsubgroup_auditgroup_gid": auditgroupgid, "auditsubgroup_name": auditsubgroupname, "auditsubgroup_gid": auditsubgid
+        };
+       
+        $.post('../IEM_AUDITSUBGROUP/UpdateAuditSubgroup', CategoryModel,
+            function (data) {
+
+                if (data != "success") {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+                            location = '../IEM_AUDITSUBGROUP/Index';
+                        }
+                    });
+                }
+            }
+        , 'json');
+    }
+</script>

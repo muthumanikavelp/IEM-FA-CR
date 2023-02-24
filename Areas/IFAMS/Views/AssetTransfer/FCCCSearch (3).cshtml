@@ -1,0 +1,115 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+
+
+@{
+
+    WebGrid grid = new WebGrid(source: Model.fcccList, canPage: true, canSort: false,rowsPerPage:5, selectionFieldName: "custom", ajaxUpdateContainerId: "gridforfccserach", ajaxUpdateCallback: "gridfccc");
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <div id="gridforfccserach">
+        <div  class="myTableStyleTabNew">
+            <div>
+                <table class="myTableStyleTabpopup" >
+                    <tr>
+                        <td>
+                            <span>FCCC Code</span><br />
+                            <input type="text" id="txtfcccid" placeholder="Enter FCCC code" class="textboxStyle " value="@ViewBag.code" />
+                        </td>
+                        <td>
+                            <span>FCCC Name</span><br />
+                            <input type="text" id="txtfcccidname" placeholder="Enter FCCC Name" class="textboxStyle  " value="@ViewBag.name" />
+                        </td>
+                        <td>
+                            <a id="ficcsearchid" class="InlineIconStyleA" title="search"><span class="glyphicon glyphicon-search"></span></a>
+                            <a id="ficcrefershid" class="InlineIconStyleA" title="refresh"><span class="glyphicon glyphicon-refresh"></span></a>
+
+                    </tr>
+                </table>
+            </div>
+           
+            @grid.GetHtml(
+     tableStyle: "tableSmall table-bordered overflowx",
+        htmlAttributes: new { id = "gridfccserach" },
+        selectedRowStyle: ".selected{ background-color:red }",
+            mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+
+         grid.Column("fcccGid", "Fccc Code", style: "MidColumn20Center"),
+grid.Column("fcccName", "Fccc Name", style: "MidColumn20Center"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+            <a onclick="ficc(@item.fcccGid)"><span class="btn btn-link">Select</span></a>
+                </text>)))
+            <div class="borderStyle btnCenter">
+                @ViewBag.NoRecordsFound
+            </div>
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.fcccList.Count</label>
+        </div>
+    </div>
+
+
+
+
+}
+<script>
+    function gridfccc() {
+
+    }
+    function ficc(gid) {       
+        $("#fc").val(gid);
+        $("#@Model._fccc").val(gid);
+        GotoIndex();
+
+    }
+    @*function ficc() {
+        alert(gid);
+        $("#fc").val(gid);
+        $("#@Model._fccc").val(gid);
+        GotoIndex();
+
+    }*@
+
+    $(".ui-icon-closethick").click(function () {
+        forficcsearch.remove();
+    });
+    $(".btnserach").click(function () {
+        forficcsearch.dialog('close');
+    })
+    function GotoIndex() {
+        window.parent.jQuery('#forficcsearch').dialog('close');
+
+    }
+    $("#ficcrefershid").click(function () {
+        $('#txtfcccid').val('');
+        $('#txtfcccidname').val('');
+        $("#gridforfccserach").load('../AssetTransfer/FCCCSearch?' + new Date().getTime());
+    });
+    $("#ficcsearchid").click(function () {
+        var fcccno = $('#txtfcccid').val();
+        var fcccdate = $('#txtfcccidname').val();
+
+        var fcccheader = {
+            "fcccGid": fcccno,
+            "fcccName": fcccdate
+        };
+        $.ajax({
+            url: "../AssetTransfer/Fccc/",
+            type: 'POST',
+            data: fcccheader,
+            success: function (data) {
+                $("#gridforfccserach").empty().append(data);
+            },
+            error: function () {
+                jAlert("Error","Error");
+            }
+        });
+
+
+    });
+</script>

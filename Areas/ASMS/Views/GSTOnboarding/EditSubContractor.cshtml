@@ -1,0 +1,126 @@
+﻿@model IEM.Areas.ASMS.Models.SubContractorDetails
+
+@{
+    
+
+}
+<div id="editcustomer">
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="display:none;">
+                <span>SubContractor ID</span><br />
+                <input name="_SubContractorID" class="textboxStyle" id="_SubContractorID" title="Service ID" type="text" value="@Model._SubContractorID" />
+            </td>
+            <td>
+                <span>Subcontractor Name</span><br />
+                <input name="_SubContractorName" class="textboxStyle valid" id="_SubContractorName" title="Customer Name" type="text" value="@Model._SubContractorName" @ViewBag.viewmode1 />
+            </td>
+            <td>
+                <span>Subcontractor Service</span><br />
+                <input name="_SubContractorServiceName" class="textboxStyle valid" id="_SubContractorServiceName" title="Customer Name" type="text" value="@Model._SubContractorServiceName" @ViewBag.viewmode1 />
+            </td>
+        </tr>
+
+        <tr>
+            <td style="text-align:right;padding-top:15px;" colspan="2">
+                <a name="btnUpdateSubContract" id="btnUpdateSubContract" class="btn btn-primary" onclick="UpdateSubContractor()" style="text-decoration:none; color:white"><span style=" color:white !important;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnDeleteEditSubContract" name="btnDeleteEditSubContract" class="btn btn-danger" onclick="DeleteEditSubContract()" style="text-decoration:none; color:white"><span style="color:white !important;" class="glyphicon glyphicon-trash"></span> Delete</a>
+                <a id="btnCloseEditSubContract" name="btnCloseEditSubContract" class="btn btn-warning" style="text-decoration:none; color:white"><span style="color:white !important;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+                <a id="btnCloseEditSubContract1" name="btnCloseEditSubContract" class="btn btn-warning" style="text-decoration:none; color:white"><span style="color:white !important;" class="glyphicon glyphicon-remove"></span> Close</a>
+
+            </td>
+        </tr>
+
+    </table>
+    }
+
+    <script type="text/javascript">
+       
+        function UpdateSubContractor() {
+            var SubContIdEdit = $("#_SubContractorID").val();
+            var SubContNameEdit = $("#_SubContractorName").val();
+            var SubContServiceEdit = $("#_SubContractorServiceName").val();
+            if (SubContNameEdit == null || SubContNameEdit == "") {
+                jAlert("Please Enter Sub Contractor Name.", "Error", function () {
+                    $("#_SubContractorName").focus();
+                });
+              
+                return false;
+            }
+            if (SubContServiceEdit == null || SubContServiceEdit == "") {
+                jAlert("Please Enter Sub Contractor Service.", "Error", function () {
+                    $("#_SubContractorServiceName").focus();
+                });
+               
+                return false;
+            }
+            var objSubContDetails = {
+                "_SubContractorID": SubContIdEdit,
+                "_SubContractorName": SubContNameEdit,
+                "_SubContractorServiceName": SubContServiceEdit
+            };
+            $.post('../Onboarding/EditSubContractor', objSubContDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgSubContractor").load("../onboarding/SubContractorDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+        }
+        function DeleteEditSubContract() {
+            jConfirm("Do you want to delete Sub Contractor: ", Title_3, function (e) {
+                if (e == true) {
+                    var id = $("#_SubContractorID").val();
+                    var objSubContDetails = { "_SubContractorID": id }
+                    $.post('../Onboarding/DeleteSubContractor', objSubContDetails,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgSubContractor").load("../onboarding/SubContractorDetails?" + new Date().getTime());
+                             }
+                         }, 'json');
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    var custpagemode;
+    function DisableSupContEditDetails() {
+        $("#_SubContractorName").attr("disabled", "disabled");
+        $("#_SubContractorServiceName").attr("disabled", "disabled");
+    }
+    $(document).ready(function () {
+        custpagemode = '@ViewBag.viewfor';
+        if ($.trim(custpagemode) == "edit") {
+            $("#btnDeleteEditSubContract").css("display", "none");
+            $("#btnCloseEditSubContract1").css("display", "none");
+        }
+        else if ($.trim(custpagemode) == "view") {
+            $("#btnUpdateSubContract").css("display", "none");
+            $("#btnCloseEditSubContract").css("display", "none");
+            $("#btnDeleteEditSubContract").css("display", "none");
+            DisableSupContEditDetails();
+        }
+        else if ($.trim(custpagemode) == "delete") {
+            $("#btnUpdateSubContract").css("display", "none");
+            $("#btnCloseEditSubContract1").css("display", "none");
+            DisableSupContEditDetails();
+        }
+        $("#_SubContractorName,#_SubContractorServiceName").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#_SubContractorServiceName").attr("maxlength", "128");
+    });
+    $("#btnCloseEditSubContract,#btnCloseEditSubContract1").live('click', function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

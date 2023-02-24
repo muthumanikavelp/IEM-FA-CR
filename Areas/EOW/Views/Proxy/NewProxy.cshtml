@@ -1,0 +1,350 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@using System.Data;
+@model  IEM.Areas.EOW.Models.ProxyDataModel
+@{
+    CmnFunctions cmnfun = new CmnFunctions();
+    ViewBag.LoginId = cmnfun.GetLoginUserGid();
+    ViewBag.Title = "Index";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+
+    <table class="myTableStyleTabNew" align="center" style="width:100%;">
+        <tr>
+
+            <td>
+                <span>Proxy Id</span>
+                <br />
+                <input type="text"
+                       name="ProxyId"
+                       id="ProxyId"
+                       value="@ViewBag.ProxyId"
+                       class="textboxStyle"
+                       maxlength="16"
+                       readonly="readonly" style="width:100%;" />
+                <input type="text"
+                       name="EmployeeId"
+                       id="EmployeeId"
+                       value="@ViewBag.EmployeeId"
+                       class="textboxStyle"
+                       maxlength="16" style="display:none" />
+            </td>
+            <td style="width:5%;">
+                <span>&nbsp;</span>
+                <br />
+                <div style="padding-top: 7px;">
+                    <a title="Search"><span class="glyphicon glyphicon-search" onclick="proxyempSearch()"></span></a>
+                </div>
+            </td>
+            <td>
+                <span>Proxy Name</span>
+                <br />
+
+                <input type="text"
+                       name="ProxyName"
+                       id="ProxyName"
+                       value="@ViewBag.ProxyName"
+                       class="textboxStyle"
+                       maxlength="16"
+                       readonly="readonly" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span>Title/Grade</span>
+                <br />
+
+                <input type="text"
+                       name="TitleGrade"
+                       id="TitleGrade"
+                       value="@ViewBag.TitleGrade"
+                       class="textboxStyle"
+                       maxlength="16"
+                       readonly="readonly" />
+            </td>
+            <td >
+                <span>Mobile No</span>
+                <br />
+
+                <input type="text"
+                       name="MobileNo"
+                       id="MobileNo"
+                       value="@ViewBag.MobileNo"
+                       class="textboxStyle"
+                       maxlength="10"
+                       readonly="readonly" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span>Date From</span>
+                <br />
+
+                <input type="text"
+                       name="DateFrom"
+                       id="DateFrom"
+                       value="@ViewBag.DateFrom"
+                       class="textboxStyle required"
+                       @*onchange="checkdatefrom()"*@
+                       maxlength="16" />
+            </td>
+            <td >
+                <span>Date To</span>
+                <br />
+
+                <input type="text"
+                       name="DateTo"
+                       id="DateTo"
+                       value="@ViewBag.DateTo"
+                       class="textboxStyle required"
+                       @*onchange="checkdateto()"*@
+                       maxlength="16" />
+            </td>
+        <tr>
+            <td colspan="3">
+                <span>Remark</span>
+                <br />
+                <input name="Remark"
+                       id="AddRemark"
+                       maxlength="255"
+                       class="textboxStyle"
+                       value="@ViewBag.remark"
+                       style="width:95%;">
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding-left:8px;padding-top:10px;">
+                Active
+                @*</td>
+                    <td style="padding-left:31px;padding-top:21px;">*@
+                <div class="radio-inline" id="Cutoff">
+                    <input type="radio" id="id_rdpar" name="modeN" value="Y" checked="checked" />
+                    Yes
+                </div>
+                <div class="radio-inline" id="Cutoff">
+                    <input type="radio" id="id_rdpr" name="modeN" value="N" />
+                    No
+                </div>
+            </td>
+
+        </tr>
+    </table>
+    
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveProxy()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndexnew()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+<div id="ForPartialProxySearch"></div>
+<input type="hidden" id="hid_employee" value="" />
+<script type="text/javascript">
+    var objDialogyProxySearch;
+    $(document).ready(function () {
+        objDialogyProxySearch = $("[id$='ForPartialProxySearch']");
+        objDialogyProxySearch.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+        });
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        //$("#DateFrom").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy',
+
+        //});
+        //$("#DateTo").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy',
+        //});
+        $("#DateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+
+                var dt = $('#DateFrom').val();
+                var dt1 = $('#DateTo').val();
+                $("#DateFrom").addClass('valid');
+                $("#DateTo").datepicker("option", "minDate", selected)
+                CheckFieldsHeader();
+            }
+        })
+        $("#DateTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                var dt = $('#DateFrom').val();
+                var dt1 = $('#DateTo').val();
+                $("#DateTo").addClass('valid');
+                CheckFieldsHeader();
+            }
+        });
+    });
+    function proxyempSearch() {
+        //objDialogyProxySearch.load('../Proxy/EmployeeSearch');
+        var url = '@Url.Action("EmployeeSearch", "Proxy")?' + new Date().getTime();
+        objDialogyProxySearch.load(url);
+        objDialogyProxySearch.dialog({ title: 'Employee Details', 'width': 900, 'height': 480 });
+        objDialogyProxySearch.dialog("open");
+    }
+    $(function () {
+        $("#ProxyId").focus();
+        $("#btnsave").attr("disabled", true);
+    });
+    $("#AddRemark").keyup(function () {
+        CheckFieldsHeader();
+    
+    });
+    $("#ProxyId").keyup(function () {
+        var txtContractTo = $("#ProxyId").val();
+        if (txtContractTo.trim() != "") {
+            $("#ProxyId").removeClass('required');
+            $("#ProxyId").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#ProxyId").removeClass('valid');
+            $("#ProxyId").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#ProxyName").keyup(function () {
+        var txtContractTo = $("#ProxyName").val();
+        if (txtContractTo.trim() != "") {
+            $("#ProxyName").removeClass('required');
+            $("#ProxyName").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#ProxyName").removeClass('valid');
+            $("#ProxyName").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+    function SaveProxy() {
+        var proxy_to = $("#EmployeeId").val();
+        var proxy_period_from = $("#DateFrom").val();
+        var proxy_period_to = $("#DateTo").val();
+        var proxy_active = $("input[name='modeN']:checked").val();
+        var proxy_remark = $("#AddRemark").val();
+        var curloginid = parseInt(@ViewBag.LoginId);
+        if (proxy_to == curloginid)
+        {
+            jAlert("You Can't Select This Employee", "Message");
+            return false;
+        }
+        var Student = {
+            "proxy_to": proxy_to,
+            "proxy_period_from": proxy_period_from,
+            "proxy_period_to": proxy_period_to,
+            "proxy_active": proxy_active,
+            "proxy_remark": proxy_remark
+        };
+        $.ajax({
+            url: '../Proxy/SaveProxy',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = '../Proxy/Index';
+                    }
+                });
+            },
+        })
+    }
+    function checksdfsd() {
+        CheckFieldsHeader();
+    }
+    function GotoIndexnew() {
+        window.parent.jQuery('#ForPartialProxyInformationMaster').dialog('close');
+        objDialogProxyInformationMaster.remove();
+        $('#gridProxyid').find('tr').css('background', 'none');
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridProxyid').find('tr').css('background', 'none');
+    });
+    $("#ModeOfTravelIdAdd").keypress(function (event) {
+        return isAlphabet(event);
+    });
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#ProxyId").val().trim() == "" || $("#ProxyId").val() == null) {
+           
+            ErrCount = 1;
+        }
+        if ($("#ProxyName").val().trim() == "" || $("#ProxyName").val() == null) {
+           
+            ErrCount = 2;
+        }
+        if ($("#DateFrom").val().trim() == "" || $("#DateFrom").val() == null) {
+           
+            ErrCount = 3;
+        }
+        if ($("#DateTo").val().trim() == "" || $("#DateTo").val() == null) {
+            ErrCount = 4;
+        }
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+    //function checkdatefrom() {
+    //    alert('datefrom');
+    //    var txtContractTo = $("#DateFrom").val();
+    //    if (txtContractTo.trim() != "") {
+    //        $("#DateFrom").removeClass('required');
+    //        $("#DateFrom").addClass('valid');
+    //        CheckFieldsHeader();
+    //    }
+    //    else {
+    //        $("#DateFrom").removeClass('valid');
+    //        $("#DateFrom").addClass('required');
+    //        CheckFieldsHeader();
+    //    }
+    //}
+    //function checkdateto() {
+    //    alert('DateTo');
+    //    var txtContractTo = $("#DateTo").val();
+    //    if (txtContractTo.trim() != "") {
+    //        $("#DateTo").removeClass('required');
+    //        $("#DateTo").addClass('valid');
+    //        CheckFieldsHeader();
+    //    }
+    //    else {
+    //        $("#DateTo").removeClass('valid');
+    //        $("#DateTo").addClass('required');
+    //        CheckFieldsHeader();
+    //    }
+    //}
+
+</script>
+

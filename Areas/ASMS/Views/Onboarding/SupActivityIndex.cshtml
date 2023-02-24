@@ -1,0 +1,100 @@
+﻿@model IEM.Areas.ASMS.Models.SupActivity
+           @{
+               if (Session["PageMode"] != null)
+               {
+                   ViewBag.PageMode = (string)Session["PageMode"];
+                   if (ViewBag.PageMode == "3")
+                   {
+                       ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+                       if (ViewBag.IsAllowApproverToEdit == "1")
+                       {
+                           ViewBag.PageMode = "2";
+                       }
+                   }
+               }
+           }
+<script type="text/javascript">
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#activity").css("display", "none");
+
+        }
+    });
+    $("#btnNextActivity").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 5);
+});
+    $("#btnPrevActivity").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 3);
+});
+</script>
+<div>
+    <div id="divActivityDetails">
+        <div>
+            <fieldset>
+                <legend>ACTIVITY DETAILS</legend>
+                <center>
+                    <div id="activity">
+                        @Html.Partial("SupActivityDetailsFields")
+                    </div>
+
+                </center>
+            </fieldset>
+        </div>
+        <div>
+            @Html.Partial("SupActivityDetails")
+        </div>
+    </div>
+    <div style="text-align:right;padding-right:25px;" class="divforbutton">
+        <button id="btnPrevActivity" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-backward"></span> Prev</button>
+        <button id="btnNextActivity" class="btn btn-primary">Next <span style="color:white;" class="glyphicon glyphicon-forward"></span></button>
+    </div>
+</div>
+<div id="ForActivityPopup" ></div>
+<script type="text/javascript">
+    var objDialog2;
+    $(document).ready(function () {
+        objDialog2 = $("[id$='ForActivityPopup']");
+        // jQuery("a.ui-dialog-titlebar-close").hide();
+       // jQuery(".ui-icon-closethick").hide();
+        objDialog2.dialog({
+            autoOpen: false,
+            // closeOnEscape:false,
+            modal: true,
+            width: 760,
+            height: 450,
+            resizable: false,
+            async: false,
+            cache: false
+           // close: function (ev, ui) { $(this).close(); }
+
+        });
+
+    });
+    function GetEmployeeOIC(SearchFor) {
+        if (SearchFor == "oic") {
+            objDialog2.load('../Onboarding/SearchEmployee?listfor=new&formname=oic&' + new Date().getTime());
+            objDialog2.dialog({ title: 'Search OIC' });
+        }
+        else if (SearchFor == "contactperson") {
+            objDialog2.load('../Onboarding/SearchContactPersonName?listfor=new&' + new Date().getTime());
+            objDialog2.dialog({ title: 'Search Contact Person' });
+        }
+
+        objDialog2.dialog("open");
+    }
+    function SelectContactPersonName(element) {
+        var row = $(element).closest('tr');
+        var contactpersongid = row.find('td:eq(0)').text();
+        var contactpersonname = row.find('td:eq(2)').text();
+
+        $("#_ContactPerson").val(contactpersongid);
+        $("#_ContactPersonName").val(contactpersonname);
+        window.parent.jQuery('#ForActivityPopup').dialog('close');
+    }
+
+    
+</script>

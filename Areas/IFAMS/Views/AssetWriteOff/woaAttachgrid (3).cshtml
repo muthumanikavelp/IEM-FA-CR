@@ -1,0 +1,104 @@
+﻿@model IEM.Areas.IFAMS.Models.WriteOffModel
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    int GID = Model._gid;
+    var grid = new WebGrid(source: Model._attach_list, canSort: false, canPage: false, ajaxUpdateContainerId: "woaattachgridaddview", ajaxUpdateCallback: "woaattachgridaddview");
+    CmnFunctions objCmn = new CmnFunctions();
+}
+<div>
+    <div id="woaattachmentgrid" style="font-size: 12px;">
+        <div class=" borderStyleNew" style="overflow-y:scroll;height:200px">
+            @grid.GetHtml(tableStyle: "tableSmall table-bordered ",
+                 htmlAttributes: new { id = "woaattachgridaddview" },
+
+        columns: grid.Columns(
+                 grid.Column("S.no", style: "MidColumn20Center col-lg-1", format: a => rowcount = rowcount + 1),
+        grid.Column("attacheddate", "Attachment Date", style: "MidColumn20Center col-lg-1"),
+        grid.Column("filename", "File name", style: "MidColumn20Center col-lg-3",
+        format: @<text>
+            <a title='Click here to download' onclick="DownloadwoaAttachments('@item.filename')">
+                @item.filename
+            </a>
+        </text>),
+       grid.Column("description",  "Description", style: "MidColumn50 "),
+       grid.Column(header: "Action", canSort: false, style: "action",
+       format: @<text>
+        <a id="@item.attachGid" onclick="deleteAttofTOA(id)" title="Delete File"> <span class="glyphicon glyphicon-trash"> </span> </a>
+        @* <input type="button" value="Delete" class="glyphicon glyphicon-trash"  title="Delete" />*@
+    </text>)))
+            <div class="table-bordered btnCenter" align="center">
+                @if (ViewBag.Message != null)
+                {
+                    <b> @ViewBag.Message </b>
+                }
+            </div>
+        </div>
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model._attach_list.Count</label>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning" id="btntoabackView1" onclick="backtowmsummary()" type="submit" name="command" value="Back"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+   
+</div>
+
+<script>
+    if ('@ViewBag.viewmode' == "disabled") {
+        $("#addviewattachment").hide(0);
+        $("#woaattachgridaddview td:nth-child(5),#woaattachgridaddview th:nth-child(5)").hide(0);
+    }
+
+    function DownloadtoaAttachments(filename) {
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "AssetTransfer")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    location = "../AssetTransfer/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function backtowmsummary() {
+        $('#wcSummaryGrid').find('tr').css('background', 'none');
+        $('#wmSummaryGrid').find('tr').css('background', 'none');
+        window.parent.jQuery('#woaattach').dialog('close');    
+    }
+
+    function deleteAttofTOA(id) {
+        $.post('../AssetTransfer/Delete_attach?id=' + id,
+        function (data) {
+            if (data == 0) {
+                location = location.href;
+            }
+            else {
+                id = '@Model._gid';
+                //alert(id);
+                $('#woaattachmentgrid').load('@Url.Action("woaAttachgrid", "AssetWriteOff")?id=' + id + '&' + new Date().getTime());
+                jAlert("Deleted Successfully", "Message");
+            }
+        }, 'json');
+    }
+</script>

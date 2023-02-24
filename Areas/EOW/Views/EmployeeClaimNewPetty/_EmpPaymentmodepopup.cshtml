@@ -1,0 +1,96 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_RefNo>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_RefNo> lstPayment = new List<EOW_RefNo>();
+    lstPayment = (List<EOW_RefNo>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.EmployeeePaymentRefNodatagri(Session["SelfModeRaiseid"].ToString(), "P").ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+<div id="wgempEmployeeee">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 100, ajaxUpdateContainerId: "wgempEmployeeee", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+    <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+        @gridPayment.GetHtml(
+                        htmlAttributes: new { id = "wgriEmployeeee" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                                    gridPayment.Columns(
+                //gridPayment.Column("#", style: "collargeBreak", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                                    gridPayment.Column("Ref No Name",
+                                                    format: @<text>
+                                                        <label style="font-weight:normal;" id="RefNoName">@item.RefNoName</label>
+                                                    </text>, canSort: false, style: "collargeBreak"),
+                                                                                                                      gridPayment.Column("RefDescription", objCmnFunctions.Sorter("RefDescription", "ARF Description", gridPayment), canSort: false, style: "collargeBreak"),
+                                                                                                          gridPayment.Column("RefLiquidationdate", objCmnFunctions.Sorter("RefLiquidationdate", "ARF Liquidation Date", gridPayment), canSort: false, style: "collargeBreak"),
+                                                                                                                  gridPayment.Column("RefAmount", objCmnFunctions.Sorter("RefAmount", "ARF Amount", gridPayment), canSort: false, style: "collargeBreak"),
+                                                             gridPayment.Column("ARF Exception",
+                                                             format: @<text>
+                                                                <label style="font-weight:normal;" id="RefException">@item.RefException</label>
+                                                            </text>, canSort: false, style: "collargeBreak"),
+                                                             gridPayment.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                                                <span class="btn btn-link btnselect">Select</span>
+                    </text>)))
+
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                @ViewBag.NoRecordsFoundPayment
+            </div>
+        }
+    </div>
+
+    <br />
+    <div align="center" style="width:100%">
+        <center>
+            <button type="button" id="btncanpay" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexPaymentmodepopup()"><span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+        </center>
+    </div>
+</div>
+<script>
+    $('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var RefNoName = tr.find("#RefNoName").text();
+        var RefException = tr.find("#RefException").text();
+        $("#ddlRefNo option:selected").text(RefNoName);
+        $("#arfamont").val(RefException);
+        //$("#txtPaymentAmount").val(RefException);
+        var currentval = RefException;
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtPaymentAmount").val(replaceCommas(currentval));
+
+        $("#ddlRefNo").addClass('valid');
+        $("#txtPaymentAmount").addClass('valid');
+        GotoIndexPaymentmodepopup();
+    });
+
+    $(document).ready(function () {
+        $('#wgriEmployeeee').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        })
+    });
+</script>
+

@@ -1,0 +1,138 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_EmployeeeExpense>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_EmployeeeExpense> lst = new List<EOW_EmployeeeExpense>();
+    lst = (List<EOW_EmployeeeExpense>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetEmployeeeExpensenew(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Exp_Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Exp_Amount.ToString());
+            }
+        }
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<div id="wgExpensev">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: false, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgExpensev", ajaxUpdateCallback: "DummyFunction()");
+    }
+    <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+        @grid.GetHtml(
+                                 htmlAttributes: new { id = "wgExpensev" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                           grid.Columns(
+                                                                                                 grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName", "Nature of Expenses", grid), canSort: false, style: "aexpempdel"),
+                                                                                                          grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false, style: "dexpempdel"),
+                                                                                                          grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false, style: "dexpempdel"),
+                                                                                                 grid.Column("Exp_ClaimPeriodFrom", objCmnFunctions.Sorter("Exp_ClaimPeriodFrom", " Period From", grid), canSort: false, style: "cexpempdel"),
+                                                                                        grid.Column("Exp_ClaimPeriodTo", objCmnFunctions.Sorter("Exp_ClaimPeriodTo", " Period To", grid), canSort: false, style: "cexpempdel"),
+                                                                       grid.Column(header: "GL No", canSort: false, style: "cexpempdel",
+                                            format: @<text>
+                                                                        <table id="tblglno" style="width: 155%;">
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <label style="font-weight:normal;" id="RefException">@item.Exp_ClaimMonth</label>
+                                                                                    @Html.Raw("<a title='view' onclick='EmpExpenseglnot(" + item.Exp_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                            </text>),
+                                                                                                               grid.Column("Exp_FC", objCmnFunctions.Sorter("Exp_FC", "Business Segment(BU)", grid), canSort: true, style: "aexpempdel"),
+                                                                                                               grid.Column("Exp_CC", objCmnFunctions.Sorter("Exp_CC", "Cost Center(CC)", grid), canSort: true, style: "dexpempdel"),
+                                                                                                                                                                                                    grid.Column("Exp_ProductCode", objCmnFunctions.Sorter("Exp_ProductCode", "Product Code", grid), canSort: false, style: "aexpempdel"),
+                                  grid.Column("Exp_OUCode", objCmnFunctions.Sorter("Exp_OUCode", "Location Code(OUCode)", grid), canSort: false, style: "fexpempdel"),
+                                  grid.Column(header: "Amount",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                        objCmnFunctions.GetINRAmount(Convert.ToString(@item.Exp_Amount)
+                        ))) </text>, style: "colamountlarge")))
+    </div>
+    @if (@ViewBag.NoRecords == "NoRecords")
+    {
+        <div class="borderStyle">
+            <center>
+                <b> @ViewBag.NoRecordsFound </b>
+            </center>
+        </div>
+    }
+    else
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <label style="font-weight:normal;display:none" id="Ecfamountvalmain">@Session["Ecfamountvalmain"]</label>
+                        <label style="font-weight:normal;display:none" id="Ecfrowtolamt">@Session["Ecfrowtolamt"]</label>
+                        <span>
+                            Total Expense Amount : <b>
+                                <label id="Ecfrowtolamtdisp">
+                                    @objCmnFunctions.GetINRAmount(remamount.ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+</style>
+<style>
+    .cexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .aexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .fexpempdel {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+</style>

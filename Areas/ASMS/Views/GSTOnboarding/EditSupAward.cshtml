@@ -1,0 +1,147 @@
+﻿@model IEM.Areas.ASMS.Models.SupAwardDetails
+
+@{
+   
+}
+<div id="editcustomer">
+
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="display:none;">
+                <span>SubAward ID</span><br />
+                <input name="_SupAwardID" class="textboxStyle" id="_SupAwardID" title="Service ID" type="text" value="@Model._SupAwardID" />
+            </td>
+            <td style="width:50%;">
+                <span>Award Name</span><br />
+                <input name="_SupAwardName" class="textboxStyle valid" id="_SupAwardName" title="Customer Name" type="text" value="@Model._SupAwardName" @ViewBag.viewmode1 />
+            </td>
+            <td style="width:50%;">
+                <span>Award Description</span><br />
+                <input name="_SupAwardDesc" class="textboxStyle valid" id="_SupAwardDesc" title="Customer Name" type="text" value="@Model._SupAwardDesc" @ViewBag.viewmode1 />
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:right;" colspan="2">
+                <a name="btnUpdateSupAward" id="btnUpdateSupAward" class="btn btn-primary" onclick="UpdateSupAward()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnDeleteEditSupAward" name="btnDeleteEditSupAward" class="btn btn-danger" onclick="DeleteSupAwardEdit()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-trash"></span> Delete</a>
+                <a id="btnCloseEditSupAward" name="btnCloseEditSupAward" class="btn btn-warning" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+                <a id="btnCloseEditSupAward1" name="btnCloseEditSupAward1" class="btn btn-warning" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-remove-sign"></span> Close</a>
+            </td>
+        </tr>
+
+    </table>
+    }
+
+    <script type="text/javascript">
+        var custpagemode;
+        function DisableSupAwardEditDetails() {
+            $("#_SupAwardName").attr("disabled", "disabled");
+            $("#_SupAwardDesc").attr("disabled", "disabled");
+        }
+        $(document).ready(function () {
+            custpagemode = '@ViewBag.viewfor';
+            if ($.trim(custpagemode) == "edit") {
+                $("#btnDeleteEditSupAward").css("display", "none");
+                $("#btnCloseEditSupAward1").css("display", "none");
+            }
+            else if ($.trim(custpagemode) == "view") {
+                $("#btnUpdateSupAward").css("display", "none");
+                $("#btnCloseEditSupAward").css("display", "none");
+                $("#btnDeleteEditSupAward").css("display", "none");
+                DisableSupAwardEditDetails();
+            }
+            else if ($.trim(custpagemode) == "delete") {
+                $("#btnUpdateSupAward").css("display", "none");
+                $("#btnCloseEditSupAward1").css("display", "none");
+                DisableSupAwardEditDetails();
+            }
+            if ($.trim("#_SupAwardName") != "") {
+                $("#_SupAwardName").removeClass('required');
+                $("#_SupAwardName").addClass('valid');
+            }
+            else {
+                $("#_SupAwardName").removeClass('valid');
+                $("#_SupAwardName").addClass('required');
+            }
+            $("#_SupAwardName").keyup(function () {
+                var SupBranchNameEdit = $("#_SupAwardName").val();
+                if (SupBranchNameEdit.trim() != "") {
+                    $("#_SupAwardName").removeClass('required');
+                    $("#_SupAwardName").addClass('valid');
+                }
+                else {
+                    $("#_SupAwardName").removeClass('valid');
+                    $("#_SupAwardName").addClass('required');
+                }
+            });
+            $("#txtSupAwardName,#txtSupAwardDesc").keypress(function (event) {
+                return isAlphaNumeric(event);
+            });
+            $("#txtSupAwardName").attr("maxlength", "128");
+            $("#txtSupAwardDesc").attr("maxlength", "256");
+        });
+
+        function UpdateSupAward() {
+            var SupAwardIdEdit = $("#_SupAwardID").val();
+            var SupAwardNameEdit = $("#_SupAwardName").val();
+            var SupAwardDescEdit = $("#_SupAwardDesc").val();
+            if (SupAwardNameEdit == null || SupAwardNameEdit == "") {
+                jAlert("Please Enter Award Name.", "Error", function () {
+                    $("#_SupAwardName").focus();
+                });
+                               
+                return false;
+            }
+            if (SupAwardDescEdit == null || SupAwardDescEdit == "") {
+                jAlert("Please Enter Award Description.", "Error", function () {
+                    $("#_SupAwardDesc").focus();
+                });
+              
+                return false;
+            }
+            var objSupAwardDetails = {
+                "_SupAwardID": SupAwardIdEdit,
+                "_SupAwardName": SupAwardNameEdit,
+                "_SupAwardDesc": SupAwardDescEdit
+            };
+            $.post('../Onboarding/EditSupAward', objSupAwardDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#_SupAwardName").val("");
+                    $("#_SupAwardDesc").val("");
+                    $("#wgSupAward").load("../onboarding/SupAwardDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+        }
+        function DeleteSupAwardEdit() {
+            jConfirm("Do you want to delete Sup Award: ", Title_3, function (e) {
+                if (e == true) {
+                    var id = $("#_SupAwardID").val();
+                    var objSupAwardDetails = { "_SupAwardID": id }
+                    $.post('../Onboarding/DeleteSupAward', objSupAwardDetails,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgSupAward").load("../onboarding/SupAwardDetails?" + new Date().getTime());
+                             }
+                         }, 'json');
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $("#btnCloseEditSupAward,#btnCloseEditSupAward1").live('click', function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

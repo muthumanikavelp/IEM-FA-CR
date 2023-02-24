@@ -1,0 +1,156 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_uom
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span> UOM Code </span>
+                    <br />
+                <input name="CategoryName" class="fstextbox required" id="_UomCode" maxlength="8"
+                       type="text" data-val="true" value="" />
+               
+            </td>
+        </tr>
+
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span> UOM Name</span>
+                    <br />
+                <input name="CategoryName" id="_UomName" class="fstextbox required" type="text"
+                       maxlength="80" data-val="true" value="" />
+                
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center ;">
+                <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()" style="margin-top:10px;  color:white;">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                </button>
+
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+                
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(function () {
+            $("#_UomCode").focus();
+        });
+
+        $("#_UomCode").focus();
+        $("#_UomCode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_UomName").focus();
+        $("#_UomName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_UomCode").keyup(function () {
+            var txtSupplierName = $("#_UomCode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_UomCode").removeClass('required');
+                $("#_UomCode").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_UomCode").removeClass('valid');
+                $("#_UomCode").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+        $("#_UomName").keyup(function () {
+            var txtSupplierName = $("#_UomName").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_UomName").removeClass('required');
+                $("#_UomName").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_UomName").removeClass('valid');
+                $("#_UomName").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+</script>
+
+
+<script type="text/javascript">
+    function SAVE() {
+        var uom_code = $("#_UomCode").val().trim();
+        var uom_name = $("#_UomName").val().trim();
+
+        if (uom_code == "") {
+            jAlert("Please Enter Uom Code.", "Information")
+
+            $("#_UomCode").focus();
+            return false;
+
+        }
+        if (uom_name == "") {
+            jAlert("Please Enter Uom Name.", "Information")
+
+            $("#_UomName").focus();
+            return false;
+
+        }
+
+        var CategoryModel = { "uom_code": uom_code, "uom_name": uom_name };
+        $.post('../IEM_UOM/CreateUom', CategoryModel,
+            function (data) {
+                if (data != "success") {
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    jAlert("Record Inserted Successfully !", "Information", function (r) {
+                        if (r == true) {
+                            location = '../IEM_UOM/Index';
+                        }
+                    });
+
+                }
+            }
+        , 'json');
+
+    }
+    function GotoIndex() {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#_UomCode").val().trim() == "" || $("#_UomCode").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#_UomName").val().trim() == "" || $("#_UomName").val() == null) {
+            ErrCount = 2;
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+
+</script>
+
+
+
+
+

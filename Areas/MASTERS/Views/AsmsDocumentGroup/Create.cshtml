@@ -1,0 +1,93 @@
+﻿@model IEM.Areas.MASTERS.Models.DocGrpModel
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span> Document Group  </span>
+            <br />
+                <div id="txtTypeName">
+                    <input name="DocGrpName" maxlength="100" id="DocGrpName" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+        </tr>       
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" style="width:100%">
+        <tr>
+            <td style="width:100%; text-align:right;">
+                
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveDocGrpName()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button> 
+               
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GoToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+               
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#DocGrpName").focus();
+        $("#DocGrpName").keypress(function (event)
+        {
+            return isSplAlphaNumeric(event, this);
+        });
+        if ($("#DocGrpName").val() == "")
+        {
+            $("#btnsave").attr("disabled", true);
+        }
+        else
+        {
+            $("#btnsave").removeAttr('disabled');
+        }
+    });
+    $("#DocGrpName").keyup(function ()
+    {
+        var DocGrpName = $("#DocGrpName").val();
+        if (DocGrpName.trim() != "") {
+            $("#btnsave").removeAttr('disabled');
+            $("#DocGrpName").removeClass('required');
+            $("#DocGrpName").addClass('valid');
+        }
+        else
+        {
+            $("#btnsave").attr("disabled", true);
+            $("#DocGrpName").removeClass('valid');
+            $("#DocGrpName").addClass('required');
+        }
+    });
+   
+    function SaveDocGrpName()
+    {
+        var DocGrpName = $("#DocGrpName").val();  
+            var model = { "docGrpName": DocGrpName.trim() };
+            $.post('../AsmsDocumentGroup/create', model,
+            function (data)
+            {
+                if (data == null)
+                {
+                    jAlert("Record Inserted Successfully!", "Information", function (r)
+                    {
+                        if (r == true)
+                        {
+                            location = '../AsmsDocumentGroup/Index';
+                        }
+                    });               
+                }
+                else {
+                    jAlert("Duplicate Record!", "Information", function (r)
+                    {
+                        if (r == true) { return false;}
+                    });
+                    return false;
+                }
+            }, 'json');
+        }
+    
+    function GoToIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>

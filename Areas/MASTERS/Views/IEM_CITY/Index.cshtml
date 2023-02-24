@@ -1,0 +1,196 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_city>
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">City </span>
+    </div>
+
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> City Code  </span>
+                        <br />
+                        <input type="text"
+                               name="filter"
+                               id="txtFilter"
+                               value="@ViewBag.filter"
+                               class="fstextbox"
+                               maxlength="30" />
+
+                    </td>
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> City Name  </span>
+                        <br />
+                        <input type="text"
+                               name="filter1"
+                               id="txtFilter1"
+                               value="@ViewBag.filter1"
+                               class="fstextbox"
+                               maxlength="70" />
+
+                    </td>
+
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> Pin Code </span>
+                        <br />
+                        <input type="text"
+                               name="filter2"
+                               id="txtFilter2"
+                               value="@ViewBag.filter2"
+                               class="fstextbox"
+                               maxlength="10"
+                               onkeypress="return isNumberKey(event)" />
+
+                    </td>
+                    <td style="width:40%; padding:0px 10px 0px 3px;">
+
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+
+                        @*<button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit"
+                            style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit"
+                                style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+
+                        <button type="button" value="New City" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span> New City
+                        </button>
+
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+       htmlAttributes: new { id = "gridcity" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                   grid.Column(header: "City Code", columnName: "city_code"),
+                grid.Column(header: "City Name", columnName: "city_name"),
+          grid.Column(header: "City PinCode", columnName: "city_pincode"),
+    grid.Column(header: "State Name", columnName: "state_name"),
+    grid.Column(header: "Region Name", columnName: "region_name"),
+    grid.Column(header: "Country Name", columnName: "country_name"),
+    grid.Column(header: "CityClass Name", columnName: "cityclass_name"),
+    grid.Column(header: "Tier Name", columnName: "tier_name"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.city_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.city_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteCityclass(" + item.city_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+           
+        </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        var objDialog;
+        var objDialogforedit;
+        $(document).ready(function () {
+
+            $('#gridcity tr th:nth-child(10)').addClass("nosort");
+            $('#gridcity').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+            $(function () {
+                $("#txtFilter").focus();
+            });
+        
+            $("#txtFilter").focus();
+            $("#txtFilter").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $("#txtFilter1").focus();
+            $("#txtFilter1").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $("#txtFilter2").focus();
+            $("#txtFilter2").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+            objDialog = $("[id$='ForPartialView']");
+
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 650,
+                height: 410
+            });
+        });
+
+
+
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+        function NewType() {
+            objDialog.load('../IEM_CITY/Create?' + new Date().getTime());
+            objDialog.dialog({ title: 'Add New City' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_CITY/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit City ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_CITY/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View City ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteCityclass(id) {
+            objDialog.load('../IEM_CITY/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete City ' });
+            objDialog.dialog("open");
+            return false;
+        }
+
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=9&FileName=City&' + new Date().getTime());
+        }
+
+        function refresh() {
+            location = '../IEM_CITY/Index';
+        }
+
+    </script>

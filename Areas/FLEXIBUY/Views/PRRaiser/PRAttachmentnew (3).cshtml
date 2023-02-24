@@ -1,0 +1,401 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+@using IEM.Areas.FLEXIBUY.Models
+@using System.Text
+@using System.Data
+
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    PrSumEntity objd = new PrSumEntity();
+    List<PrSumEntity> lstAttachment = new List<PrSumEntity>();
+    prsummodel obj = new prsummodel();
+    lstAttachment = (List<PrSumEntity>)TempData["SearchItems"];
+    if (lstAttachment == null)
+    {
+        ViewBag.IsSearched = "no";
+        DataTable dtGetvalue = new DataTable();
+        dtGetvalue = (DataTable)Session["prattachmentfile"];
+       lstAttachment = obj.AttachmentList(dtGetvalue).ToList();
+            
+    }
+   
+
+}
+@using (Html.BeginForm("PRAttachmentnew", "PRRaiser", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmID" }))
+{
+    <div id="attach">
+        <table align="left">
+            <tr>
+                <td>
+                    @Html.HiddenFor(i => i.FilesToBeUploaded)
+                </td>
+            </tr>
+            <tr style="height:20px;"><td></td></tr>
+            <tr>
+
+                <td>
+                    <span>Attachments :</span>
+                    <div id="uploaders">
+                        <input id="fileupattachment" type="file" name="files[]" multiple>
+                        @*<br />
+                            <span id="spnFile" style="float: left; color: #FF0000"></span>
+                            @Html.ValidationMessage("File")
+                            @Html.Hidden("hdnFileUpload")*@
+                    </div>
+                </td>
+
+            </tr>
+          
+            <tr style="height:10px;"><td></td></tr>
+            <tr>
+                <td colspan="2" align="left">
+                    <div class="control-section" style="padding: 0px;">
+                        <div id="selectedFiles"></div>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <span> Description</span>
+                        <br />
+                        <div>
+
+                            <input type="text"
+                                   name="txtprdesc"
+                                   id="txtprdesc"
+                                   value=""
+                                   class="textboxStyle required"
+                                   style="display:block"
+                                   maxlength="264" />
+
+                        </div>
+                    </div>
+                </td>
+            </tr>
+          
+              </table>
+
+        <div style="padding:10px 10px 0px 0px;text-align:right;">
+
+           <input class="btn btn-primary upload" type="button" value="Upload" id="btnupload" />
+
+            <input class="btn btn-warning" type="button" value="Back" onclick="back()" />
+
+        </div>
+
+
+        <div id="wgattachmentList">
+            @{
+    var grid = new WebGrid(source: lstAttachment, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "wgattachmentList", ajaxUpdateCallback: "D()", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+
+            }
+
+            <div class="container" style="width:800px;">
+                <div>
+                    @grid.GetHtml(
+                           htmlAttributes: new { id = "wgattachmentList" },
+                     tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         grid.Columns(
+                      grid.Column("attachid", "Sl", format: @<text>  <span> <label id="lblgid">@item.attachid</label> </span> <input type="text" id="gid" value="@item.attachid" style="display:none;" /></text>, style: "col2Width"),
+                                          grid.Column("attachName", "Attachment Name", format: @<text>  <span> <label id="lblName">@item.attachName</label> </span> <input type="text" id="Name" value="@item.attachName" style="display:none;" /></text>, style: "col2Width"),
+                       grid.Column("attachmentDate", objCmnFunctions.Sorter("attachmentDate", "Attached Date", grid), canSort: false),
+                       grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                        <span class='glyphicon glyphicon-eye-open cursorpointer'></span>
+                        <span class='glyphicon glyphicon-trash cursorpointer'></span>
+
+                </text>
+   )))
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    $(function () {
+        function back() {
+            location = "../../PRRaiser/PRAttachmentnew";
+        }
+
+        $("#btnupload").click(function () {
+
+           
+            @*@{
+                DataTable dtGetvalue1 = new DataTable();
+                dtGetvalue1 = (DataTable)Session["prattachmentfile"];
+           lstAttachment = obj.AttachmentList(dtGetvalue1).ToList();
+          
+           }*@
+
+            var files = $("#fileupattachment").file;
+            if (file.length > 0) {
+                if (window.FormData !== undefined) {
+                    var data = new FormData();
+                    for (var x = 0; x < file.length; x++) {
+
+                        data.append("temp_" + x, files[x]);
+                    }
+
+
+                    $.ajax({
+                        type: "POST",
+                        url: '../PRRaiser/PRAttachments',
+                        contentType: false,
+                        processData: false,
+                        data: data,
+                        success: function (result) {
+                            //     alert('jkljkl');
+                            $("#attach").load('../PRRaiser/PRAttachmentnew');
+                            //   $("#wgattachmentList").empty().append(result);
+                            //('../PRRaiser/PRAttachmentnew');
+
+                        },
+                        error: function (xhr, status, p3, p4) {
+                            var err = "Error " + " " + status + " " + p3 + " " + p4;
+                            if (xhr.responseText && xhr.responseText[0] == "{")
+                                err = JSON.parse(xhr.responseText).Message;
+                            console.log(err);
+                        }
+                    });
+
+                }
+            }
+        });
+
+        $(":file").attr('title', '  ');
+        var $loading = $('#loadingDiv').hide();
+
+        $("input[id^='fileToUpload']").change(function (e) {
+            doReCreate(e);
+        });
+
+        selDiv = $("#selectedFiles");
+    });
+
+    //function doReCreate(e) {
+    //    upc = upc + 1;
+    //    handleFileSelect(e);
+    //    $("input[id^='fileToUpload']").hide();
+
+    //    $('<input>').attr({
+    //        type: 'file',
+    //        multiple: 'multiple',
+    //        id: 'fileToUpload' + upc,
+    //        class: 'fUpload',
+    //        name: 'fileUpload',
+    //        style: 'float: left',
+    //        title: '  ',
+    //        onchange: "doReCreate(event)"
+
+    //    }).appendTo('#uploaders');
+    //}
+
+
+    @*function handleFileSelect(e) {
+
+
+        selDiv = document.querySelector("#selectedFiles");
+
+        if (!e.target.files) return;
+
+
+        files = e.target.files;
+
+        for (var i = 0; i < files.length; i++) {
+
+            var f = files[i];
+
+            storedFiles.push(f.name);
+            var sl = i + 1;
+
+            var rowCount = 1;
+
+            rowCount++;
+            var recRow = '<div id="rowCount' + sl + '"><tr><td><input name="" value="' + f.name + '" type="text"  maxlength="120" style="margin: 4px 5px 0 5px;"/></td><td><input name="" value="' + strDate + '" type="text" maxlength="120" style="margin: 4px 10px 0 0px;"/></td></tr> <a href="javascript:void(0);" onclick="removeRow(' + sl + ');">Delete</a></div>';
+            jQuery('#selectedFiles').append(recRow);
+        }
+        $('#@Html.IdFor(i => i.FilesToBeUploaded)').val(storedFiles);
+
+    }*@
+    //function removeRow(removeNum) {
+
+    //    alert(removeNum);
+    //    jQuery('#rowCount' + removeNum).remove();
+
+    //}
+
+    @*function removeAtt(t) {
+
+        var serEle = $(t).parent().text().slice(0, -3);
+        var index = storedFiles.indexOf(serEle);
+        if (index !== -1) {
+            storedFiles.splice(index, 1);
+        }
+        $(t).parent().remove();
+
+        $('#@Html.IdFor(i => i.FilesToBeUploaded)').val(storedFiles);
+
+    }
+
+       function remove1(id) {
+        alert(id);
+        var data = id;
+
+        alert('ok');
+        var att = id;
+        alert(att);
+        var UserModel =
+            {
+                "FilesToBeUploaded": att
+
+            };
+        $.ajax({
+            type: "POST",
+            url: '../PRRaiser/remove1',
+            contentType: 'application/json; charset=utf-8',
+
+            data: JSON.stringify(UserModel),
+            success: function (data) {
+
+                $("#wgattachmentList").load('../PRRaiser/PRAttachmentnew');
+
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                console.log(err);
+            }
+        });
+
+
+
+    }*@
+
+
+    function view(id) {
+
+        var tr = $(this).parents('tr:first');
+        var Name = tr.find("#Name").val();
+        var value = '@Request.RequestContext.HttpContext.Session["prattachmentfile"]';
+
+        window.open("//192.168.0.232/Images/" + Name, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
+    }
+    $(document).ready(function () {
+
+        //$('#fileupattachment').on('change', function (e) {
+        //    alert('hai');
+        //    var files = e.target.files;
+        //    alert(files.length);
+        //    if (files.length > 0) {
+        //        if (window.FormData !== undefined) {
+        //            var data = new FormData();
+        //            for (var x = 0; x < files.length; x++) {
+
+        //                data.append("temp_" + x, files[x]);
+        //            }
+
+        //            $.ajax({
+        //                type: "POST",
+        //                url: '../PRRaiser/PRAttachments',
+        //                contentType: false,
+        //                processData: false,
+        //                data: data,
+        //                success: function (result) {
+        //               //     alert('jkljkl');
+        //                    $("#attach").load('../PRRaiser/PRAttachmentnew');
+        //                 //   $("#wgattachmentList").empty().append(result);
+        //                    //('../PRRaiser/PRAttachmentnew');
+
+        //                },
+        //                error: function (xhr, status, p3, p4) {
+        //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+        //                    if (xhr.responseText && xhr.responseText[0] == "{")
+        //                        err = JSON.parse(xhr.responseText).Message;
+        //                    console.log(err);
+        //                }
+        //            });
+        //        } else {
+        //            alert("This browser doesn't support HTML5 file uploads!");
+        //        }
+        //    }
+        //});
+
+        //$('#Upload').click(function () {
+        //    var att = $("#fileToUpload").val();
+        //    alert(att);
+        //    var UserModel =
+        //     {
+        //         "FilesToBeUploaded": att
+
+        //     };
+
+        //    $.ajax({
+        //        url: '../PRRaiser/PRAttachmentnew/',
+        //        data: JSON.stringify(UserModel),
+        //        type: 'POST',
+        //        contentType: 'application/json; charset=utf-8',
+        //        success: function (data) {
+
+        //            $('#attach').empty().append(data);
+        //        }
+        //    });
+
+    });
+
+
+
+
+
+    $('.glyphicon-eye-open').on('click', function () {
+
+        var tr = $(this).parents('tr:first');
+
+        var SurName = tr.find("#Name").val();
+
+
+        if (SurName != '') {
+            window.open("//192.168.0.232/Images/" + SurName, "_blank", "toolbar=yes, scrollbars=yes, resizable=yes, top=500, left=500, width=400, height=400");
+        }
+    });
+
+    $('.glyphicon-trash').on('click', function () {
+
+        var tr = $(this).parents('tr:first');
+
+        var SurName = tr.find("#gid").val();
+
+        var att = SurName;
+
+        var UserModel =
+            {
+                "FilesToBeUploaded": att
+
+            };
+        $.ajax({
+            type: "POST",
+            url: '../PRRaiser/remove1',
+            contentType: 'application/json; charset=utf-8',
+
+            data: JSON.stringify(UserModel),
+            success: function (data) {
+
+                $("#attach").load('../PRRaiser/PRAttachmentnew');
+
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                console.log(err);
+            }
+        });
+    });
+
+  
+</script>

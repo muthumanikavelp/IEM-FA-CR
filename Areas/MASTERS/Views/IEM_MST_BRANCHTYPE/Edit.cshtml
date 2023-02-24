@@ -1,0 +1,189 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_branchtype
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+    if (@Model.branchtype_active== "Y")
+    { ViewBag.yes = "checked"; }
+    else
+    { ViewBag.no = "checked"; }
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyle">
+        <tr>
+            <td colspan="2" style="display:none;">
+                <input name="BankID" id="_Branchtypegid" class="form-control" type="text" data-val="true" value="@Model.branchtype_gid" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="txtCategoryName">
+                    <span>Branch Type </span>
+                    <input name="BankName" id="_Edittxtbrantype" type="text" style="width:236px;height:30px;" class="textboxStyle valid" maxlength="8" data-val="true" value="@Model.branchtype_name" @ViewBag.viewmode />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top:0px;">
+                <div id="txtTypeName">
+                    <span>Active</span>
+                    <br />
+                    <input type="radio" id="Yes" value="Y" checked="@ViewBag.yes" name="Radiotypename" @ViewBag.viewmode>
+                    Yes &nbsp;
+                    <input type="radio" id="No" value="N" checked="@ViewBag.no" name="Radiotypename" @ViewBag.viewmode>
+                    No
+                </div>
+            </td>
+
+        </tr>
+       
+    </table>
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:14px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:14px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_Edittxtbrantype").focus();
+        $("#_Edittxtbrantype").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });      
+
+    });
+
+    $("#_Edittxtbrantype").keyup(function () {
+        var txtSupplierName = $("#_Edittxtbrantype").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Edittxtbrantype").removeClass('required');
+                $("#_Edittxtbrantype").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_Edittxtbrantype").removeClass('valid');
+                $("#_Edittxtbrantype").addClass('required');
+                CheckFieldsHeader();
+            }
+        });       
+</script>
+
+<script type="text/javascript">
+    function Update() {
+        var branchtype = $("#_Edittxtbrantype").val().trim();      
+        var typegid = $("#_Branchtypegid").val();
+        var active = $('input[name=Radiotypename]:checked').val();
+        $("#_Edittxtbrantype").focus();
+        $("#_Edittxtbrantype").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });       
+
+        var CategoryModel = { "branchtype_gid": typegid, "branchtype_name": branchtype, "branchtype_active": active };
+        $.post('../IEM_MST_BRANCHTYPE/UpdateBRanchtypeDetails', CategoryModel,
+                function (data) {
+
+                    if (data != "success") {
+
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+
+                        jAlert("Record updated Successfully!!", "Information", function (r) {
+                            if (r == true) {
+                                location = '../IEM_MST_BRANCHTYPE/Index';
+                            }
+                        });
+                    }
+                }
+            , 'json');
+
+    }
+    function DeleteType() {
+        var bankgid = $("#_Branchtypegid").val();
+        jConfirm("Do you want to delete this Branch Type ? ", "Delete Bank", function (j) {
+            if (j == true) {
+                var model = { "branchtype_gid": bankgid }
+                $.post('../IEM_MST_BRANCHTYPE/DeleteBranchtype', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location = '../IEM_MST_BRANCHTYPE/Index'; }
+                             });
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    $(".ui-icon-closethick").click(function () {
+        $('#gridbranchtype').find('tr').css('background', 'none');
+    });
+
+    function goToIndex() {
+        $('#gridbranchtype').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialViewBrType').dialog('close');
+
+    }
+
+
+
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#_Edittxtbrantype").val().trim() == "" || $("#_Edittxtbrantype").val() == null) {
+            ErrCount = 1;
+        }        
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+</script>

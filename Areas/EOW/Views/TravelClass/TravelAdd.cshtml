@@ -1,0 +1,132 @@
+﻿@model  IEM.Areas.EOW.Models.TravelClassEntity
+@{
+    ViewBag.Title = "Index";
+}
+@using (Html.BeginForm())
+{
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td style="padding-left:24px">
+                        <span>Travel Class</span>
+                        <br />
+                        <div>
+                            <input type="text"
+                                   name="TravelClass"
+                                   id="TravelClassIdAdd"
+                                   value="@ViewBag.TravelClass"
+                                   class="textboxStyle required"
+                                   maxlength="32"
+                                   style="display: block;width:250px;height: 30px;" />
+                        </div>
+                    </td>
+                   
+                </tr>
+                <tr>
+                    <td style="padding-left:24px">
+                        <span>Mode Of Travel</span>
+                        <br />
+                        <div>
+                            @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.Rolelist, "-----Select-----", new { @class = "form-control ", @style = "display: block;width:250px;height:30px;margin-top: 3px;", @id = "TravelModeId", @Name = "Rolelist" })
+                        </div>
+                    </td>
+                    </tr>
+                
+            </table>
+        <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveTravel()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    $(document).ready(function () {
+
+        $(function () {
+            $("#TravelClassIdAdd").focus();
+        });
+    });
+    function SaveTravel() {
+        var TravelClass = $("#TravelClassIdAdd").val();
+        var ModeOfTravelId = $("#TravelModeId").val();
+        var ModeOfTravel = $("#TravelModeId option:selected").text();
+        if (TravelClass == "" || TravelClass == null || ModeOfTravel == 0 || ModeOfTravel == "-----Select-----")
+        {
+            jAlert("You Can't Add Empty Values", "Information");
+            return false;
+        }
+        var Student = {
+            "TravelClass": TravelClass,
+            "TravelModeId": ModeOfTravelId,
+            "TravelMode":ModeOfTravel
+        };
+        $.ajax({
+            url: '../TravelClass/TravelSubmit',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = '../TravelClass/TravelIndex';
+                    }
+                });
+                //if (result == "Successfully Added")
+                //{
+                //    location.reload();
+                //}
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewMode').dialog('close');
+        //location.reload();
+        location = '../TravelClass/TravelIndex';
+    }
+    $(document).ready(function () {
+
+        $("#TravelClassIdAdd").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        if ($("#TravelClassIdAdd").val() == "") {
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#btnsave").removeAttr('disabled');
+        }
+        $("#TravelClassIdAdd").keyup(function () {
+            var txtContractTo = $("#TravelClassIdAdd").val();
+            if (txtContractTo.trim() != "") {
+                $("#btnsave").removeAttr('disabled');
+                $("#TravelClassIdAdd").removeClass('required');
+                $("#TravelClassIdAdd").addClass('valid');
+            }
+            else {
+                $("#btnsave").attr("disabled", true);
+                $("#TravelClassIdAdd").removeClass('valid');
+                $("#TravelClassIdAdd").addClass('required');
+            }
+        });
+        $("#TravelModeId").change(function () {
+            var txtContractTo = $("#TravelModeId").val();
+            if (txtContractTo.trim() != "") {
+                $("#TravelModeId").removeClass('required');
+                $("#TravelModeId").addClass('valid');
+            }
+            else {
+                $("#TravelModeId").removeClass('valid');
+                $("#TravelModeId").addClass('required');
+            }
+        });
+    });
+</script>

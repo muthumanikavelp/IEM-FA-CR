@@ -1,0 +1,144 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_arfraising>
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    //DataTable getemployee = new DataTable();
+    //List<EOW_arfraising> list = new List<EOW_arfraising>();
+    //ArfRaising get = new ArfRaising();
+    //getemployee = get.cbfno();
+    //foreach (DataRow dr in getemployee.Rows)
+    //{
+    //    list.Add(
+    //    new EOW_arfraising
+    //    {
+    //        ecfarf_cbf_no = dr["cbfheader_cbfno"].ToString(),
+    //    });
+    //};
+    //WebGrid grid = new WebGrid(source: list, canPage: true, canSort: true);
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 1000, ajaxUpdateContainerId: "cbfdiv", ajaxUpdateCallback: "DummyFunction201();");
+    grid.Pager(WebGridPagerModes.All);
+    <div id="cbfdiv">
+        @using (Html.BeginForm())
+        {
+            <div class="well">
+                <table class="myTableStyleTabNew" width="100%">
+                    <tr>
+                        <td style="width:25%;">
+                            <span> CBF No </span>
+                            <input name="cbf_no"
+                                   id="cbf_no"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.cbf_no" />
+                        </td>
+                        <td style="width:75%;">
+                            <span class="input-append">
+                                @*<button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="btnsearchcbf_no()" style="margin-top:26px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>*@
+                                <a id="btnsearch"><span class="glyphicon glyphicon-search cursorpointer" onclick="btnsearchcbf_no()" style="margin: 26px  -55px 12px  -25px;"></span></a>
+                            </span>
+                            <span class="input-append">
+                                @*<button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="button" onclick="refreshcbf_no()" style="margin-top:26px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>*@
+                                <a id="btnrefresh"><span class="glyphicon glyphicon-refresh cursorpointer" onclick="refreshcbf_no()" style="margin:26px   0px 0px -9px;"></span></a>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+                <div class="table-responsive" style="margin-top:8px;">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+                    @grid.GetHtml(
+                        htmlAttributes: new { id = "gridcbf" },
+                        mode: WebGridPagerModes.All,
+                        tableStyle: "tableSmall table-bordered table-hover",
+                        columns: grid.Columns
+                        (
+                            grid.Column("ecfarf_cbf_no", Sorter("ecfarf_cbf_no", "CBF No", grid)),
+                            grid.Column(header: "Action", canSort: false, style: "action",
+                            format: @<text>
+                        <input type="hidden" id="CBF_No" name="CBF_No" value="@item.ecfarf_cbf_no" />
+                        <a><span class="btn btn-link btn" id="cbf_Search">Select</span></a>
+                            </text>)))
+                </div>
+            </div>
+        }
+        @if (ViewBag.records != null)
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.records
+            </div>
+        }
+        <table class="myTableStyleTabNew" style="margin-top:10px;" align="center">
+            <tr>
+                <td style="width:100%;">
+                    <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+}
+<script type="text/javascript">
+    $('.btn').click(function () {
+        var tr = $(this).parents('tr:first');
+        var cbf = tr.find('#CBF_No').val();
+        $('#cefno').val(cbf);
+        var txtSupplierName = $("#cefno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#cefno").removeClass('required');
+            $("#cefno").addClass('valid');
+        }
+        else {
+            $("#cefno").removeClass('valid');
+            $("#cefno").addClass('required');
+        }
+
+        GotoIndex();
+    });
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewcbf').dialog('close');
+    }
+    function DummyFunction201() {
+        $("#gridpohead td:nth-child(2),#gridpohead th:nth-child(2)").show();
+    }
+    function btnsearchcbf_no() {
+
+        var cbf_no = $('#cbf_no').val();
+        var pouchmdl = {
+            "ecfarf_cbf_no": cbf_no
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("cbf_novl", "RaisingArf")',
+            data: pouchmdl,
+            success: function (data) {
+                $("#cbfdiv").empty().append(data);
+            },
+            error: function () {
+            }
+        });
+    }
+    function refreshcbf_no() {
+        var cbf_no = "0";
+        var pouchmdl = {
+            "ecfarf_cbf_no": cbf_no
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("CBFref", "RaisingArf")',
+            data: pouchmdl,
+            success: function (data) {
+                $("#cbfdiv").empty().append(data);
+            },
+            error: function () {
+            }
+        });
+    }
+</script>
+

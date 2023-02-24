@@ -1,0 +1,336 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.SupplierContactDetails>
+    @{
+        SupDataModel dm = new SupDataModel();
+        List<SupplierContactDetails> lst = new List<SupplierContactDetails>();
+        lst = (List<SupplierContactDetails>)Session["ContactSearchItems"];
+        if (lst == null || lst.Count == 0)
+        {
+            lst = dm.GetSupContactDetails().ToList();
+        }
+        if (lst.Count == 0)
+        {
+            ViewBag.NoRecordsFound = "No Records Found";
+        }
+        if (Session["PageMode"] != null)
+        {
+            ViewBag.PageMode = (string)Session["PageMode"];
+            if (ViewBag.PageMode == "3")
+            {
+                ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+                if (ViewBag.IsAllowApproverToEdit == "1")
+                {
+                    ViewBag.PageMode = "2";
+                }
+            }
+        }
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "ForContactDetails", ajaxUpdateCallback: "DummyFunction8()");
+        int rowcount = 0;
+    }
+    <div id="ForContactDetails">
+        <div class="table-responsive" style="width:100%; margin-top:10px;">
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridContactDetails" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_SupContactDetailsID", objCmnFunctions.Sorter("_SupContactDetailsID", "ID", grid), canSort: false),
+                grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_AddressTypeName", objCmnFunctions.Sorter("_AddressTypeName", "Address Type", grid), style: "colmedium"),
+                grid.Column("_Address1", objCmnFunctions.Sorter("_Address1", "Address", grid), style: "colextralargeBreak"),
+                    //  grid.Column("_Address2", objCmnFunctions.Sorter("_Address2", "Address 2", grid)),
+                    //  grid.Column("_Address3", objCmnFunctions.Sorter("_Address3", "Address 3", grid)),
+                         grid.Column("_CountryName", objCmnFunctions.Sorter("_CountryName", "Country", grid), style: "colmedium"),
+                grid.Column("_StateName", objCmnFunctions.Sorter("_StateName", "State", grid),style: "colmedium"),
+                         grid.Column("_CityName", objCmnFunctions.Sorter("_CityName", "City", grid), style: "colmedium"),
+                    grid.Column("_PinCode", objCmnFunctions.Sorter("_PinCode", "Pin Code", grid), style: "colSmall"),
+                         grid.Column("_DistrictName", objCmnFunctions.Sorter("_DistrictName", "District", grid), style: "colmedium"),
+                         grid.Column("_PhoneNo", objCmnFunctions.Sorter("_PhoneNo", "Phone No", grid), style: "colmedium"),
+                         grid.Column("_Fax", objCmnFunctions.Sorter("_Fax", "Fax", grid), style: "colmedium"),
+                grid.Column(header: "Action", canSort: false, style: "action", format: @<text>
+                            <input type="hidden" name="hdCountryGid" id="hdCountryGid" value="@item.selectedCountryID" />
+                            <input type="hidden" name="hdStateGid" id="hdStateGid" value="@item.selectedStateID" />
+                            <input type="hidden" name="hdCityGid" id="hdCityGid" value="@item.selectedCityID" />
+                            <input type="hidden" name="hdDistrictGid" id="hdDistrictGid" value="@item.selectedDistrictID" />
+                            <input type="hidden" name="hdPincodeGid" id="hdPincodeGid" value="@item._PinCode" />
+                            @*@Html.Raw("<a title='view' onclick='ViewContact(" + item._SupContactDetailsID + ")' > <span class='glyphicon glyphicon-search'> </span> </a>")*@
+                            @Html.Raw("<a title='Edit' style='text-decoration:none;' onclick='EditContact(this)' id='btnEditContact' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                            @Html.Raw("<a title='Delete' style='text-decoration:none;' onclick='DeleteContact(" + item._SupContactDetailsID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                </text>)))
+        </div>
+       @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+       {
+        <div class="gridMessage" style="width:100%;">
+            @ViewBag.NoRecordsFound
+        </div>
+       }
+       else
+       {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+       }
+</div>
+<script type="text/javascript">
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridContactDetails td:nth-child(1),#wgridContactDetails th:nth-child(1)").hide();
+        $("#wgridContactDetails td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridContactDetails td:nth-child(12),#wgridContactDetails th:nth-child(12)").hide();
+        }
+      
+    });
+    function DummyFunction8() {
+        $("#wgridContactDetails td:nth-child(1),#wgridContactDetails th:nth-child(1)").hide();
+        $("#wgridContactDetails td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridContactDetails td:nth-child(12),#wgridContactDetails th:nth-child(12)").hide();
+        }
+      
+    }
+    function DeleteContact(id) {
+        $("#SessionSupplierContactGid").val("0");
+        jConfirm("Do you want to delete this Contact", Title_3, function (e) {
+            if (e == true) {
+
+                var objContactDetails = { "_SupContactDetailsID": id }
+                $.post('../Onboarding/DeleteContactDetails', objContactDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#ForContactDetails").load("../onboarding/ContactDetailsIndex?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+        } 
+   
+    function  EditContact(element) {
+      
+        var row = $(element).closest('tr');
+        var countryIDName = row.find('[name=hdCountryGid]').val();
+        var stateIDName = row.find('[name=hdStateGid]').val();
+        var cityIDName = row.find('[name=hdCityGid]').val();
+        var districtIDName = row.find('[name=hdDistrictGid]').val();
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#SessionSupplierContactGid").val(ids);
+        var addresstype = tds.eq(2).text();
+        $("#selectedAddressTypeID option").each(function () {
+            if ($(this).text() == addresstype) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+       
+        var country = tds.eq(4).text();
+        var address1 = tds.eq(3).text();
+        $("#_Address1").val(address1); 
+        var state = tds.eq(5).text();
+        var city = tds.eq(6).text();
+        var pincode = tds.eq(7).text();
+        $("#_PinCode").val(pincode);
+        var district = tds.eq(8).text();
+        $("#_PinCode").val(pincode);
+        var phone = tds.eq(9).text();
+        $("#_PhoneNo").val(phone);
+        var fax = tds.eq(10).text();
+        $("#_Fax").val(fax);
+        
+
+
+        
+        $("#selectedCountryID option").each(function () { 
+            if ($(this).text() == country) { 
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+        $("#_PinCode option").each(function () {
+            if ($(this).text() == pincode) { 
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        }); 
+        $("#selectedCountryID").val(countryIDName);
+        var countryID = countryIDName;
+        var objSupContact =
+     {
+         "selectedCountryID": countryID
+     };              
+        $.ajax({
+            url: '@Url.Action("GetState", "Onboarding")',
+            data: JSON.stringify(objSupContact),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedStateID").empty(); 
+                if (data.length > 0) {
+                    $("#selectedStateID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedStateID').attr('disabled', false);
+                        $("#selectedStateID").append("<option value=" + data[i]._StateID + " >" + data[i]._StateName + "</option>");
+                    }
+                }
+                if (data.length == 0) {
+                    $("#selectedStateID").empty();
+                    $("#selectedStateID").append("<option value='0' >--Select--</option>");
+                }
+                              
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+
+        $("#selectedStateID").val(stateIDName);        
+        $("#selectedStateID option").each(function () {
+            if ($(this).text() == state) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });        
+     
+        var stateID = stateIDName;      
+        var objSupContact =
+        {
+            "selectedStateID": stateID,
+            "selectedCountryID": countryID
+        };             
+
+        $.ajax({
+            url: '@Url.Action("GetCityByState", "Onboarding")',
+            data: JSON.stringify(objSupContact),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedCityID1").empty(); 
+                if (data.length > 0) {
+                    $("#selectedCityID1").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedCityID1').attr('disabled', false);
+                        $("#selectedCityID1").append("<option value=" + data[i]._CityID + " >" + data[i]._CityName + "</option>");
+                    }
+                }
+                if (data.length == 0) {
+                    $("#selectedCityID1").empty();
+                    $("#selectedCityID1").append("<option value='0' >--Select--</option>");
+                }               
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });   
+        
+        $("#selectedCityID1").val(cityIDName);         
+        $("#selectedCityID1 option").each(function () {
+            if ($(this).text() == city) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+
+        var objSupContact =
+        {
+            "_PinCode": pincode
+        };
+            
+       
+        $.ajax({
+            url: '@Url.Action("GetDistrictpincode", "Onboarding")',
+            data: JSON.stringify(objSupContact),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                    
+                //    $("#selectedDistrictID1").empty();
+                if (data.length > 0) {
+                    $("#selectedDistrictID1").append("<option value='0' >--Select--</option>");
+                        
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedDistrictID1').attr('disabled', false);
+                        $("#selectedDistrictID1").append("<option value=" + data[i]._DistrictID + " >" + data[i]._DistrictName + "</option>");
+                    }
+                }
+                if (data.length == 0) {
+                    $("#selectedDistrictID1").empty();
+                    $("#selectedDistrictID1").append("<option value='0' >--Select--</option>");
+                }
+
+                  
+                    
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+        
+        $("#selectedDistrictID1").val(districtIDName);
+        $("#selectedDistrictID1 option").each(function () {
+            if ($(this).text() == district) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+
+
+
+        //-----------------
+         
+    //if ($("#selectedAddressTypeID").val().trim() != "") {
+    //    $("#selectedAddressTypeID").removeClass('required');
+    //    $("#selectedAddressTypeID").addClass('valid');
+    //}
+    //else {
+    //       $("#selectedAddressTypeID").removeClass('valid');
+    //    $("#selectedAddressTypeID").addClass('required');
+    //}
+    //if ($("#selectedCountryID").val().trim() != "") {
+    //    $("#selectedCountryID").removeClass('required');
+    //    $("#selectedCountryID").addClass('valid');
+    //}
+    //else {
+    //    $("#selectedCountryID").removeClass('valid');
+    //    $("#selectedCountryID").addClass('required');
+    //}
+    //if ($("#selectedStateID").val().trim() != "" || $("#selectedStateID").val().trim() != "0") {
+    //    $("#selectedStateID").removeClass('required');
+    //    $("#selectedStateID").addClass('valid');
+    //}
+    //else {
+    //    $("#selectedStateID").removeClass('valid');
+    //    $("#selectedStateID").addClass('required');
+    //}
+    //if ($("#selectedCityID1").val().trim() != "" || $("#selectedCityID1").val().trim() != "0") {
+    //    $("#selectedCityID1").removeClass('required');
+    //    $("#selectedCityID1").addClass('valid');
+    //}
+    //else {
+    //    $("#selectedCityID1").removeClass('valid');
+    //    $("#selectedCityID1").addClass('required');
+    //}
+    //if ($("#_Address1").val().trim() != "") {
+    //    $("#_Address1").removeClass('required');
+    //    $("#_Address1").addClass('valid');
+    //}
+    //else {
+    //    $("#_Address1").removeClass('valid');
+    //    $("#_Address1").addClass('required');
+    //}
+    //if ($("#_PinCode").val().trim() != "") {
+    //    $("#_PinCode").removeClass('required');
+    //    $("#_PinCode").addClass('valid');
+    //}
+    //else {
+    //    $("#_PinCode").removeClass('valid');
+    //    $("#_PinCode").addClass('required');
+    //}
+       
+    }
+</script>
+

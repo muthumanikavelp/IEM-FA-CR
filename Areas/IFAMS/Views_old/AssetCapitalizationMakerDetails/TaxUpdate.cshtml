@@ -1,0 +1,142 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+}
+@using (Html.BeginForm())
+{
+    
+                        @Html.HiddenFor(a => a.invoicegid, new {@id="htninvgid" })
+                        @Html.HiddenFor(a => a.invoiceno, new { @id = "htninvno" })
+                   
+    <div>       
+            <table  class="myTableStyleTabNew" >
+               
+                <tr>
+                    <td style="padding:10px;">
+                        <span>Price</span><br />
+                        @Html.TextBoxFor(a => a.Amount, new { @id = "txtAmount",  @class = "textboxStyleSearch" })
+                    </td>
+
+                    <td style="padding:10px;">
+                        <span>Discount</span><br />
+                        @Html.TextBoxFor(a => a.Discount, new { @id = "txtDiscount", @class = "textboxStyleSearch" })
+                    </td>
+
+                    <td style="padding:10px;">
+                        <span>Tax</span><br />
+                        @Html.TextBoxFor(a => a.Tax1, new { @id = "txtTax1", @class = "textboxStyleSearch" })
+                    </td>
+                </tr>
+                <tr>
+                    @*<td style="padding:10px;">
+                        <span>Tax2</span><br />
+                        @Html.TextBoxFor(a => a.Tax2, new { @id = "txtTax2" })
+                    </td>*@
+                    <td style="padding:10px;">
+                        <span>Others</span><br />
+                        @Html.TextBoxFor(a => a.othres, new { @id = "txtothers", @class = "textboxStyleSearch" })
+                    </td>
+
+                    <td style="padding:10px;">
+                        <span>Total</span><br />
+                        @Html.TextBoxFor(a => a.TotalAmount, new { @id = "txtTotalAmount", @readonly = "readonly", @class = "textboxStyleSearch" })
+                    </td>
+                
+                @*<tr>
+                    <td style="padding:10px;">
+                        <span>Capitalization Date</span><br />
+                        @Html.TextBoxFor(a => a.Capitalization, new { @id = "txtCD" })
+                    </td>
+                </tr>*@
+               
+                    <td colspan="3" align="center" style="padding:10px;">
+                        <span></span> <br />
+                        <button type="button" id="btnupdate" class="btn btn-primary"><span class="glyphicon glyphicon-save" style="color:white"></span> Update</button>
+                        <button type="button" id="btncancel" class="btn btn-warning"><span class="glyphicon glyphicon-circle-arrow-left" style="color:white"></span> Back</button>
+
+                    </td>
+                </tr>
+            </table>
+      
+    </div>
+}
+
+<script>
+  //  $(document).ready(function () {
+
+    $('#btncancel').on("click", function () {
+        objDialogTax.dialog('close');
+    });
+        $('#btnupdate').on("click", function () {
+            var Samt = $('#txtAmount').val();
+           // alert(Samt);
+
+            if (parseInt($('#txtDiscount').val()) > parseInt($('#txtAmount').val())) {
+
+                jAlert('Amount MisMatch', "Information");
+                return false;
+            }
+            if (parseInt($('#txtTax1').val()) > parseInt($('#txtAmount').val())) {
+
+                jAlert('Amount MisMatch', "Information");
+                return false;
+            }
+            if (parseInt($('#txtothers').val()) > parseInt($('#txtAmount').val())) {
+
+                jAlert('Amount MisMatch', "Information");
+                return false;
+            }
+
+            if (parseInt(Samt) > parseInt($('#txtAmount').val())) {
+
+                jAlert('Amount MisMatch', "Information");
+                return false;
+            }
+
+
+            var sum = (parseInt(Samt) + parseInt($('#txtTax1').val()) + parseInt($('#txtothers').val())) - parseInt($('#txtDiscount').val());
+
+            var objn = {
+                "Amount": $('#txtAmount').val(),
+                "Discount": $('#txtDiscount').val(),
+                "Tax1": $('#txtTax1').val(),
+                "othres": $('#txtothers').val(),
+                "TotalAmount": sum,
+                "invoicegid": $('#htninvgid').val(),
+                "invoiceno": $('#htninvno').val()
+            };
+            showProgress();
+            objDialogTax.dialog('close');
+            $.ajax({
+                url: "@Url.Action("TaxUpdate", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+                type: 'POST',
+                data: objn,
+            success: function (data) {
+                hideProgress();
+                jAlert("Successfully Saved", "Information");
+                $('#pofdetails').empty().append(data);
+            },
+            error: function (data) {
+                hideProgress();
+                jAlert("Error. Please, check the data", "Information");
+            }
+        });
+
+            //jConfirm("Do you Want Update All PO Items  ? ", "Capitalization", function (j) {
+            //    if (j == true) {
+                   // objDialogTax.dialog('close');
+           //         $.post('../AssetCapitalizationMakerDetails/TaxUpdate', objn,
+           //function (data) {
+           //    alert('ok');
+           //    alert(data);
+           //    Html.RenderPartial("../AssetCapitalizationMakerDetails/AssetPofulldetails", data);
+
+           //}, 'json');
+              //  }
+           // });
+           
+        //});
+    });
+</script>

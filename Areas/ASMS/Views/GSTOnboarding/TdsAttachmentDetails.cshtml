@@ -1,0 +1,179 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupplierTaxDetails> lst = new List<SupplierTaxDetails>();
+
+    if (lst == null || lst.Count == 0)
+    {
+        lst = objd.GetTdsAttachment().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+
+}
+<center>
+    <div id="wgTdsAttachment">
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgTdsAttachment", ajaxUpdateCallback: "DummyFunction92()");
+            int rowcount = 0;
+        }
+
+        <div class="table-responsive" style="margin-top:10px; width:100%;">
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridTdsAttachment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                        grid.Column("_TdsAttachmentID", objCmnFunctions.Sorter("_TdsAttachmentID", "ID", grid), canSort: false, style: "slno"),
+                        grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_TdsDocumentGroupName", objCmnFunctions.Sorter("_TdsDocumentGroupName", "Document Group", grid), style: "colmediumBreak"),
+                        grid.Column("_TdsDocumentName", objCmnFunctions.Sorter("_TdsDocumentName", "Document Name", grid), style: "colmediumBreak"),
+                        grid.Column("_TdsAttachmentFileName", objCmnFunctions.Sorter("_TdsAttachmentFileName", "File Name", grid), style: "colmediumBreak", format: @<text> <a onclick="DownloadSupplierAttachments('@item._TdsAttachmentFileName')" title='click here to download'> @item._TdsAttachmentActualFileName </a></text>),
+                        grid.Column("_TdsAttachmentDescription", objCmnFunctions.Sorter("_TdsAttachmentDescription", "Description", grid), style: "colmediumBreak"),
+                        grid.Column("_TdsAttachmentDate", objCmnFunctions.Sorter("_TdsAttachmentDate", "Attachment Date", grid), style: "colmediumBreak"),
+                        grid.Column(header: "Action", canSort: false, style: "slno",
+                format: @<text>
+                            @*@Html.Raw("<a title='view' onclick='ViewSupAttachment(" + item._TdsAttachmentID + ")' > <span class='glyphicon glyphicon-search'> </span> </a>")*@
+                            @*@Html.Raw("<a title='Edit' onclick='EditSupAttachment(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")*@
+                            @Html.Raw("<a title='Delete' style='text-decoration:none' onclick='DeleteTdsAttachment(" + item._TdsAttachmentID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                </text>)))
+            </div>
+       
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+        @*<div class="borderStyle" >
+            @ViewBag.NoRecordsFound
+        </div>*@
+    </div>
+
+</center>
+<script type="text/javascript">
+    function EditSupAttachment(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_TdsAttachmentID").val(ids);
+        var documentgroup = tds.eq(2).text();
+        var documentname = tds.eq(3).text();
+        var filename = tds.eq(4).text();
+        var description = tds.eq(5).text();
+        var attacheddate = tds.eq(6).text();
+
+        $("#selectedTdsDocumentGroupID option").each(function () {
+            if ($(this).text() == documentgroup) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+
+        var docgroupid = $("#selectedTdsDocumentGroupID").val();
+            var objSupAttachment =
+                {
+                    "selectedDocumentGroupID": docgroupid
+                };
+
+            $.ajax({
+                url: '@Url.Action("GetDocumentName", "Onboarding")',
+                data: JSON.stringify(objSupAttachment),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $("#selectedTdsDocumentNameID").empty();
+                    if (data.length > 0) {
+                        $("#selectedTdsDocumentNameID").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            $('#selectedTdsDocumentNameID').attr('disabled', false);
+                            $("#selectedTdsDocumentNameID").append("<option value=" + data[i]._DocumentNameID + " >" + data[i]._DocumentName + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#selectedTdsDocumentNameID").append("<option value='0' >--Select--</option>");
+                        $('#selectedTdsDocumentNameID').attr('disabled', true);
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+        setTimeout(function () {
+            $("#selectedTdsDocumentNameID option").each(function () {
+                if ($(this).text() == documentname) {
+                    $(this).attr('selected', 'selected');
+                }
+            });
+        }, 50);
+
+        $("#_TdsAttachDateCreate").val(attacheddate);
+        $("#_TdsAttachedFileNameCreate").val(filename);
+        $("#_TdsAttachDescriptionCreate").val(description);
+
+    }
+    function DeleteTdsAttachment(id) {
+        jConfirm("Do you want to delete Attachment: ", Title_3, function (e) {
+            if (e == true) {
+                var objTdsAttachment = { "_TdsAttachmentID": id }
+                $.post('../Onboarding/DeletetdsAttachment', objTdsAttachment,
+                 function (data) {
+                     if (data == 0) { location = location.href; } else {
+                         $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                         $("#wgTdsAttachment").load("../Onboarding/TdsAttachmentDetails?" + new Date().getTime());
+                     }
+                 }, 'json');
+
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridTdsAttachment td:nth-child(1),#wgridTdsAttachment th:nth-child(1)").hide();
+        $("#wgridTdsAttachment td:nth-last-child(1)").show();
+               if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridTdsAttachment td:nth-last-child(8)").hide();
+            $("#wgridTdsAttachment td:nth-child(8),#wgridTdsAttachment th:nth-child(8)").hide();
+        }
+
+    });
+    function DummyFunction92() {
+        $("#wgridTdsAttachment td:nth-child(1),#wgridTdsAttachment th:nth-child(1)").hide();
+        $("#wgridTdsAttachment td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridTdsAttachment td:nth-last-child(8)").hide();
+            
+            $("#wgridTdsAttachment td:nth-child(8),#wgridTdsAttachment th:nth-child(8)").hide();
+        }
+
+    }
+</script>

@@ -1,0 +1,446 @@
+﻿@model  IEM.Areas.EOW.Models.sinvotax
+@using IEM.Areas.EOW.Models
+@{
+    ViewBag.Title = "SI_Taxnew";
+}
+@using (Html.BeginForm())
+{
+    <div>
+        <div>
+            <table class="myTableStyleTabNew" style="width: 100%;">
+                <tr>
+                    <td colspan="2" style="width: 50%;">
+                        <span>Tax Type</span><br />
+                        @Html.DropDownListFor(model => model.TaxgId, ViewBag.Tax as SelectList, new { @class = "with textboxStyle required", @id = "ddltax" })
+                    </td>
+                    <td>
+                        <span>Tax Sub Type</span><br />
+                        @Html.DropDownListFor(model => model.TaxSubTypeID, Enumerable.Empty<SelectListItem>(), new { @class = "textboxStyle required", @id = "ddltaxsubtype" })
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <table class="myTableStyleTabpopup" style="width:100%;">
+                            <tr>
+                                <td style="width:34%;">
+                                    <span>Tax Rate ( % )</span><br />
+                                    @Html.TextBoxFor(n => n.Intax_Rate, string.Empty, new { @id = "ddlRate", @class = "textboxStyle required", @onkeypress = "return isAmount(event);", @maxlength = "5" })
+                                </td>
+                                <td style="width:33%;">
+                                    <span>Taxable Amount</span><br />
+                                    @Html.TextBoxFor(n => n.Intax_Taxableamt, string.Empty, new { @id = "Intax_Taxableamt", @class = "textboxStyle required", @onkeypress = "return isAmount(event);", @maxlength = "15" })
+                                    <input type="hidden" id="hdchangflg" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="width:50%;">
+                        <span>Tax Amount</span><br />
+                        @Html.TextBoxFor(m => m.Intax_Taxamt, string.Empty, new { @id = "Intax_Taxamt", @class = "textboxStyle ", @onkeypress = "return isAmount(event);", @maxlength = "15" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 10px;" colspan="3" align="right">
+                        <center>
+                            <input type="hidden" id="temptaxamt" />
+                            <button type="button" title="Save" name="Save" id="btnsavexpNN" class="btn btn-primary" onclick="Savetaxnew()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                            <button type="button" id="btncanexpNNN" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexAttachmentVsu()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                        </center>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    .with {
+        width: 99%;
+    }
+</style>
+<script>
+    function GotoIndexAttachmentVsu() {
+        window.parent.jQuery('#ForPartialViewsupplierTax').dialog('close');
+    }
+    $(document).ready(function () {
+        $("#ddltaxsubtype").change(function () {
+            $("#Intax_Taxableamt").val('');
+            $("#Intax_Taxamt").val('');
+            $("#temptaxamt").val('');
+            $("#ddlRate").val('');
+            var invodate = $("#txtInvoicedate").val();
+            if (invodate == "") {
+                jAlert("Please Enter Invoice Date.", "Message");
+                return false;
+            }
+
+            if ($("#ddltaxsubtype").val() != "0") {
+                $("#ddltaxsubtype").removeClass('required');
+                $("#ddltaxsubtype").addClass('valid');
+                var options = {};
+                options.url = "../SupplierInvoiceNew/GetRatenew";
+                options.type = "POST";
+                options.data = JSON.stringify({
+                    Intax_Rate: $("#ddltaxsubtype").val(),
+                    Intax_Tax: invodate
+                });
+                options.dataType = "json";
+                options.contentType = "application/json";
+                options.success = function (states) {
+                    cheval();
+                    if (states.length > 0) {
+                        if (states[0].Intax_Tax == "Y") {
+                            $("#ddlRate").val(states[0].Intax_Rate);
+                            $("#hdchangflg").val(states[0].Intax_Tax);
+                            $("#ddlRate").prop("disabled", false);
+                        }
+                        else {
+                            $("#ddlRate").prop("disabled", true);
+                            $("#ddlRate").val(states[0].Intax_Rate);
+                            $("#hdchangflg").val(states[0].Intax_Tax);
+                        }
+                    }
+                    else {
+
+                        jConfirm("Tax rate was not maintained ! Are you sure to continue.... ? ", "Message", function (u) {
+                            if (u == true) {
+                                $("#ddlRate").val('');
+                                $("#ddlRate").prop("disabled", false);
+                                $("#hdchangflg").val('Y');
+                            }
+                            else {
+                                $("#ddlRate").val('');
+                                $("#ddlRate").prop("disabled", true);
+                                $("#hdchangflg").val('N');
+                            }
+                        });
+                    }
+                    cheval();
+                };
+                options.error = function () { jAlert("Error retrieving states!", "Message"); };
+                $.ajax(options);
+            }
+            else {
+                cheval();
+                $("#ddltax").removeClass('valid');
+                $("#ddltax").addClass('required');
+
+                $("#ddlRate").removeClass('valid');
+                $("#ddlRate").addClass('required');
+
+                $("#Intax_Taxableamt").removeClass('valid');
+                $("#Intax_Taxableamt").addClass('required');
+            }
+        });
+    });
+    $("#ddltax").change(function () {
+        var TaxId = $(this).val();
+
+        var objTaxId =
+   {
+       "TaxgId": TaxId
+   };
+        $.ajax({
+            url: '@Url.Action("GetTaxSubCat", "SupplierInvoiceNew")',
+            data: JSON.stringify(objTaxId),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#ddltaxsubtype").empty();
+                if (data.length > 0) {
+                    $("#ddltaxsubtype").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#ddltaxsubtype').attr('disabled', false);
+                        $("#ddltaxsubtype").append("<option value=" + data[i].TaxSubTypeID + " >" + data[i].TaxSubTypeName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#ddltaxsubtype").empty();
+                    $("#ddltaxsubtype").append("<option value='0' >--Select--</option>");
+                    $('#ddltaxsubtype').val('0');
+                    $('#ddltaxsubtype').attr('disabled', true);
+
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+
+
+    });
+</script>
+
+<script type="text/javascript">
+    $("#Intax_Taxableamt").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#Intax_Taxableamt").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#Intax_Taxableamt").val(replaceCommas(currentval));
+
+    });
+    $("#ddlRate").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#ddlRate").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#ddlRate").val(replaceCommas(currentval));
+
+    });
+
+    function Savetaxnew() {
+        var Booleanflg = false;
+        //var sumoftax = $("#suppliertaxd").text();
+        var sumoftax = $("#suppliertaxd").text().replace(/,/g, "");
+        //var ecfinvoiceamt = $("#txtInvoiceamount").val();
+        var ecfinvoiceamt = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var taxchange = $("#hdchangflg").val();
+        var taxname = $("#ddltax").val();
+        var taxnamenew = $("#ddltax option:selected").text();
+        if (taxname == "0" || taxname == "" || taxname == "-- Select --" || taxname == null) {
+            Booleanflg = true;
+            jAlert("Please Select Tax.", "Message", function () {
+                $("#ddltax").focus();
+                return false;
+            });
+            return false;
+        }
+        var taxsubtypename = $("#ddltaxsubtype").val();
+        var taxsubtypenamenew = $("#ddltaxsubtype option:selected").text();
+        if (taxsubtypename == "0" || taxsubtypename == "" || taxsubtypename == "-- Select --" || taxsubtypename == null) {
+            Booleanflg = true;
+            jAlert("Please Select Tax Sub Type.", "Message", function () {
+                $("#ddltaxsubtype").focus();
+                return false;
+            });
+            return false;
+        }
+        var taxrate = $("#ddlRate").val();
+        if (taxrate == "0" || taxrate == "" || taxrate == null) {
+            Booleanflg = true;
+            jAlert("Please Enter Tax Rate.", "Message");
+            return false;
+        }
+        //var Intax_Taxableamtval = $("#Intax_Taxableamt").val();
+        var Intax_Taxableamtval = $("#Intax_Taxableamt").val().replace(/,/g, "");
+        if (Intax_Taxableamtval == "0" || Intax_Taxableamtval == "" || Intax_Taxableamtval == "-- Select --" || Intax_Taxableamtval == null) {
+            Booleanflg = true;
+            jAlert("Please Enter Taxable Amount.", "Message");
+            return false;
+        }
+        //var Intax_Taxamtval = $("#Intax_Taxamt").val();
+        var Intax_Taxamtval = $("#Intax_Taxamt").val().replace(/,/g, "");
+        if (Intax_Taxamtval == "0" || Intax_Taxamtval == "" || Intax_Taxamtval == "-- Select --" || Intax_Taxamtval == null) {
+            Booleanflg = true;
+            jAlert("Please enter the Amount", "Message", function () {
+                $("#Intax_Taxamt").val();
+            });
+            return false;
+        }
+
+        var hdtaxval = $("#temptaxamt").val();
+        var plustax = parseFloat(hdtaxval) + parseFloat(5);
+        var minustax = parseFloat(hdtaxval) - parseFloat(5);
+        if (parseFloat(Intax_Taxamtval) < parseFloat(minustax) || parseFloat(Intax_Taxamtval) > parseFloat(plustax)) {
+            Booleanflg = true;
+            jAlert("Tax amount Threshold limit is Rs.5(+/-)", "Message", function () {
+                return false;
+            });
+            return false;
+        }
+        if (parseFloat(ecfinvoiceamt) < parseFloat(Intax_Taxableamtval)) {
+            Booleanflg = true;
+            jAlert("The Total Tax Amount should Not Exceed The Invoice Amount ", "Message");
+            return false;
+        }
+        var taxoverallamt = parseFloat(Intax_Taxableamtval) + parseFloat(Intax_Taxamtval) + parseFloat(sumoftax);
+        if (parseFloat(ecfinvoiceamt) < parseFloat(taxoverallamt).toFixed(2)) {
+            Booleanflg = true;
+            jAlert("The Total Tax Amount should Not Exceed The Invoice Amount ", "Message");
+            return false;
+        }
+        if (Booleanflg == false) {
+            var IntaxModel = {
+                "Intax_Tax": taxname,
+                "TaxSubTypeID": taxsubtypename,
+                "Intax_Taxid": taxnamenew,
+                "Intax_Rate": taxrate,
+                "Intax_Taxableamt": Intax_Taxableamtval,
+                "Intax_Change": taxchange,
+                "Intax_Taxamt": Intax_Taxamtval
+            };
+            $("#btnsavexpNN").attr('disabled', 'disabled');
+            $.post('../SupplierInvoiceNew/_supplierTaxCreate', IntaxModel,
+            function (data) {
+                if (data == "Regno") {
+                    $("#btnsavexpNN").removeAttr('disabled');
+                    jAlert("Registration Number Not Maintained For " + taxnamenew, "Message");
+                    return false;
+                }
+                else if (data == "Sucess") {
+                    $("#btnsavexpNN").attr('disabled', 'disabled');
+                    jAlert("Saved Successfully.", "Message");
+                    var url = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                    $("#wgempTaxsupplier").load(url);
+                    window.parent.jQuery('#ForPartialViewsupplierTax').dialog('close');
+                    var url = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                    $("#wgTravelmodeotab2").load(url);
+                }
+                else {
+                    $("#btnsavexpNN").removeAttr('disabled');
+                    jAlert(data, "Message");
+                    return false;
+                }
+            }, 'json');
+        }
+    }
+    $(document).ready(function () {
+        $("#Intax_Taxableamt,#ddlRate").keyup(function () {
+            cheval();
+            var curramountexrate = $("#ddlRate").val();
+            var curramount = $("#Intax_Taxableamt").val();
+
+            if (curramountexrate.trim() != "") {
+                $("#ddlRate").removeClass('required');
+                $("#ddlRate").addClass('valid');
+            }
+            else {
+                $("#ddlRate").removeClass('valid');
+                $("#ddlRate").addClass('required');
+            }
+
+            if (curramount.trim() != "") {
+                $("#Intax_Taxableamt").removeClass('required');
+                $("#Intax_Taxableamt").addClass('valid');
+            }
+            else {
+                $("#Intax_Taxableamt").removeClass('valid');
+                $("#Intax_Taxableamt").addClass('required');
+            }
+
+            $("#temptaxamt").val('');
+            $("#Intax_Taxamt").val('');
+            if (curramountexrate == null || curramountexrate == "") {
+                jAlert("Please Enter Exchange Rate.", "Message");
+                return false;
+            }
+            if (curramount == null || curramount == "") {
+                $("#Intax_Taxamt").val('');
+                $("#temptaxamt").val('');
+                return false;
+            }
+            if (curramount != null || curramount != "" || curramountexrate != null || curramountexrate != "") {
+
+                //var tol = $('#ddlRate').val() * ($('#Intax_Taxableamt').val() / 100);
+                //$('#Intax_Taxamt').val(tol.toFixed(2));
+                //$('#temptaxamt').val(tol.toFixed(2));
+
+                var currentvalnew = $('#ddlRate').val().replace(/,/g, "") * ($('#Intax_Taxableamt').val().replace(/,/g, "") / 100);
+                $('#temptaxamt').val(currentvalnew.toFixed(2));
+                var currentval = currentvalnew.toFixed(2);
+                var testDecimal = testDecimals(currentval);
+                if (testDecimal.length > 1) {
+                    currentval = currentval.slice(0, -1);
+                }
+                var tolnew = replaceCommas(currentval);
+                $('#Intax_Taxamt').val(tolnew);
+
+            }
+        });
+        $("#ddltax").keyup(function () {
+            var txtContractFrom111 = $("#ddltax").val();
+            if (txtContractFrom111 != "0" && txtContractFrom111 != null) {
+                $("#ddltax").removeClass('required');
+                $("#ddltax").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddltax").removeClass('valid');
+                $("#ddltax").addClass('required'); cheval();
+            }
+        });
+        $("#ddltax").change(function () {
+            var txtContractFrom22 = $("#ddltax").val();
+            if (txtContractFrom22 != "0" && txtContractFrom22 != null) {
+                $("#ddltax").removeClass('required');
+                $("#ddltax").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddltax").removeClass('valid');
+                $("#ddltax").addClass('required'); cheval();
+            }
+        });
+        $("#ddltaxsubtype").keyup(function () {
+            var txtContractFrom111 = $("#ddltaxsubtype").val();
+            if (txtContractFrom111 != "0" && txtContractFrom111 != null) {
+                $("#ddltaxsubtype").removeClass('required');
+                $("#ddltaxsubtype").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddltaxsubtype").removeClass('valid');
+                $("#ddltaxsubtype").addClass('required'); cheval();
+            }
+        });
+        $("#ddltaxsubtype").change(function () {
+            var txtContractFrom22 = $("#ddltaxsubtype").val();
+            if (txtContractFrom22 != "0" && txtContractFrom22 != null) {
+                $("#ddltaxsubtype").removeClass('required');
+                $("#ddltaxsubtype").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddltaxsubtype").removeClass('valid');
+                $("#ddltaxsubtype").addClass('required'); cheval();
+            }
+        });
+        $("#ddlRate").change(function () {
+            var txtContractFrom22 = $("#ddlRate").val();
+            if (txtContractFrom22 != "0" && txtContractFrom22 != null) {
+                $("#ddlRate").removeClass('required');
+                $("#ddlRate").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlRate").removeClass('valid');
+                $("#ddlRate").addClass('required'); cheval();
+            }
+        });
+        $("#ddlRate").keyup(function () {
+            var txtContractFrom22 = $("#ddlRate").val();
+            if (txtContractFrom22 != "0" && txtContractFrom22 != null) {
+                $("#ddlRate").removeClass('required');
+                $("#ddlRate").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlRate").removeClass('valid');
+                $("#ddlRate").addClass('required'); cheval();
+            }
+        });
+    });
+
+    function cheval() {
+        var ddltax = $("#ddltax").val();
+        var ddltax1 = $("#ddltax option:selected").text();
+
+        var ddlRate = $("#ddlRate").val();
+        var Intax_Taxableamt = $("#Intax_Taxableamt").val();
+
+        if (ddltax != null && ddltax != "0" && ddltax1 != "--Select--" && ddlRate != "" && Intax_Taxableamt != "") {
+            $('#btnsavexpNN').attr('disabled', false);
+        }
+        else {
+            $('#btnsavexpNN').attr('disabled', false);
+        }
+    }
+</script>

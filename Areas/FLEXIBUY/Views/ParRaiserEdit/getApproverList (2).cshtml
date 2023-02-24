@@ -1,0 +1,97 @@
+﻿@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common;
+
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CmnFunctions obj = new CmnFunctions();
+    CbfSumModel objrep = new CbfSumModel();
+    var grid = new WebGrid();
+    List<CbfSumEntity> lst = new List<CbfSumEntity>();
+    if (Session["paredit_Approval"] != null)
+    {
+        ViewBag.Title = "Index";
+        lst = (List<CbfSumEntity>)Session["paredit_Approval"];
+        
+        TempData["records"] = "";
+    }
+    else
+    {
+        TempData["records"] = "No Records Found";
+    }
+    if (Session["viewfor"] !=null)
+    {
+        ViewBag.ViewTypeDel = (string)Session["viewfor"];
+    }
+    grid = new WebGrid(source: lst, canSort: false, canPage: true,rowsPerPage:2, ajaxUpdateContainerId: "wgridFBApproverList", ajaxUpdateCallback: "dumApproverListFB()");
+    
+}
+
+<div id="wgridFBApproverList">
+    <div id="emplgrid">
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered",
+        htmlAttributes: new { id = "grid12" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                grid.Column("SlNo", obj.Sorter("SlNo", "Sl", grid)),
+                @*grid.Column("employeeGid", obj.Sorter("employeeGid", "ID", grid), format: @<text><span id="lblempgid">@item.employeeGid</span></text> ),*@
+                grid.Column("empCode", obj.Sorter("empCode", "Employee Code", grid), format: @<text><span id="lblempcode">@item.empCode</span></text>),
+                grid.Column("empName", obj.Sorter("empName", "Employee Name", grid), format: @<text><span id="lblempname">@item.empName</span></text>),
+                grid.Column("empdesignation", obj.Sorter("empdesignation", "Employee Designation", grid), format: @<text><span id="lblempdesign">@item.empdesignation</span></text>),
+                grid.Column("Approvaldate", obj.Sorter("Approvaldate", "Approval Date", grid), format: @<text><span id="lblApprovaldate">@item.Approvaldate</span></text>),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a><span class="btn btn-link btnselect @ViewBag.viewmode" id="@item.employeeGid" onclick="selectdelete1(id)">Delete</span></a>
+                </text>
+           )))
+
+                @if (@TempData["records"] != null || @TempData["records"] == "")
+                {
+                    <div class="borderStyle">
+                        @TempData["records"]
+                    </div>
+                }
+    </div>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var viewtypedel = '@ViewBag.ViewTypeDel';
+        if (viewtypedel == "view" || viewtypedel == "checker") {
+            $("#grid12 td:nth-child(6),#grid12 th:nth-child(6)").hide();
+            $("#grid12 td:nth-last-child(6)").show();
+        }
+        
+    });
+    function selectdelete1(id) {
+
+        var employee = {
+            "employeeGid": id
+
+        };
+        $.ajax({
+            url: "../ParRaiserEdit/Approvaldelete/",
+            type: 'POST',
+            data: employee,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#grid12").empty().append(data);
+
+                    jAlert("Delete Successfully", "Message");
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+    }
+
+</script>

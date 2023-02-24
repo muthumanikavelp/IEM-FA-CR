@@ -1,0 +1,226 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_bank
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+}
+
+
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+  //  @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display :none ;">
+                <input name="BankID" id="_Bankgid" class="form-control" type="text" data-val="true" value="@Model.bank_gid" />
+            </td>
+        </tr>
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Bank Code </span><br />
+                <input name="BankName" id="_Bankcode" type="text"
+                       class="fstextbox valid" maxlength="8" data-val="true" value="@Model.bank_code" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Bank Name </span><br />
+                <input name="CategoryeName" id="_Bankname"
+                       class="fstextbox valid" type="text" maxlength="80" data-val="true" value="@Model.bank_name" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center;">
+                @if (@ViewBag.viewmode == "")
+                {
+                    <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()" style="margin-top:10px;  color:white;">
+                        <span class="glyphicon glyphicon-floppy-disk" style="color:white; font-size:12px;"></span> Save
+                    </button>
+                }
+                @if (@ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                    </button>
+                }
+
+                @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button>
+                }
+                else if (@ViewBag.viewmode == "disabled")
+                {
+                    <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                    </button>
+                }
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_Bankcode").focus();
+        $("#_Bankcode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Bankname").focus();
+        $("#_Bankname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+    });
+
+    $("#_Bankcode").keyup(function () {
+        var txtSupplierName = $("#_Bankcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Bankcode").removeClass('required');
+            $("#_Bankcode").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#_Bankcode").removeClass('valid');
+            $("#_Bankcode").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#_Bankname").keyup(function () {
+        var txtSupplierName = $("#_Bankname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Bankname").removeClass('required');
+            $("#_Bankname").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#_Bankname").removeClass('valid');
+            $("#_Bankname").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+</script>
+
+<script type="text/javascript">
+    function Update() {
+        var bankcode = $("#_Bankcode").val().trim();
+        var bankname = $("#_Bankname").val().trim();
+        var bankgid = $("#_Bankgid").val();
+        $("#_Bankcode").focus();
+        $("#_Bankcode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Bankname").focus();
+        $("#_Bankname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        if (bankcode == "") {
+            jAlert("Please Enter Bank Code", "Information");
+            return false;
+        }
+        if (bankname == "") {
+            jAlert("Please Enter Bank Name", "Information");
+            return false;
+        }
+
+        var CategoryModel = { "bank_gid": bankgid, "bank_code": bankcode, "bank_name": bankname };
+        $.post('../IEM_BANK/UpdateBankDetails', CategoryModel,
+            function (data) {
+
+                if (data != "success") {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+
+                            window.parent.jQuery('#ForPartialView').dialog('close');
+                            location = '../IEM_BANK/Index';
+                        }
+                    });
+                }
+            }
+        , 'json');
+
+    }
+    function DeleteType() {
+        var bankgid = $("#_Bankgid").val();
+        jConfirm("Do you want to delete this Bank ? ", "Delete Bank", function (j) {
+            if (j == true) {
+                var model = { "bank_gid": bankgid }
+                $.post('../IEM_BANK/DeleteBank', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_BANK/Index'; }
+                             });
+                         } else {
+                             jAlert("Can Not Delete this, Its Based on Some other category", "Message");
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    $(".ui-icon-closethick").click(function () {
+       // $('#gridbank').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    });
+
+    //function goToIndex() {
+    //    $('#gridbank').find('tr').css('background', 'none');
+    //    window.parent.jQuery('#ForPartialView').dialog('close');
+
+    //}
+
+
+    function goToIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFieldsHeader() {
+
+        var ErrCount = 0;
+        if ($("#_Bankcode").val().trim() == "" || $("#_Bankcode").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#_Bankname").val().trim() == "" || $("#_Bankname").val() == null) {
+            ErrCount = 1;
+        }
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+</script>

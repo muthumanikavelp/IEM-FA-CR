@@ -1,0 +1,75 @@
+﻿@model IEnumerable<IEM.Areas.IFAMS.Models.AssetParentModel>
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@*model IEM.Areas.IFAMS.Models.AssetParentModel*@
+
+@{
+    ViewBag.Title = "MergeSearch";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+        //source: Model.AssetParentList,
+                       source: Model,
+                         canPage: false,
+                         canSort: false,
+                         ajaxUpdateContainerId: "Assetsearch"
+                       );
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+}
+<div id="MergeSearch">
+    <div style="margin-top:17px; height:600px;overflow-y:scroll;" class=" overflowy">
+
+        @*HttpContext.Current.Session["AssetIdChecked"]*@
+
+        @grid.GetHtml(
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                htmlAttributes: new { id = "checkableGrid" },
+                mode: WebGridPagerModes.All,
+                columns: grid.Columns(
+                
+                grid.Column(header: "SNo", format: item => rowVal = rowVal + 1),
+                grid.Column("AssetSubCode", obj.Sorter("AssetSubCode", "Asset Sub-Category Code", grid), style: "MidColumns10"),
+                grid.Column("Location", obj.Sorter("Location", "Location", grid), style: "MidColumns10"),
+                grid.Column("status", obj.Sorter("status", "Status", grid), style: "MidColumns10"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                                     format: @<text>
+                    <a title='View' id="@item.NewAssetId" name="@item.Status" onclick='ViewMergeSummary(name,id)'> <span class='glyphicon glyphicon-eye-open'> </span> </a>
+                                    </text>)))
+        <div class="table-bordered btnCenter" align="center">
+            <b> @ViewBag.Message </b>
+        </div>
+
+        <br />
+
+
+    </div>
+    <div class="myTableStyleTabNew">
+        @*<b><span>  Total No Of Records :@Model.AssetParentList.Count </span></b>*@
+        <b><span>  Total No Of Records :@grid.TotalRowCount</span></b>
+    </div>
+</div>
+<div id="PartialViewforAssetmerge"></div>
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+
+        objDialog = $("[id$='PartialViewforAssetmerge']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 900,
+            resizable: false
+        });
+    });
+
+    function ViewMergeSummary(name, id) {
+        objDialog.load('../AssetMerge/ViewAssetmergesummary?id=' + id + '&' + 'name=' + name + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Asset Merge details' });
+        objDialog.dialog("open");
+    }
+
+</script>

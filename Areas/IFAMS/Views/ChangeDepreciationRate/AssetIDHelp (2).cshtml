@@ -1,0 +1,105 @@
+﻿@model IEM.Areas.IFAMS.Models.ChangeDepreciationRate
+
+@using IEM.Common;
+@{
+
+    CmnFunctions cmn = new CmnFunctions();
+    var grid = new WebGrid(source: Model._ChgDepRate_list, canPage: false, ajaxUpdateContainerId: "grid");
+}
+
+@using (Html.BeginForm())
+{
+    <div id="_gridfull">
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-9">
+                    <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                        <tr>
+                            <td>
+                                <div>
+                                    <span> Asset ID </span>
+                                    <br />
+                                    <input type="text" name="assetid" id="txtassetidHELP" value="@ViewBag.assetid" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span> Depreciation Rate </span>
+                                    <br />
+                                    <input type="text" name="deprate" id="txtdeprateHELP" value="@ViewBag.deprate" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="button" id="btnsearch" value="SEARCH" onclick="searchhep()"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="button" id="btnclear" value="Clear" onclick="refresh()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div style="margin-top:17px; height:250px; overflow-y:scroll" >
+
+                @grid.GetHtml(fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive", mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+                grid.Column(style: "col-lg-1 MidColumn20Center", header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                grid.Column("_asset_id", cmn.Sorter("_asset_id", "Asset Id", grid), style: "col-lg-3 MidColumn20Center"),
+                grid.Column("_dep_value", cmn.Sorter("_dep_value", "Depreciation Rate", grid), style: "col-lg-3 MidColumn20Center"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+        format: @<text>
+                    <a title='Click to pick' id="@item._asset_id" onclick='astSelcet(id)'> <span class='glyphicon glyphicon-ok'> </span></a>
+        </text>)))
+                @if (ViewBag.Message != null)
+                {
+                    <div class="borstyle" align="center">
+                        <b> @ViewBag.Message</b>
+                    </div>
+                }
+            </div>
+            <br />
+            <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records:@Model._ChgDepRate_list.Count()</span>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+
+    function astSelcet(assetid) {
+        $('#txtassetid').val(assetid);
+        window.parent.jQuery('#diverrorlog').dialog('close');
+    }
+
+
+    function searchhep() {
+        var assetid = $("#txtassetidHELP").val();
+        var deprate = $("#txtdeprateHELP").val();
+        //alert(assetid);
+        //alert(deprate);
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("AssetIDHelp", "ChangeDepreciationRate")?assetid=' + assetid + '&' + 'deprate=' + deprate + '&' + 'command=SEARCH' + '&' + new Date().getTime(),
+            data: {},
+            success: function (data) {
+                $("#_gridfull").empty().append(data);
+            },
+            error: function () { }
+        });
+    }
+
+    function refresh() {
+        $.ajax({
+            url: '@Url.Action("AssetIDHelp", "ChangeDepreciationRate")?' + new Date().getTime(),
+            data: {},
+            success: function (data) {
+                $("#_gridfull").empty().append(data);
+            },
+            error: function () { }
+        });
+    }
+</script>
+

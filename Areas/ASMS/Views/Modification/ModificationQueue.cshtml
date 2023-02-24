@@ -1,0 +1,438 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierHeader
+@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@{
+    SupDataModel dm = new SupDataModel();
+    List<SupplierHeader> lst = new List<SupplierHeader>();
+    if (Session["queuefor"] != null)
+    {
+        ViewBag.QueueFor = (string)Session["queuefor"];
+    }
+    if (Session["ModificationQueueSearch"] != null)
+    {
+        lst = (List<SupplierHeader>)Session["ModificationQueueSearch"];
+    }
+    else
+    {
+        if (ViewBag.QueueFor == "7")
+        {
+
+        }
+        if (TempData["requesttype"] == null || TempData["requeststatus"] == null)
+        {
+            lst = dm.GetSupHeaderDetails().ToList();
+        }
+        else
+        {
+            var reqtype = (string)TempData["requesttype"];
+            var reqstatus = (string)TempData["requeststatus"];
+            lst = dm.GetSupHeaderDetailsDashboard(reqtype.ToUpper(), reqstatus.ToUpper()).ToList();
+        }
+
+    }
+
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    //var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "ForModificationQueue", ajaxUpdateCallback: "DummyFunction26()");
+    var grid = new WebGrid(lst, canSort: false, canPage: false);
+    int rowcount = 0;
+}
+<style type="text/css">
+    .actionbig {
+        width: auto;
+        padding: 0;
+        margin: 0;
+        padding-left:10px;
+        padding-right:10px;
+        text-align:center;
+        min-width:80px;
+    }
+</style>
+<div id="ForModificationQueue" class="table-responsive" style="margin-top:10px;">
+    @grid.GetHtml(
+        htmlAttributes: new { id = "wgridModificationQueue" },
+        tableStyle: "tableSmall table-bordered table-hover",
+        //mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+                grid.Column("_HeaderID", "ID"),
+                grid.Column("SlNo", format: item => rowcount = rowcount + 1,  style:"slno"),
+                grid.Column("_SupplierCode", "Supplier Code", style: "colSmall"),
+                grid.Column("_SupplierName", "Supplier Name", style: "collargeBreak"),
+                grid.Column("_SupplierCategoryName", "Supplier Category", style: "colSmall"),
+                //grid.Column("_CompanyRegNo", objCmnFunctions.Sorter("_CompanyRegNo", "Company Reg.No", grid)),
+                grid.Column("_OwnerCode", "Owner", @<div>@item._OwnerCode - @item._OwnerName</div>, style: "collargeBreak"),
+                grid.Column("_ContractFrom", "Contract From", style: "colmediumCenter"),
+                grid.Column("_ContractTo", "Contract To", style: "colmediumCenter"),
+                grid.Column("_RenewalDate", "Renewal Date", style: "colmediumCenter"),
+                grid.Column("_Activitycount","Activity count", style: "colmediumCenter"),
+                grid.Column("_AgeingBucket", "Ageing Bucket", style: "colmediumCenter"),
+                grid.Column(header: "Action", canSort: false, style: "actionbig",
+                format: @<text>
+                    @if (ViewBag.QueueFor == "1")
+                    {
+                        <a onclick="ModifySupplier(this,'edit')" title="Edit Supplier"><span class="btn btn-link">Edit</span></a>
+                        <a onclick="ModifySupplier(this,'delete')" title="Delete Supplier"><span class="btn btn-link">Delete</span></a>
+                    }
+                    else if (ViewBag.QueueFor == "2")
+                    {
+                        if (item._SupplierInsertBy != objCmnFunctions.GetLoginUserGid())
+                        {
+                            <a onclick="ModifySupplier(this,'view')" title="View Supplier"><span class="btn btn-link">View</span></a>
+                        }
+                        else
+                        {
+                            <a onclick="ModifySupplier(this,'submit')" title="Submit Supplier"><span class="btn btn-link">Proceed</span></a>
+                            @*<a onclick="ModifySupplier(this,'delete')" title="Delete Supplier"><span class="btn btn-link">Delete</span></a>*@
+                        }
+
+                    }
+                    else if (ViewBag.QueueFor == "3")
+                    {
+                        <a onclick="ModifySupplier(this,'view')" title="View Supplier"><span class="btn btn-link">View</span></a>
+                        <a onclick="RequestHistory(this)" title="View Approval History"><span class="btn btn-link">Approval History</span></a>
+                    }
+                    else if (ViewBag.QueueFor == "4")
+                    {
+                        <a onclick="ModifySupplier(this,'approval')" title="Approve Supplier"><span class="btn btn-link">Approve</span></a>
+                    }
+                    else if (ViewBag.QueueFor == "5")
+                    {
+                        <a onclick="ModifySupplier(this,'renewal')" title="Renew Supplier"><span class="btn btn-link">Renew</span></a>
+                    }
+                    else if (ViewBag.QueueFor == "6")
+                    {
+                        if (item._SupplierInsertBy != objCmnFunctions.GetLoginUserGid())
+                        {
+                            <a onclick="ModifySupplier(this,'view')" title="View Supplier"><span class="btn btn-link">View</span></a>
+                        }
+                        else
+                        {
+                            <a onclick="ModifySupplier(this,'resubmit')" title="Re-Submit Supplier"><span class="btn btn-link">Re-Submit</span></a>
+                        }
+
+                        <a onclick="RequestHistory(this)" title="View Approval History"><span class="btn btn-link">Approval History</span></a>
+                    }
+                    else if (ViewBag.QueueFor == "7")
+                    {
+                        <a onclick="ModifySupplier(this,'view')" title="View Supplier"><span class="btn btn-link">View</span></a>
+                    }
+
+                </text>)))
+</div>
+
+@*@if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+{
+    <div class="gridMessage">
+        @ViewBag.NoRecordsFound
+    </div>
+}
+else
+{
+    <div class="gridCount">
+        Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> 
+        Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>
+    </div>
+}*@     
+   
+<div id="ForModificationQueuePopup"></div>
+<script type="text/javascript">
+    function ModifySupplier(element, queuefor) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        var supcode = tds.eq(2).text();
+        if (queuefor == "edit") {
+            var objSupHeaderDetails = {
+                "_SupplierCode": supcode
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckSupplierIsLocked", "Onboarding")',
+                data: JSON.stringify(objSupHeaderDetails),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data.length > 0) {
+                        var lockedbycode = data[0]._LockedByCode;
+                        var lockedbyname = data[0]._LockedByName;
+                        var lockeddate = data[0]._LockedDate;
+                        var LockedBy = lockedbycode.fontcolor("Navy") + " - " + lockedbyname.fontcolor("Navy");
+                        jConfirm("This Supplier Already Locked By " + LockedBy.bold() + " from " + lockeddate.bold().fontcolor("Navy") + ". Are you Interested to view this supplier?", Title_3, function (e) {
+                            if (e == true) {
+                                location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+                            }
+                            else {
+                                return false;
+                            }
+                        });
+                    }
+                    if (data.length == 0) {
+                        $.ajax({
+                            url: '@Url.Action("LockMySupplier", "Onboarding")',
+                            data: JSON.stringify(objSupHeaderDetails),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                location = '../Onboarding/Index?pagefor=2&supid=' + ids + '&' + new Date().getTime();
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+           
+        }
+        else if (queuefor == "view") {
+            location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+        }
+        else if (queuefor == "submit") {
+            var objSupHeaderDetails = {
+                "_SupplierCode": supcode
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckSupplierIsLocked", "Onboarding")',
+                data: JSON.stringify(objSupHeaderDetails),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data.length > 0) {
+                        var lockedbycode = data[0]._LockedByCode;
+                        var lockedbyname = data[0]._LockedByName;
+                        var lockeddate = data[0]._LockedDate;
+                        var LockedBy = lockedbycode.fontcolor("Navy") + " - " + lockedbyname.fontcolor("Navy");
+                        jConfirm("This Supplier Already Locked By " + LockedBy.bold() + " from " + lockeddate.bold().fontcolor("Navy") + ". Are you Interested to view this supplier?", Title_3, function (e) {
+                            if (e == true) {
+                                location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+                            }
+                            else {
+                                return false;
+                            }
+                        });
+                    }
+                    if (data.length == 0) {
+                        $.ajax({
+                            url: '@Url.Action("LockMySupplier", "Onboarding")',
+                            data: JSON.stringify(objSupHeaderDetails),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                location = '../Onboarding/Index?pagefor=4&supid=' + ids + '&' + new Date().getTime();
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+          
+        }
+        else if (queuefor == "resubmit") {
+            location = '../Onboarding/Index?pagefor=4&supid=' + ids + '&' + new Date().getTime();
+        }
+        else if (queuefor == "approval") {
+            var objSupHeaderDetails = {
+                "_SupplierCode": supcode
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckSupplierIsLocked", "Onboarding")',
+                data: JSON.stringify(objSupHeaderDetails),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data.length > 0) {
+                        var lockedbycode = data[0]._LockedByCode;
+                        var lockedbyname = data[0]._LockedByName;
+                        var lockeddate = data[0]._LockedDate;
+                        var LockedBy = lockedbycode.fontcolor("Navy") + " - " + lockedbyname.fontcolor("Navy");
+                        jConfirm("This Supplier Already Locked By " + LockedBy.bold() + " from " + lockeddate.bold().fontcolor("Navy") + ". Are you Interested to view this supplier?", Title_3, function (e) {
+                            if (e == true) {
+                                location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+                            }
+                            else {
+                                return false;
+                            }
+                        });
+                    }
+                    if (data.length == 0) {
+                        $.ajax({
+                            url: '@Url.Action("LockMySupplier", "Onboarding")',
+                            data: JSON.stringify(objSupHeaderDetails),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                location = '../Onboarding/Index?pagefor=3&supid=' + ids + '&' + new Date().getTime();
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+           
+        }
+        else if (queuefor == "renewal") {
+            var objSupHeaderDetails = {
+                "_SupplierCode": supcode
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckSupplierIsLocked", "Onboarding")',
+                data: JSON.stringify(objSupHeaderDetails),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data.length > 0) {
+                        var lockedbycode = data[0]._LockedByCode;
+                        var lockedbyname = data[0]._LockedByName;
+                        var lockeddate = data[0]._LockedDate;
+                        var LockedBy = lockedbycode.fontcolor("Navy") + " - " + lockedbyname.fontcolor("Navy");
+                        jConfirm("This Supplier Already Locked By " + LockedBy.bold() + " from " + lockeddate.bold().fontcolor("Navy") + ". Are you Interested to view this supplier?", Title_3, function (e) {
+                            if (e == true) {
+                                location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+                            }
+                            else {
+                                return false;
+                            }
+                        });
+                    }
+                    if (data.length == 0) {
+                        $.ajax({
+                            url: '@Url.Action("LockMySupplier", "Onboarding")',
+                            data: JSON.stringify(objSupHeaderDetails),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                location = '../Onboarding/Index?pagefor=6&supid=' + ids + '&' + new Date().getTime();
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+                        
+        }
+        else if (queuefor == "delete") {
+            jConfirm("Do you want to delete this Supplier..?", Title_3, function (e) {
+                if (e == true) {
+                    var objSupHeaderDetails = {
+                        "_SupplierCode": supcode
+                    };
+                    $.ajax({
+                        url: '@Url.Action("DeleteSupplier", "Onboarding")?' + new Date().getTime(),
+                        data: JSON.stringify(objSupHeaderDetails),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == "1") {
+                                jAlert("Supplier Deleted Successfully", "Error", function () {
+                                    location = "../AsmsMain/Dashboard?" + new Date().getTime();
+                                });
+                                return false;
+                            }
+                            else if (data == "0") {
+                                jAlert("Error While Delete this Supplier", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                           
+                        },
+                        error: function (result) {
+                            jAlert("Error While Deletion", "Error");
+                        }
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+            
+        }
+    }
+
+    function DummyFunction26() {
+        $("#wgridModificationQueue td:nth-child(1),#wgridModificationQueue th:nth-child(1)").hide();
+        $("#wgridModificationQueue td:nth-last-child(1)").show();
+
+    }
+    var objDialogModificationQueue;
+    $(document).ready(function () {
+        $("#wgridModificationQueue td:nth-child(1),#wgridModificationQueue th:nth-child(1)").hide();
+        $("#wgridModificationQueue td:nth-last-child(1)").show();
+
+        objDialogModificationQueue = $("[id$='ForModificationQueuePopup']");
+        objDialogModificationQueue.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            async: false,
+            cache: false
+        });
+
+        $('#wgridModificationQueue tr th:nth-child(12)').addClass("nosort");
+        $('#wgridModificationQueue').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }],
+            "order": [[1,"asc"]]
+        }).css("width", "99%");
+
+    });
+
+    function RequestHistory(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+
+       window.objDialogModificationQueue.load('../Modification/RequestHistory?SupHeadGid=' + ids + '&' + new Date().getTime());
+        window.objDialogModificationQueue.dialog({ title: 'Approval History', width: '700', height: '470' });
+        window.objDialogModificationQueue.dialog("open");
+
+    }
+</script>

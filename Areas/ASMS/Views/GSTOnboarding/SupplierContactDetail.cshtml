@@ -1,0 +1,144 @@
+﻿@using IEM.Areas.ASMS.Models
+@model IEM.Areas.ASMS.Models.SupplierContactDetails
+    @{
+        SupDataModel objDataModel=new SupDataModel();
+        SupplierContactDetails objContDetails =new SupplierContactDetails();
+        objContDetails.lstCountry=new SelectList(objDataModel.GetCountry(), "_CountryID", "_CountryName");
+        objContDetails.lstAddressType = new SelectList(objDataModel.GetAddressType(), "_AddressTypeID", "_AddressTypeName");
+
+        SupplierContactDetails sc = (SupplierContactDetails)objContDetails;
+    }
+
+<div>
+    <fieldset>
+        <legend>ADDRESS</legend>
+        <center>
+            <div style="padding:0;margin:0;">
+                <table class="myTableStyleTabNew">
+                    <tr>
+                        <td colspan="3" style="text-align:left;">
+                            <input type="hidden" id="SessionSupplierContactGid" name="SessionSupplierContactGid" />
+                            <span>Address Type</span><br />
+                            @*@Html.DropDownListFor(n => n.selectedAddressTypeID, sc.lstAddressType, "-- Select --", new { @class = "textboxStyle", @id = "selectedAddressTypeID" })*@
+                            @Html.DropDownListFor(m => m.selectedAddressTypeID, objContDetails.lstAddressType, "--Select", new { @class = "textboxStyle", @id = "selectedAddressTypeID" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Address 1</span><br />
+                            <input type="text" class="textboxStyle" name="_Address1" id="_Address1" value="@Model._Address1" />
+                        </td>
+                        <td>
+                            <span>Country</span><br />
+                            @Html.DropDownListFor(n => n.selectedCountryID, sc.lstCountry, "-- Select --", new { @class = "textboxStyle", @id = "selectedCountryID" })
+                        </td>
+                        <td>
+                            <span>Pin Code</span><br />
+                            <input type="text" class="textboxStyle" name="_PinCode" id="_PinCode" value="@Model._PinCode" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Address 2</span><br />
+                            <input type="text" class="textboxStyle" name="_Address2" id="_Address2" value="@Model._Address2" />
+                        </td>
+                        <td>
+                            <span>State</span><br />
+                            @Html.DropDownListFor(n => n.selectedStateID, Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "textboxStyle", @id = "selectedStateID" })
+                        </td>
+                        <td>
+                            <span>Phone No</span><br />
+                            <input type="text" class="textboxStyle" name="_PhoneNo" id="_PhoneNo" value="@Model._PhoneNo" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>Address 3</span><br />
+                            <input type="text" class="textboxStyle" name="_Address3" id="_Address3" value="@Model._Address3" />
+                        </td>
+                        <td>
+                            <span>City</span><br />
+                            @Html.DropDownListFor(n => n.selectedCityID, Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "textboxStyle", @id = "selectedCityID" })
+                        </td>
+                        <td>
+                            <span>Fax</span><br />
+                            <input type="text" class="textboxStyle" name="_Fax" id="_Fax" value="@Model._Fax" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align:right;"></td>
+                    </tr>
+                </table>
+            </div>
+        </center>
+    </fieldset>
+</div>
+<script type="text/javascript">
+
+    $("#selectedCountryID").change(function () {
+        var CountryID = $(this).val();
+      //  alert(CountryID);
+        var objSupContact =
+       {
+           "selectedCountryID": CountryID
+       };
+        $.ajax({
+            url: '@Url.Action("GetState", "Onboarding")',
+            data: JSON.stringify(objSupContact),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedStateID").empty();
+                if (data.length > 0) {
+                    $("#selectedStateID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedStateID').attr('disabled', false);
+                        $("#selectedStateID").append("<option value=" + data[i]._StateID + " >" + data[i]._StateName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $('#selectedStateID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                alert("Error");
+            }
+        });
+    });
+    $("#selectedStateID").change(function () {
+        var StateID = $(this).val();
+        var CountryID = $("#selectedCountryID").val();
+       // alert(StateID);
+        var objSupContact =
+       {
+           "selectedStateID": StateID,
+           "selectedCountryID":CountryID
+       };
+        $.ajax({
+            url: '@Url.Action("GetCity", "Onboarding")',
+            data: JSON.stringify(objSupContact),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedCityID").empty();
+                if (data.length > 0) {
+                    $("#selectedCityID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedCityID').attr('disabled', false);
+                        $("#selectedCityID").append("<option value=" + data[i]._StateID + " >" + data[i]._StateName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $('#selectedCityID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                alert("Error");
+            }
+        });
+    });
+</script>

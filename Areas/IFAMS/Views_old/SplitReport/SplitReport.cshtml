@@ -1,0 +1,184 @@
+﻿@{
+    ViewBag.Title = "SplitReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">Split Report</span>
+<div ng-app="SplitReportApp">
+    <div class="well" ng-controller="SplitReportController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            <div style="width:45%;float:left;">
+                Search &nbsp;<input type="text" ng-model="searchSR.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right;">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+                <button class="btn-sm btn-primary" style="float:right" ng-click="ExportDocSR()">
+                    <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>
+            </div>
+
+        </div>
+        <div style="width:100%;overflow-x:scroll;">
+            <div style="width:120%;">
+                <table class="tableSmall table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr class="SortText">
+                            <th style="width:3%;">
+                                S.No
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortSR('AssetGroupID')">
+                                Asset Group ID
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='AssetGroupID'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:7%;" class="cursorpointer" ng-click="SortSR('AssetCode')">
+                                Asset Code
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='AssetCode'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:14%;" class="cursorpointer" ng-click="SortSR('OldAssetID')">
+                                Old Asset ID
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='OldAssetID'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortSR('OldAssetValue')">
+                                Old Asset Value
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='OldAssetValue'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:14%;" class="cursorpointer" ng-click="SortSR('NewAssetID')">
+                                New Asset ID
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='NewAssetID'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortSR('NewAssetValue')">
+                                New Asset Value
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='NewAssetValue'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:12%;" class="cursorpointer" ng-click="SortSR('CapDate')">
+                                Cap Date
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='CapDate'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:30%;" class="cursorpointer" ng-click="SortSR('Branch')">
+                                Branch
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='Branch'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortSR('Status')">
+                                Status
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='Status'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="FilteredItemsSR > 0" ng-repeat="splitreport in splitreports |orderBy:sortKey:reverse | filter:searchSR:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{$index+1}}
+                            </td>
+                            <td style="width:10%;">
+                                {{splitreport.AssetGroupID}}
+                            </td>
+                            <td style="width:7%;">
+                                {{splitreport.AssetCode}}
+                            </td>
+                            <td style="width:14%;">
+                                {{splitreport.OldAssetID}}
+                            </td>
+                            <td style="width:10%;">
+                                {{splitreport.OldAssetValue}}
+                            </td>
+                            <td style="width:14%;">
+                                {{splitreport.NewAssetID}}
+                            </td>
+                            <td style="width:10%;">
+                                {{splitreport.NewAssetValue}}
+                            </td>
+                            <td style="width:12%;">
+                                {{splitreport.CapDate}}
+                            </td>
+                            <td style="width:30%;">
+                                {{splitreport.Branch}}
+                            </td>
+                            <td style="width:10%;">
+                                {{splitreport.Status}}
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="FilteredItemsSR < 1">
+                        <tr>
+                            <td colspan="6" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItemsSR > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItemsSR"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItemsSR}}
+            </div>
+        </div>
+    </div>
+    </div>
+<script type="text/javascript">
+    var SRApp = angular.module('SplitReportApp', ['ui.bootstrap']);
+    SRApp.service("splitreportservice", function ($http) {
+        this.GetSplitSummary = function () {
+            var url = '@Url.Action("GetSplitSummary", "SplitReport")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    SRApp.controller('SplitReportController', function ($scope, splitreportservice) {
+
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        GetSplitSummary();
+       
+        function GetSplitSummary() {
+            var getData = splitreportservice.GetSplitSummary();
+            getData.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "")
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.splitreports = Data0;
+                $scope.FilteredItemsSR = $scope.splitreports.length;
+
+            }, function () {
+                alert('Error While Loading record');
+            });
+        }
+       
+        $scope.SortSR = function (keyname) {
+            $scope.sortKey = keyname;   //set the sortKey to the param passed
+            $scope.reverse = !$scope.reverse; //if true make it false and vice versa
+        }
+        $scope.ExportDocSR = function () {
+            location = '@Url.Action("DTtoExcelFA", "SplitReport")?rptfor=split&' + new Date().getTime();
+        }
+    });
+    SRApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

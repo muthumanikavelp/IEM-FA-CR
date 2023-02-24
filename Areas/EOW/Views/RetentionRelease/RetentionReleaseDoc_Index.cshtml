@@ -1,0 +1,299 @@
+﻿@model IEM.Areas.EOW.Models.Retention_Release
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    <div id="tabs" style="font-size:12px; width:723px;">
+        <ul>
+            <li><a href="#tabs-1">ECF Invoice </a></li>
+            <li><a href="#tabs-2">Entries </a></li>
+        </ul>
+        <div>
+
+            <div id="tabs-1">
+                @Html.Partial("RetentionReleaseDoc")
+            </div>
+
+            <div id="tabs-2">
+                <h4 style="color:#02A3FB">Retention Release</h4>
+                <div class="input-append">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>Release Date</span>
+                                <input type="text"
+                                       name="txtreleasedate"
+                                       id="txtreleasedate"
+                                       value="" maxlength="10"
+                                       class="textboxStyle valid"
+                                       style="display: block;width:162px; " />
+                            </td>
+                            <td>
+                                <span>Retention Balance </span>
+                                <input type="text"
+                                       name="txtinBalance_amount"
+                                       id="txtinBalance_amount"
+                                       value="@Model.Balance_amount" maxlength="9"
+                                       class="textboxStyle valid" readonly="readonly"
+                                       style="display: block;width:162px; " />
+                            </td>
+                            <td>
+                                <span>Release Amount</span>
+                                <input type="text"
+                                       name="txtreleaseamount"
+                                       id="txtreleaseamount"
+                                       value="" maxlength="9"
+                                       class="textboxStyle required" onkeypress="return isNumberKey(event)"
+                                       style="display: block;width:162px; " />
+                            </td>
+                            <td>
+                                <span>Balance Amount</span>
+                                <input type="text"
+                                       name="txtreleasebalance"
+                                       id="txtreleasebalance"
+                                       value="" maxlength="9" readonly="readonly"
+                                       class="textboxStyle required"
+                                       style="display: block;width:162px; " />
+                            </td>
+                            <td style="display:none">
+                                <span>Invoice No</span>
+                                <input type="text"
+                                       name="InvoiceNo"
+                                       id="InvoiceNoId"
+                                       value="@Model.invoice_no"
+                                       maxlength="9"
+                                       readonly="readonly"
+                                       class="textboxStyle required"
+                                       style="display: block;width:162px; " />
+                            </td>
+                            <td style="display:none">
+                                <span>Branch Code</span>
+                                <input type="text"
+                                       name="BranchCode"
+                                       id="BranchCodeId"
+                                       value="@Model.BranchCode"
+                                       maxlength="9"
+                                       readonly="readonly"
+                                       class="textboxStyle required"
+                                       style="display: block;width:162px; " />
+                            </td>
+
+                        </tr>
+
+                    </table>
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>Remarks</span>
+                                <input type="text"
+                                       name="txtreleaseRemarkId"
+                                       id="txtreleaseRemarkId"
+                                       value="" maxlength="255"
+                                       class="textboxStyle required"
+                                       style="display: block;width:503px; height:30px; " />
+                            </td>
+                            <td>
+                                <div>
+                                    <br />
+                                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SAVE()"><span style="color:white" class="glyphicon glyphicon-share"></span>&nbsp;Proceed</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+                <br />
+                <div id="debitaduse">
+                    @Html.Partial("debitline")
+                </div>
+                <div id="creditaduse">
+                    @Html.Partial("creditline")
+                </div>
+                <div id="attachaduse">
+                    @Html.Partial("Release_Attachment")
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <br />
+    <br />
+    <div align="right">
+        <button type="button" class="btn btn-primary" value="Next" id="NextTab"> <span style="color:white;margin-right:10%" class="glyphicon glyphicon-hand-right"></span>Next</button>
+    </div>
+    <div align="right">
+        <button type="button" class="btn btn-primary" value="Back" id="BackTab"> <span style="color:white;margin-right:10%" class="glyphicon glyphicon-hand-left"></span>Back</button>
+    </div>
+}
+<script type="text/javascript">
+   
+
+    $(document).ready(function () {
+        $("#BackTab").hide();
+        $("#NextTab").show();
+
+        $("#txtreleasedate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            minDate: '+id',
+        });
+        $('#debitaduse').hide();
+        $('#creditaduse').hide();
+        $('#attachaduse').hide();
+
+        $('#txtreleaseamount').attr('disabled', false);
+        $('#txtreleasebalance').attr('disabled', false);
+        $('#txtreleaseRemarkId').attr('disabled', false);
+        // $('#btnsave').attr('disabled', true);
+    });
+    var currentTab = 0;
+    $(function () {
+
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+                var c = $('#tabs').tabs("length");
+                if (currentTab == (c - 1)) {
+                    $("#NextTab").hide();
+                    $("#BackTab").show();
+                } else {
+                    $("#NextTab").show();
+                    $("#BackTab").hide();
+                }
+            }
+        });
+    });
+    $("#NextTab").live("click", function () {
+        var tabs = $('#tabs').tabs();
+        var c = $('#tabs').tabs("length");
+        currentTab = currentTab == (c - 1) ? currentTab : (currentTab + 1);
+        tabs.tabs('select', currentTab);
+        $("#BackTab").show();
+        if (currentTab == (c - 1)) {
+            $("#NextTab").hide();
+        } else {
+            $("#NextTab").show();
+        }
+    });
+    $("#BackTab").live("click", function () {
+        var tabs = $('#tabs').tabs();
+        var c = $('#tabs').tabs("length");
+        currentTab = currentTab == 0 ? currentTab : (currentTab - 1);
+        tabs.tabs('select', currentTab);
+        if (currentTab == 0) {
+            $("#NextTab").show();
+            $("#BackTab").hide();
+        }
+        if (currentTab < (c - 1)) {
+            $("#NextTab").show();
+        }
+    });
+    function SAVE() {
+
+        var Release_date = $("#txtreleasedate").val();
+        var Release_amount = $("#txtreleaseamount").val().replace(/,/g, "");
+        var balance_amount = $("#txtreleasebalance").val().replace(/,/g, "");
+        var remarks = $("#txtreleaseamount").val() + ',InvoiceNo-' + $("#InvoiceNoId").val() + ',Branch-' + $("#BranchCodeId").val() + ',desc-' + $("#txtreleaseRemarkId").val();
+        //var remarks = $("#txtreleaseRemarkId").val();
+        var invoice_gid = $("#invoice_gid").val();
+        var ecf_gid = $("#invoice_ecf_gid").val();
+        var retention_date = $("#txtRetention_date").val();
+        var retention_amount = $("#txtRetention_amount").val().replace(/,/g, "");
+        var Balancerel_amount = $("#txtinBalance_amount").val().replace(/,/g, "");
+        var invoice_date = $("#txtinvoice_date").val();
+        var invoice_no = $("#txtinvoice_no").val();
+        //var invoicedes = $("#txtreleaseamount").val() + ',InvoiceNo-' + $("#InvoiceNoId").val() + ',Branch-' + $("#BranchCodeId").val() + ',desc-' + $("#txtinvoicedes").val();
+       //invoicedesc change as per amr request on 09-03-2017 by KAVITHA N
+        var invoicedes =  $("#txtinvoicedes").val();
+
+
+        if (Release_date == "" || Release_amount == "" || balance_amount == "" || retention_amount == "") {
+            //$('#btnsave').attr('disabled', false);
+            jAlert('All Fields Are Required Except Remarks', "Error");
+            return;
+        }
+        else {
+
+            var Student = {
+                "ReleaseDate": Release_date,
+                "release_amount": Release_amount,
+                "Balance_amount": balance_amount,
+                "release_remarks": remarks,
+                "invoice_gid": invoice_gid,
+                "invoice_ecf_gid": ecf_gid,
+                "Retention_date": Release_date,
+                "Retention_amount": retention_amount,
+                "invoice_no": invoice_no,
+                "invoice_desc": invoicedes
+            };
+            $.ajax({
+                url: '../RetentionRelease/RetentionRelease_Save/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+
+                    if (result != "Success" && result != "success") {
+                        if (result != "Release Amount Must Be Equal To Credit & Debit Amount") {
+                            //jAlert(result, "Information", function (r) {
+                            //    if (r = true) {
+                            //location = '../RetentionRelease/RetentionIndex';
+                            $('#txtreleaseamount').attr('disabled', true);
+                            $('#txtreleasebalance').attr('disabled', true);
+                            $('#txtreleaseRemarkId').attr('disabled', true);
+                            $('#btnsave').attr('disabled', true);
+                            $('#btnclearrel').attr('disabled', true);
+                            $("#debitaduse").load('@Url.Action("debitline", "RetentionRelease")?' + new Date().getTime());
+                            $("#creditaduse").load('@Url.Action("creditline", "RetentionRelease")?' + new Date().getTime());
+                            $("#attachaduse").load('@Url.Action("Release_Attachment", "RetentionRelease")?' + new Date().getTime());
+                            $('#debitaduse').show();
+                            $('#creditaduse').show();
+                            $('#attachaduse').show();
+                            //    }
+                            //});
+
+                        }
+                        else {
+                            jAlert('Release Amount Must Be Equal To Credit & Debit Amount', "Information");
+                            return;
+                        }
+                    }
+                    else {
+
+                        jAlert('Record inserted Successfully !', "Error");
+                        //location = '../RetentionRelease/RetentionIndex';
+                    }
+                },
+            });
+        }
+    }
+    //function gotocloserel() {
+    //    //location = '../RetentionRelease/RetentionIndex';
+    //    //window.parent.jQuery('#ForPartialView').dialog('close');
+    //    $("#txtreleaseamount").val('');
+    //    $("#txtreleaseamount").removeClass('valid');
+    //    $("#txtreleaseamount").addClass('required');
+    //    $("#txtreleasebalance").val('');
+    //    $("#txtreleasebalance").removeClass('valid');
+    //    $("#txtreleasebalance").addClass('required');
+    //    $("#txtreleaseRemarkId").val('');
+    //    $("#txtreleaseRemarkId").removeClass('valid');
+    //    $("#txtreleaseRemarkId").addClass('required');
+    //    $('#btnsave').attr('disabled', true);
+    //    gotocloserel();
+    //}
+    //function gotocloserel()
+    //{
+    //    //objDialogrelease.dialog("close");
+    //    //objDialogrelease.remove();
+    //    //window.parent.jQuery('#Releasepartialview').dialog('close');
+
+    //    objDialogforRel.dialog("close");
+    //    objDialogforRel.remove();
+    //    window.parent.jQuery('#Releasepartialview').dialog('close');
+
+    //}
+</script>

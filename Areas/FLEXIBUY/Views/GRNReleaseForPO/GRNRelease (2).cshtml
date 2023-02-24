@@ -1,0 +1,217 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poRaising
+@using IEM.Common
+@using IEM.Areas.FLEXIBUY.Models
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<div id="posummary">
+    @{
+        ViewBag.Title = "Index";
+        int cnt = 0;
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        List<poRaising> lst = new List<poRaising>();
+        if (Model.objposummary != null)
+        {
+            lst = Model.objposummary;
+            cnt = lst.Count;
+        }
+        ViewBag.cnt = cnt;
+
+       // var grid = new WebGrid(source: lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+        var grid = new WebGrid(source: lst, canSort: false, canPage: false);
+        CmnFunctions obj = new CmnFunctions();
+    }
+
+    <div class="pageHeadingLayout">
+        <span class="pageHeading">GRN Release For PO</span>
+    </div>
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td>
+                        <span>PO Date</span>
+                        <br />
+                        <input type="text"
+                               name="podate"
+                               id="podate"
+                               value="@ViewBag.podate"
+                               class="textboxStyle"
+                               @*placeholder="Enter Date"*@ />
+
+                    </td>
+                    <td>
+                        <span>PO Ref No</span>
+                        <br />
+                        <input type="text"
+                               name="porefno"
+                               id="porefno"
+                               value="@ViewBag.porefno"
+                               class="textboxStyle"
+                               @*placeholder="Enter POref No"*@ />
+
+                    </td>
+                    <td>
+                        <span>Vendor Name</span>
+                        <br />
+                        <input type="text"
+                               name="vendorname"
+                               id="vendorname"
+                               value="@ViewBag.vendorname"
+                               class="textboxStyle"
+                               @*placeholder="Enter Vendor Name"*@ />
+
+                    </td>
+                    <td>
+                        <span>Status</span>
+                        <br />
+                        @*@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class="textboxStyleSearch" })*@
+                        @*@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class = "textboxStyle valid" })*@
+                        @*//@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class ="textboxStyleSearch valid" })*@
+
+                        <select name="ddlStatus" id="statusgid" class="textboxStyle" style="width:200px">
+                            <option value="0">Select</option>
+                            @foreach (var pitem in Model.statusList)
+                                    {
+                                        var childitemfilter = Model.statusList.Where(m => m.Value == pitem.Value);
+                                        if (childitemfilter != null)
+                                        {
+                                            foreach (var citem in childitemfilter)
+                                            {
+                                                string selectedValue = "";
+                                                if (Model.statusgid == Convert.ToInt32(citem.Value))
+                                                {
+                                                    selectedValue = "selected='selected'";
+                                                }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                            }
+                                        }
+                                    }
+                        </select>
+                    </td>
+                    <td>
+                        @*<span class="glyphicon glyphicon-search" onclick="searchpo()"></span>*@
+                        <span></span>
+                        <br />
+                        <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+                        @*<button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(245, 245, 245);" name="command" type="submit"></button>*@
+                    </td>
+                    <td>
+                        <span> </span>
+                        <br />
+                        <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+                        @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                    </td>
+                    @*<td>
+                        <span> </span>
+                        <br />
+                        <button class="btn btn-primary" id="btnrefresh" value="Clear" onclick="ProdServrefresh()" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                        @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                    @*</td>*@
+                </tr>
+            </table>
+
+            <div id="pogrid"></div>
+
+            <div style="margin-top:17px" id="pogrid1">
+
+
+                @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grnreleasegrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+            grid.Column("slno", "#"),
+               grid.Column("poDate", "PO Date"),
+               grid.Column("poRefNo", "PO Ref No"),
+             grid.Column("poVersion", "PO Version"),
+               grid.Column("vendorName", "Vendor Name"),
+               grid.Column("status", "Status"),
+               grid.Column("poAmount", "PO Amount", style: "rightAlign"),
+                  grid.Column(header: "Action",
+                     format: @<text>
+                    <input class="btn btn-link" name="command" onclick="GrnRelease(id)" id="@item.poDetgid" value="Release" title="Partial Release" type="button" />
+               &nbsp; | &nbsp;
+                <a id="btnerelease" title="Full Release" class="btn btn-link" name="@item.poDetgid" onclick="ReleaseAll(name)">Release All</a>
+                    </text>)))
+            </div>
+        </div>
+
+    }
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#grnreleasegrid tr th:nth-child(8)').addClass("nosort");
+            $('#grnreleasegrid').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+        });
+        function GrnRelease(id) {
+            var gid = id;
+            location = '../GRNReleaseForPODetails/Index?podetails=' + id;
+        }
+        function ReleaseAll(id) {
+            jConfirm("Are you sure? Want to Release All Items in this PO!.", "Confirm", function (callback) {
+                if (callback == true) {
+                    var POHeaderGId = id;
+                    var PARParentDetailsInsert = {
+                        pogid: POHeaderGId
+                    };
+                    $.ajax({
+                        url: '@Url.Action("GrnReleaseFull", "GRNReleaseForPO")?' + new Date().getTime(),
+                        data: JSON.stringify(PARParentDetailsInsert),
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            var ErrorMsg1 = data.ErrorMsg;
+                            if (ErrorMsg1 == "0") {
+                                jAlert("Error While Releasing PO", "Error", function () {
+                                    return false;
+                                });
+                            }
+                            else {
+                                jAlert("PO Released Successfully", "Success", function () {
+                                    var viewfor = "refresh";
+                                    location = '@Url.Action("GRNRelease", "GRNReleaseForPO")?viewfor=' + viewfor;
+                                    return false;
+                                });
+                            }
+                        },
+                        error: function (data) {
+                            jAlert("Error While Releasing PO", "Error", function () {
+                                return false;
+                            });
+                        },
+                        failure: function (data) {
+                            jAlert("Error While Releasing PO", "Error", function () {
+                                return false;
+                            });
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            });
+        }
+        $("#podate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+    </script>
+</div>

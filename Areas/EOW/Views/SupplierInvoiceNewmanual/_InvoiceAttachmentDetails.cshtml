@@ -1,0 +1,84 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_File>
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_File> lstAttachment = new List<EOW_File>();
+
+    lstAttachment = (List<EOW_File>)TempData["SearchItems"];
+    if (lstAttachment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstAttachment = objd.GetinvoiceAttachment(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+    }
+    if (lstAttachment.Count == 0)
+    {
+        ViewBag.NoRecordsAttachment = "NoRecords";
+        ViewBag.NoRecordsFoundAttachment = "No Records Found";
+    }
+
+}
+
+<div id="wgAttachmentsupplierinv">
+    @{
+        var gridAttachmentinv = new WebGrid(lstAttachment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgAttachmentsupplierinv", ajaxUpdateCallback: "DummyFunction()");
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridAttachmentinv.GetHtml(
+                                       htmlAttributes: new { id = "wgAttachmentsupplierinv" },
+                     tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridAttachmentinv.Columns(
+                                                             gridAttachmentinv.Column("AttachmentFilename", objCmnFunctions.Sorter("AttachmentFilename", "Attachment", gridAttachmentinv), canSort: false, style: "collargeBreak"),
+                                                             gridAttachmentinv.Column("AttachmentTypeName", objCmnFunctions.Sorter("AttachmentTypeName", "Attachment Type", gridAttachmentinv), canSort: false, style: "collargeBreak"),
+                                                             gridAttachmentinv.Column("AttachmentDescription", objCmnFunctions.Sorter("AttachmentDescription", "Description", gridAttachmentinv), canSort: false, style: "collargeBreak"),
+                                                             gridAttachmentinv.Column("AttachmentDate", objCmnFunctions.Sorter("AttachmentDate", "Attached Date", gridAttachmentinv), canSort: false, style: "collargeBreak"),
+                                                             gridAttachmentinv.Column("AttachmentBy", objCmnFunctions.Sorter("AttachmentBy", "Attached By", gridAttachmentinv), canSort: false, style: "collargeBreak"),
+                                           gridAttachmentinv.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                            @Html.Raw("<a data-modal='' href='../SupplierInvoiceNewmanual/Download/" + item.AttachmentFilenameId + "' id='" + item.AttachmentFilenameId + "'  title='Detail'> <span id='" + item.AttachmentFilenameId + "' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                            @if (item.attachment_by == objCmnFunctions.GetLoginUserGid())
+                                            {
+                                                @Html.Raw("<a title='Delete' onclick='DeleteAttachmentINV(" + item.AttachmentFilenameId + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                            }
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ))
+
+
+    </div>
+    @if (@ViewBag.NoRecordsAttachment == "NoRecords")
+    {
+        <div class="borderStyle">
+            <center>
+                <b> @ViewBag.NoRecordsFoundAttachment </b>
+            </center>
+        </div>
+    }
+    else
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="left"></td>
+                    <td align="right">
+                        Total No Of Records: <b> <label id="hdtolattachmentinvoice">@gridAttachmentinv.TotalRowCount</label></b>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $("#wgAttachmentsupplier tr #id").click(function () {
+            $('#wgAttachmentsupplier').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

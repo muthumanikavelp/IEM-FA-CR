@@ -1,0 +1,192 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poraiser
+@{
+
+}
+<script src="~/Scripts/angular.min.js"></script>
+
+<div ng-app="WODetails">
+
+    <div ng-controller="WODetailsShipment">
+        <div class="table-responsive">
+            @*<input ng-model=" search.$" class="col-lg-10 textboxStyle" />*@
+            <table class="myTableStyleTabNew" style="display:none;">
+                <tr>
+                    <td>
+                        <span>WO HeaderGid</span>
+                        <br />
+                        <input type="text"
+                               name="txtWOheadgid"
+                               id="txtWOheadgid"
+                               disabled="disabled"
+                               value="@Model.podetGid"
+                               class="textboxStyle valid" />
+                    </td>
+                </tr>
+            </table>
+            <table class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:5%; display:none;">
+                            Wo HeadGid
+                        </th>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:10%;">
+                            OBF Number<br />
+
+                        </th>
+                        <th style="width:15%;">
+                            Product Group<br />
+                        </th>
+
+                        <th style="width:10%;">
+                            Product Code<br />
+                        </th>
+                        <th style="width:20%;">
+                            Product Name<br />
+                        </th>
+                        <th style="width:20%;">
+                            Product Description<br />
+                        </th>
+                        @*<th style="width:10%;">
+                            Service Month<br />
+                        </th>*@
+                        @*<th style="width:5%;">
+                            Quantity<br />
+                        </th>
+                        <th style="width:5%;">
+                            Unit Price<br />
+                        </th>*@
+                        <th style="width:5%;">
+                            Total <br />
+                        </th>
+                        @*<th style="width:5%;">
+                            Shipment <br />
+                        </th>
+                        <th style="width:5%;">
+                            Split <br />
+                        </th>*@
+                    </tr>
+                </thead>
+                <tbody ng-repeat="WO_details in WO_details | filter:search:strict | orderBy:predicate:reverse">
+                    <tr>
+                        <td style="width:10%; display:none;">
+                            {{WO_details.poheadGid}}
+                        </td>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:10%;">
+                            {{WO_details.cbfno}}
+                        </td>
+                        <td style="width:15%;">
+                            {{WO_details.prodservicegroup}}
+                        </td>
+                        <td style="width:10%;">
+                            {{WO_details.prodservicecode}}
+                        </td>
+                        <td style="width:20%;">
+                            {{WO_details.prodservicename}}
+                        </td>
+                        <td style="width:20%;">
+                            {{WO_details.prodservicedesc}}
+                        </td>
+                        @*<td style="width:10%;">
+                            {{WO_details.servicemonth}}
+                        </td>*@
+                        @*<td style="width:5%;">
+                            {{WO_details.quantity}}
+                        </td>
+                        <td style="width:5%;">
+                            {{WO_details.unitprice}}
+                        </td>*@
+                        <td style="width:5%;">
+                            {{WO_details.total}}
+                        </td>
+                        @*<td style="width:5%;">
+
+                            <input type="button"
+                                   value="Shipment"
+                                   class="btn btn-link display Color" />
+                        </td>
+                        <td style="width:5%;">
+                            <input type="button"
+                                   value="Split"
+                                   class="btn btn-link display Color" />
+                        </td>*@
+                    </tr>
+                </tbody>
+
+            </table>
+            <br />
+            <table class="myTableStyleTabNew" align="center">
+
+                <tr>
+                    <td>
+                        <div>
+                            <button type="button" id="btnapprove" name="command" class="btn btn-success" onclick="ReleasePo()" value="Release">
+                                <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Release
+                            </button>
+                            &nbsp;
+                            <button type="button" id="btnreject" class="btn btn-warning" value="Cancel" onclick="BackToReleaseSummary()">
+                                <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var myApp = angular.module('WODetails', []);
+    myApp.service("WOtranService", function ($http) {
+        this.getWODetailsList = function () {
+            var headgid = $("#txtWOheadgid").val();
+            return $http.get("../SCNReleaseForWODetails/GetWODetailsSCN?wohead=" + headgid + '&' + new Date().getTime());
+        };
+
+    });
+    myApp.controller('WODetailsShipment', function ($scope, WOtranService) {
+        GetWODetailsSCN();
+        function GetWODetailsSCN() {
+            var getData = WOtranService.getWODetailsList();
+            getData.then(function (emp) {
+                $scope.WO_details = emp.data;
+            }, function () {
+                alert('Error');
+            });
+        }
+
+    });
+    function ReleasePo() {
+        var headgid = $("#txtWOheadgid").val();    
+                var objrelease =
+                    {
+                        "sheetGid": headgid
+                    };
+                $.post('@Url.Action("SaveReleaseWODetails", "SCNReleaseForWODetails")', objrelease,
+                     function (data) {
+                       
+                         if (data == 0) {
+                             jAlert("Error Occured", "Error");
+                             return false;
+                         }
+                         else {
+                             if (data == "success") {
+                                 jAlert("Released Successfully", "Success", function (e) {
+                                     if (e == true) {                                      
+                                         location = '@Url.Action("SCNRelease", "SCNReleaseForWO")';
+                                     }
+                                 });
+                             }
+                             else {
+                                 jAlert(data, "Error");
+                                 return false;
+                             }
+                         }
+                     }, 'json');           
+    }
+</script>

@@ -1,0 +1,535 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetVRModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.VRModel,
+                         canPage: true,
+                         rowsPerPage: 10,
+                         canSort: false,
+                         ajaxUpdateContainerId: "Avrgrid",
+                         ajaxUpdateCallback: "Avrgrid");
+    int id = @grid.PageIndex;
+    int rowVal = 0;
+
+
+}
+<b>
+    <span style="color: rgb(52, 108, 196);"> Asset Value Reduction</span>
+</b>
+
+<div class="well" id="_page">
+    <div class="row">
+        <div class="col-sm-9">
+            @using (Html.BeginForm())
+            {
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                    <tr>
+                        @*<td>
+                            <div>
+                                <span> Asset Group ID</span>
+                                <br />
+                                <input type="text"
+                                       name="vrfilter"
+                                       id="txtassetgroupid"
+                                       value="@ViewBag.vrfilter"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>*@
+
+                        <td>
+                            <div>
+                                <span> Location</span>
+                                <br />
+                                <input type="text" name="vrlocation" id="txtassetlocvr" value="@ViewBag.vrlocation" class="textboxStyleSearch" maxlength="10"/>
+                            </div>
+
+                        </td>
+
+
+
+                        <td>
+                            <div>
+                                <span> Asset ID</span>
+                                <br />
+                                <input type="text"
+                                       name="vrfilter1"
+                                       id="txtassetidse"
+                                       value="@ViewBag.vrfilter1"
+                                       class="textboxStyleSearch" maxlength="20" style="width:230px" />
+                            </div>
+                        </td>
+
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="CLEAR"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+
+                        </td>
+                        @*<td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="CLEAR"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+
+                        </td>*@
+                        
+                        <td>
+                            <input type="text" name="asset" id="assetidtxt" value="" hidden="hidden">
+                        </td>
+                    </tr>
+                </table>
+            }
+        </div>
+
+
+        <table class="myTableStyleTabNew" style="float:right; margin-right:4px">
+            <tr>
+                <td>
+                    <div style="float:right; padding-right:8px;">
+                        <span> </span>
+                        <br />
+                        @*<button class="btn btn-primary" type="submit" id="closemaker" onclick="closesale()" name="command" value="SALE"><span style="color:white;" class="glyphicon glyphicon-plus"></span> Close</button>*@
+                        <button class="btn btn-primary" type="button" onclick="avrsummary()" name="command" value="AVR"><span style="color:white;" class="glyphicon glyphicon-arrow-left"></span> Back To Summary </button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+    <div>
+        <div id="_grid" style="height:450px">
+            @grid.GetHtml(
+fillEmptyRows: false,
+   tableStyle: "tableSmall table-bordered aligncenter",
+mode: WebGridPagerModes.All,
+htmlAttributes: new { id = "Avrgrid" },
+columns: grid.Columns(
+            grid.Column(header: "S.No", format: item => rowVal = rowVal + 1),
+           // grid.Column("assetdetGroupid", obj.Sorter("assetdetGroupid", "Group ID", grid), style: "col-lg-1 MidColumn20Center"),
+            grid.Column("assetdetDetid", "Asset ID", style: "col-lg-2 MidColumn20Center"),
+                    //grid.Column("assetdetId", obj.Sorter("assetdetId", "Assetid", grid), style: "col-lg-1"),
+            grid.Column("assetcategory", "Category", style: "col-lg-3 MidColumn20Center"),
+            grid.Column("assetsubcategory", "Sub-Category", style: "col-lg-3 MidColumn20Center"),
+            grid.Column("assetdetCode", "Sub-Category Code", style: "col-lg-2 MidColumn20Center"),
+                    // grid.Column("assetdetDescription", obj.Sorter("assetdetDescription", "Asset Description", grid), style: "col-lg-2"),
+                     grid.Column("assetdetAssetvalue","Assetvalue", style: "col-lg-2 MidColumn20 rig"),
+            grid.Column(header: "Action", canSort: false, style: "action",
+             format: @<text>
+            <a title='click here to pick' id="avrcolor" name="@item.assetdetDetid" onclick='vrgridval(name,@item.assetdetAssetvalue,@item.assetdetId)'> <span class='glyphicon glyphicon-ok'> </span></a>
+            </text>)
+                    // grid.Column(format: @<text> <input type="checkbox" value="" name="ids" /> </text>, header: "Select")
+    ))
+
+            <div class="table-bordered btnCenter" align="center">
+                <b> @ViewBag.Message </b>
+            </div>
+
+            <div class="myTableStyleTabNew">
+                <span>  Total No of Records : @Model.VRModel.Count</span>
+            </div>
+
+        </div>
+        <br /><br />
+
+        <div id="_reducetextbox" style="display: none;">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <div>
+                            <span> Asset ID</span>
+                            <br />
+                            <input type="text"
+                                   name="assetid"
+                                   id="txtassetid"
+                                   value="@ViewBag.assetid"
+                                   readonly="readonly"
+                                   class="textboxStyleSearch" maxlength="20" />
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <span> Reduced By</span>
+                            <br />
+                            <input type="text"
+                                   name="reducedby"
+                                   id="txtreducedby"
+                                   value="@ViewBag.reducedby"
+                                   onkeypress="return isNumberKey(event)"
+                                   onkeyup="checkfieldrun()"
+                                  
+                                   class="textboxStyleSearch" maxlength="6" />
+                        </div>
+                    </td>
+
+                    <td>
+                        <div>
+                            <span> Current Value</span>
+                            <br />
+                            <input type="text"
+                                   name="currentvalue"
+                                   id="txtcurrentvalue"
+                                   value="@ViewBag.currentvalue"
+                                   readonly="readonly"
+                                   class="textboxStyleSearch" maxlength="6" />
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <span> New Value</span>
+                            <br />
+                            <input type="text"
+                                   name="newvalue"
+                                   id="txtnewvalue"
+                                   value="@ViewBag.newvalue"
+                                   onkeypress="return isNumberKey(event)"
+                                   disabled="disabled"
+                                   @*onkeyup="checkfieldrun()"*@
+                                   class="textboxStyleSearch" maxlength="6" />
+                        </div>
+                    </td>
+
+                    <td>
+                        <div>
+                            <span> Reduced Date</span>
+                            <br />
+                            <input type="text"
+                                   name="reduceddate"
+                                   id="txtreduceddate"
+                                   @*value="@ViewBag.reduceddate"*@
+                                   value="@System.DateTime.Today.ToShortDateString()"
+                                   disabled="disabled"
+                                   class="textboxStyleSearch" maxlength="20" />
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <span> Ref no</span>
+                            <br />
+                            <input type="text"
+                                   name="refno"
+                                   id="txtrefno"
+                                   value="@ViewBag.refno"
+                                   readonly="readonly"
+                                   class="textboxStyleSearch" maxlength="20" />
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br />
+
+        <div id="_button" align="center" style="padding-bottom:10px; display: none;">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <button class="btn btn-primary" type="button" name="command" onclick='Saveredu()' id="_save" disabled="disabled" value="UPDATE"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                        &nbsp;&nbsp;
+                        <button class="btn btn-primary" type="button" name="command" onclick="Cleartxt()" value="Cancel"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+</style>
+
+
+<script>
+
+    var tr = $("#Avrgrid").find('tr');
+    $("#Avrgrid tr #avrcolor").click(function () {
+        $('#Avrgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#CEECF5');
+    });
+
+
+    function checkfieldrun() {
+
+        // $("#txtreducedby").keyup(function () {
+        var reduceby = $("#txtreducedby").val();
+        if (reduceby.trim() != "") {
+            $("#txtreducedby").removeClass('required');
+            $("#txtreducedby").addClass('valid');
+            CheckField();
+        }
+        else {
+            $("#txtreducedby").removeClass('valid');
+            $("#txtreducedby").addClass('required');
+            $("#txtreducedby").val("");
+            $("#txtnewvalue").val("");
+            $("#_save").attr("disabled", true);
+            CheckField();
+        }
+
+
+        //});
+
+
+        // $("#txtnewvalue").keyup(function () {
+        var newvalue = $("#txtnewvalue").val();
+        if (newvalue.trim() != "") {
+            $("#txtnewvalue").removeClass('required');
+            $("#txtnewvalue").addClass('valid');
+            checkFieldNew();
+        }
+        else {
+            $("#txtnewvalue").removeClass('valid');
+            $("#txtnewvalue").addClass('required');
+            checkFieldNew();
+        }
+        // });
+    }
+    
+
+    $(document).ready(function () {
+
+        $("#txtFilter").datepicker(
+         {
+             changeMonth: true,
+             changeYear: true,
+             dateFormat: 'dd-mm-yy',
+             maxdate: new Date()
+         });
+      
+    });
+
+    var vrfilt = $('#txtassetgroupid').val();
+    var vrfilt1 = $('#txtassetid').val(); 
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+   
+
+    function CheckField() {
+        var ErrorsCount = 0;
+        var reduce = $("#txtreducedby").val();
+        var Curval = $("#txtcurrentvalue").val();        
+        if ($("#txtreducedby").val().trim() == "" || $("#txtreducedby").val() == null) {
+
+            ErrorsCount = 1;
+            checkfieldrun();
+        }
+
+        else if (parseInt(reduce) == parseInt(0)) {
+            $("#txtreducedby").val("");
+            jAlert("The Reduced Value is  Zero !!!")
+            ErrorsCount = 2;
+        }
+
+        else if ($("#txtreducedby").val() > $("#txtcurrentvalue")) {
+
+            jAlert("The Reduced Value is GreaterThen NewValue !!!")
+            ErrorsCount = 3;
+        }
+
+        else {
+            if ($("#txtreducedby").val() < $("#txtcurrentvalue") && parseInt(reduce) != parseInt(0) && parseInt(reduce) != "" || $("#txtreducedby").val() < $("#txtcurrentvalue")) {
+
+                var Newval = 0;
+                Newval = Curval - reduce;
+                if (parseInt(reduce) > parseInt(Curval)) {
+                    $("#txtnewvalue").val("");
+                    $("#txtreducedby").val("");
+                    jAlert("The Reduced Value is GreaterThen CurrentValue !!!");
+                    ErrorsCount = 4;
+                }
+                else {
+                    $("#txtnewvalue").val(Newval);
+                    ErrorsCount = 0;                    
+                }
+                
+            }
+        }
+
+        if (ErrorsCount == 0) {
+            $("#_save").removeAttrs('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+
+
+    function checkFieldNew() {
+        var ErrorsCount = 0;        
+        var Curval = $("#txtcurrentvalue").val();        
+        var Newval = $("#txtnewvalue").val();
+        if ($("#txtnewvalue").val().trim() == "" || $("#txtnewvalue").val() == null) {
+
+            ErrorsCount = 1;
+        }
+
+        else if (parseInt(Newval) == parseInt(0)) {
+            $("#txtnewvalue").val("");
+            jAlert("The Reduced Value is  Zero !!!")
+            ErrorsCount = 2;
+        }
+
+        else if ($("#txtnewvalue").val() > $("#txtcurrentvalue")) {
+
+            jAlert("The Reduced Value is GreaterThen NewValue !!!")
+            ErrorsCount = 3;
+        }
+
+        else {
+            if ($("#txtnewvalue").val() < $("#txtcurrentvalue") && parseInt(Newval) != parseInt(0) && parseInt(Newval) != "") {
+
+                var reduce = 0;
+                reduce = Curval - Newval;
+                if (parseInt(Newval) > parseInt(Curval)) {
+                    $("#txtnewvalue").val("");
+                    $("#txtreducedby").val("");
+                    jAlert("The Reduced Value is GreaterThen CurrentValue !!!");
+                    ErrorsCount = 4;
+                }
+                else {
+                    $("#txtreducedby").val(reduce);
+                    ErrorsCount = 0;                    
+                }
+
+            }
+        }
+
+        if (ErrorsCount == 0) {
+            $("#_save").removeAttrs('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+
+
+    function  Cleartxt() {        
+        $("#txtreducedby").val("");       
+        $("#txtnewvalue").val("");
+        $("#_save").attr("disabled", true);
+        $(function () {
+            $("#txtreducedby").focus();
+        });
+        checkfieldrun();
+    }
+
+
+    function vrgridval(id, valu, assetid) {
+        document.getElementById("_reducetextbox").style.display = "block";
+        document.getElementById("_button").style.display = "block";
+        $('#assetidtxt').val(assetid);
+        $('#txtassetid').val(id);
+        $('#txtcurrentvalue').val(valu);
+        $(function () {
+            $("#txtreducedby").focus();
+        });
+    }
+
+    function Saveredu() {
+        //var asset_id = '@*@Model.AssetVRModel[0].assetdetId*@';
+        var asset_id = $('#assetidtxt').val();
+        var asset_detid = $("#txtassetid").val();
+        var reduce_by = $("#txtreducedby").val();
+        var current_val = $("#txtcurrentvalue").val();
+        var new_val = $("#txtnewvalue").val();
+        var reduce_date = $("#txtreduceddate").val();
+        var ref_no = $("#txtrefno").val();
+        var status = {
+            "assetdetDetid": asset_detid, "assetdetAssetvalue": current_val, "assetreduval": reduce_by,
+            "assetredudat": reduce_date, "assetrefno": ref_no, "assetnewval": new_val, "assetdetId": asset_id
+        };        
+        $.ajax({
+            url: '@Url.Action("ReductionSave","AssetValueReduction")?' + new Date().getTime(),
+            type: 'post',
+            data: JSON.stringify(status),
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "success") {
+                    $('#sagridId').find('tr').css('background', 'none');
+                    jAlert("Asset value reduction successfully Upated", "Message", function (e) {
+                        if (e == true) {
+                            location = '@Url.Action("ValueReductionSummary" , "AssetValueReduction")?' + new Date().getTime();
+                        }
+                    });
+                   
+                  //  jAlert("Asset value reduction successfully Upated", "Message");
+                }
+                else {
+                    jAlert("Asset Value Reduction is Failed", "Message");
+                }
+            }
+            ,
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+
+    }
+        $("#txtassetlocvr").autocomplete({            
+            source: function (request, response) {            
+                $.ajax({
+                    url: '@Url.Action("locautosearch","AssetValueReduction")?' + '&' + new Date().getTime(),
+                    //url: "../AssetValueReduction/locautosearch",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {                      
+                        response($.map(data, function (item) {                          
+                            return { label: item.branchcode, value: item.branchcode};
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+
+    $("#txtassetidse").autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: '@Url.Action("locautoassetid","AssetValueReduction")?' + '&' + new Date().getTime(),
+                //url: "../AssetValueReduction/locautosearch",
+                type: "POST",
+                dataType: "json",
+                data: { term: request.term },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return { label: item.assetdetDetid, value: item.assetdetDetid };
+                    }))
+                }
+            })
+        },
+        messages: {
+            noResults: "", results: ""
+        }
+    });
+
+
+
+    function avrsummary()
+    {
+        location = '@Url.Action("ValueReductionSummary","AssetValueReduction")?' + new Date().getTime();
+    }
+
+</script>

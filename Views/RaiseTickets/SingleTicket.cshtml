@@ -1,0 +1,188 @@
+﻿@{
+    ViewBag.Title = "TicketSummary";
+    Layout = null;
+}
+<script src="~/Scripts/angular.min.js"></script>
+<br />
+<div ng-app="RTappSingle">
+    <div class="well">
+        <fieldset>
+            <legend>
+                <b><span style="color: rgb(52, 108, 196);">Ticket Summary</span></b>
+            </legend>
+            <div ng-controller="ticketControllerSingle">
+                <input type="hidden" ng-model="refname" value="@ViewBag.refname" />
+                <input type="hidden" ng-model="itemrefno" value="@ViewBag.itemrefno" />
+                <div>
+                    <div>
+                        <textarea class="form-control" name="txtCommentsNew" cols="5" style="width:100%;" placeholder="write a comment..."></textarea>
+                        <input type="button" value="Post Your Comment" class="btn-sm btn-primary" ng-click="savecommentsnew()" />
+                    </div>
+                </div>
+                <ul class="list-group-item" data-ng-repeat="ts in ticketsummary | filter:search1:strict">
+                    <li class="list-group-item">
+                        <div style="float:left;width:3%;">
+                            <div ng-if="ts.TicketFromGender == 'M' || ts.TicketFromGender == 'N'">
+                                <img src="~/Content/images/Mr1.png" width="30" height="30" />
+                            </div>
+                            <div ng-if="ts.TicketFromGender == 'F'">
+                                <img src="~/Content/images/Ms1.png" width="30" height="30" />
+                            </div>
+                        </div>
+                        <div style="float:right;width:97%;">
+                            <b style="color:navy">{{ts.TicketNumber}} &nbsp; - &nbsp; {{ts.RefFlag}} &nbsp; - &nbsp; <a class="linkComment" title="view" href="#" ng-click="viewitem(ts.ItemGid,ts.RefFlag)">{{ts.ItemRefNumber}}</a></b>
+                            <br />
+                            <b>{{ts.TicketContent}}</b>
+                        </div>
+                        <br />
+                        <div>
+                            <span>{{ts.TicketFromName}}</span>&nbsp;
+                            <span>{{ts.TicketDate}}</span>&nbsp;
+                            <a class="linkComment" href="#" ng-click="toggleComment(ts.TicketNumber)">Comment</a>
+                            <div>
+                                <input type="hidden" value="{{ts.TicketNumber}}" name="TicNum">
+                                <ul class="list-group-item-success" data-ng-repeat="rs in replies">
+                                    <li class="list-group-item" ng-if="rs.TicketNumber ==ts.TicketNumber">
+                                        <div style=" float:left;width:3%;">
+                                            <div ng-if="rs.TicketFromGender == 'M' || rs.TicketFromGender == 'N'">
+                                                <img src="~/Content/images/Mr1.png" width="30" height="30" />
+                                            </div>
+                                            <div ng-if="rs.TicketFromGender == 'F'">
+                                                <img src="~/Content/images/Ms1.png" width="30" height="30" />
+                                            </div>
+
+                                        </div>
+                                        <div style="float:right;width:97%;">
+                                            <b>{{rs.TicketContent}}</b>
+                                        </div>
+                                        <br />
+                                        <div>
+                                            <span>{{rs.TicketFromName}}</span>&nbsp;
+                                            <span>{{rs.TicketDate}}</span>&nbsp;
+                                        </div>
+                                    </li>
+                                </ul>
+                                <div style="display: block" id="{{ts.TicketNumber}}">
+                                    <textarea class="form-control" name="{{ts.TicketNumber}}" style="width:100%;" placeholder="write a comment..."></textarea>
+                                    <input type="button" value="Post Your Comment" class="btn-sm btn-primary" ng-click="savecomments(ts.TicketNumber)" />
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </fieldset>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var myApp1 = angular.module('RTappSingle', ['ui.bootstrap']);
+    myApp1.service("ticketServiceSingle", function ($http) {
+            this.getTicketSummary = function () {
+                var refflag = $scope.refname;
+                var itemrefno = $scope.itemrefno;
+                return $http.get("../RaiseTickets/GetTicketSummarySingle?refflag=" + refflag + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+            };
+        });
+    myApp1.controller('ticketControllerSingle', function ($scope, ticketServiceSingle) {
+        alert("hi");
+            GetTicketDetails1();
+            function GetTicketDetails1() {
+                alert("hi");
+                var getData = ticketServiceSingle.getTicketSummary();
+                getData.then(function (response) {
+                    $scope.ticketsummary = JSON.parse(response.data.data0);
+                    $scope.replies = JSON.parse(response.data.data1);
+                }, function () {
+                    alert('Error');
+                });
+            }
+            $scope.toggleComment = function (ticnum) {
+                $("[id=" + ticnum + "]").slideToggle();
+            }
+            $scope.savecomments = function (ticnum) {
+                var comments = $("[name=" + ticnum + "]").val();
+                if (comments == "" || comments == null) {
+                    jAlert("Please Enter Comments", "Error", function () {
+                        $("[name=" + ticnum + "]").focus();
+                        return false;
+                    });
+                    return false;
+                }
+                var objRaiseTic = {
+                    "TicketNumber": ticnum,
+                    "TicketContent": comments
+                };
+                $.ajax({
+                    url: '../RaiseTickets/InsertTicketComments?' + new Date().getTime(),
+                    data: JSON.stringify(objRaiseTic),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == 1) {
+                            GetTicketDetails();
+                        }
+                        else {
+                            jAlert("Error While Inserting Comments", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Something Went wrong", "Error");
+                    }
+                });
+            }
+            $scope.viewitem = function (itemgid, refflag) {
+                var gid = parseInt(itemgid);
+                if (refflag == "PAR") {
+                    window.open("../FLEXIBUY/ParRaiserEdit/ParRaiserEditIndexView?parheadgid=" + gid, "_blank");
+                }
+
+            }
+
+            $scope.savecommentsnew = function () {
+                var refflag = $scope.refname;
+                var itemrefno = $scope.itemrefno;
+                var comments = $("[name=txtCommentsNew]").val();
+                if (comments == "" || comments == null) {
+                    jAlert("Please Enter Comments", "Error", function () {
+                        $("[name=txtCommentsNew]").focus();
+                        return false;
+                    });
+                    return false;
+                }
+                var objRaiseTic = {
+                    "TicketContent": comments,
+                    "RefFlag": refflag,
+                    "ItemRefNumber":itemrefno
+                };
+                $.ajax({
+                    url: '../RaiseTickets/InsertTicketCommentsNew?' + new Date().getTime(),
+                    data: JSON.stringify(objRaiseTic),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == 1) {
+                            GetTicketDetails();
+                        }
+                        else {
+                            jAlert("Error While Inserting Comments", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Something Went wrong", "Error");
+                    }
+                });
+            }
+        });
+
+</script>

@@ -1,0 +1,156 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var grid = new WebGrid(source: Model.cbfPrdetarils, canPage: true, canSort: true, rowsPerPage: 5, selectionFieldName: "selectedrow", ajaxUpdateContainerId: "grid1details", ajaxUpdateCallback: "Dum()");
+    int rowNum = 0;
+}
+<input type="hidden" id="hid_prheadergid" value="@Session[" opex_idprdetails"]" />
+@using (Html.BeginForm())
+{
+    <div>
+        @*<h4>
+                PR Details
+            </h4>*@
+        <span style="color:rgb(52,108,196);">PR Details</span>
+    </div>
+    <div class="borderStyle panel panel-default" id="prdetails">
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+        <br />
+        @if (grid.HasSelection)
+        {
+
+        }
+        <table align="center">
+            <tr>
+                <td>
+                    <div id="grid_details" class="container">
+                        @grid.GetHtml(
+                            tableStyle: "tableSmall table-bordered ",
+                            selectedRowStyle: "selectedrow",
+                            htmlAttributes: new { id = "grid1details" },
+            mode: WebGridPagerModes.All,
+                            columns: grid.Columns(
+             grid.Column("Sl", format: item => rowNum = rowNum + 1, canSort: false),
+             grid.Column("productGroup", sorter("productGroup", "Service Group", grid), canSort: false),
+             grid.Column("productCode", sorter("productCode", "Service Code", grid), canSort: false),
+             grid.Column("productName", sorter("productName", "Product Name", grid), canSort: false),
+             grid.Column("productDescription", sorter("productDescription", "Product Description", grid), style: "MidColumn30", canSort: false),
+             grid.Column("rate", sorter("rate", "Rate", grid), canSort: false),
+             grid.Column("costestimation", sorter("costestimation", "Cost Estimation", grid), canSort: false),
+                            grid.Column(header: "Action", canSort: false, style: "action",
+                            format: @<text>
+                                <input type="checkbox" href="@item.prdetGid" value="@item.prdetGid" class="btn btn-link" name="ids" onchange="searchfunction(value,this)" id="chk_id_@item.prdetGid" title="Select" />
+                            </text>)))
+                        <div class="borderStyle">
+                            @ViewBag.NoRecordsFound
+                        </div>
+                    </div>
+
+                    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.cbfPrdetarils.Count</label>
+
+                </td>
+            </tr>
+        </table>
+
+    </div>
+    <script src="~/Scripts/Partial.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            $("#cbf_dev, #inchartofaccount, #inbudgetline").keypress(function (event) {
+                return isNumber(event, this);
+            });
+        });
+        $(document).ready(function () {
+            $('#grid1details tr:has(td)').mouseover(function () {
+                $(this).addClass('row-highlight');
+            });
+            $('#grid1details tr').mouseout(function () {
+                $(this).removeClass('row-highlight');
+            })
+        })
+        function searchfunction(value, element) {
+
+            var row = $(element).closest("tr");
+            $("#grid1details td").find("input:checkbox").each(function () {
+                $('#grid_cbfdetails').show();
+                var id = $(this).attr('href')
+                if (value == id) {
+
+                    if ($('#chk_id_' + value + '').is(":checked") == true) {
+                        $(this).closest('tr').css('background', '#ccc');
+
+                        var value1 = value;
+                        var objPrDelGid =
+                        {
+                            "prdetailsGid": value
+                        };
+                        $.ajax({
+                            url: '../VendorOpex/Vendorcbfprdetails?' + new Date().getTime(),
+                            type: 'POST',
+                            //contentType: "application/json; charset=utf-8",
+                            data: objPrDelGid,
+                            success: function (data) {
+                                if (data == 0) {
+                                    jAlert("Error Occured", "Error");
+                                    return false;
+                                }
+                                else {
+                                    $("#cbfdetailsgrid").load('@Url.Action("Vendorcbfprdetails", "VendorOpex")?' + new Date().getTime());
+                                    //$("#cbfdetailsgrid").empty().append(data);
+                                    $('.display-mode').hide();
+                                }
+                            },
+                            error: function () {
+
+                                jAlert("something seems wrong", "Error");
+                            }
+                        });
+                    }
+                    else if ($('#chk_id_' + value + '').is(":not(:checked)")) {
+                        $(this).closest('tr').css('background', 'none');
+                        var value1 = value
+                        var objUnchecked1 =
+                        {
+                            "unchecked12": value1
+                        };
+                        $.ajax({
+                            url: "../VendorOpex/Vendorcbfprdetails/",
+                            type: 'POST',
+                            //contentType: "application/json; charset=utf-8",
+                            data: objUnchecked1,
+                            success: function (data) {
+                                if (data == 0) {
+                                    jAlert("Error Occured", "Error");
+                                    return false;
+                                }
+                                else {
+                                    $("#cbfdetailsgrid").empty().append(data);
+                                }
+                            },
+                            error: function () {
+                                jAlert("something seems wrong", "Error");
+                            }
+                        });
+                    }
+
+
+                }
+                else {
+                    $(this).closest('tr').css('background', 'none');
+                    $('#chk_id_' + id + '').attr('checked', false);
+
+                }
+
+            });
+        }
+    </script>
+}
+
+
+

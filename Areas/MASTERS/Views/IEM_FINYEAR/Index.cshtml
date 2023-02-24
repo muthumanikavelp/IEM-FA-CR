@@ -1,0 +1,231 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_finayear>
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, rowsPerPage: 15, canSort: true);
+    int id = @grid.PageIndex;
+    CmnFunctions cmn = new CmnFunctions();
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<b>
+    <span style="color: rgb(52, 108, 196);">Financial Year</span>
+</b>
+<br /><br />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-9">
+                <table class="myTableStyleTabNew">
+                    <tr>
+                        <td>
+                            <div class="input-append ">
+                                <span> Finance Year Code </span>
+                                <br />
+                                <input type="text"
+                                       name="financeyearcode"
+                                       id="txtfinayearcode"
+                                       value="@ViewBag.finaceyearcode"
+                                       class="form-control"
+                                       maxlength="8"
+                                       style="display: block;"
+                                       autocomplete="off"
+                                       onkeypress="return isNumberKey(event)" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span> Starting Date  </span>
+                                <br />
+                                <input type="text"
+                                       name="finperiodfrom"
+                                       id="txtfinperiodfrom"
+                                       value="@ViewBag.periodfrom"
+                                       class="form-control"
+                                       style="display: block;"
+                                       maxlength="10"
+                                       autocomplete="off" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span>  Ending Date  </span>
+                                <br />
+                                <input type="text"
+                                       name="finperiodto"
+                                       id="txtfinperiodto"
+                                       value="@ViewBag.periodto"
+                                       class="form-control"
+                                       style="display: block;"
+                                       maxlength="10"
+                                       autocomplete="off"
+                                       onkeypress="return isNumberKey(event)" />
+                            </div>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:20px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:10px;" class="myTableStyle">
+                            <button type="button" value="New City" onclick="NewType()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Finance Year</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:9px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+         htmlAttributes: new { id = "gridfinanceyear" },
+  tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+        columns: grid.Columns
+            (
+    
+  grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+grid.Column("finyear_code", Sorter("finyear_code", "Finance Year Code", grid)),
+grid.Column("finyear_start_date", Sorter("finyear_start_date", "Finance Starting Date", grid)),
+grid.Column("finyear_end_date", Sorter("finyear_end_date", "Finance Ending Date", grid)),  
+
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' onclick='ViewType(" + item.finyear_gid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Edit' onclick='EditType(" + item.finyear_gid + ")'> <span class='glyphicon glyphicon-edit' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Delete' onclick='DeleteFinanceYear(" + item.finyear_gid + ")'> <span class='glyphicon glyphicon-trash' id='Color'> </span> </a> ")
+                </text>))))
+
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+        <br />
+        @if (@ViewBag.Message == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+        }
+    </div>
+}
+<div id="ForPartialView"></div>
+<div id="ForPartialViewfordelete"></div>
+<div id="ForPartialViewforedit"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialogforedit;
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilter").focus();
+        });
+        var tr = $("#gridfinanceyear").find('tr');
+        $("#gridfinanceyear tr #Color").click(function () {
+            $('#gridfinanceyear').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+        $("#txtcurrencyname").focus();
+        $("#txtcurrencyname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter2").focus();
+        $("#txtFilter2").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+    });
+    $("#txtfinperiodfrom").datepicker({
+        dateFormat: 'dd-mm-yy'
+    });
+
+    $("#txtfinperiodto").datepicker({
+        dateFormat: 'dd-mm-yy'
+    });
+
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        //objDialogfordelete = $("[id$='ForPartialViewfordelete']");
+        //objDialogforedit = $("[id$='ForPartialViewforedit']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 280,            
+            resizable: false
+        });
+    });
+
+    function isNumberKey(evt) {
+
+        var charCode = (evt.which) ? evt.which : event.keyCode
+
+        if (charCode == 45 || charCode == 8 || charCode == 48 || charCode == 49 || charCode == 50 || charCode == 51 || charCode == 52 || charCode == 53 || charCode == 54 || charCode == 55 || charCode == 56 || charCode == 57) {
+
+           
+            return true;
+
+        }
+        else {
+
+           
+            return false;
+
+        }
+
+    } 
+    function NewType() {
+        objDialog.load('../IEM_FINYEAR/Create');
+        objDialog.dialog({ title: 'Add Finance Year' });
+        objDialog.dialog("open");
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_FINYEAR/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Finance Year' });
+        objDialog.dialog("open");
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_FINYEAR/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Finance Year' });
+        objDialog.dialog("open");
+    }
+    function DeleteFinanceYear(id) {
+        objDialog.load('../IEM_FINYEAR/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: ' Delete Finance Year' });
+        objDialog.dialog("open");
+    }
+
+    function refresh() {
+        location = '../IEM_FINYEAR/Index';
+    }
+
+</script>

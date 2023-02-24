@@ -1,0 +1,857 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_EmployeeeExpense
+@using IEM.Areas.EOW.Models
+@{
+    EOW_EmployeeeExpense sh = (EOW_EmployeeeExpense)ViewBag.EOW_EmployeeeExpenseheader;
+}
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<style>
+    .diapy {
+        display: none;
+    }
+
+    .wth {
+        width: 100%;
+        height: 60px;
+    }
+</style>
+<div class="panel33 panel33-default33">
+    @using (Html.BeginForm())
+    {
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 75%;background-color: #F5F5F5;border-radius: 10px;padding: 2px 12px 0px 10px; vertical-align:top;">
+                    <table class="myTableStyleTabNew" style="width: 100%;">
+                        <tr>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ECF_Date, new { @id = "txtecfdateh" })
+                                <span>ECF Date</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Date, new { disable = true, @class = "textboxStyle required", @id = "txtecfdate", @maxlength = "10", @placeholder = "dd-mm-yyyy", @readonly = "readonly" })
+
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ClaimMonth, new { @id = "txtclaimmonthh" })
+                                <span>Service  Month</span><br />
+                                @Html.TextBoxFor(n => n.ClaimMonth, new { disable = true, @class = "textboxStyle required monthYearPicker", @id = "txtclaimmontht", @maxlength = "20", @placeholder = "MMM-yyyy" })
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.noofperson, new { @id = "txtnoofpersonh" })
+                                <span>No.of Persons</span><br />
+                                @Html.TextBoxFor(n => n.noofperson, new { disable = true, @class = "textboxStyle", @id = "txtnoofpersont", @onkeypress = "return isAmount(event);", @maxlength = "3" })
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ECF_Amount, new { @id = "txtecfamounth" })
+
+                                @*length fixed by selva*@
+                                <span>ECF  Amount</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Amount, new { disable = true, @class = "textboxStyle required", @id = "txtecfamount", @onkeypress = "return isAmount(event);", @maxlength = "13" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:75%;" colspan="3">
+                                @Html.HiddenFor(n => n.ecfremark, new { @id = "txtecfremarkh" })
+                                @Html.HiddenFor(n => sh.ecfdescription, new { @id = "txtecfdescriptionh" })
+                                <span>ECF Description</span><br />
+                                @Html.TextAreaFor(n => n.ecfdescription, new { disable = true, @class = "textboxStyle required wth", @id = "txtecfdescription", @maxlength = "255" })
+                            </td>
+                            <td style="width:25%; vertical-align:bottom; text-align:right;">
+                                @if (@ViewBag.process != "second")
+                                {
+                                    <button id="btnfrstsubmitfrst" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-share"></span> Proceed</button>
+                                }
+                                else
+                                {
+                                    <button id="btnfrstsubmitfrst" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-share"></span> Proceed</button>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td align="left" style="width:25%; background-color: #E3E3E3; border-radius: 10px; padding: 2px 6px 2px 6px;">
+                    <fieldset>
+                        <legend><center> <span style="font-weight:bold; font-size:14px; padding:3px;">RAISER DETAILS</span></center></legend>
+                        <table class="myTableStyleTabNew" style="border-top:solid 1px black;" width="100%">
+                            <tr>
+                                <td>
+                                    <span>Raiser Mode</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    @Html.DropDownListFor(n => n.raisermodeId, sh.Raiser_Modedata, new { @class = "textboxStyle required diapy", @id = "raisermodeName", @disabled = "disabled" })
+                                    <label id="txtmodest"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Code</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtraisercode">@sh.Raiser_Code</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Name</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtraisername">@sh.Raiser_Name</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Grade</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtgrade">@sh.Grade</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                </td>
+            </tr>
+        </table>
+    }
+    <div>
+        @if (@ViewBag.process == "second")
+        { <fieldset>
+            <legend> <span> ECF File Upload Details</span> </legend>
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="padding-top: 10px;width: 25%;">
+                        <form id="theuploadlocal">
+                            <input type="file" name="UploadFile" id="fileuploadlocal" class="fileuploadlocal" />
+                        </form>
+                    </td>
+                    <td style="padding-top: 10px;width:20%;">
+                        @Html.DropDownListFor(model => model.SubCategoryId, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle", @id = "ddlSelectsheet", @name = "ddlSelectsheet" })
+                    </td>
+                    <td style="padding-top: 10px;width:40%;">
+
+                        <button id="btnfrstsubmit" class="btn btn-primary" type="submit" onclick="Newlocalconnew()"><span style="color:white" class="glyphicon glyphicon-upload"></span> Upload</button>
+                        <button id="btncanpayclear" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                     
+                        @Html.ActionLink("Download Template", "DownloadLCFTemplate", "LocalConveyanceNew")
+                    </td>
+                    <td style="padding-top: 15px;width:15%;"></td>
+                </tr>
+            </table>
+        </fieldset>
+        }
+        else
+        {
+            <div style="padding-left: 25px;padding-top: 20px;color: red;">
+                @if (@ViewBag.message != null)
+                {
+                    <script language="javascript">
+                        jAlert('@ViewBag.message', "Message");
+                    </script>
+                }
+            </div>
+        }
+    </div>
+</div>
+<div id="ForPartialViewLocalconveyance"></div>
+
+<script type="text/javascript">
+    function localconveycol() {
+        //objDialogPayment.remove();
+        //$("#ui-icon-closethick").click();
+        objDialogLocalconveyance.dialog("close");
+        window.parent.jQuery('#ForPartialViewLocalconveyance').dialog('close');
+    }
+    var objDialogLocalconveyance;
+    $(document).ready(function () {
+        objDialogLocalconveyance = $("[id$='ForPartialViewLocalconveyance']");
+        objDialogLocalconveyance.length = 1;
+        objDialogLocalconveyance.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+            width: 600,
+            height: 300
+        });
+
+    });
+    function Clear() {
+        $("#ddlSelectsheet").empty();
+        $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+        var Provision = "N";
+        var NewAttmodel = {
+            "Provision": Provision
+        };
+        $.post('../LocalConveyanceNew/_Localconveyancecclear', NewAttmodel,
+        function (data) {
+            if (data == "Error") {
+                jAlert("Error...........", "Message");
+                return false;
+            }
+            else {
+                $("#processworkingdata").html("");
+                $("#processworkingdatanew").html("");
+                $('#btnfrstsubmit').attr('disabled', false);
+
+                $fileInput = $('#fileuploadlocal');
+                $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+
+                $("#fileuploadlocal").val('');
+            }
+        }, 'json');
+    }
+    $('#btncanpayclear').click(function () {
+        Clear();
+    });
+    function Newlocalconnew()
+    {
+        debugger;
+        showProgress();
+        var txtnoofpersont = $("#txtnoofpersont").val();
+        var ecfamount = $("#txtecfamount").val();
+        var ClaimMonth = $("#txtclaimmontht").val();
+        if (ecfamount == null || ecfamount == "") {
+            hideProgress();
+            jAlert("Please Enter ECF Amount.", "Message");
+            return false;
+        }
+        var sheet = $("#ddlSelectsheet option:selected").text();
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            hideProgress();
+            jAlert("Please Select valid File.", "Message");
+            $("#ddlSelectsheet").focus();
+            return false;
+        }
+        var objcbf =
+             {
+                 "Branch": sheet.trim(),
+                 "ClaimMonth": ClaimMonth,
+                 "Amount": ecfamount
+             };
+        $.ajax({
+            url: "../LocalConveyanceNew/Localconveyancestatuserr/",
+            type: 'POST',
+            cache: false,
+            data: objcbf,
+
+            success: function (data) {
+                if (data == "Success") {
+                    var url = '@Url.Action("_Localconveyancestatus", "LocalConveyanceNew")?noperson=' + txtnoofpersont + '&ecfamount=' + ecfamount + '&' + new Date().getTime();
+                    objDialogLocalconveyance.length = 1;
+                    objDialogLocalconveyance.load(url);
+                    objDialogLocalconveyance.dialog({ title: 'Upload Summary' });
+                    objDialogLocalconveyance.dialog("open");
+
+                }
+                else {
+                    $fileInput = $('#fileuploadlocal');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#fileuploadlocal").val('');
+                    hideProgress();
+                    jAlert("Invalid Template", "Message");
+                    return false;
+                }
+            },
+            error: function () {
+                hideProgress();
+                $fileInput = $('#fileuploadlocal');
+                $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                $("#fileuploadlocal").val('');
+                jAlert("something seems wrong", "Message");
+                return false;
+            }
+        });
+
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $("#txtecfamount").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#txtecfamount").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtecfamount").val(replaceCommas(currentval));
+
+        });
+        var txtecfdescriptionh = $("#txtecfdescriptionh").val();
+        if (txtecfdescriptionh.trim() != "") {
+            $("#txtecfdescription").val(txtecfdescriptionh);
+        }
+
+        var txtnoofpersont = $("#txtnoofpersont").val();
+        if (txtnoofpersont == "") {
+            $("#txtnoofpersont").val('1');
+        }
+        var txtecfdateh = $("#txtnoofpersonh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtnoofpersont").val(txtecfdateh);
+        }
+
+        var txtecfdateh = $("#txtecfdateh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtecfdate").val(txtecfdateh);
+        }
+
+        var txtclaimmonthh = $("#txtclaimmonthh").val();
+        if (txtclaimmonthh.trim() != "") {
+            $("#txtclaimmontht").val(txtclaimmonthh);
+        }
+
+        var txtecfamounth = $("#txtecfamounth").val();
+        if (txtecfamounth.trim() != "") {
+            $("#txtecfamount").val(txtecfamounth);
+        }
+
+        $("#txtecfdescriptionh").val('');
+        $("#txtecfdateh").val('');
+        $("#txtclaimmonthh").val('');
+        $("#txtecfamounth").val('');
+        $("#txtnoofpersonh").val('');
+
+        $("#txtecfdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            minDate: '+id'
+        });
+        var selmode = $("#raisermodeName option:selected").text();
+        if (selmode.trim() != "") {
+            $("#txtmodest").text(selmode);
+        }
+        else {
+            $("#txtmodest").text('Self');
+        }
+        var txtecfdescription = $("#txtecfdescription").val();
+        if (txtecfdescription.trim() != "") {
+            $("#txtecfdescription").addClass('valid');
+        }
+        else {
+            $("#txtecfdescription").addClass('required');
+        }
+    });
+    $(function () {
+        $('.monthYearPicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            maxDate: '-id',
+            dateFormat: 'MM-yy'
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            });
+        });
+    });
+    $(document).ready(function () {
+        var txtContractFrom = $("#txtecfdate").val();
+        if (txtContractFrom == "") {
+            $('#txtecfdate').datepicker().datepicker('setDate', 'today');
+            $("#txtecfdate").removeClass('required');
+            $("#txtecfdate").addClass('valid');
+        }
+        $('#btnfrstsubmitfrst').click(function () {
+            showProgress();
+            var raisermode = $("#raisermodeName").val().trim();
+            var raisercode = $("#txtraisercode").text().trim();
+            var raisername = $("#txtraisername").text().trim();
+            var claimmonth = $("#txtclaimmontht").val();
+            var ecfdate = $("#txtecfdate").val();
+            var grade = $("#txtgrade").text();
+
+            var ecfamount = $("#txtecfamount").val();
+
+            if (raisermode == null || raisermode == "0") {
+                hideProgress();
+                jAlert("Please Select Raiser Mode.", "Message");
+                //$("#_CustomerName").focus();
+                return false;
+            }
+            if (raisercode == null || raisercode == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Code.", "Message");
+                return false;
+            }
+            if (raisername == null || raisername == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Name.", "Message");
+                return false;
+            }
+            if (ecfdate == null || ecfdate == "") {
+                hideProgress();
+                jAlert("Please Select ECF Date.", "Message");
+                return false;
+            }
+            @*if (ecfdate != null && ecfdate != "") {
+                if (ecfdate.length == 10) {
+                    var Student =
+                    {
+                        "ECF_Date": ecfdate
+                    };
+                    $.ajax({
+                        url: '@Url.Action("checkvalataeemployeeS", "EmployeeClaimNew")?' + new Date().getTime(),
+                        data: JSON.stringify(Student),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == "NotRaise") {
+                                jAlert("Employee Can't Raise ECF", "Message");
+                                return true;
+                            }
+                        },
+                        error: function (result) {
+                            jAlert("Error.", "Error");
+                            return false;
+                        }
+                    });
+                }
+            }*@
+            if (grade == null || grade == "") {
+                hideProgress();
+                jAlert("Please Enter  Grade.", "Message");
+                return false;
+            }
+            if (claimmonth == null || claimmonth == "") {
+                hideProgress();
+                jAlert("Please Select the Service Month", "Message");
+                return false;
+            }
+            if (ecfamount == null || ecfamount == "") {
+                hideProgress();
+                jAlert("Please Enter ECF Amount.", "Message");
+                return false;
+            }
+            if ($("#txtecfamounth").val() != $("#txtecfamount").val()) {
+                Clear();
+            }
+
+        });
+        $("#txtnoofpersont").keyup(function () {
+            var txtContractFrom = $("#txtnoofpersont").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtnoofpersont").removeClass('required');
+                $("#txtnoofpersont").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtnoofpersont").removeClass('valid');
+                $("#txtnoofpersont").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        $("#txtnoofpersont").change(function () {
+            var txtContractFrom = $("#txtnoofpersont").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtnoofpersont").removeClass('required');
+                $("#txtnoofpersont").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtnoofpersont").removeClass('valid');
+                $("#txtnoofpersont").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        var txtContractFrom = $("#txtnoofpersont").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtnoofpersont").addClass('valid');
+        }
+        else {
+            $("#txtnoofpersont").addClass('required');
+        }
+
+
+
+        $("#txtecfdate").keyup(function () {
+            var txtContractFrom = $("#txtecfdate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdate").removeClass('required');
+                $("#txtecfdate").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtecfdate").removeClass('valid');
+                $("#txtecfdate").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        $("#txtecfdate").change(function () {
+            var txtContractFrom = $("#txtecfdate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdate").removeClass('required');
+                $("#txtecfdate").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtecfdate").removeClass('valid');
+                $("#txtecfdate").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        var txtContractFrom = $("#txtecfdate").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdate").addClass('valid');
+        }
+        else {
+            $("#txtecfdate").addClass('required');
+        }
+
+        $("#txtecfdescription").keyup(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdescription").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdate").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        $("#txtecfdescription").change(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdescription").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdate").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        var txtContractFrom = $("#txtecfdescription").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdescription").addClass('valid');
+        }
+        else {
+            $("#txtecfdescription").addClass('required');
+        }
+
+
+        $("#txtecfamount").keyup(function () {
+            var txtContractFrom = $("#txtecfamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfamount").removeClass('required');
+                $("#txtecfamount").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtecfamount").removeClass('valid');
+                $("#txtecfamount").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+
+        });
+        var txtContractFrom = $("#txtecfamount").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfamount").addClass('valid');
+        }
+        else {
+            $("#txtecfamount").addClass('required');
+        }
+        $("#raisermodeName").keyup(function () {
+            var txtContractFrom = $("#raisermodeName").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeName").removeClass('required');
+                $("#raisermodeName").addClass('valid');
+            }
+            else {
+                $("#raisermodeName").removeClass('valid');
+                $("#raisermodeName").addClass('required');
+            }
+        });
+        $("#raisermodeName").change(function () {
+            var txtContractFrom = $("#raisermodeName").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeName").removeClass('required');
+                $("#raisermodeName").addClass('valid');
+            }
+            else {
+                $("#raisermodeName").removeClass('valid');
+                $("#raisermodeName").addClass('required');
+            }
+        });
+
+        $("#txtclaimmontht").keyup(function () {
+            var txtContractFrom = $("#txtclaimmontht").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtclaimmontht").removeClass('valid');
+                $("#txtclaimmontht").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+        var txtContractFrom = $("#txtclaimmontht").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtclaimmontht").addClass('valid');
+        }
+        else {
+            $("#txtclaimmontht").addClass('required');
+        }
+        $("#txtclaimmontht").change(function () {
+            var txtContractFrom = $("#txtclaimmontht").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+
+                var claimmonth = $("#txtclaimmontht").val();
+                var ecfdate = $("#txtecfdate").val();
+                var ecfamount = $("#txtecfamount").val();
+                var ecfdesc = $("#txtecfdescription").val();
+                var ecfnoper = $("#txtnoofpersont").val();
+                if (claimmonth == "" || ecfdate == "" || ecfamount == "" || ecfdesc == "" || ecfnoper == "") {
+                    $("#btnfrstsubmitfrst").attr("disabled", true);
+                }
+                else {
+                    $("#btnfrstsubmitfrst").removeAttr('disabled');
+                }
+            }
+            else {
+                $("#txtclaimmontht").removeClass('valid');
+                $("#txtclaimmontht").addClass('required');
+                $("#btnfrstsubmitfrst").attr("disabled", true);
+            }
+        });
+
+        $("#ddlSelectsheet").keyup(function () {
+            var txtContractFrom = $("#ddlSelectsheet option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlSelectsheet").removeClass('required');
+                $("#ddlSelectsheet").addClass('valid');
+            }
+            else {
+                $("#ddlSelectsheet").removeClass('valid');
+                $("#ddlSelectsheet").addClass('required');
+            }
+        });
+        $("#ddlSelectsheet").change(function () {
+            var txtContractFrom = $("#ddlSelectsheet option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlSelectsheet").removeClass('required');
+                $("#ddlSelectsheet").addClass('valid');
+            }
+            else {
+                $("#ddlSelectsheet").removeClass('valid');
+                $("#ddlSelectsheet").addClass('required');
+            }
+        });
+        var txtContractFrom = $("#ddlSelectsheet option:selected").text();
+        if (txtContractFrom.trim() != "--Select--") {
+            $("#ddlSelectsheet").addClass('valid');
+        }
+        else {
+            $("#ddlSelectsheet").addClass('required');
+        }
+
+        //$("#txtecfdescription").keyup(function () {
+        //    var txtContractFrom = $("#txtecfdescription").val();
+        //    if (txtContractFrom.trim() != "") {
+        //        $("#txtecfdescription").removeClass('required');
+        //        $("#txtecfdescription").addClass('valid');
+        //    }
+        //    else {
+        //        $("#txtecfdescription").removeClass('valid');
+        //        $("#txtecfdescription").addClass('required');
+        //    }
+        //});
+        //$("#txtecfdescription").change(function () {
+        //    var txtContractFrom = $("#txtecfdescription").val();
+        //    if (txtContractFrom.trim() != "") {
+        //        $("#txtecfdescription").removeClass('required');
+        //        $("#txtecfdescription").addClass('valid');
+        //    }
+        //    else {
+        //        $("#txtecfdescription").removeClass('valid');
+        //        $("#txtecfdescription").addClass('required');
+        //    }
+        //});
+    });
+</script>
+@*<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>*@
+<script>
+    $(".fileuploadlocal").on('change', function (e) {
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#theuploadlocal');
+        form.attr("action", "../LocalConveyanceNew/UploadFileslocal");
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe");
+        form.attr("file", $('#fileuploadlocal').val());
+        form.submit();
+        getlocalsheets();
+    });
+
+    function getlocalsheets() {
+        var data = "local";
+        $.ajax({
+            type: "POST",
+            url: '../LocalConveyanceNew/getdsheets',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                if (result == "") {
+                    $("#ddlSelectsheet").empty();
+                    $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+                    $fileInput = $('#fileuploadlocal');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#fileuploadlocal").val('');
+                    jAlert("Please Check The File Format and Upload", "Message");
+                    return false;
+                }
+                else {
+                    $("#ddlSelectsheet").empty();
+                    $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+                    var err = result[0].SheetName;
+                    if (err == "Error") {
+                        jAlert("Please Upload Valid File", "Message");
+                        return false;
+                    }
+                    else {
+                        if (result.length > 0) {
+                            for (var i = 0; i < result.length; i++) {
+                                var stylesSelect = $('#ddlSelectsheet');
+                                stylesSelect.attr('disabled', false);
+                                $("#ddlSelectsheet").append("<option value=" + result[i].SheetId + " >" + result[i].SheetName + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            var stylesSelect = $('#ddlSelectsheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    }
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                console.log(err);
+            }
+        });
+    }
+</script>

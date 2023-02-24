@@ -1,0 +1,206 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_tier
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display:none ;">
+                <input name="CategoryID" id="_Tiergid" class="form-control" type="text" data-val="true" value="@Model.tier_gid" />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span>Tier Code</span>
+                    <br />
+                <input name="CategoryeName" id="_Tiercode" type="text" class="fstextbox valid" maxlength="30" data-val="true"
+                       value="@Model.tier_code" @ViewBag.viewmode />
+             
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span>Tier Name</span>
+                    <br />
+                <input name="CategoryeName" id="_Tiername" class="fstextbox valid" type="text" maxlength="80"
+                       placeholder="Bank  Name" data-val="true" value="@Model.tier_name" @ViewBag.viewmode />
+               
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center ;">
+              
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()" style="margin-top:10px;  color:white;">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size :12px;"></span> Save
+                        </button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()" style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size :12px;" class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                    }
+              
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white;font-size :12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                        </button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white; font-size :12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                        </button>
+                    }
+            </td>
+        </tr>
+    </table>
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#_Tiercode").focus();
+        $("#_Tiercode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Tiername").focus();
+        $("#_Tiername").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#_Tiercode").keyup(function () {
+            var txtSupplierName = $("#_Tiercode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Tiercode").removeClass('required');
+                $("#_Tiercode").addClass('valid');
+            }
+            else {
+                $("#_Tiercode").removeClass('valid');
+                $("#_Tiercode").addClass('required');
+            }
+        });
+
+        $("#_Tiername").keyup(function () {
+            var txtSupplierName = $("#_Tiername").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Tiername").removeClass('required');
+                $("#_Tiername").addClass('valid');
+            }
+            else {
+                $("#_Tiername").removeClass('valid');
+                $("#_Tiername").addClass('required');
+            }
+        });
+
+
+    });
+</script>
+
+<script type="text/javascript">
+    function Update() {
+        var tiercode = $("#_Tiercode").val().trim();
+        var tiername = $("#_Tiername").val().trim();
+        var tiergid = $("#_Tiergid").val();
+        if (tiercode == "") {
+            jAlert("Please Enter Tier Code !", "Information", function (r) {
+                if (r == true) {
+                    $("#_Tiercode").focus();
+                    return false;
+                }
+            });
+        }
+
+        if (tiername == "") {
+            jAlert("Please Enter Tier Name!", "Information", function (r) {
+                if (r == true) {
+                    $("#_Tiername").focus();
+                    return false;
+                }
+            });
+        }
+        else {
+
+            var CategoryModel = { "tier_gid": tiergid, "tier_code": tiercode, "tier_name": tiername };
+            $.post('../IEM_TIER/UpdateTier', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record Updated Successfully !", "Information", function (r) {
+                            if (r == true) {
+                                window.parent.jQuery('#ForPartialView').dialog('close');
+                                location = '../IEM_TIER/Index';
+                            }
+                        });
+
+                    }
+                }
+            , 'json');
+
+        }
+    }
+
+    function DeleteType() {
+        var tiergid = $("#_Tiergid").val();
+        jConfirm("Do you want to delete this Tier ? ", "Delete Tier", function (j) {
+            if (j == true) {
+                var model = { "tier_gid": tiergid }
+                $.post('../IEM_TIER/DeleteTierDetails', model,
+                     function (data) {
+                         if (data == "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location = '../IEM_TIER/Index'; }
+                             });
+                         }
+                         else {
+                             jAlert(data, "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_TIER/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+
+    }
+    $(".ui-icon-closethick").click(function () {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+        //$('#gridtier').find('tr').css('background', 'none');
+    });
+    function goToIndex() {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+        //$('#gridtier').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+
+    }
+</script>

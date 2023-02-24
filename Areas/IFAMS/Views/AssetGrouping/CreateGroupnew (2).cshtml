@@ -1,0 +1,269 @@
+﻿@{
+    ViewBag.Title = "CreateGroup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model IEM.Areas.IFAMS.Models.GroupModel
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+@using (Html.BeginForm())
+{
+    <span class="pageHeading">New Asset Group</span>
+    <div>
+        <div class="well" style="padding-bottom:50px;">
+            <div style="width:100%">
+                <table class="myTableStyleTabNew">
+                    <tr>
+                        <td>
+                            <span>Location Code</span><br />
+                            <input type="text" name="LocationCode" class="textboxStyle" />
+                        </td>
+                        <td style="display:none">
+                            <span>Capitilization Date</span><br />
+                            <input type="text" ng-model="CapDate" class="textboxStyle" id="txtcapdate"
+                                   value="@ViewBag.capdate"
+                                   readonly="readonly"
+                                   placeholder="dd-mm-yyyy" />
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            @*<button type="submit"  class="btn btn-sm btn-primary" >
+                                    <span class="glyphicon glyphicon-search" style="color:white;"></span>
+                                    Search
+                                </button>*@
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+
+
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            <button type="button" disabled="" class="btn btn-sm btn-success" id="btnAdd">
+                                <span class="glyphicon glyphicon-link" style="color:white;"></span>
+                                Group
+                            </button>
+                        </td>
+                        <td style="vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-warning" id="btnclear">
+                                <span class="glyphicon glyphicon-circle-arrow-left" style="color:white;"></span>
+                                Back
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+
+                <br />
+
+
+                <div id="gridsearch" >
+                    @{
+    var grid = new WebGrid(
+    source: Model.GModel,
+    canPage: true,
+     rowsPerPage: 20,
+    canSort: true,
+   ajaxUpdateCallback: "assetdetails", ajaxUpdateContainerId: "assetdetails"
+    );
+    @grid.GetHtml(
+                    htmlAttributes: new { id = "grpgridnew" },
+                    fillEmptyRows: false,
+                         mode: WebGridPagerModes.All,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                    columns: grid.Columns(
+                            grid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                            + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage)
+                            * grid.RowsPerPage * grid.PageIndex),
+                            grid.Column("_asset_id", "Asset ID", style: "MidColumn50"),
+                            grid.Column("_asset_cat", "Category", style: "MidColumn50"),
+                            grid.Column("_asset_subcat", "Subcategory Code", style: "MidColumn30"),
+                            grid.Column("_asset_subcat_name", "Subcategory", style: "MidColumn50"),
+                            grid.Column("_loc", "Location Code", style: "MidColumn20"),
+                            grid.Column("_qty", "Quantity", style: "MidColumn20"),
+                            grid.Column("_is5K", "Not 5000 case", style: "MidColumn10"),
+                            grid.Column("_asset_value", "Asset value", style: "MidColumn30"),
+                            grid.Column(format: @<text>
+                                        <input type="checkbox" value="@item._assetdet_gid" name="ids" />
+                            </text>, style: "MidColumn20", header: "{checkall}")))
+                    }
+                    <div class="table-bordered btnCenter" align="center">
+                        @if (@Model.GModel.Count == 0)
+                        { <b> No Records found </b>}
+                    </div>
+                    <span> Total no of records @Model.GModel.Count</span>
+                </div>
+
+
+
+
+            </div>
+
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+       
+
+        //$("#cbSelectAll").live("click", function () {
+        //    var ischecked = this.checked;
+        //    $('#gridnew').find("input:checkbox").each(function () {
+        //        this.checked = ischecked;
+        //    });
+        //});
+        //$("[name=ids]").live("click", function () {
+        //    var checked = $("#gridnew td :checkbox:checked").length;
+        //    if (checked == 1 || checked == 0) {
+        //        $("#btnAdd").attr("disabled", true);
+        //    }
+        //    else {
+        //        $("#btnAdd").attr("disabled", false);
+        //    }
+
+
+        //});
+    });
+   
+
+
+
+    $("#btnAdd").click(function () {
+        var ids = "";
+        $("#grpgridnew").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                var checked = $("#grpgridnew td :checkbox:checked").length;
+                if (checked == 1) {
+                    ids = $(this).val();
+                }
+                else {
+                    ids = $(this).val() + "," + ids;
+                }
+            }
+        });
+        alert(ids);
+        showProgress();
+        $.ajax({
+            url: '@Url.Action("SubmitasGroup", "AssetGrouping")?ids=' + ids + '&' + new Date().getTime(),
+            data: JSON.stringify(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "success") {
+                    hideProgress();
+                    jAlert("Group ID Created Successfully!", "Information", function (r) {
+                        if (r == true) {
+                            location = '@Url.Action("GMSummary", "AssetGrouping")';
+                        }
+                    });
+                }
+                if (data == "location") {
+                    hideProgress();
+                    jAlert("Location Mismatch among the Asset Ids Selcted!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+                if (data == "Error") {
+                    hideProgress();
+                    jAlert("Error in selected data.!", "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                    return false;
+                }
+            },
+            error: function (result) {
+                hideProgress();
+                jAlert("Error", "Error");
+            }
+        });
+    });
+
+    $("#btnclear").click(function () {
+        location = '@Url.Action("GMSummary", "AssetGrouping")';
+    });
+
+
+    ////2nd click event for header checkbox for select /deselect all
+    //$("#cbSelectAll").live("click", function () {
+
+    //    var ischecked = this.checked;
+    //    $('#gridnew').find("input:checkbox").each(function () {
+    //        this.checked = ischecked;
+    //    });
+    //    var checked = $("#gridnew td :checkbox:checked").length;
+
+    //    if (checked == 0) {
+
+    //        $("#btnAdd").attr("disabled", true);
+    //    }
+    //    else {
+
+    //        $("#btnAdd").attr("disabled", false);
+    //    }
+    //});
+    $("#grpgridnew th").each(function () {
+      
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0 || checked == 1) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+            $(this).text('');
+            $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+            $(this).append("<span>Select All</span>");
+        }
+    });
+
+    //2nd click event for header checkbox for select /deselect all
+    $("#cbSelectAll").live("click", function () {
+       
+        var ischecked = this.checked;
+        $('#grpgridnew').find("input:checkbox").each(function () {
+            this.checked = ischecked;
+        });
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0 || checked == 1) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+    });
+
+
+    //3rd click event for checkbox of each row
+    $("input[name='ids']").click(function () {
+      
+        var totalRows = $("#grpgridnew td :checkbox").length;
+        var checked = $("#grpgridnew td :checkbox:checked").length;
+        if (checked == 0 || checked == 1) {
+            $("#btnSubmit").attr("disabled", true);
+            $("#btnAdd").attr("disabled", true);
+        }
+        else {
+            $("#btnSubmit").attr("disabled", false);
+            $("#btnAdd").attr("disabled", false);
+        }
+        if (checked == totalRows) {
+            $("#grpgridnew").find("input:checkbox").each(function () {
+                this.checked = true;
+            });
+        }
+        else {
+            $("#cbSelectAll").removeAttr("checked");
+        }
+    });
+</script>

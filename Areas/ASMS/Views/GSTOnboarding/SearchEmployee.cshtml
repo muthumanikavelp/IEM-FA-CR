@@ -1,0 +1,131 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SearchEmployee>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.formname =(string) Session["formname"];
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 7, ajaxUpdateContainerId: "wgEmployeeList", ajaxUpdateCallback: "DummyFunction11()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgEmployeeList">
+    <center>
+        <div id="SearchEmpHedaer">
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="width:200px;">
+                        <input type="hidden" name="txtFor" id="txtFor" />
+                        <span>Employee Code</span>
+                        <input type="text" name="txtEmployeeCode" id="txtEmployeeCode" class="textboxStyle" value=@ViewBag.SearchEmpCode />
+                    </td>
+                    <td style="width:250px;">
+                        <span>Employee Name</span>
+                        <input type="text" name="txtEmployeeName" id="txtEmployeeName" class="textboxStyle" value=@ViewBag.SearchEmpName />
+                    </td>
+                    <td style="vertical-align:bottom;">
+                        <button onclick="SearchEmployees()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        <button onclick="RefreshEmployees()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridEmployees" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("_EmployeeGid", objCmnFunctions.Sorter("_EmployeeGid", "ID", grid), canSort: false),
+            grid.Column("SlNo", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_EmployeeCode", objCmnFunctions.Sorter("_EmployeeCode", "Employee Code", grid)),
+            grid.Column("_EmployeeName", objCmnFunctions.Sorter("_EmployeeName", "Employee Name", grid)),
+            grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a onclick="SelectEmployee(this,id)" id="@ViewBag.formname"><span class="btn btn-link">Select</span></a>
+                </text>)))
+            </div>
+
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">
+                Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b>
+            </div>
+        }
+    </center>
+    @*<div class="borderStyle">
+        @ViewBag.NoRecordsFound
+    </div>
+    <div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+    </div>*@
+</div>
+
+<script type="text/javascript">
+    var formname;
+    var emp_code;
+    var emp_name;
+    $(document).ready(function () {
+        formname = parseInt(@ViewBag.formname);
+        if (formname == "4") {
+            $("#SearchEmpHedaer").css("display", "none");
+        }
+        $("#wgridEmployees td:nth-child(1),#wgridEmployees th:nth-child(1)").hide();
+        $("#wgridEmployees td:nth-last-child(1)").show();
+    });
+
+    function DummyFunction11() {
+        $("#wgridEmployees td:nth-child(1),#wgridEmployees th:nth-child(1)").hide();
+        $("#wgridEmployees td:nth-last-child(1)").show();
+    }
+    function SearchEmployees() {
+        var EmployeeCode = $("#txtEmployeeCode").val();
+        var EmployeeName = $("#txtEmployeeName").val();
+        emp_code = EmployeeCode;
+        emp_name = EmployeeName;
+        var objSearchEmployee = {
+            "_EmployeeCode": EmployeeCode,
+            "_EmployeeName": EmployeeName
+        };
+        $.post('../Onboarding/SearchEmployee', objSearchEmployee,
+        function (data) {
+          
+            $("#wgEmployeeList").load('../Onboarding/SearchEmployee?listfor=search&formname=' + formname + '&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtEmployeeCode").val(emp_code);
+                $("#txtEmployeeName").val(emp_name);
+            }, 50);
+           
+        }, 'json');
+    }
+    function RefreshEmployees() {
+        $("#txtEmployeeCode").val("");
+        $("#txtEmployeeName").val("");
+        var EmployeeCode = $("#txtEmployeeCode").val();
+        var EmployeeName = $("#txtEmployeeName").val();
+        var objSearchEmployee = {
+            "_EmployeeCode": EmployeeCode,
+            "_EmployeeName": EmployeeName,
+            "_EmployeeFor": formname
+        };
+        $.post('../Onboarding/SearchEmployee', objSearchEmployee,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgEmployeeList").load('../onboarding/SearchEmployee?listfor=refresh&formname=' + formname + '&' + new Date().getTime());
+            }
+        }, 'json');
+    }
+    
+</script>

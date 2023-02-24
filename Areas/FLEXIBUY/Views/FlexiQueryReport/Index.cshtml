@@ -1,0 +1,195 @@
+﻿@using IEM.Areas.FLEXIBUY.Models
+@model IEnumerable<IEM.Areas.FLEXIBUY.Models.EFlexiQuery>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model, canSort: true, canPage: false, rowsPerPage: 15, ajaxUpdateContainerId: "searchgrid", ajaxUpdateCallback: "dummyforposearch()");
+    //grid.Bind(Model);
+    int rowcount = 0;
+    EFlexiQuery doclist = (EFlexiQuery)ViewBag.DoctypeList;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+@*<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />*@
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            @*<td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>WO No</span>
+                    <br />
+                    <input type="text" id="txtwono" class="fstextbox" />
+                </td>*@
+            <td>
+                <input type="hidden" id="txtwono" class="fstextbox" />
+            </td>
+            <td style="width:15%; padding:0px 10px 0px 3px;">
+                <span>From Date</span>
+                <br />
+                <input type="text" class="textboxStyle" placeholder="dd-mm-yyyy" title="dd-mm-yyyy" name="FromDate" id="txtFrom" value="@ViewBag.fdate" />
+            </td>
+            <td style="width:15%; padding:0px 10px 0px 3px;">
+                <span>To Date</span>
+                <br />
+                <input type="text" class="textboxStyle" placeholder="dd-mm-yyyy" title="dd-mm-yyyy" name="ToDate" id="txtto" value="@ViewBag.tdate" />
+            </td>
+            <td style="width:15%; padding:0px 10px 0px 3px;">
+                <span>Reference Number</span>
+                <br />
+                <input type="text" class="textboxStyle" name="RefNo" id="texRefNo" value="@ViewBag.refno" />
+            </td>
+            <td style="width:15%; padding:0px 10px 0px 3px;">
+                <span>Doc Type</span>
+                <br />
+                @Html.DropDownList("DocList", doclist.DocList, "--Select--", new { @class = "textboxStyle ", @style = "width:98%", @id = "doclist", @value = "ViewBag.DocList" })
+
+
+            </td>
+            <td style="width:38%; padding:15px; vertical-align:bottom;">
+                <button class="btn btn-primary" id="btnsearch" style="color:white;" value="Search" name="command">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span>
+                    Search
+                </button>
+                <button class="btn btn-primary" style="color:white;" value="Clear" name="command">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-refresh"></span>
+                    Clear
+                </button>
+                <button class="btn btn-success" id="btnExporExcel" onclick="ctrlExport()" type="button" style="color:white;">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>
+            </td>
+        </tr>
+    </table>
+
+
+    <div class="table-responsive" style="margin-top:10px; width:100%">
+
+        @grid.GetHtml(
+              htmlAttributes: new { id = "gridQueryReport" },
+             tableStyle: "tableSmall table-bordered table-hover",
+        // tableStyle: "webgrid",
+                    columns: grid.Columns
+                            (
+                grid.Columns(grid.Column("SNo", style: "slno", format: item => rowcount = rowcount + 1),
+          grid.Column(header: "DocType", columnName: "DocType", style: "col-1"),
+          grid.Column(header: "RefNumber", columnName: "RefNumber", style: "col-1"),
+          grid.Column(header: "DocDate", columnName: "DocDate", style: "col-1"),
+          grid.Column(header: "DocAmount", columnName: "DocAmount", style: "col-1"),
+          grid.Column(header: "Description", columnName: "Description", style: "col-1"),
+          grid.Column(header: "Status", columnName: "Status", style: "col-1"),
+          grid.Column(header: "FinalApprovalDate", columnName: "FinalApprovalDate", style: "col-1"),
+          grid.Column(header: "ApprovalPending", columnName: "ApprovalPending", style: "col-1"),
+             grid.Column(header: "Queue Date", columnName: "QueueDate", style: "col-1"),
+            grid.Column(header: "Aging", columnName: "Aging", style: "col-1")
+        //grid.Column(header: "Status", columnName: "pincode_status", style: "col-1")
+
+          )))
+    </div>
+
+}
+
+<style type="text/css">
+    .webgrid {
+        width: 100%;
+        font: normal 12px/150% Arial, Helvetica, sans-serif;
+        background: #fff;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+    }
+
+    .col-1 {
+        width: 1px;
+        min-width: 5px;
+    }
+
+    .col-2 {
+        width: 20px;
+        min-width: 10px;
+    }
+</style>
+<script type="text/javascript">
+    function isNumber(evt) {
+        evt = (evt) ? evt : window.event;
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+        return true;
+    }
+
+    $(document).ready(function () {
+
+
+        var Datepicker = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+        $("#txtFrom").datepicker(Datepicker);
+        $("#txtto").datepicker(Datepicker);
+
+
+
+        $(function () {
+            $("#txtFilter").focus();
+        });
+
+
+        $('#gridQueryReport tr th:nth-child(5)').addClass("nosort");
+        $('#gridQueryReport').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+        $("#txtFilter").focus();
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        //$("#txtFilter1").focus();
+        //$("#txtFilter1").keypress(function (event) {
+        //    return isSplAlphaNumeric(event, this);
+        //});
+        //$("#txtFilter2").focus();
+        //$("#txtFilter2").keypress(function (event) {
+        //    return isSplAlphaNumeric(event, this);
+        //});
+
+        //objDialog = $("[id$='ForPartialView']");
+        //objDialog.dialog({
+        //    autoOpen: false,
+        //    modal: true,
+        //    width: 350,
+        //    height: 300
+
+        //});
+
+
+
+
+
+    });
+
+    function ctrlExport() {
+        debugger;
+
+        var datefrom = "";
+        var dateto = "";
+        datefrom = $("#txtFrom").val();
+        dateto = $("#txtto").val();
+        var Refno = $("#texRefNo").val();
+        var DocList = $("#doclist").val();
+
+
+        location = '../FlexiQueryReport/GetFlexiQueryReportexport?datefrom=' + datefrom + '&dateto=' + dateto + '&RefNo=' + Refno + '&DocList=' + DocList + '&' + new Date().getTime();
+
+    }
+</script>

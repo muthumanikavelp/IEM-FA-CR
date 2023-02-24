@@ -1,0 +1,168 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_country
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Country Code </span>
+                <br />
+                <input name="DocNameName" id="_Countrycode" type="text" data-val="true" maxlength="10" value=""
+                       class="fstextbox required " />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Country Name </span>
+                <br />
+                <input name="DocNameName" id="_Countryname" type="text" data-val="true" maxlength="70" value=""
+                       class="fstextbox required " />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Currency</span>
+                <br/>
+                @Html.DropDownListFor(m => m.currency_gid, Model.Getcurrency, "--Select Currency--", new { @class = "fstextbox  chosen-select", @style = "display: block", @id = "currency_gid" })
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center;">
+                <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()" style="margin-top:10px;  color:white;">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;" font-size:12px;></span> Save
+                </button>
+
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+
+            </td>
+        </tr>
+    </table>
+}
+
+        <script type="text/javascript">
+
+            $(document).ready(function () {
+
+                $("#currency_gid").chosen({});
+                $("#currency_gid_chosen").addClass("mychosen").css('width', '100%');
+                $(function () {
+                    $("#_Countrycode").focus();
+                });
+
+                $("#_Countrycode").focus();
+                $("#_Countrycode").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                });
+                $("#_Countryname").focus();
+                $("#_Countryname").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                });
+            });
+
+            $("#_Countrycode").keyup(function () {
+                var txtSupplierName = $("#_Countrycode").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_Countrycode").removeClass('required');
+                    $("#_Countrycode").addClass('valid');
+                    CheckFieldsHeader();
+                }
+                else {
+                    $("#_Countrycode").removeClass('valid');
+                    $("#_Countrycode").addClass('required');
+                    CheckFieldsHeader();
+                }
+            });
+            $("#_Countryname").keyup(function () {
+                var txtSupplierName = $("#_Countryname").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_Countryname").removeClass('required');
+                    $("#_Countryname").addClass('valid');
+                    CheckFieldsHeader();
+                }
+                else {
+                    $("#_Countryname").removeClass('valid');
+                    $("#_Countryname").addClass('required');
+                    CheckFieldsHeader();
+                }
+            });
+            function SAVE() {
+                var Countrycode = $("#_Countrycode").val();
+
+                var countryname = $("#_Countryname").val();
+
+                var currencygid = $("#currency_gid").val();
+
+
+                if (Countrycode == "") {
+                    jAlert("Please Enter Country Code.", "Information")
+
+                    $("#_Countrycode").focus();
+                    return false;
+
+                }
+                if (countryname == "") {
+                    jAlert("Please Enter Country Name.", "Information")
+
+                    $("#_Countryname").focus();
+                    return false;
+                }
+                if (currencygid == 0) {
+                    jAlert("Please Select Currency.", "Information")
+                    $("#currency_gid").focus();
+                    return false;
+                }
+
+                var DocNameModel = { "country_code": Countrycode, "country_name": countryname, "currency_gid": currencygid };
+                $.post('../IEM_COUNTRY/CreateCountry', DocNameModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record inserted successfully !", "Information", function (r) {
+                            if (r == true) {
+                                location = '../IEM_COUNTRY/Index';
+                            }
+                        });
+
+                    }
+
+                }, 'json');
+
+            }
+            function GotoIndex() {
+                window.parent.jQuery('#ForPartialView').dialog('close');
+            }
+            function CheckFieldsHeader() {
+
+                var ErrCount = 0;
+                if ($("#_Countrycode").val().trim() == "" || $("#_Countrycode").val() == null) {
+                    ErrCount = 1;
+                }
+                if ($("#_Countryname").val().trim() == "" || $("#_Countryname").val() == null) {
+                    ErrCount = 2;
+                }
+
+                if (ErrCount == 0) {
+                    $("#_save").removeAttr('disabled');
+                }
+                else {
+                    $("#_save").attr('disabled', 'disabled');
+                }
+            }
+        </script>
+
+
+
+

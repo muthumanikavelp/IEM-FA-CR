@@ -1,0 +1,633 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#CreatedDateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+        $("#CreatedDateTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+
+        //----------- Supplier Code and Name Autocomplete-------------
+
+        $("#SupplierCode").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../../ECF/getAutocompleteSuppCode",
+                    type: "POST",
+                    dataType: "JSON",
+                    data: { Suppcode: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+
+                            return {
+                                label: item.SupplierCode, value: item.SupplierName
+                            };
+                        }));
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $("#SupplierCode").val(ui.item.label); //ui.item is your object from the array
+                $("#SupplierName").val(ui.item.value); //ui.item is your object from the array
+                return false;
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#SupplierName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../../ECF/getAutocompleteSupname",
+                    type: "POST",
+                    dataType: "json",
+                    data: { Suppname: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.SupplierName, value: item.SupplierCode };
+                        }))
+                    }
+                })
+            }, select: function (event, ui) {
+                $("#SupplierCode").val(ui.item.value); //ui.item is your object from the array
+                $("#SupplierName").val(ui.item.label); //ui.item is your object from the array
+                return false;
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+
+        //----------- Supplier Code and Name Autocomplete-------------
+    });
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+</script>
+<span class="pageHeading">Supplier Query</span>
+<div ng-app="SupQueryApp">
+    <div class="well" ng-controller="SupQueryController" style="padding-bottom:50px;">
+        <div style="padding-bottom:20px; border-bottom:solid #C0C0C0 1px;">
+            <table cellpadding="10" cellspacing="10" width="95%">
+                <tr>
+                    <td>
+                        <span>Created Date From</span>
+                        <br />
+                        <input type="text"
+                               id="CreatedDateFrom"
+                               name="CreatedDateFrom"
+                               value="@ViewBag.CreatedDateFrom"
+                               class="textboxStyle"
+                               style="width: 150px;" />
+                    </td>
+
+                    <td>
+                        <span>Created Date To</span>
+                        <br />
+                        <input type="text"
+                               id="CreatedDateTo"
+                               name="CreatedDateTo"
+                               value="@ViewBag.CreatedDateTo"
+                               class="textboxStyle"
+                               style="width: 150px;" />
+                    </td>
+                    <td>
+                        <span>Department </span>
+                        <br />
+                        <select id="ddlDeptList" class="textboxStyle" name="ddlDeptList" style="width: 150px;">
+                            <option value="0">-----Select-----</option>
+                            <option ng-repeat="item in deptlist" value="{{item.dept_gid}}">{{item.dept_name}}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span>Suppier Code </span>
+                        <br />
+                        <input type="text"
+                               id="SupplierCode"
+                               name="SupplierCode"
+                               class="textboxStyle"
+                               style="width: 150px;"
+                               ng-model="SupplierCode" />
+                    </td>
+                    <td>
+                        <span>Suppier Name </span>
+                        <br />
+                        <input type="text"
+                               id="SupplierName"
+                               name="SupplierName"
+                               class="textboxStyle"
+                               style="width: 320px;"
+                               ng-model="SupplierName" />
+                    </td>
+                  
+
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <span>Suppier Pan No. </span>
+                        <br />
+                        <input type="text"
+                               id="SupplierPanno"
+                               name="SupplierPanno"
+                               class="textboxStyle"
+                               style="width: 150px;"
+                               ng-model="SupplierPanno" />
+                    </td>
+                    <td>
+                        <span> </span>
+                        <br />
+                        <button class="btn-sm btn-primary" style="float:right" ng-click="SearchDoc()">
+                            <span style="color:white;font-size:x-small" class="glyphicon glyphicon-search"></span>
+                            Search
+                        </button>
+                    </td>
+                    <td>
+                        <span> </span>
+                        <br />
+                        <button class="btn-sm btn-primary" style="float:right" ng-click="dataclear()">
+                            <span style="color:white;font-size:x-small" class="glyphicon glyphicon-refresh"></span>
+                            Clear
+                        </button>
+                    </td>
+                    <td>
+                        <span> </span>
+                        <br />
+                        <button class="btn-sm btn-primary" style="float:right" ng-click="ExportDoc()">
+                            <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                            Export to Excel
+                        </button>
+                    </td>
+
+                </tr>
+            </table>
+        </div>
+        <div style="width:100%">
+            <div style="width:45%;float:left; padding-bottom:10px;">
+                <span>Search </span>
+                <br />
+                <input type="text" ng-model="search.$" style="width:84%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right; padding-bottom:10px;">
+                <span> </span><br />
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="entryLimit">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+
+            </div>
+        </div>
+        <div style="width:100%;overflow-x:scroll;" id="divData">
+            <div style="width:133%;">
+                <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                    <thead>
+                        <tr>
+                            <th style="width:3%;">
+                                S.No
+                            </th>
+                            <th style="width:10%;">
+                                <span>Supplier Code</span>
+                            </th>
+                            <th style="width:20%;">
+                                <span>Supplier Name</span>
+                            </th>
+                            <th style="width:10%;">
+                                <span>Supplier Type</span>
+                            </th>
+                            <th style="width:10%;">
+                                <span>Classification</span>
+                            </th>
+                            <th style="width:10%;">
+                                <span>Supplier Status</span>
+                            </th>
+                            <th style="width:10%;">
+                                <span>Request Type</span>
+                            </th>
+                            <th style="width:10%;">
+                                <span>Request Status</span>
+                            </th>
+
+                            <th style="width:25%;">
+                                <span>Service Type</span>
+                            </th>
+                            <th style="width:15%;">
+                                <span>Organization Type</span>
+                            </th>
+                            <th style="width:10%;">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="filtered.length>0" ng-repeat="item in filtered = items| filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{item.SNo}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.SupCode}}
+                            </td>
+                            <td style="width:20%;">
+                                {{item.SupName}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.SupType}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.SupplierCategory}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.SupplierStatus}}
+                            </td>
+                            <td style="width:1%;">
+                                {{item.RequestType}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.Status}}
+                            </td>
+
+                            <td style="width:25%;">
+                                {{item.ServiceType}}
+                            </td>
+                            <td style="width:15%;">
+                                {{item.OrganizationalType}}
+                            </td>
+                            <td style="width:10%;" align="center">
+                                <a ng-click="ViewDoc(item.SupGid,item.RequestType)" title="View">
+                                    <span class="glyphicon glyphicon-eye-open"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="filtered.length==0">
+                        <tr>
+                            <td colspan="10" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+        <div style="width:100%;">
+            <div ng-show="filtered.length>0">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="color:#337ab7;font-weight:bold; padding-left:10px" align="left"> Total Records : <span>{{totalItems}} </span> @*of <span>{{filtered.length}} </span>*@ </td>
+                        <td align="right">
+                            <pagination total-items="totalItems"
+                                        ng-model="currentPage"
+                                        page="currentPage"
+                                        max-size="noofsetpages"
+                                        boundary-links="true"
+                                        items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                            </pagination>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    @*<iframe id="txtArea1" style="display:none"></iframe>
+        <button id="btnExport" onclick="fnExcelReport();"> EXPORT </button>*@
+</div>
+<script type="text/javascript">
+    var queryApp = angular.module('SupQueryApp', ['ui.bootstrap']);
+    queryApp.service("supqueryservice", function ($http) {
+        debugger;
+        this.GetSupplierQuery = function () {
+            debugger;
+            var url = '@Url.Action("GetSupplierQuery", "SupplierQueryNew")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    queryApp.controller('SupQueryController', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+
+
+        showProgress();
+        debugger;
+        var CreatedDateFrom = $('#CreatedDateFrom').val();
+        var CreatedDateTo = $('#CreatedDateTo').val();
+        var deptgid = $('#ddlDeptList').val();
+        var SupplierCode = $('#SupplierCode').val();
+        //var url = '@Url.Action("GetSupplierQuery", "SupplierQueryNew")?' + new Date().getTime();
+        $http.get("../SupplierQueryNew/GetSupplierQuery")
+     .then(function (response) {
+         debugger;
+         $scope.items = JSON.parse(response.data.data0);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage = 1;
+         $scope.totalItems = $scope.items.length;
+         $scope.entryLimit = 10;
+         $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages = 5;
+         $scope.$watch('search', function (newVal, oldVal) {
+             $scope.filtered = filterFilter($scope.items, newVal);
+             $scope.totalItems = $scope.filtered.length;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.currentPage = 1;
+             $scope.noofsetpages = 5;
+         }, true);
+         hideProgress();
+     })
+        .catch(function (response) {
+            jAlert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText, "Information");
+            return false;
+            //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+            console.error('Gists error', response.status, response.data);
+        })
+    .finally(function () {
+        console.log("finally finished gists");
+    });
+
+        hideProgress();
+
+
+        $scope.SearchDoc = function () {
+            filterreport();
+        };
+        //hideProgress();
+
+        $scope.dataclear = function () {
+
+
+            //   $scope.items = null;
+            $('#CreatedDateFrom').val("");
+            $('#CreatedDateTo').val("");
+            $('#ddlDeptList').val("");
+            $('#SupplierCode').val("");
+            $('#SupplierName').val("");
+            $('#SupplierPanno').val("");
+            getreport();
+        };
+
+
+        $http.get("../SupplierQueryNew/GetDeptList?" + new Date().getTime())
+.then(function (response) {
+    $scope.deptlist = JSON.parse(response.data.data0);
+})
+        $scope.ViewDoc = function (docgid, ReqType) {
+            if (ReqType != null && ReqType != "") {
+                @*var url;
+                url = '@Url.Action("Index", "Onboarding")?pagefor=5&supid=' + docgid + '&' + new Date().getTime();
+                window.open(url, "_blank");*@
+                location = '@Url.Action("Index", "Onboarding")?pagefor=5&supid=' + docgid + '&' + new Date().getTime();
+            }
+            else {
+                jAlert("Migarated vendor details are for user information & are not viewable", "Information", function (k) {
+                    if (k == true) { return false; }
+                });
+            }
+
+        }
+
+
+        $scope.ExportDoc = function () {
+            var CreatedDateFrom = $('#CreatedDateFrom').val();
+            var CreatedDateTo = $('#CreatedDateTo').val();
+            var deptgid = $('#ddlDeptList').val();
+            var SupplierCode = $('#SupplierCode').val();
+            var Supname = $('#SupplierName').val();
+            var SupplierPanno = $('#SupplierPanno').val();
+
+            if ((CreatedDateFrom == 'undefined' || CreatedDateFrom == null || CreatedDateFrom == '') && deptgid == '0' &&
+                (Supname == 'undefined' || Supname == null || Supname == '') && (SupplierPanno == 'undefined' || SupplierPanno == null || SupplierPanno == ''))
+            {
+                jAlert("Please Select 'From Date'", "Information", function () {
+
+                    return false;
+                });
+                return false;
+            }
+            if ((CreatedDateTo == 'undefined' || CreatedDateTo == null || CreatedDateTo == '') && deptgid == '0' &&
+                (Supname == 'undefined' || Supname == null || Supname == '') && (SupplierPanno == 'undefined' || SupplierPanno == null || SupplierPanno == '')) {
+                jAlert("Please Select 'To Date'", "Information", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ((CreatedDateFrom == 'undefined' || CreatedDateFrom == null || CreatedDateFrom == '') && deptgid == '0' &&
+                (Supname == 'undefined' || Supname == null || Supname == '') && (SupplierPanno == 'undefined' || SupplierPanno == null || SupplierPanno == '')) {
+                jAlert("Please Select any one option", "Information", function () {
+
+                    return false;
+                });
+                return false;
+            }
+            if (CreatedDateFrom != '' && CreatedDateTo != '') {
+
+
+                var dmy = CreatedDateFrom.split('-')
+                var stdate = new Date(dmy[2], dmy[1] - 1, dmy[0]);
+
+                var dmy = CreatedDateTo.split('-')
+                var eddate = new Date(dmy[2], dmy[1] - 1, dmy[0]);
+
+                var diffdays = (eddate - stdate) / (1000 * 60 * 60 * 24)
+
+                if (diffdays > 92) {
+                    jAlert("Date Range must be with in three Month's", "Information", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                if (diffdays < 0) {
+                    jAlert("'From Date' should be less than or equal to 'To date'", "Information", function () {
+                        return false;
+                    });
+                    return false;
+                }
+
+            }
+
+            showProgress();
+            location = '@Url.Action("DTtoExcell", "SupplierQueryNew")?CreatedDateFrom=' + CreatedDateFrom + '&CreatedDateTo=' + CreatedDateTo + '&deptgid=' + deptgid + '&supname=' + Supname.trim() + '&suppanno=' + SupplierPanno;
+            hideProgress();
+        }
+
+        //---------------------
+
+
+        function getreport() {
+
+            showProgress();
+            var CreatedDateFrom = $('#CreatedDateFrom').val();
+            var CreatedDateTo = $('#CreatedDateTo').val();
+            var deptgid = $('#ddlDeptList').val();
+            var SupplierCode = $('#SupplierCode').val();
+            var SupplierPanno = $('#SupplierPanno').val();
+            $http.get("../SupplierQueryNew/GetSupplierQuery?" + new Date().getTime())
+         .then(function (response) {
+             debugger;
+             $scope.items = JSON.parse(response.data.data0);
+             $scope.search = {};
+             $scope.resetFilters = function () {
+                 $scope.search = {};
+             };
+             $scope.currentPage = 1;
+             $scope.totalItems = $scope.items.length;
+             $scope.entryLimit = 10;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.noofsetpages = 5;
+             $scope.$watch('search', function (newVal, oldVal) {
+                 $scope.filtered = filterFilter($scope.items, newVal);
+                 $scope.totalItems = $scope.filtered.length;
+                 $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+                 $scope.currentPage = 1;
+                 $scope.noofsetpages = 5;
+             }, true);
+             hideProgress();
+         })
+
+            .catch(function (response) {
+                jAlert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText, "Information");
+                return false;
+                //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+                console.error('Gists error', response.status, response.data);
+            })
+        .finally(function () {
+            console.log("finally finished gists");
+        });
+            hideProgress();
+        }
+
+        //-----------------------
+
+        function filterreport() {
+            showProgress();
+            var CreatedDateFrom = $('#CreatedDateFrom').val();
+            var CreatedDateTo = $('#CreatedDateTo').val();
+            var deptgid = $('#ddlDeptList').val();
+            var SupplierCode = $('#SupplierCode').val();
+            var Supname = $('#SupplierName').val();
+            var suppanno = $('#SupplierPanno').val();
+            //alert(CreatedDateFrom);
+            //alert(CreatedDateTo);
+            //alert(deptgid);
+            //alert(SupplierCode);
+            if (Supname == null) {
+                Supname = '';
+            }
+            if ((CreatedDateFrom == 'undefined' || CreatedDateFrom == null || CreatedDateFrom == '') && (CreatedDateTo == 'undefined' || CreatedDateTo == null || CreatedDateTo == '') && deptgid == '0' && SupplierCode == '' && Supname == '' && suppanno == '') {
+                hideProgress();
+                jAlert("Please Select Any one filter option", "Information", function () {
+                    return false;
+                });
+                return false;
+            }
+
+
+            if (CreatedDateFrom != '') {
+                if ((CreatedDateTo == 'undefined' || CreatedDateTo == null || CreatedDateTo == '') && deptgid == '0') {
+                    hideProgress();
+                    jAlert("Please Select 'Created Date To'", "Information", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }
+
+            var objSupHeaderDetails = {
+                "fdate": CreatedDateFrom,
+                "todate": CreatedDateTo,
+                "depgid": deptgid,
+                "supcode": SupplierCode,
+                "supname": Supname,
+                "suppanno": suppanno
+            };
+
+            $http({
+                url: '../SupplierQueryNew/GetSupplierQuerySearch',
+                method: "POST",
+                data: objSupHeaderDetails
+            })
+    .then(function (response) {
+        debugger;
+        $scope.items = JSON.parse(response.data.data0);
+        $scope.search = {};
+        $scope.resetFilters = function () {
+            $scope.search = {};
+        };
+        $scope.currentPage = 1;
+        $scope.totalItems = $scope.items.length;
+        $scope.entryLimit = 10;
+        $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+        $scope.noofsetpages = 5;
+        $scope.$watch('search', function (newVal, oldVal) {
+
+            $scope.filtered = filterFilter($scope.items, newVal);
+            $scope.totalItems = $scope.filtered.length;
+            $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+            $scope.currentPage = 1;
+            $scope.noofsetpages = 5;
+        }, true);
+        hideProgress();
+    })
+
+
+            .catch(function (response) {
+                hideProgress();
+                $('#CreatedDateFrom').val("");
+                $('#CreatedDateTo').val("");
+                $('#ddlDeptList').val("");
+                $('#SupplierCode').val("");
+                $('#SupplierName').val("");
+                $('#SupplierPanno').val("");
+                getreport();
+                jAlert("No Record found !", "Alert!");
+                return false;
+                //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+
+            })
+        .finally(function () {
+        })
+            //.error(function (data, status, headers, config) {
+            //    jAlert("No Data found");
+            //})
+
+
+        }
+
+
+    }]);
+    queryApp.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

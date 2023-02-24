@@ -1,0 +1,117 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/angular.min.js"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div ng-app="SCNInwardWO">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">Select WO</span></b></legend>
+
+            <div ng-controller="SCNInwardWOController">
+                <div class="table-responsive">
+                    @*<input ng-model="search.$" class="col-lg-10 textboxStyle" />*@
+                    <table class="tableSmall table-bordered table-hover table-responsive">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th style="width:5%; display:none;">
+                                    SCNHeadGid
+                                </th>
+                                <th style="width:5%;">
+                                    S.No
+                                </th>
+                                <th style="width:10%;">
+                                    WO Date<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poDate">
+                                </th>
+                                <th style="width:10%;">
+                                    WO RefNo<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poRefNo">
+                                </th>
+                                <th style="width:20%;">
+                                    Vendor Name<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.vendorName">
+                                </th>
+                                <th style="width:8%;">
+                                    WO Amount<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poAmount">
+                                </th>
+                                <th style="width:8%;">
+                                    Status<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.grnStatus">
+                                </th>
+                                <th style="width:5%;">
+                                    Action<br />
+                                </th>
+
+                            </tr>
+                        </thead>
+                        <tbody ng-repeat="SCNInwardWO in SCNInwardWO | filter:search:strict | orderBy:predicate:reverse">
+                            <tr>
+                                <td style="width:10%; display:none;">
+                                    {{SCNInwardWO.grnheadgid}}
+                                </td>
+                                <td style="width:5%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{SCNInwardWO.poDate}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{SCNInwardWO.poRefNo}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{SCNInwardWO.vendorName}}
+                                </td>
+                                <td style="width:8%;">
+                                    {{SCNInwardWO.poAmount}}
+                                </td>
+                                <td style="width:8%;">
+                                    {{SCNInwardWO.grnStatus}}
+                                </td>
+                                <td style="width:5%;">
+                                    <input class="btn btn-link" name="command" onclick="SCNSelect(this)"
+                                           value="Select" title="Select" type="button" />
+                                </td>
+
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<script type="text/javascript">
+    var myApp = angular.module('SCNInwardWO', []);
+
+    myApp.config(['$httpProvider', function ($httpProvider) {
+
+        $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+
+        var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+
+        $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    }]);
+
+    myApp.service("SCNInwardWOService", function ($http) {
+        this.getSCNInwardWOList = function () {
+            return $http.get("../SCNInwardSummary/GetSCNInwardWO?" + new Date().getTime());
+        };
+
+    });
+    myApp.controller('SCNInwardWOController', function ($scope, SCNInwardWOService) {
+        GetSCNInwardWO();
+        function GetSCNInwardWO() {
+            var getData = SCNInwardWOService.getSCNInwardWOList();
+            getData.then(function (emp) {
+                $scope.SCNInwardWO = emp.data;
+            }, function () {
+                alert('Error');
+            });
+        }
+
+    });
+    </script>

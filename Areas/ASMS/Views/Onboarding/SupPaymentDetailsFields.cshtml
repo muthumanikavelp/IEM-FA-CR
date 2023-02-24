@@ -1,0 +1,429 @@
+﻿@using IEM.Areas.ASMS.Models
+@model IEM.Areas.ASMS.Models.PaymentDetails
+@{
+    SupDataModel dm = new SupDataModel();
+    PaymentDetails pd = new PaymentDetails();
+
+    pd.lstAccountType = new SelectList(dm.GetAccountType(), "_AccountTypeID", "_AccountTypeName");
+    pd.lstPaymode = new SelectList(dm.GetPaymode(), "_PaymodeID", "_PaymodeName");
+    pd.lstBank = new SelectList(dm.GetBank(), "_BankID", "_BankName");
+    if (Session["SupName"] != null)
+    {
+        ViewBag.supname = (string)Session["SupName"];
+    }
+}
+
+<table class="myTableStyleTabNew" width="100%">
+    <tr>
+        <td style="width:25%">
+            <input type="hidden" name="_PaymentID" id="_PaymentID" />
+            <span>Paymode</span><br />
+            @Html.DropDownListFor(j => j.selectedPaymodeID, pd.lstPaymode, "--select--", new { tabindex = 3, @class = "fstextbox", @id = "selectedPaymodeID" })
+        </td>
+        <td style="width:25%">
+            <span>Bank</span><br />
+            @Html.DropDownListFor(j => j.selectedBankID, pd.lstBank, "--select--", new { tabindex = 3, @class = "fstextbox", @id = "selectedBankID" })
+        </td>
+        <td style="width:25%">
+            <span>Bank Branch</span><br />
+            <input type="text" name="_BankBranch" id="_BankBranch" class="textboxStyle" tabindex="3" />
+        </td>
+        <td style="width:25%">
+            <span>IFSC Code</span><br />
+            <input type="text" name="_IfscCode" id="_IfscCode" class="textboxStyle" tabindex="3" />
+        </td>
+    </tr>
+    <tr>
+        <td style="width:25%">
+            <span>Account type</span><br />
+            @Html.DropDownListFor(j => j.selectedAccountTypeID, pd.lstAccountType, "--select--", new { tabindex = 3, @class = "fstextbox", @id = "selectedAccountTypeID" })
+        </td>
+        <td style="width:25%">
+            <span>Account No</span><br />
+            <input type="text" name="_AccountNo" id="_AccountNo" class="textboxStyle" tabindex="3" />
+        </td>
+        <td style="width:25%">
+            <span>Beneficary name</span><br />
+            <input type="text" name="_BeneficiaryName" id="_BeneficiaryName" class="textboxStyle" tabindex="3" />
+        </td>
+        <td style="width:25%;vertical-align:bottom">
+            <button onclick="SavePaymentDetails()" tabindex="3" id="btnSavePaymentDetails" class="btn btn-primary" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            <button id="btnClearPaymentDetails" onclick="ClearPaymentDetails()" class="btn btn-primary" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#selectedPaymodeID,#selectedBankID,#selectedAccountTypeID").chosen({});
+        $("#selectedPaymodeID_chosen,#selectedBankID_chosen,#selectedAccountTypeID_chosen").css("width", "99%");
+
+        $("#_PaymentID").val("0");
+        $("#_BankBranch").attr("maxlength", "64");
+        $("#_BeneficiaryName").attr("maxlength", "128");
+        $("#_IfscCode").attr("maxlength", "11");
+        $("#_AccountNo").attr("maxlength", "50");
+
+        $("#_BankBranch").attr("disabled", "disabled");
+        //$("#selectedBankID").attr("disabled", "disabled");
+        IsDiableddlBank(true);
+        //$("#selectedAccountTypeID").attr("disabled", "disabled");
+        IsDiableddlAccountType(true);
+        $("#_AccountNo").attr("disabled", "disabled");
+        $("#_IfscCode").attr("disabled", "disabled");
+
+        $("#selectedPaymodeID_chosen").addClass('required');
+
+        $("#_IfscCode").css('text-transform', 'uppercase');
+        $("#_BankBranch").css('text-transform', 'uppercase');
+
+        $("#_BankBranch").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#_IfscCode").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#_AccountNo").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#_BeneficiaryName").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        //if ($("#selectedPaymodeID").val() != "0" && $("#selectedPaymodeID").val() != "") {
+        //    $("#selectedPaymodeID").addClass('valid');
+        //    $("#selectedPaymodeID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedPaymodeID").addClass('required');
+        //    $("#selectedPaymodeID").removeClass('valid');
+        //}
+        //if ($("#selectedBankID").val() != "0" && $("#selectedBankID").val() != "") {
+        //    $("#selectedBankID").addClass('valid');
+        //    $("#selectedBankID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedBankID").addClass('required');
+        //    $("#selectedBankID").removeClass('valid');
+        //}
+        //if ($("#selectedAccountTypeID").val() != "0" && $("#selectedAccountTypeID").val() != "") {
+        //    $("#selectedAccountTypeID").addClass('valid');
+        //    $("#selectedAccountTypeID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedAccountTypeID").addClass('required');
+        //    $("#selectedAccountTypeID").removeClass('valid');
+        //}
+        //if ($("#_AccountNo").val() != "" && $("#_AccountNo").val() != null) {
+        //    $("#_AccountNo").addClass('valid');
+        //    $("#_AccountNo").removeClass('required');
+        //}
+        //else {
+        //    $("#_AccountNo").addClass('required');
+        //    $("#_AccountNo").removeClass('valid');
+        //}
+        //if ($("#_IfscCode").val() != "" && $("#_IfscCode").val() != null) {
+        //    $("#_IfscCode").addClass('valid');
+        //    $("#_IfscCode").removeClass('required');
+        //}
+        //else {
+        //    $("#_IfscCode").addClass('required');
+        //    $("#_IfscCode").removeClass('valid');
+        //}
+    });
+
+
+    $("#selectedPaymodeID").change(function () {
+        //IsMandatoryPaymentDetails(this);
+        var txtval = $("#selectedPaymodeID").val();
+        if (txtval.trim() != "") {
+            $("#selectedPaymodeID_chosen").removeClass('required');
+            $("#selectedPaymodeID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedPaymodeID_chosen").removeClass('valid');
+            $("#selectedPaymodeID_chosen").addClass('required');
+        }
+
+        var objSupHeaderDetails =
+        {
+            "_SupplierName": "test"
+        };
+        $.ajax({
+            url: '@Url.Action("GetSupNameForPayment", "Onboarding")',
+            data: JSON.stringify(objSupHeaderDetails),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#_BeneficiaryName").val(data);
+            },
+            error: function (result) {
+                $("#_BeneficiaryName").val("");
+            }
+        });
+        if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 6) == "CHEQUE") {
+            $("#selectedBankID").val("").trigger('chosen:updated');
+            $("#_BankBranch").val("");
+            $("#_IfscCode").val("");
+            $("#selectedAccountTypeID").val("").trigger('chosen:updated');
+            $("#_AccountNo").val("");
+            // $("#_BeneficiaryName").val("");
+            $("#_PaymentID").val("0");
+
+            $("#selectedBankID_chosen").removeClass('valid');
+            $("#selectedAccountTypeID_chosen").removeClass('valid');
+            $("#_AccountNo").removeClass('valid');
+            $("#_IfscCode").removeClass('valid');
+
+            $("#selectedBankID_chosen").removeClass('required');
+            $("#selectedAccountTypeID_chosen").removeClass('required');
+            $("#_AccountNo").removeClass('required');
+            $("#_IfscCode").removeClass('required');
+
+            //$("#selectedBankID").attr("disabled", "disabled");
+            IsDiableddlBank(true);
+            //$("#selectedAccountTypeID").attr("disabled", "disabled");
+            IsDiableddlAccountType(true);
+            $("#_AccountNo").attr("disabled", "disabled");
+            $("#_IfscCode").attr("disabled", "disabled");
+            $("#_BankBranch").attr("disabled", "disabled");
+
+            if ($("#_BeneficiaryName").val() != "" && $("#_BeneficiaryName").val() != null) {
+                $("#_BeneficiaryName").addClass('valid');
+                $("#_BeneficiaryName").removeClass('required');
+            }
+            else {
+                $("#_BeneficiaryName").addClass('required');
+                $("#_BeneficiaryName").removeClass('valid');
+            }
+            $("#_BeneficiaryName").focus();
+        }
+        else if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 10) == "ELECTRONIC") {
+
+            $("#selectedBankID").val("").trigger('chosen:updated');
+            $("#_BankBranch").val("");
+            $("#_IfscCode").val("");
+            $("#selectedAccountTypeID").val("").trigger('chosen:updated');
+            $("#_AccountNo").val("");
+            $("#_PaymentID").val("0");
+
+            $("#selectedBankID_chosen").removeClass('valid');
+            $("#selectedAccountTypeID_chosen").removeClass('valid');
+            $("#_AccountNo").removeClass('valid');
+            $("#_IfscCode").removeClass('valid');
+            $("#_BeneficiaryName").removeClass('valid');
+
+            $("#selectedBankID_chosen").addClass('required');
+            $("#selectedAccountTypeID_chosen").addClass('required');
+            $("#_AccountNo").addClass('required');
+            $("#_IfscCode").addClass('required');
+            $("#_BeneficiaryName").addClass('required');
+
+            $("#_BankBranch").removeAttr("disabled");
+            //$("#selectedBankID").removeAttr("disabled");
+            IsDiableddlBank(false);
+            //$("#selectedAccountTypeID").removeAttr("disabled");
+            IsDiableddlAccountType(false);
+            $("#_AccountNo").removeAttr("disabled");
+            $("#_IfscCode").removeAttr("disabled");
+            $("#selectedBankID").focus();
+            if ($("#_BeneficiaryName").val() != "" && $("#_BeneficiaryName").val() != null) {
+                $("#_BeneficiaryName").addClass('valid');
+                $("#_BeneficiaryName").removeClass('required');
+            }
+            else {
+                $("#_BeneficiaryName").addClass('required');
+                $("#_BeneficiaryName").removeClass('valid');
+            }
+        }
+    });
+    $("#selectedBankID").change(function () {
+        //IsMandatoryPaymentDetails(this);
+        var txtval = $("#selectedBankID").val();
+        if (txtval.trim() != "") {
+            $("#selectedBankID_chosen").removeClass('required');
+            $("#selectedBankID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedBankID_chosen").removeClass('valid');
+            $("#selectedBankID_chosen").addClass('required');
+        }
+    });
+    $("#selectedAccountTypeID").change(function () {
+        //IsMandatoryPaymentDetails(this);
+        var txtval = $("#selectedAccountTypeID").val();
+        if (txtval.trim() != "") {
+            $("#selectedAccountTypeID_chosen").removeClass('required');
+            $("#selectedAccountTypeID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedAccountTypeID_chosen").removeClass('valid');
+            $("#selectedAccountTypeID_chosen").addClass('required');
+        }
+    });
+    $("#_AccountNo").keyup(function () {
+        IsMandatoryPaymentDetails(this);
+    });
+    $("#_IfscCode").keyup(function () {
+        IsMandatoryPaymentDetails(this);
+    });
+    $("#_BeneficiaryName").keyup(function () {
+        IsMandatoryPaymentDetails(this);
+    });
+    function IsMandatoryPaymentDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function SavePaymentDetails() {
+        debugger;
+        var paymode = $("#selectedPaymodeID").val();
+        var bank = $("#selectedBankID").val();
+        var bankbranch = $("#_BankBranch").val();
+        var ifsccode = $("#_IfscCode").val();
+        var accounttype = $("#selectedAccountTypeID").val();
+        var accountno = $("#_AccountNo").val();
+        var beneficiary = $("#_BeneficiaryName").val();
+        var ids = parseInt($("#_PaymentID").val());
+        if ($.trim(paymode) == "" || $.trim(paymode) == "0") {
+            jAlert("Please Select Paymode", "Error", function () {
+                $("#selectedPaymodeID").focus();
+            });
+            return false;
+        }
+        if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 10) == "ELECTRONIC") {
+            if ($.trim(bank) == "" || $.trim(bank) == "0") {
+                jAlert("Please Select Bank", "Error", function () {
+                    $("#selectedBankID").focus();
+                });
+                return false;
+            }
+            if ($.trim(ifsccode) == "" || $.trim(ifsccode) == "0" || $.trim(ifsccode) == null) {
+                jAlert("Please Enter IFSC Code", "Error", function () {
+                    $("#_IfscCode").focus();
+                });
+                return false;
+            }
+            if ($.trim(accounttype) == "" || $.trim(accounttype) == "0") {
+                jAlert("Please Select Account Type", "Error", function () {
+                    $("#selectedAccountTypeID").focus();
+                });
+                return false;
+            }
+            if ($.trim(accountno) == "" || $.trim(accountno) == "0" || $.trim(accountno) == null) {
+                jAlert("Please Enter Account Number", "Error", function () {
+                    $("#_AccountNo").focus();
+                });
+                return false;
+            }
+            if (ifsccode != "") {
+                ifsccode = ifsccode.toUpperCase();
+            }
+            if ($.trim(bankbranch) != "" && $.trim(bankbranch) == null) {
+                bankbranch = bankbranch.toUpperCase();
+            }
+
+        }
+        else if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 6) == "CHEQUE") {
+            if ($.trim(beneficiary) == "" || $.trim(beneficiary) == null) {
+                jAlert("Please Enter Beneficiary Name", "Error", function () {
+                    $("#_AccountNo").focus();
+                });
+                return false;
+            }
+        }
+
+
+        var objSupPaymentDetails = {
+            "_PaymentID": ids,
+            "selectedPaymodeID": paymode,
+            "selectedBankID": bank,
+            "_BankBranch": bankbranch,
+            "_IfscCode": ifsccode,
+            "selectedAccountTypeID": accounttype,
+            "_BeneficiaryName": beneficiary,
+            "_AccountNo": accountno
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreatePaymentDetails", objSupPaymentDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "success");
+                    ClearPaymentDetails();
+                    $("#wgPayment").load("../onboarding/SupPaymentDetails?" + new Date().getTime());
+                }
+            }, 'json');
+
+        }
+        else {
+            $.post("../Onboarding/EditPaymentDetailsSave", objSupPaymentDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Updated", "success"); ClearPaymentDetails();
+                    $("#wgPayment").load("../onboarding/SupPaymentDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearPaymentDetails() {
+
+        $("#selectedPaymodeID").val("").trigger('chosen:updated');
+        $("#selectedBankID").val("").trigger('chosen:updated');
+        $("#_BankBranch").val("");
+        $("#_IfscCode").val("");
+        $("#selectedAccountTypeID").val("").trigger('chosen:updated');
+        $("#_AccountNo").val("");
+        $("#_BeneficiaryName").val("");
+        $("#_PaymentID").val("0");
+        $("#selectedPaymodeID_chosen").removeClass('valid');
+        $("#selectedBankID_chosen").removeClass('valid');
+        $("#selectedAccountTypeID_chosen").removeClass('valid');
+        $("#_AccountNo").removeClass('valid');
+        $("#_IfscCode").removeClass('valid');
+        $("#_BeneficiaryName").removeClass('valid');
+
+        $("#selectedPaymodeID_chosen").addClass('required');
+        $("#selectedBankID_chosen").removeClass('required');
+        $("#selectedAccountTypeID_chosen").removeClass('required');
+        $("#_AccountNo").removeClass('required');
+        $("#_IfscCode").removeClass('required');
+        $("#_BeneficiaryName").addClass('required');
+
+        $("#_BankBranch").attr("disabled", "disabled");
+        //$("#selectedBankID").attr("disabled", "disabled");
+        IsDiableddlBank(true);
+        //$("#selectedAccountTypeID").attr("disabled", "disabled");
+        IsDiableddlAccountType(true);
+        $("#_AccountNo").attr("disabled", "disabled");
+        $("#_IfscCode").attr("disabled", "disabled");
+        $("#selectedPaymodeID_chosen").focus();
+    }
+
+    function IsDiableddlBank(value) {
+        if (value == true) {
+            $('#selectedBankID').data('chosen').search_field_disabled();
+            $('#selectedBankID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedBankID').removeAttr('disabled');
+            $('#selectedBankID').trigger("chosen:updated");
+        }
+    }
+
+    function IsDiableddlAccountType(value) {
+        if (value == true) {
+            $('#selectedAccountTypeID').data('chosen').search_field_disabled();
+            $('#selectedAccountTypeID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedAccountTypeID').removeAttr('disabled');
+            $('#selectedAccountTypeID').trigger("chosen:updated");
+        }
+    }
+
+</script>

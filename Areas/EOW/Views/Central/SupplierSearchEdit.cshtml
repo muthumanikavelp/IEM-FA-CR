@@ -1,0 +1,119 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true);
+    int rowVal = 0;
+}
+<div id="searchgrid">
+    <style type="text/css">
+        .txtwth {
+            width: 130px;
+        }
+
+        .lblwth {
+            width: 140px;
+        }
+    </style>
+
+    <script src="~/Script/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="~/Script/jquery-ui.js" type="text/javascript"></script>
+        @using (Html.BeginForm())
+        {
+                <table class="myTableStyleTabNew tblstyles" align="center">
+                    <tr>
+                        <td>
+                            <span> SupplierName </span>
+                            <input name="SupplierName"
+                                   id="SupplierNameSearchEdit"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   placeholder="Enter SupplierName"
+                                   data-val="true"
+                                   value="@ViewBag.SupplierName" />
+                        </td>
+                        <td>
+                            <span> SupplierCode </span>
+                            <input name="SupplierCode"
+                                   id="SupplierCodeSearchEdit"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   placeholder="Enter SupplierCodee"
+                                   data-val="true"
+                                   value="@ViewBag.SupplierCode" />
+                        </td>
+                        <td>
+                            <span> Pan No </span>
+                            <input name="PanNo"
+                                   id="txtPanNo"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.PanNo"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" type="button" onclick="searchemployee()">Search</button>
+                        </td>
+                    </tr>
+                </table>
+                <div style="margin-top:17px;" id="mainll">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+                    @grid.GetHtml(
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("SupplierName", Sorter("SupplierName", "Supplier Name", grid)),
+                grid.Column("SupplierCode", Sorter("SupplierCode", "Supplier Code", grid)),
+                grid.Column("SupplierId", Sorter("SupplierId", "Supplier Id", grid)),
+                grid.Column("PanNo", Sorter("Pan No", "Pan No", grid)),
+                 grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="SupplierIdFind" name="RollEmployee" value="@item.SupplierId" />
+                    <input type="hidden" id="SupplierCodeFind" name="RollEmployee" value="@item.SupplierCode" />
+                    <input type="hidden" id="SupplierNameFind" name="RollEmployee" value="@item.SupplierName" />
+                    <a><span class="btn btn-link btnselect">Select</span></a>
+                    </text>))))
+                    </div>
+
+        }
+    <script>
+        function searchemployee() {
+            var SupplierName = $('#SupplierNameSearchEdit').val();
+            var SupplierCode = $('#SupplierCodeSearchEdit').val();
+            var supplierpanno = $('#txtPanNo').val();
+            var search = {
+                "SupplierName": SupplierName,
+                "SupplierCode": SupplierCode,
+                "PanNo": supplierpanno
+            };
+            $.post('../Central/SupplierSearch', search,
+                 function (data) {
+                     $("#searchgrid").load('../Central/SupplierSearch?listfor=search');
+                 }
+            , 'json');
+        }
+        $('.btnselect').click(function () {
+            var tr = $(this).parents('tr:first');
+            var SupplierId = tr.find("#SupplierIdFind").val();
+            var SupplierCode = tr.find("#SupplierCodeFind").val();
+            var SupplierName = tr.find('#SupplierNameFind').val();
+            $('#suppliercode').val(SupplierCode);
+            $('#supplierId').val(SupplierId);
+            $('#Suppliername').val(SupplierName);
+            GotoIndex();
+        });
+        function GotoIndex() {
+
+            objDialogySearch.remove();
+        }
+    </script>
+</div>

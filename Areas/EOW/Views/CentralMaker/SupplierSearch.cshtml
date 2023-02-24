@@ -1,0 +1,209 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchgridsup1", ajaxUpdateCallback: "Dummyforsuppsearch()");
+    int rowVal = 0;
+}
+<div id="searchgridsup1">
+    @using (Html.BeginForm())
+    {
+        <div class="well well-sm">
+            <div class="row">
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+
+                            <span style="margin:0px 0px 0px 14px;"> Supplier Code </span>
+                            <input name="SupplierCode"
+                                   id="txtsupsearchcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.supcodecen"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Supplier Name </span>
+                            <input name="SupplierName"
+                                   id="txtsupnamecen"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.supnameecen"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+                        <td>
+                            <span> Pan No </span>
+                            <input name="PanNo"
+                                   id="txtPanNo"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.PanNo"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btnsearchecfsup1" value="Search" name="command" type="button" onclick="searsupcent()" style="margin-top:24px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btnsearchecfcle1" value="Clear" name="command" type="button" onclick="refsupcent()" style="margin-top:24px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 24px 15px -3px 0px;width:78%" onclick="GotoIsupcent()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridSupcentral11" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+              grid.Column("SupplierCode", Sorter("SupplierCode", "Supplier Code", grid)),
+                grid.Column("SupplierName", Sorter("SupplierName", "Supplier Name", grid)),
+             grid.Column("PanNo", Sorter("Pan No", "Pan No", grid)),
+            //grid.Column("SupplierId", Sorter("SupplierId", "Supplier Id", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="SupplierIdFind_@item.SupplierId" name="RollEmployee" value="@item.SupplierId" />
+                    <input type="hidden" id="SupplierCodeFind_@item.SupplierId" name="RollEmployee" value="@item.SupplierCode" />
+                    <input type="hidden" id="SupplierNameFind_@item.SupplierId" name="RollEmployee" value="@item.SupplierName" />
+                    <a><span class="btn btn-link btnselect" onclick="Select(@item.SupplierId)">Select</span></a>
+
+                </text>)
+)))
+            </div>
+            @if (ViewBag.Message != null)
+            {   <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+
+        </div>
+    }
+</div>
+<script>
+
+        $(document).ready(function () {
+
+            $("#txtsupsearchcode").keyup(function () {
+                var txtSupplierName = $("#txtsupsearchcode").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtsupsearchcode").removeClass('required');
+                    $("#txtsupsearchcode").addClass('valid');
+
+                }
+                else {
+                    $("#txtsupsearchcode").removeClass('valid');
+                    $("#txtsupsearchcode").addClass('required');
+
+                }
+            });
+            $("#txtsupnamecen").keyup(function () {
+                var txtSupplierName = $("#txtsupnamecen").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtsupnamecen").removeClass('required');
+                    $("#txtsupnamecen").addClass('valid');
+
+                }
+                else {
+                    $("#txtsupnamecen").removeClass('valid');
+                    $("#txtsupnamecen").addClass('required');
+
+                }
+            });
+
+        });
+        function searsupcent() {
+
+            var empcode = $('#txtsupsearchcode').val();
+            var empname = $('#txtsupnamecen').val();
+            var supplierpanno = $('#txtPanNo').val();
+            var objownersearch =
+                {
+                    "SupplierName": empname,
+                    "SupplierCode": empcode,
+                    "PanNo": supplierpanno
+                };
+
+
+
+            $.post('../CentralMaker/SupplierSearchcent', objownersearch,
+            function (data) {
+                $("#searchgridsup1").load('../CentralMaker/SupplierSearch?listfor=search&' + new Date().getTime());
+                setTimeout(function () {
+                    $("#txtsupnamecen").val(empname);
+                }, 50);
+
+            }, 'json');
+        }     
+
+    function refsupcent() {
+
+        $('#txtsupsearchcode').val('');
+        $('#txtsupnamecen').val('');
+        $('#searchgridsup1').load('../CentralMaker/SupplierSearch?' + new Date().getTime());
+        }
+       function Select(id) {
+
+            var SupplierId = $("#SupplierIdFind_"+ id +"").val();
+            var SupplierCode =$("#SupplierCodeFind_"+ id + "").val();
+            var SupplierName = $("#SupplierNameFind_"+ id + "").val();
+            $('#txtsuppliercode').val(SupplierCode);            
+            $('#txtSuppliername').val(SupplierName);
+            $('#txtsuppliercode111').val(SupplierCode);
+            $('#txtSuppliername111').val(SupplierName);
+            var Student = {
+                "Code": SupplierCode,
+                "Name": SupplierName
+            };
+            $.ajax({
+                url: '../ECF/GetEmployee',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    GotoIsupcent();
+                }
+            });
+        }
+       function GotoIsupcent() {
+
+            //objDialogyCentral.remove();
+           objforcensupp.dialog("close");
+           objforcensupp.remove();
+           window.parent.jQuery('#ForPartialViewsup').dialog('close');
+
+        }
+        function Dummyforsuppsearch() {
+            $("#wgridSupcentral11 td:nth-child(2),#wgridSupcentral11 th:nth-child(2)").show();
+        }
+</script>

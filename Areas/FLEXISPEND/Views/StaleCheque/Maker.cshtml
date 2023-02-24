@@ -1,0 +1,374 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Stale Cheque Maker</span>
+    </div>
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td width="25%" style="padding: 0px 10px">
+                    <span>Cheque From</span>
+                    <br />
+                    <input type="text"
+                           id="txtChequeFrom"
+                           onkeypress="return isEvent(event)"
+                           maxlength="10"
+                           class="fstextbox fsDatepicker" />
+                </td>
+                <td width="25%" style="padding: 0px 10px">
+                    <span>Cheque To</span>
+                    <br />
+                    <input type="text"
+                           id="txtChequeTo"
+                           onkeypress="return isEvent(event)"
+                           maxlength="10"
+                           class="fstextbox fsDatepicker" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Cheque No</span>
+                    <br />
+                    <input type="text"
+                           id="txtChequeNo"
+                           maxlength="25"
+                           onkeypress="return isNumberKey(event)"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Document Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtDocAmount"
+                           maxlength="10"
+                           @*onkeypress="return isNumberKey(event)"*@
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Supplier Code</span>
+                    <br />
+                    <input type="hidden" id="hdfSupplierCode" value="0" />
+                    <input type="text"
+                           id="txtSupplierCode"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Supplier Name</span>
+                    <br />
+                    <input type="hidden" id="hdfSupplierName" value="0" />
+                    <input type="text"
+                           id="txtSupplierName"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Employee Code</span>
+                    <br />
+                    <input type="hidden" id="hdfEmpCodeId" value="0" />
+                    <input type="text"
+                           id="txtEmpCode"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px">
+                    <span>Employee Name</span>
+                    <br />
+                    <input type="hidden" id="hdfEmpName" value="0" />
+                    <input type="text"
+                           id="txtEmpName"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Document Type</span>
+                    <br />
+                    <select name="ddlDocType" id="ddlDocType" class="fstextbox"
+                            data-bind="options: DocumentTypeArray, optionsText: 'Text', optionsValue:'Id', value:0, optionsCaption:'-Select All-'"></select>
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Document No</span>
+                    <br />
+                    <input type="text"
+                           id="txtDocNo"
+                           maxlength="25"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;"></td>
+                <td width="25%" style="padding: 12px 10px; text-align:right;">
+                    <button class="btn btn-primary" id="btnsearch" data-bind="click: $root.search" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                        Search
+                    </button>
+                    <button class="btn btn-primary" data-bind="click: $root.clearFilter" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                        Clear
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive">
+            <table id="gvStaleCheque" class="tableSmall table-bordered table-hover" data-bind="visible: StaleChequeArray().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:6%; min-width:50px;">
+                            SLNo
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Doc Amount
+                        </th>
+                        <th style="width:10%; min-width:100px;" class="colDate">
+                            PV Date
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            PV No
+                        </th>
+                        <th style="width:10%; min-width:100px;" class="colDate">
+                            Cheque Date
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Cheque No
+                        </th>
+                        <th style="width:8%; min-width:80px;">
+                            Cheque Amount
+                        </th>
+                        <th style="width:20%; min-width:150px;">
+                            Beneficiary Name
+                        </th>
+                        <th style="width:10%; min-width:100px;" class="colDate">
+                            Stale Moved Date
+                        </th>
+                        <th style="width:8%; min-width:60px;" class="nosort">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="ContentStaleCheque" data-bind="foreach:{ data: StaleChequeArray, afterRender: DatatableCall }, visible: StaleChequeArray().length > 0">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: SNo"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(DocAmount)"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: PvDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PvNo"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: ChqDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ChqNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: $root.formatNumber(ChqAmount)"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Beneficiary"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: StaleMovedDate"></span>
+                        </td>
+
+                        <td align="center">
+                            <span title="Re-Issue" style="color: blue; cursor:pointer; text-decoration:underline;" data-bind="click: $root.Reissue">Reissue</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        @*Dialog Box*@
+        <div style="display:none" id="DialogStale">
+            <input type="hidden" id="hdfPvId" value="0" />
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td colspan="3" width="100%" style="padding:0px 10px">
+                        <span style="color: rgb(29, 76, 209); font-weight: bold; font-size: 14px;">Document</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px">
+                        <span>Document Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUDocDate"
+                               class="fstextbox"
+                               disabled="disabled" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px">
+                        <span>Document Type</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUDocType"
+                               class="fstextbox"
+                               disabled="disabled" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Document No</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUDocNo"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Document Amount</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUDocAmount"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                    <td colspan="2" width="66%" style="padding: 0px 10px;">
+                        <span>Supplier/Employee</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUSEDetail"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" width="100%" style="padding:0px 10px">
+                        <span style="color: rgb(29, 76, 209); font-weight: bold; font-size: 14px;">Stale Cheque</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>PV Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUPVDate"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>PV No</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUPVNo"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px">
+                        <span>Moved Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUMovedDate"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Cheque Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUChqDate"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Cheque No</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUChqNo"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px">
+                        <span>Cheque Amount</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUChqAmount"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" width="100%" style="padding: 0px 10px;">
+                        <span>Cheque BankName</span>
+                        <br />
+                        <input type="text"
+                               id="txtPUBankName"
+                               disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" width="100%" style="padding:0px 10px">
+                        <span style="color: rgb(29, 76, 209); font-weight: bold; font-size: 14px;">ReIssue</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Bank</span>
+                        <br />
+                        <select name="ddlEPUBankName" id="ddlEPUBankName" class="fstextbox entry valid"
+                                data-bind="options: BankArray, optionsText: 'Text', optionsValue:'Id', value:0"></select>
+                    </td>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Cheque Book No</span>
+                        <br />
+                        <input type="text"
+                               id="txtEPUChqBookNo"
+                               class="fstextbox entry required" />
+                    </td>
+                    <td width="33%" style="padding: 0px 10px">
+                        <span>Cheque No</span>
+                        <br />
+                        <input type="text"
+                               id="txtEPUChqNo"
+                               maxlength="25"
+                               onkeypress="return isNumberKey(event)"
+                               class="fstextbox entry required" />
+                    </td>
+                </tr>
+                <tr>
+                    <td width="33%" style="padding: 0px 10px;">
+                        <span>Cheque Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtEPUChqDate"
+                               onkeypress="return isEvent(event)"
+                               maxlength="10"
+                               class="fstextbox fsDatepicker entry required" />
+                    </td>
+                    <td colspan="2" width="66%" style="padding: 0px 10px;"></td>
+                </tr>
+                <tr>
+                    <td colspan="3" width="100%" style="padding: 0px 10px;">
+                        <span>Remarks</span>
+                        <br />
+                        <textarea id="txtEPURemarks" rows="3" class="txtboxStyleBig entry required" style="width:100%; border-radius:4px;"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" width="100%" style="padding: 12px 10px; text-align:center;">
+                        <button class="btn btn-success" id="btnSubmit" data-bind="click: $root.Submit" type="button" style="margin-top:10px;  color:white;">
+                            <span style="color:white;" class="glyphicon glyphicon-save"></span>
+                            Submit
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+<script>
+    var UrlDet = "@Url.Action("GetStaleChequeMaker", "StaleCheque")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsStaleChequeMaker.js")" type="text/javascript"></script>

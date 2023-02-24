@@ -1,0 +1,407 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_EmployeeeExpense
+@using IEM.Areas.EOW.Models
+@{
+    EOW_EmployeeeExpense sh = (EOW_EmployeeeExpense)ViewBag.EOW_EmployeeeExpenseheader;
+}
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<style>
+    .diapy {
+        display: none;
+    }
+
+    .wth {
+        width: 100%;
+        height: 60px;
+    }
+</style>
+<div class="panel11 panel11-default11">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 75%;background-color: #F5F5F5;border-radius: 10px;padding: 2px 12px 0px 10px; vertical-align:top;">
+                    <table class="myTableStyleTabNew" style="width: 100%;">
+                        <tr>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ECF_Date, new { @id = "txtecfdateh" })
+                                <span>ECF Date</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Date, new { disable = true, @class = "textboxStyle required", @id = "txtecfdatet", @maxlength = "10", @placeholder = "dd-mm-yyyy", @readonly = "readonly" })
+
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ClaimMonth, new { @id = "txtclaimmonthh" })
+                                <span>Service  Month</span><br />
+                                @Html.TextBoxFor(n => n.ClaimMonth, new { disable = true, @class = "textboxStyle required monthYearPicker", @id = "txtclaimmontht", @maxlength = "20", @placeholder = "MMM-yyyy" })
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.noofperson, new { @id = "txtnoofpersonh" })
+                                <span>No.of Persons</span><br />
+                                @Html.TextBoxFor(n => n.noofperson, new { disable = true, @class = "textboxStyle", @id = "txtnoofperson", @onkeypress = "return isAmount(event);", @maxlength = "3" })
+                            </td>
+                            <td style="width:25%;">
+                                @Html.HiddenFor(n => sh.ECF_Amount, new { @id = "txtecfamounth" })
+                                <span>ECF  Amount</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Amount, new { disable = true, @class = "textboxStyle required", @id = "txtecfamountt", @onkeypress = "return isAmount(event);", @maxlength = "13" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:75%;" colspan="3">
+                                @Html.HiddenFor(n => n.ecfremark, new { @id = "txtecfremarkh" })
+                                @Html.HiddenFor(n => sh.ecfdescription, new { @id = "txtecfdescriptionh" })
+                                <span>ECF Description</span><br />
+                                @Html.TextAreaFor(n => n.ecfdescription, new { disable = true, @class = "textboxStyle required wth", @id = "txtecfdescription", @maxlength = "255" })
+                            </td>
+                            <td style="width:25%; vertical-align:bottom; text-align:right;">
+                                <button id="btnfrstsubmitt" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-share"></span> Proceed</button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td align="left" style="width:25%; background-color: #E3E3E3; border-radius: 10px; padding: 2px 6px 2px 6px;">
+                    <fieldset>
+                        <legend><center> <span style="font-weight:bold; font-size:14px; padding:3px;">RAISER DETAILS</span></center></legend>
+                        <table class="myTableStyleTabNew" style="border-top:solid 1px black;" width="100%">
+                            <tr>
+                                <td>
+                                    <span>Raiser Mode</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    @Html.DropDownListFor(n => n.raisermodeId, sh.Raiser_Modedata, new { @class = "textboxStyle required diapy", @id = "raisermodeNamet", @disabled = "disabled" })
+                                    <label id="txtmodest"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Code</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtraisercodet">@sh.Raiser_Code</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Name</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtraisernamet">@sh.Raiser_Name</label>
+                                    <input type="hidden" id="payBeneficiaryname" value="@sh.Raiser_Name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Grade</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td>
+                                    <label id="txtgradet">@sh.Grade</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align:center;font-size:20px;color:red;">
+                    <label id="lblIFSCCode" style="font-weight:normal">@ViewBag.IFSCCodemsg</label> 
+                </td> 
+            </tr>
+        </table>
+
+    }
+</div>
+<input type="hidden" id="nooffperson" />
+<script>
+    $(document).ready(function () {
+        $("#txtecfamountt").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#txtecfamountt").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtecfamountt").val(replaceCommas(currentval));
+        });
+        
+
+        $('#btnfrstsubmitt').click(function () {
+            debugger;
+            showProgress();
+            var raisermode = $("#raisermodeNamet").val();
+            var raisercode = $("#txtraisercodet").text();
+            var raisername = $("#txtraisernamet").text();
+            var ecfdate = $("#txtecfdatet").val();
+            var grade = $("#txtgradet").text();
+            var claimmonth = $("#txtclaimmontht").val();
+            var ecfamount = $("#txtecfamountt").val();
+            var ecfdescription = $("#txtecfdescription").val();
+            if (raisermode == null || raisermode == "0") {
+                hideProgress();
+                jAlert("Please Select Raiser Mode.", "Message");
+                return false;
+            }
+            if (raisercode == null || raisercode == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Code.", "Message");
+                return false;
+            }
+            if (raisername == null || raisername == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Name.", "Message");
+                return false;
+            }
+            if (ecfdate == null || ecfdate == "") {
+                hideProgress();
+                jAlert("Please Select ECF Date.", "Message");
+                $("#txtecfdatet").focus();
+                return false;
+            }
+            if (grade == null || grade == "") {
+                hideProgress();
+                jAlert("Please Enter  Grade.", "Message");
+                return false;
+            }
+            if (claimmonth == null || claimmonth == "") {
+                hideProgress();
+                jAlert("Please Select Claim Month.", "Message");
+                $("#txtclaimmontht").focus();
+                return false;
+            }
+            if (ecfamount == null || ecfamount == "") {
+                hideProgress();
+                jAlert("Please Enter ECF Amount.", "Message");
+                $("#txtecfamountt").focus();
+                return false;
+            }
+            if (ecfamount == "0" || ecfamount == "00" || ecfamount == "000" || ecfamount == "0000" || ecfamount == "00000" || ecfamount == "000000" || ecfamount == "0000000" || ecfamount == "0.000" || ecfamount == "00.000") {
+                hideProgress();
+                jAlert("Please Enter ECF Amount Greather then Zero.", "Message");
+                $("#txtecfamount").focus();
+                return false;
+            }
+            if (ecfdescription == null || ecfdescription == "") {
+                hideProgress();
+                jAlert("Please Enter ECF Description.", "Message");
+                //$("#txtecfdescription").focus();
+                return false;
+            }
+        });
+
+    });
+
+    $(document).ready(function () {
+        var txtecfdescriptionh = $("#txtecfdescriptionh").val();
+        if (txtecfdescriptionh.trim() != "") {
+            $("#txtecfdescription").val(txtecfdescriptionh);
+        }
+        var txtecfdateh = $("#txtnoofpersonh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtnoofperson").val(txtecfdateh);
+        }
+
+        var txtecfdateh = $("#txtecfdateh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtecfdatet").val(txtecfdateh);
+        }
+
+        var txtclaimmonthh = $("#txtclaimmonthh").val();
+        if (txtclaimmonthh.trim() != "") {
+            $("#txtclaimmontht").val(txtclaimmonthh);
+        }
+
+        var txtecfamounth = $("#txtecfamounth").val();
+        if (txtecfamounth.trim() != "") {
+            $("#txtecfamountt").val(txtecfamounth);
+        }
+
+        $("#txtecfdescriptionh").val('');
+        $("#txtecfdateh").val('');
+        $("#txtclaimmonthh").val('');
+        $("#txtecfamounth").val('');
+        $("#txtnoofpersonh").val('');
+
+        $("#txtecfdatet").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            minDate: '+id',
+            dateFormat: 'dd-mm-yy'
+
+        });
+        var selmode = $("#raisermodeNamet option:selected").text();
+        if (selmode.trim() != "") {
+            $("#txtmodest").text(selmode);
+        }
+        else {
+            $("#txtmodest").text('Self');
+        }
+    });
+    $(function () {
+        $('.monthYearPicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            maxDate: '-id',
+            dateFormat: 'MM-yy'
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        var txtecfdescription = $("#txtecfdescription").val();
+        if (txtecfdescription.trim() != "") {
+            $("#txtecfdescription").addClass('valid');
+        }
+        else {
+            $("#txtecfdescription").addClass('required');
+        }
+        var txtContractFromdd = $("#txtecfdatet").val();
+        if (txtContractFromdd == "") {
+            $('#txtecfdatet').datepicker().datepicker('setDate', 'today');
+            $("#txtecfdatet").removeClass('required');
+            $("#txtecfdatet").addClass('valid');
+        }
+        var txtContractFromr = $("#txtnoofperson").val();
+        if (txtContractFromr == "") {
+            $("#txtnoofperson").val('1');
+            $("#txtnoofperson").removeClass('required');
+            $("#txtnoofperson").addClass('valid');
+        }
+        $("#txtecfdatet").keyup(function () {
+            var txtContractFrom = $("#txtecfdatet").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdatet").removeClass('required');
+                $("#txtecfdatet").addClass('valid');
+            }
+            else {
+                $("#txtecfdatet").removeClass('valid');
+                $("#txtecfdatet").addClass('required');
+            }
+        });
+        var txtContractFrom = $("#txtecfdatet").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdatet").addClass('valid');
+        }
+        else {
+            $("#txtecfdatet").addClass('required');
+        }
+        $("#txtecfdatet").change(function () {
+            var txtContractFrom = $("#txtecfdatet").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdatet").removeClass('required');
+                $("#txtecfdatet").addClass('valid');
+            }
+            else {
+                $("#txtecfdatet").removeClass('valid');
+                $("#txtecfdatet").addClass('required');
+            }
+        });
+        $("#txtecfamountt").keyup(function () {
+            var txtContractFrom = $("#txtecfamountt").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfamountt").removeClass('required');
+                $("#txtecfamountt").addClass('valid');
+            }
+            else {
+                $("#txtecfamountt").removeClass('valid');
+                $("#txtecfamountt").addClass('required');
+            }
+        });
+        var txtContractFrom = $("#txtecfamountt").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfamountt").addClass('valid');
+        }
+        else {
+            $("#txtecfamountt").addClass('required');
+        }
+        $("#txtclaimmontht").keyup(function () {
+            var txtContractFrom = $("#txtclaimmontht").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+            }
+            else {
+                $("#txtclaimmontht").removeClass('valid');
+                $("#txtclaimmontht").addClass('required');
+            }
+        });
+        var txtContractFrom = $("#txtclaimmontht").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtclaimmontht").addClass('valid');
+        }
+        else {
+            $("#txtclaimmontht").addClass('required');
+        }
+        $("#txtclaimmontht").change(function () {
+            var txtContractFrom = $("#txtclaimmontht").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmontht").removeClass('required');
+                $("#txtclaimmontht").addClass('valid');
+            }
+            else {
+                $("#txtclaimmontht").removeClass('valid');
+                $("#txtclaimmontht").addClass('required');
+            }
+        });
+        $("#raisermodeNamet").keyup(function () {
+            var txtContractFrom = $("#raisermodeNamet").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeNamet").removeClass('required');
+                $("#raisermodeNamet").addClass('valid');
+            }
+            else {
+                $("#raisermodeNamet").removeClass('valid');
+                $("#raisermodeNamet").addClass('required');
+            }
+        });
+        $("#raisermodeNamet").change(function () {
+            var txtContractFrom = $("#raisermodeNamet").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeNamet").removeClass('required');
+                $("#raisermodeNamet").addClass('valid');
+            }
+            else {
+                $("#raisermodeNamet").removeClass('valid');
+                $("#raisermodeNamet").addClass('required');
+            }
+        });
+        $("#txtecfdescription").keyup(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+        $("#txtecfdescription").change(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+    });
+</script>

@@ -1,0 +1,136 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SearchEmployee>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.formname = (string)Session["formname"];
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgEmployeeList", ajaxUpdateCallback: "DummyFunction11()");
+    //var grid = new WebGrid(Model, canSort: false, canPage: false);
+    //CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div id="wgEmployeeList">
+    <div id="SearchEmpHedaer">
+        <table style="width:100%" class="myTableStyleTabNew">
+            <tr>
+                <td style="width:25%">
+                    <input type="hidden" name="txtFor" id="txtFor" />
+                    <span>Employee Code</span><br />
+                    <input type="text" name="txtEmployeeCode" id="txtEmployeeCode" class="textboxStyle" value=@ViewBag.SearchEmpCode />
+                </td>
+                <td style="width:35%">
+                    <span>Employee Name</span><br />
+                    <input type="text" name="txtEmployeeName" id="txtEmployeeName" class="textboxStyle" value=@ViewBag.SearchEmpName />
+                </td>
+                <td style="width:40%;">
+                    <button id="btnSearch" class="btn btn-primary" value="Search" onclick="SearchEmployees()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button id="btnClear" class="btn btn-primary" value="Refresh" onclick="RefreshEmployees()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                    @*<a onclick="SearchEmployees()" class="btn btn-primary" wi><span class="glyphicon glyphicon-search"></span>Search</a>
+                        <a onclick="RefreshEmployees()" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span>Refresh</a>*@
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+            htmlAttributes: new { id = "wgridEmployees" },
+                     tableStyle: "tableSmall table-bordered table-hover",
+            columns: grid.Columns
+            (
+            grid.Column("_EmployeeGid", "ID"),
+            grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1),
+            grid.Column("_EmployeeCode", "Employee Code"),
+            grid.Column("_EmployeeName", "Employee Name"),
+            grid.Column(header: "Action", style: "action",
+                format: @<text>
+            <a onclick="SelectEmployee(this,id)" id="@item._EmployeeGid"><span class="btn btn-link">Select</span></a>
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount">
+            Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>
+        </div>
+    }
+</div>
+
+<script type="text/javascript">
+    var formname;
+    var emp_code;
+    var emp_name;
+    $(document).ready(function () {
+        $("#wgridEmployees td:nth-child(1),#wgridEmployees th:nth-child(1)").hide();
+        $("#wgridEmployees td:nth-last-child(1)").show();
+    });
+
+    function DummyFunction11() {
+        $("#wgridEmployees td:nth-child(1),#wgridEmployees th:nth-child(1)").hide();
+        $("#wgridEmployees td:nth-last-child(1)").show();
+
+        //$('#wgridEmployees tr th:nth-child(5)').addClass("nosort");
+        //$('#wgridEmployees').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+    }
+    function SearchEmployees() {
+        var EmployeeCode = $("#txtEmployeeCode").val();
+        var EmployeeName = $("#txtEmployeeName").val();
+        emp_code = EmployeeCode;
+        emp_name = EmployeeName;
+        var objSearchEmployee = {
+            "_EmployeeCode": EmployeeCode,
+            "_EmployeeName": EmployeeName
+        };
+        $.post('../OnwerUpdation/SearchEmployee', objSearchEmployee,
+        function (data) {
+
+            $("#wgEmployeeList").load('../OnwerUpdation/SearchEmployee?listfor=search&formname=' + formname + '&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtEmployeeCode").val(emp_code);
+                $("#txtEmployeeName").val(emp_name);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshEmployees() {
+        $("#txtEmployeeCode").val("");
+        $("#txtEmployeeName").val("");
+        var EmployeeCode = $("#txtEmployeeCode").val();
+        var EmployeeName = $("#txtEmployeeName").val();
+        var objSearchEmployee = {
+            "_EmployeeCode": EmployeeCode,
+            "_EmployeeName": EmployeeName,
+            "_EmployeeFor": formname
+        };
+        $.post('../OnwerUpdation/SearchEmployee', objSearchEmployee,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgEmployeeList").load('../OnwerUpdation/SearchEmployee?listfor=refresh&formname=' + formname + '&' + new Date().getTime());
+            }
+        }, 'json');
+    }
+
+</script>

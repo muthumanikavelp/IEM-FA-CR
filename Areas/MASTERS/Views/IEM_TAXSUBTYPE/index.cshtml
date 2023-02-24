@@ -1,0 +1,159 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_tax_subtype>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Sub-Tax</span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <div class="input-append">
+                            <span>  Sub-Tax Code  </span>
+                            <br />
+                            <input type="text"
+                                   name="filter_name"
+                                   id="txtFilterName"
+                                   value="@ViewBag.filter_name"
+                                   class="fstextbox"
+                                   style="display: block; "
+                                   maxlength="8" />
+                        </div>
+                    </td>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <div class="input-append">
+                            <span>   Sub-Tax  </span>
+                            <br />
+                            <input type="text"
+                                   name="filter_name1"
+                                   id="txtFilterName1"
+                                   value="@ViewBag.filter_name1"
+                                   class="fstextbox"
+                                   style="display: block; "
+                                   maxlength="64" />
+                        </div>
+                    </td>
+                    <td style="width:50%; padding:0px 10px 0px 3px;">
+                        <button class="btn btn-primary" value="Search" name="command" type="submit" style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+                        <button class="btn btn-primary" value="Clear" onclick="refresh()" name="command" type="button" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+
+                        <button type="button" value="New TaxSubType" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>New Sub-Tax
+                        </button>
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                        </button>
+
+                    </td>
+                </tr>
+            </table>
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+    htmlAttributes: new { id = "grid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+                
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+          grid.Column(header: "Sub-Tax Code", columnName: "taxsubtype_code"),
+    grid.Column(header: "Sub-Tax", columnName: "taxsubtype_name"),
+grid.Column(header: "Tax", columnName: "taxsubtype_parent_name"),
+grid.Column(header: "Active Status", columnName: "taxsubtype_active_flag", style: "action"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.taxsubtype_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.taxsubtype_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteType(" + item.taxsubtype_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+        </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("#txtFilterName").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+            $("#txtFilterName1").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $('#grid tr th:nth-child(6)').addClass("nosort");
+            $('#grid').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            //$("#grid tr #Color").click(function () {
+            //    $('#grid').find('tr').css('background', 'none');
+            //    $(this).closest('tr').css('background', '#CEECF5');
+            //});
+        });
+        var objDialog;
+        $(document).ready(function () {
+            objDialog = $("[id$='ForPartialView']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 400,
+                height: 350
+            });
+        });
+        function NewType() {
+            objDialog.load('../IEM_TAXSUBTYPE/Create?' + new Date().getTime());
+            objDialog.dialog({ title: 'Add Sub-Tax' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_TAXSUBTYPE/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit  Sub-Tax' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=2&FileName=TaxSubtype&' + new Date().getTime());
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_TAXSUBTYPE/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View  Sub-Tax' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteType(id) {
+            //       if (confirm("Do you want to delete Tax SubType ? ")) {
+            //           var taxModel = { "taxsubtype_gid": id }
+            //           $.post('../IEM_TAXSUBTYPE/Delettaxsub', taxModel,
+            //function (data) { if (data == 0) { location = location.href; } else { location = '../IEM_TAXSUBTYPE/Index'; } }, 'json');
+
+            //       }
+            objDialog.load('../IEM_TAXSUBTYPE/Edit?id=' + id + '&viewfor=Delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete Sub-Tax' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function refresh() {
+            location = '../IEM_TAXSUBTYPE/Index';
+        }
+    </script>

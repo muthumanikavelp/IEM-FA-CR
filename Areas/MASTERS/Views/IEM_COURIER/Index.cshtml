@@ -1,0 +1,154 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_courier>
+@using IEM.Common             
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Courier </span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="well" style="padding:10px;">
+
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span> Courier Name  </span>
+                        <br />
+                        <input type="text"
+                               name="filter_name"
+                               id="txtFilterName"
+                               value="@ViewBag.filter_name"
+                               maxlength="80"
+                               class="fstextbox" />
+
+                    </td>
+                    <td style="width:75%; padding:0px 10px 0px 3px;">
+
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                style="margin-top:20px;color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+                        @*<button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit"
+                                     style="margin-top:20px;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit"
+                                style="margin-top:20px;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-export"></span> Export Excel
+                        </button>
+                        <button type="button" value="New Courier" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span> New Courier
+                        </button>
+
+                    </td>
+                </tr>
+            </table>
+
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+          htmlAttributes: new { id = "gridcourier" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                         grid.Column(header: "Courier Name", columnName: "courier_name"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.courier_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.courier_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteCourier(" + item.courier_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+        </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+
+            $(function () {
+                $("#txtFilterName").focus();
+            });
+
+
+            $('#gridcourier tr th:nth-child(3)').addClass("nosort");
+            $('#gridcourier').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+
+            //var tr = $("#gridcourier").find('tr');
+            //$("#gridcourier tr #Color").click(function () {
+            //    $('#gridcourier').find('tr').css('background', 'none');
+            //    $(this).closest('tr').css('background', '#CEECF5');
+            //});
+            $("#txtFilterName").focus();
+            $("#txtFilterName").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+        });
+        $(document).ready(function () {
+            objDialog = $("[id$='ForPartialView']");
+            //objDialogfordelete = $("[id$='ForPartialViewfordelete']");
+            //objDialogforedit = $("[id$='ForPartialViewforedit']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 330,
+                height: 160
+            });
+
+        });
+
+
+        function NewType() {
+            objDialog.load('../IEM_COURIER/Create');
+            objDialog.dialog({ title: 'Add Courier' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_COURIER/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit Courier ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_COURIER/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View Courier ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteCourier(id) {
+            objDialog.load('../IEM_COURIER/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete Courier ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function refresh() {
+            location = '../IEM_COURIER/Index';
+        }
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=19&FileName=Courier&' + new Date().getTime());
+        }
+    </script>

@@ -1,0 +1,282 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_expensesubcategory>
+@{
+    //ViewBag.Title = "Index";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    //WebGrid grid = new WebGrid(source: Model, canPage: true, canSort: true);
+    //int rowVal = 0;
+    iem_mst_expensesubcategory ecfexpense = (iem_mst_expensesubcategory)ViewBag.expensecatsubcat;
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;   
+}
+<script src="~/Scripts/jquery-1.9.1.min.js"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+
+<script type="text/javascript" src="@Url.Content("~/Scripts/bootstrap-multiselect.js")"></script>
+<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Expense Sub Category</span>
+</div>
+
+@using (Html.BeginForm())
+{   
+
+    <div class="well" style="padding:10px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:15%; padding:0px 10px 0px 3px;">
+                            <div class="input-append ">
+                                <span>Expense Nature</span>
+                                <br />
+                                <select name="expnatTypee" id="TravelModeIde" class="fstextbox  chosen-select">
+                                    <option value="0">-----Select----</option>
+                                    @foreach (var pitem in ecfexpense.Getexpnature)
+                                    {
+                                        string selectedValue = "";
+                                        if (ViewBag.filter2 == pitem.Value)
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+                                        <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+
+                <td style="width:15%; padding:0px 10px 0px 3px;">
+                    <div class="input-append ">
+                        <span>Expense Category</span>
+                        <br />
+                        <select name="expcatType" id="TravelModeId" class="fstextbox  chosen-select">
+                            <option value="0">-----Select----</option>
+                            @foreach (var pitem in ecfexpense.Getexpcat)
+                            {
+                                string selectedValue = "";
+                                if (ViewBag.filter3 == pitem.Value)
+                                {
+                                    selectedValue = "selected='selected'";
+                                }
+                                <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+
+                <td style="width:15%; padding:0px 10px 0px 3px;">
+                    <div class="input-append ">
+                        <span>Exp Sub Cat Code</span>
+                        <br />
+                        <input type="text"
+                               name="filter"
+                               id="txtFilter"
+                               value="@ViewBag.filter"
+                               class="fstextbox "
+                               style="display: block;"
+                               autocomplete="off"
+                               maxlength="64" />
+                    </div>
+                </td>
+
+                <td style="width:15%; padding:0px 10px 0px 3px;">
+                    <div class="input-append ">
+                        <span>Exp Sub Cat Name</span>
+                        <br />
+                        <input type="text"
+                               name="filter1"
+                               id="txtFilter1"
+                               value="@ViewBag.filter1"
+                               class="fstextbox "
+                               style="display: block;"
+                               autocomplete="off"
+                               maxlength="64" />
+                    </div>
+                </td>
+                <td style="width:40%; padding:0px 10px 0px 3px;">
+
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                             style="margin-top:20px;color:white;">
+                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+             
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear"
+                                     name="command" type="submit" style="margin-top:20px;">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                       
+                    <button type="button" value="New Sub Category" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                    <span style="color:white;" class="glyphicon glyphicon-plus"></span> New Expense Sub Category</button>
+
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+
+                 </td>
+                    </tr>
+                </table>         
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+            htmlAttributes: new { id = "gridexpsub" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                            grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                            grid.Column(header: "Expense Sub Cat Code", columnName: "expsubcat_code"),
+                            grid.Column(header: "Expense Sub Cat Name", columnName: "expsubcat_name"),
+                            grid.Column(header: "Expense Nature", columnName: "expnature_name"),
+                            grid.Column(header: "Expense Category", columnName: "expcat_name"),
+                            grid.Column(header: "Gl No", columnName: "GlNo"),
+                            grid.Column(header: "Active", columnName: "expsubcat_active"),
+                            grid.Column(header: "HSN Code", columnName: "hsn_code"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.expsubcat_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.expsubcat_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteExpsub(" + item.expsubcat_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+        </div>
+           
+    </div>
+}
+<div id="ForPartialView"></div>
+<div id="ForPartialViewforedit"></div>
+<div id="ForPartialViewfordelete"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objdialogforedit;
+    $.noConflict();
+    $(document).ready(function () {
+
+        $("#TravelModeIde").chosen({});
+        $("#TravelModeId").chosen({});
+        $("#TravelModeId_chosen, #TravelModeIde_chosen").css('width', '100%');//addClass("mychosen")
+
+
+        var natgid = $('#TravelModeIde').val();
+        if (natgid == "0") {
+            $('#TravelModeId').attr('disabled', true);
+            $('#TravelModeId').trigger('chosen:updated');
+
+        }
+
+        $(function () {
+            $("#txtFilter").focus();
+        });
+        $('#gridexpsub tr th:nth-child(7)').addClass("nosort");
+        $('#gridexpsub').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+      
+        $("#txtFilter").focus();
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter1").focus();
+        $("#txtFilter1").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 430,
+            height:400
+        });
+    });
+    function refresh() {
+        location = '../IEM_EXPENSESUBCATEGORY/Index';
+    }
+    function NewType() {
+        objDialog.load('../IEM_EXPENSESUBCATEGORY/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Expense Sub Category' });
+        objDialog.dialog("open");
+        triggetmultiselect();
+        return false;
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_EXPENSESUBCATEGORY/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Expense Sub Category ' });
+        objDialog.dialog("open");
+        triggetmultiselect();
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_EXPENSESUBCATEGORY/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Expense Sub Category ' });
+        objDialog.dialog("open");
+        triggetmultiselect();
+        return false;
+    }
+    function DeleteExpsub(id) {
+        objDialog.load('../IEM_EXPENSESUBCATEGORY/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Expense Sub Category ' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+        ko.utils.postJson(UrlDet + '?ViewType=12&FileName=ExpenseSubCategory&' + new Date().getTime());
+    }
+    function triggetmultiselect() {
+        $('#multiple_id').multiselect();
+    }
+    $('#TravelModeIde').change(function () {
+
+        var ddlid = $(this).val();
+
+        var expensen =
+            {
+                "expsubcat_gid": ddlid
+            };
+
+        $.ajax({
+            url: '@Url.Action("expcat", "IEM_EXPENSESUBCATEGORY")',
+
+            data: JSON.stringify(expensen),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+
+            success: function (data) {
+
+                $("#TravelModeId").empty();
+
+                if (data.length > 0) {
+                    $("#TravelModeId").append("<option value='0' >--Select Exp Cat--</option>");
+
+                    for (var i = 0; i < data.length; i++) {
+                        $('#TravelModeId').attr('disabled', false);
+
+                        $("#TravelModeId").append("<option value=" + data[i].expcat_gid + " >" + data[i].expcat_name + "</option>");
+                    }
+                    $("#TravelModeId").trigger('chosen:updated');
+                }
+
+                if (data.length == 0) {
+                    $("#TravelModeId").append("<option value='0' >--Select Exp Cat--</option>");
+                    $('#TravelModeId').attr('disabled', true);
+                    $("#TravelModeId").trigger('chosen:updated');
+                }
+                if (data.length == null) {
+
+                }
+            },
+            error: function (result) {
+                alert("Error");
+            }
+        });
+    });
+
+</script>

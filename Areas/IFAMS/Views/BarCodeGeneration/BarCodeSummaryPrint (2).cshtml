@@ -1,0 +1,588 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.BarcodeGenerationModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "BarCodeSummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.BModel,
+                       canPage: false,
+                        // canPage: true, rowsPerPage: 18,
+                         canSort: true,
+                         ajaxUpdateContainerId: "barcodePrintGrid",
+                          ajaxUpdateCallback: "barcodePrintGrid"
+                       );
+    var status = (string)ViewBag.status;
+    if (status == "--Select Status--" || status == "NOT PRINTED" || status == null)
+    {
+        status = "NOT PRINTED";
+    }
+    //var filename = (string)Session["file"];
+    //filename=@"C:\temp\Barcode\" + filename + ".pdf";
+}
+
+@*<script>
+       window.open('@filename', '_newtab');
+    </script>*@
+<b>
+    <span style="color: rgb(52, 108, 196);"> Barcode Printing Summary</span>
+</b>
+@using (Html.BeginForm("BarCodeSummaryPrint", "BarCodeGeneration", FormMethod.Post))
+{
+    <div class="well">
+
+        <div class="row">
+
+            <div class="col-sm-12">
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td style="padding-top:10px;">
+                            <div>
+                                <span> Asset ID</span>
+                                <br />
+                                <input type="text"
+                                       name="assetid"
+                                       id="txtassetid"
+                                       value="@ViewBag.assetid"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+                        <td style="padding-left:10px;padding-top:10px;">
+                            <div>
+                                <span> Asset Type</span>
+                                <br />
+                                <input type="text"
+                                       name="type"
+                                       id="txttype"
+                                       value="@ViewBag.type"
+                                       class="textboxStyleSearch" maxlength="10" />
+                            </div>
+                        </td>
+                        <td style="padding-left:10px;padding-top:10px;">
+                            <div>
+                                <span> Asset Source</span>
+                                <br />
+                                <select id="txtsource" class="textboxStyleSearch" name="source">
+                                    <option>@ViewBag.Source</option>
+                                    <option value="ASSET CAPITALIZATION">ASSET CAPITALIZATION</option>
+                                    <option value="ASSET CODE CHANGE">ASSET CODE CHANGE</option>
+                                    <option value="ASSET SPLITING">ASSET SPLITING</option>
+                                    <option value="ASSET TRANSFER">ASSET TRANSFER</option>
+
+                                </select>
+                            </div>
+                            @*<div>
+                                    <span> Asset Source</span>
+                                    <br />
+                                    <select id="txtsource" class="textboxStyleSearch" name="source"></select>
+                                </div>*@
+                        </td>
+
+                        <td style="padding-left:10px;padding-top:10px;">
+                            <div>
+                                <span> Barcode </span>
+                                <br />
+                                <input type="text"
+                                       name="barcode"
+                                       id="txtbarcode"
+                                       value="@ViewBag.barcode"
+                                       class="textboxStyleSearch" maxlength="11" />
+                            </div>
+                        </td>
+                        <td style="padding-left:10px;padding-top:10px;">
+                            <div>
+                                <span> Barcode Status </span>
+                                <br />
+                                <select id="txtstatus" class="textboxStyleSearch" name="status">
+                                    <option>@ViewBag.Status</option>
+                                    <option value="DESPATCHED">DESPATCHED</option>
+                                    <option value="NOT PRINTED">NOT PRINTED</option>
+                                    <option value="PRINTED">PRINTED</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div>
+                                <span> Branch </span>
+                                <br />
+                                <input type="text"
+                                       name="locode"
+                                       id="txtlocode"
+                                       value="@ViewBag.locode"
+                                       class="textboxStyleSearch" maxlength="4" />
+                            </div>
+                        </td>
+
+                        <td style="padding-left:10px;">
+                            <div>
+                                <span> AWB No </span>
+                                <br />
+                                <input type="text"
+                                       name="awbno"
+                                       id="txtawbno"
+                                       value="@ViewBag.awbno"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+                        <td style="padding-left:10px;">
+                            <div>
+                                <span> Courier Name </span>
+                                <br />
+                                <input type="text"
+                                       name="courier"
+                                       id="txtcourier"
+                                       value="@ViewBag.courier"
+                                       class="textboxStyleSearch" maxlength="50" />
+                            </div>
+                        </td>
+                        <td style="padding-left:10px;">
+                            <div>
+                                <span> Despatch date </span>
+                                <br />
+                                <input type="text"
+                                       name="despdate"
+                                       id="txtdespdate"
+                                       value="@ViewBag.despdate"
+                                       class="textboxStyleSearch" readonly="readonly"
+                                       placeholder="dd-mm-yyyy" />
+                            </div>
+                        </td>
+
+                        <td>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <span> </span>
+                                        <br />
+                                        <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search "></span> Search</button>
+                                    </td>
+                                    <td>
+                                        <span> </span>
+                                        <br />
+                                        <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="submit"><span style="color:white;" onclick="refreshpage()" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                    </td>
+                                    <td>
+                                        <span> </span>
+                                        <br />@if (@grid.TotalRowCount != 0)
+                                        {
+                                            <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                @if (status == "NOT PRINTED")
+                {
+                    <table class="myTableStyleTabNew " align="center">
+                        <tr>
+                            <td>
+                                <div style="float:right;padding-right:0px;">
+                                    <span> </span>
+                                    <br />
+
+                                    <button class="btn btn-primary" type="button" id="PrintBarcode" name="command" value="PrintBarcode"><span style="color:white;" class="glyphicon glyphicon-print"></span> Print Barcode</button>
+
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                }
+
+            </div>
+        </div>
+
+        @if (status != "NOT PRINTED")
+        {
+            <div class="row">
+
+                <div class="col-sm-12">
+                    <table class="myTableStyleTabNew" align="center">
+                        <tr>
+                            <td>
+                                <div>
+                                    <span> AWB No </span>
+                                    <br />
+                                    <input type="text"
+                                           name="awbnodetail"
+                                           id="txtawbnodetail" maxlength="20"
+                                           class="textboxStyleSearch required" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span> Courier Name </span>
+                                    <br />
+                                    <input type="text"
+                                           name="courierdetail"
+                                           id="txtcourierdetail"
+                                           value="@ViewBag.courier" maxlength="50"
+                                           class="textboxStyleSearch required" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span> Despatch date </span>
+                                    <br />
+                                    <input type="text"
+                                           name="despdatedetail"
+                                           id="txtdespdatedetail"
+                                           class="textboxStyleSearch" readonly="readonly"
+                                           placeholder="dd-mm-yyyy"
+                                           value="@System.DateTime.Now.ToShortDateString()" />
+                                </div>
+                            </td>
+
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <span> </span>
+                                            <br />
+                                            <button class="btn btn-primary" id="btnsave" type="button" name="command" onclick="updatedetails()" value="Update"><span style="color:white;" class="glyphicon glyphicon-floppy-disk "></span> Save</button>
+                                        </td>
+                                        <td>
+                                            <span> </span>
+                                            <br />
+                                            <button class="btn btn-primary" id="btnClearfilled" onclick="Clearfilled()" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                        </td>
+                                        <td>
+                                            <span> </span>
+                                            <br />
+                                            <button class="btn btn-primary" type="button" id="PrintBarcode" name="command" value="PrintBarcode"><span style="color:white;" class="glyphicon glyphicon-print"></span> Print Barcode</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+
+                </div>
+            </div>
+        }
+        <table align="center">
+            <tr>
+                <td>
+                    <div style="overflow-x:scroll;width:1350px;overflow-y:scroll;height:550px;margin-top:17px;">
+                        @grid.GetHtml(
+                fillEmptyRows: false,
+                htmlAttributes: new { id = "barcodePrintGrid" },
+                tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                //mode: WebGridPagerModes.All,
+                columns: grid.Columns(
+                    grid.Column(header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                    grid.Column("_barcode", obj.Sorter("_barcode", "Barcode", grid), style: " MidColumn30"),
+                    grid.Column("_loc", obj.Sorter("_loc", "Branch", grid), style: "MidColumn20"),
+                    grid.Column("_asset_id", obj.Sorter("_asset_id", "Asset ID", grid), style: " MidColumn50"),
+                    grid.Column("_asset_sno", obj.Sorter("_asset_sno", "Asset Slno", grid), style: "MidColumn20"),
+                    grid.Column("_asset_type", obj.Sorter("_asset_type", "Asset Type", grid), style: " MidColumn20"),
+                    grid.Column("_awb_no", obj.Sorter("_awb_no", "AWB No", grid), style: "MidColumn30"),
+                    grid.Column("_courier_name", obj.Sorter("_courier_name", "Courier Name", grid), style: "MidColumn30"),
+                    grid.Column("_despatch_date", obj.Sorter("_despatch_date", "Despatch Date", grid), style: " MidColumn20"),
+                    grid.Column("_source_name", obj.Sorter("_source_name", "Asset Source", grid), style: " MidColumn50"),
+                    grid.Column("_barcode_status", obj.Sorter("_barcode_status", "Barcode Status", grid), style: " MidColumn30"),
+                 grid.Column(style: "col-lg-2 MidColumn20Center", format: @<text> <input type="checkbox" value="@item._assetdet_gid" name="ids" /> </text>, header: " {checkall}")))
+                        <div class="table-bordered" align="center">
+                            @if (ViewBag.Message != null)
+                            {   <b> @ViewBag.Message </b> }
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <br />
+        @*<span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>*@  <span class="myTableStyleTabNew">  Total No Of Records:@Model.BModel.Count</span>
+
+
+        <div id="View"></div>
+    </div>
+}
+<script>
+    function refreshpage() {
+        //location = '../BarCodeGeneration/BarCodeSummaryPrint/';
+        location = '@Url.Action("BarCodeSummaryPrint", "BarCodeGeneration")';
+    }
+    $(document).ready(function () {
+
+        @*var NOTPRINTED = '@ViewBag.Status';
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("DdlStatus", "BarCodeGeneration")',
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].status, data[i].status);
+                        $('#txtstatus').append(opt);
+
+                        $("#txtstatus").find('option').each(function (i, opt) {
+
+                            if (opt.value == NOTPRINTED)
+                                $(opt).attr('selected', 'selected');
+                        });
+                    }
+                }
+            });
+        });*@
+
+        @*var source = '@ViewBag.Source';
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("DdlSource", "BarCodeGeneration")',
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].status, data[i].status);
+                        $('#txtstatus').append(opt);
+
+                        $("#txtstatus").find('option').each(function (i, opt) {
+
+                            if (opt.value == NOTPRINTED)
+                                $(opt).attr('selected', 'selected');
+                        });
+                    }
+                }
+            });
+        });*@
+
+        $("#txtawbnodetail").keypress(function (event) {
+            return isAlphaNumeric(event, this);
+        });
+        $("#txtcourierdetail").keypress(function (event) {
+            return isAlphaNumeric(event, this);
+        });
+
+        var checked = $("#barcodePrintGrid td :checkbox:checked").length;
+        if (checked == 0) {
+            $("#PrintBarcode").attr("disabled", true);
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#PrintBarcode").attr("disabled", false);
+            $("#btnsave").attr("disabled", false);
+        }
+
+        $("#btnsave").attr("disabled", true);
+        $("#txtdespdate").datepicker(
+        {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxdate: new Date()
+        });
+        $("#txtdespdatedetail").datepicker(
+        {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxdate: new Date()
+        });
+        // 1st replace first column header text with checkbox
+
+
+    });
+
+
+    $("#barcodePrintGrid th").each(function () {
+        
+        var checked = $("#barcodePrintGrid td :checkbox:checked").length;
+        CheckFields();
+        if (checked == 0) {
+            $("#PrintBarcode").attr("disabled", true);
+        }
+        else {
+            $("#PrintBarcode").attr("disabled", false);
+        }
+        if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+            $(this).text('');
+            $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+            $(this).append("<span>Select All</span>");
+        }
+        CheckFields();
+    });
+
+    //2nd click event for header checkbox for select /deselect all
+    $("#cbSelectAll").live("click", function () {
+        
+        var ischecked = this.checked;
+        $('#barcodePrintGrid').find("input:checkbox").each(function () {
+            this.checked = ischecked;
+        });
+        var checked = $("#barcodePrintGrid td :checkbox:checked").length;
+
+        if (checked == 0) {
+            $("#PrintBarcode").attr("disabled", true);
+        }
+        else {
+            $("#PrintBarcode").attr("disabled", false);
+
+        }
+        CheckFields();
+    });
+
+
+    //3rd click event for checkbox of each row
+    $("input[name='ids']").click(function () {
+        CheckFields();
+        
+       // alert();
+        var totalRows = $("#barcodePrintGrid td :checkbox").length;
+        var checked = $("#barcodePrintGrid td :checkbox:checked").length;
+
+        if (checked == 0) {
+            $("#PrintBarcode").attr("disabled", true);
+        }
+        else {
+            $("#PrintBarcode").attr("disabled", false);
+
+        }
+
+        if (checked == totalRows) {
+            $("#barcodePrintGrid").find("input:checkbox").each(function () {
+                this.checked = true;
+            });
+        }
+        else {
+            $("#cbSelectAll").removeAttr("checked");
+        }
+        CheckFields();
+    });
+    function Clearfilled() {
+        $("#txtawbnodetail").val("");
+        $("#txtcourierdetail").val("");
+        $("#txtdespdatedetail").val('@System.DateTime.Now.ToShortDateString()');
+        $("#txtawbnodetail").removeClass('valid');
+        $("#txtawbnodetail").addClass('required');
+        $("#txtcourierdetail").removeClass('valid');
+        $("#txtcourierdetail").addClass('required');
+        CheckFields();
+    }
+
+    $("#PrintBarcode").click(function () {
+        // alert();
+        var idsticked;
+        $("#barcodePrintGrid").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                idsticked = $(this).val() + "," + idsticked;
+            }
+        });
+
+        location = '@Url.Action("PrintBarcodes", "BarCodeGeneration")?ids=' + idsticked + '&' + new Date().getTime();
+        // setTimeout(function () { refreshpage() }, 1000);
+    });
+
+    $("#txtawbnodetail").keyup(function () {
+        var value = $("#txtawbnodetail").val();
+        if (value.trim() != "") {
+            CheckFields();
+            $("#txtawbnodetail").removeClass('required');
+            $("#txtawbnodetail").addClass('valid');
+        }
+        else {
+            CheckFields();
+            $("#txtawbnodetail").removeClass('valid');
+            $("#txtawbnodetail").addClass('required');
+        }
+    });
+    $("#txtcourierdetail").keyup(function () {
+        var value = $("#txtcourierdetail").val();
+        if (value.trim() != "") {
+            CheckFields();
+            $("#txtcourierdetail").removeClass('required');
+            $("#txtcourierdetail").addClass('valid');
+        }
+        else {
+            CheckFields();
+            $("#txtcourierdetail").removeClass('valid');
+            $("#txtcourierdetail").addClass('required');
+        }
+    });
+    function updatedetails() {
+        var awbno = $("#txtawbnodetail").val();
+        var courier = $("#txtcourierdetail").val();
+        var date = $("#txtdespdatedetail").val();
+        var ids = "";
+        $("#barcodePrintGrid").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                ids = $(this).val() + "," + ids;
+            }
+        });
+        var model = {
+            "_despatch_date": date,
+            "_awb_no": awbno,
+            "_courier_name": courier
+        };
+        $.ajax({
+            url: '@Url.Action("SaveDespatch","BarCodeGeneration")?ids=' + ids + '&' + new Date().getTime(),
+            data: JSON.stringify(model),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "success") {
+                    jAlert("Record Updated Successfully!", "Information", function (r) {
+                        if (r == true) {
+                            refreshpage();
+                        }
+                    });
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+        @*$.post('@Url.Action("SaveDespatch","BarCodeGeneration")?ids='+ ids + '&' + new Date().getTime(),model,
+        function (data) {
+            alert(data);
+            if (data == "success") {
+                jAlert("Record Updated Successfully!", "Information", function (r) {
+                    if (r == true) {
+                        location = '@Url.Action("SaveDespatch", "BarCodeGeneration")?' + new Date().getTime()
+                    }
+                });
+            }
+        });*@
+
+    }
+
+
+    function CheckFields() {
+
+        var ErrCount = 0;
+        var checked = $("#barcodePrintGrid td :checkbox:checked").length;
+        if (checked == 0 && ($("#txtawbnodetail").val() != "" || $("#txtawbnodetail").val() != null) && ($("#txtawbnodetail").val() != "" || $("#txtawbnodetail").val() != null)) {
+            ErrCount = 3;
+        }
+        else if ($("#txtawbnodetail").val() == "" || $("#txtawbnodetail").val() == null && checked == 0) {
+            ErrCount = 1;
+        }
+        else if ($("#txtcourierdetail").val() == "" || $("#txtcourierdetail").val() == null && checked == 0) {
+            ErrCount = 2;
+        }
+        else {
+            ErrCount = 0;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', true);
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+    //
+    function Download() {
+    
+
+        location = '@Url.Action("BarCodePrintdownload", "BarCodeGeneration")';
+    }
+</script>

@@ -1,0 +1,57 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_EmployeeeExpense>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_EmployeeeExpense> lst = new List<EOW_EmployeeeExpense>();
+    lst = (List<EOW_EmployeeeExpense>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetEmployeeeExpense(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<div id="wgExpensev">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgExpensev", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+
+    <div class="container">
+        <div>
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridExpensev" },
+                                          tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                           grid.Columns(grid.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                             grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName of Expenses", "Nature of Expenses", grid), canSort: false),
+                                                                      grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false),
+                                                                      grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false),
+                                                             grid.Column("Exp_ClaimPeriodFrom", objCmnFunctions.Sorter("Exp_ClaimPeriodFrom", " Period From", grid), canSort: false),
+                                                    grid.Column("Exp_ClaimPeriodTo", objCmnFunctions.Sorter("Exp_ClaimPeriodTo", " Period To", grid), canSort: false),
+                                                    grid.Column("Exp_ClaimMonth", objCmnFunctions.Sorter("Exp_ClaimMonth", "GL No", grid), canSort: false),
+                                  grid.Column("Exp_FC", objCmnFunctions.Sorter("Exp_FC", "FC", grid), canSort: false),
+                                                    grid.Column("Exp_CC", objCmnFunctions.Sorter("Exp_CC", "CC", grid), canSort: false),
+                                                    grid.Column("Exp_ProductCode", objCmnFunctions.Sorter("Exp_Product Code", "ProductCode", grid), canSort: false),
+                                                    grid.Column("Exp_OUCode", objCmnFunctions.Sorter("Exp_OUCode", "OU Code", grid), canSort: false),
+                                                             grid.Column("Exp_Amount", objCmnFunctions.Sorter("Exp_Amount", "Amount", grid), canSort: false)
+                                  ))
+        </div>
+
+        @if (@ViewBag.NoRecords == "NoRecords")
+        {
+            <div class="borderStyle" style="font-size: 16px; height: 35px;color: red;padding-left: 1%;padding-top: 5px;">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+    </div>
+</div>

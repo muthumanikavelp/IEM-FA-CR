@@ -1,0 +1,410 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.woraiser
+@using IEM.Common;
+@{
+    ViewBag.Title = "Woraiser";
+    WebGrid grid = new WebGrid(source: Model.obflist, canSort: true, canPage: false, rowsPerPage: 2, ajaxUpdateContainerId: "pogrid1", ajaxUpdateCallback: "dummyfun()");
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+    var viewfor = (string)Session["viewfor"];
+    if (viewfor == "edit" || viewfor == "amend")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "checkercancel" || viewfor == "checker" || viewfor == "closure" || viewfor == "closurechecker" || viewfor=="delmat")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+<div id="woeditgrid">
+    <div>
+        <table class="myTableStyleTabNew"  align="center" @*style="margin-left:140px"*@>
+            <tr>
+                <td>
+                    <span>Frequency</span>
+                    <br />
+                        @Html.DropDownList("freqId", Model.freqList, "--Select--", new { @class = "textboxStyle valid", @style = "width:120%", @disabled = "disabled" })
+                </td>
+                <td style="width:10%"></td>
+                <td>
+                    <span>From Month</span>
+                    <br />
+                        @Html.DropDownList("monthId", Model.monthList, "--Select--", new { @class = "textboxStyle valid", @style = "width:120%", @disabled = "disabled" })
+                </td>
+                <td style="width:10%"></td>
+                <td>
+                    <span>To Month</span>
+                    <br />
+                        @Html.DropDownList("monthId1", Model.monthList1, "--Select--", new { @class = "textboxStyle valid", @style = "width:120%", @disabled = "disabled" })
+                </td>
+            </tr>
+        </table>
+    </div>
+   
+        <span style="color: rgb(52, 108, 196);">WO Details</span>
+    
+    @*<h4>WO Details</h4>*@
+    <div class="container-fluid overflowx overflowy">
+        @if (viewfor == "edit" || viewfor == "amend")
+        { 
+        @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover",
+        htmlAttributes: new { id = "wodeteditgrid" },
+        columns: grid.Columns
+            (
+                   grid.Column("Sl", format: a => rowNum = rowNum + 1, canSort: false),
+                  grid.Column("prodservicegid", obj.Sorter("prodservicegid", "prodservGid", grid), canSort: false),
+      //   grid.Column("uomgid", obj.Sorter("uomgid", "uom gid", grid)),
+                   grid.Column("serviceCode", obj.Sorter("serviceCode", "Service Code", grid), style: "MidColumn50", canSort: false),
+                  grid.Column("serviceName", obj.Sorter("serviceName", "Service Name", grid), style: "MidColumn50", canSort: false),
+                //  grid.Column("serviceDesc", obj.Sorter("serviceDesc", "Service  Description", grid), style: "MidColumn50", canSort: false),
+                    grid.Column("serviceDesc", obj.Sorter("serviceDesc", "Service  Description", grid),
+         format: @<text><span class="display" id="lbldesc">@item.serviceDesc</span>
+        <input type="text" id="indesc_@rowNum" name="indesc" maxlength="64"
+               href="@rowNum" value="@item.serviceDesc" style="width:400px"
+               class="edit textboxStyle" /> </text>, style: "MidColumn10", canSort: false),
+        
+                  grid.Column("serviceMonth", obj.Sorter("serviceMonth", "Service Month", grid), style: "MidColumn30", canSort: false),
+          grid.Column("percentage", obj.Sorter("percentage", "Percentage", grid),
+         format: @<text><span class="display" id="lblqty">@item.percentage</span>
+        <input type="text" id="inpercent_@rowNum" name="inpercent" onchange="Percentage(id, value, this)" onkeypress="return isNumber1(event,this);"
+               href="@rowNum" value="@item.percentage" style="width:100px"
+               class="edit textboxStyle" /> </text>,style:"MidColumn30", canSort: false),
+         grid.Column("total", obj.Sorter("total", "Total(Incl.Tax)", grid),
+         format: @<text><span class="display" id="lblamount">@item.total</span>
+        <input type="text" id="intotal_@rowNum" disabled="disabled" name="intotal" onkeypress="return isNumber1(event,this);"
+               href="@rowNum" value="@item.total" style="width:100px"
+               class="edit textboxStyle" /> </text>,style:"MidColumn30", canSort: false),
+          grid.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+            @*<span class="glyphicon glyphicon-floppy-open  display-mode add-btn"><label id="sdf34" hidden="hidden"> @rowNum</label></span>*@
+            <a><span class='glyphicon glyphicon-floppy-save edit save-wobtn Color '><label id="sdf34" hidden="hidden"> @rowNum,@item.podetailsgid</label></span></a>
+            <a><span class='glyphicon glyphicon-edit display edit-btn Color'><label id="sdf67" hidden="hidden"> @rowNum</label> </span></a>
+            @*<a><span class='glyphicon glyphicon-trash display deletepo-btn'><label id="sdf67" hidden="hidden"> @item.cbfdetailsgid</label> </span></a>*@
+            <a><span class='glyphicon glyphicon-remove edit cancel-btn Color'> <label id="sdf000-" hidden="hidden"> @rowNum</label></span></a>
+
+            </text>)))
+        }
+        else
+        {
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover",
+        htmlAttributes: new { id = "wodeteditgrid" },
+        columns: grid.Columns
+            (
+              grid.Column("SNo", format: a => rowNum = rowNum + 1, canSort: false),
+              grid.Column("prodservicegid", obj.Sorter("prodservicegid", "prodservGid", grid), canSort: false),
+       //  grid.Column("uomgid", obj.Sorter("uomgid", "uom gid", grid)),
+              grid.Column("serviceCode", obj.Sorter("serviceCode", "Service Code", grid), style: "MidColumn50", canSort: false),
+              grid.Column("serviceName", obj.Sorter("serviceName", "Service Name", grid), style: "MidColumn50", canSort: false),
+              grid.Column("serviceDesc", obj.Sorter("serviceDesc", "Service  Description", grid), style: "MidColumn50", canSort: false),
+              grid.Column("serviceMonth", obj.Sorter("serviceMonth", "Service Month", grid), style: "MidColumn30", canSort: false),
+              grid.Column("percentage", obj.Sorter("percentage", "Percentage", grid), canSort: false),
+         grid.Column("total", obj.Sorter("total", "Total(Incl.Tax)", grid),
+          format: @<text><span class="display" id="lblamount">@item.total</span>
+        <input type="text" id="intotal_@rowNum" disabled="disabled" name="intotal" onkeypress="return isNumber1(event,this);"
+               href="@rowNum" value="@item.total" style="width:100px"
+               class="edit textboxStyle" /> </text>, style: "MidColumn30", canSort: false)))
+            
+        }
+        <div style="margin-left: 77%;">
+            <table>
+                <tr style="white-space:nowrap">
+                    <td>
+                        <span><b>Total Amount : </b></span>
+                    </td>
+                    <td>
+                        &nbsp;&nbsp;
+                    </td>
+                    <td>
+                        <span id="grandtotal"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    @if (@ViewBag.records != null || @ViewBag.records == "")
+    { <div class="borderStyle btnCenter">
+        @ViewBag.records
+    </div>
+    }
+</div>
+<script>
+    var tr = $("#wodeteditgrid").find('tr');
+   // $("#podetailgrid td:nth-child(10),#podetailgrid th:nth-child(10)").hide();
+    $("#wodeteditgrid tr .Color").click(function () {
+        $('#wodeteditgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    $("#wodeteditgrid td:nth-child(2),#wodeteditgrid th:nth-child(2)").hide();
+   // $("#wodeteditgrid td:nth-child(3),#wodeteditgrid th:nth-child(3)").hide();
+    $(document).ready(function () {
+        var add = 0;
+        $('[name="inpercent"]').attr("maxlength", "3");
+        $("#wodeteditgrid td").find("#lblamount").each(function add1() {
+
+            add += parseFloat($(this).text());
+        });
+        $("#grandtotal").val(add);
+        var flag = 0;
+        $('.edit').hide();
+        //var tr = $(this).parents('tr:first');
+        //var unitprice = tr.find('td:eq(9)').text();
+        $('.edit-btn').on('click', function () {
+            if (flag == 0) {
+                flag = 1;
+                var tr = $(this).parents('tr:first');
+
+
+                tr.find('.edit, .display').toggle();
+                //var unitprice = tr.find('td:eq(9)').text();
+                //var baseamount = tr.find('td:eq(11)').text();
+                //$("#hid_unitprice").val(unitprice);
+                //$("#hid_baseamount").val(baseamount);
+            }
+        });
+
+
+
+        $("#freqId").change(function () {
+        if ($("#freqId").val() != "--Select--") {
+            var freqId = $("#freqId").val();
+            if (freqId.trim() != "") {
+                $("#freqId").removeClass('required');
+                $("#freqId").addClass('valid');
+            }
+            else {
+                $("#freqId").removeClass('valid');
+                $("#freqId").addClass('required');
+            }
+        }
+    });
+        $('.save-wobtn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text().split(",");
+            var serviceMonth= tr.find('td:eq(5)').text();
+            var total = tr.find("#intotal_" + row[0].trim() + "").val();
+            var grandtotal = $("#grandtotal").text();
+            var percentage = $("#inpercent_" + row[0].trim() + "").val();
+            var desc = $("#indesc_" + row[0].trim() + "").val();
+            var freqid = $("#freqId").val();
+            var monthId = $("#monthId").val();
+            var monthId1 = $("#monthId1").val();
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Empty", "Error");
+                return false;
+            }
+           
+            else {
+                $('.edit').hide();
+                var objraiser =
+                {
+                    "podetailsgid": row[1],
+                    "total": total,
+                    "grandtotal": grandtotal,
+                    "percentage":percentage,
+                    "serviceMonth": serviceMonth,
+                    "freqid": freqid,
+                    "serviceDesc": desc,
+                    "monthId": monthId,
+                    "monthId1":monthId1
+                };
+                $.ajax({
+                    url: '@Url.Action("WoRaiserTempSave", "WoRaiserEdit")?' +new Date().getTime(),
+                    type: 'POST',
+                    data: objraiser,
+                    success: function (data) {
+                        //$("#wogrid").empty().append(data);
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#woeditgrid").load('@Url.Action("WoRaiserTempSave", "WoRaiserEdit")?' + new Date().getTime());
+                            $("#monthId1").attr("disabled", true);
+                        }
+                        //window.parent.jQuery("#Forshipment").dialog('close');
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            }
+        });
+
+        $('.cancel-btn').on('click', function () {
+            flag = 0;
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+        $('#grandtotal').text(add.toFixed(2));
+    });
+
+    function dummyfun()
+    {
+            var add = 0;
+            $("#wodeteditgrid td").find("#lblamount").each(function add1() {
+
+                add += parseFloat($(this).text());
+            });
+            $("#grandtotal").val(add);
+            var flag = 0;
+            $('.edit').hide();
+            //var tr = $(this).parents('tr:first');
+            //var unitprice = tr.find('td:eq(9)').text();
+            $('.edit-btn').on('click', function () {
+                if (flag == 0) {
+                    flag = 1;
+                    var tr = $(this).parents('tr:first');
+                    tr.find('.edit, .display').toggle();
+                    var unitprice = tr.find('td:eq(9)').text();
+                    var baseamount = tr.find('td:eq(11)').text();
+                    $("#hid_unitprice").val(unitprice);
+                    $("#hid_baseamount").val(baseamount);
+                }
+            });
+            $('.cancel-btn').on('click', function () {
+                flag = 0;
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+            });
+            $('#grandtotal').text(add.toFixed(2));
+            $('[name="indis"]').attr("maxlength", "2");
+          //  $('[name="indis"]').val("");
+            $('[name="intax1"]').attr("maxlength", "2");
+         //   $('[name="intax1"]').val("");
+            $('[name="intax2"]').attr("maxlength", "2");
+         //   $('[name="intax2"]').val("");
+            $('[name="intax3"]').attr("maxlength", "2");
+          //  $('[name="intax3"]').val("");
+            $('[name="intotal"]').attr("disabled", "disabled");
+            //$('[name="intotal"]').val("");
+            $('[name="inbase"]').attr("disabled", "disabled");
+            //$('[name="inunit"]').val("");
+            //$('[name="inbase"]').val("");
+            $('.save-btn').on('click', function () {
+
+                var flag = 0;
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var description = tr.find("#indesc_" + row.trim() + "").val();
+                var qty = tr.find("#inqty_" + row.trim() + "").val();
+                var unit = tr.find("#inunit_" + row.trim() + "").val();
+                var discount = tr.find("#indis_" + row.trim() + "").val();
+                var baseamount = tr.find("#inbase_" + row.trim() + "").val();
+                var tax1 = tr.find("#intax1_" + row.trim() + "").val();
+                var tax2 = tr.find("#intax2_" + row.trim() + "").val();
+                var tax3 = tr.find("#intax3_" + row.trim() + "").val();
+                var total = tr.find("#intotal_" + row.trim() + "").val();
+                var grandtotal = $("#grandtotal").text();
+                if (qty == null || qty == "" || qty==parseInt(0)) {
+                    jAlert("Please Enter Qty.", "Error");
+                    return false;
+                }
+                else if (unit == null || unit == "") {
+                    jAlert("Please Enter Unit Price", "Error");
+                    return false;
+                }
+                else if (total == null || total == "") {
+                    jAlert("Total Amount Should Not Be Null", "Error");
+                    return false;
+                }
+
+                else {
+                    $('.edit').hide();
+                    var objraiser =
+                    {
+                        "cbfdetailsgid": row,
+                        "quantity": qty,
+                        "prodservicedesc": description,
+                        "unitprice": unit,
+                        "discount": discount,
+                        "total": total,
+                        "tax1": tax1,
+                        "tax2": tax2,
+                        "tax3": tax3,
+                        "baseamount": baseamount,
+                        "grandtotal": grandtotal,
+                        "editFlag": flag
+                    };
+                    $.ajax({
+                        url: "../../poraiser/poraiser1/",
+                        type: 'POST',
+                        data: objraiser,
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error");
+                                return false;
+                            }
+                            else {
+                                $("#pogrid1").empty().append(data);
+                                window.parent.jQuery("#Forshipment").dialog('close');
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+                    });
+                }
+
+            });
+    }
+
+    function Percentage(id, value,element)
+    {
+        var id1 = $(element).attr('href');
+        var overtotal = $("#hid_woamount").val();
+        var total = ((parseFloat(value) / parseInt(100)) * parseFloat(overtotal)).toFixed(2);
+        $('#intotal_' + id1 + '').val(total);
+        var add = 0;
+        $("#wodeteditgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        if (parseFloat(add) > parseFloat(overtotal))
+        {
+            jAlert("Total Amount Exceeds the WO Amount " + overtotal+ "", "Error");
+            $('#intotal_' + id1 + '').val("");
+            $('#inpercent_' + id1 + '').val("");
+            return false;
+        }
+        $("#grandtotal").text(add.toFixed(2));
+    }
+    @*$("#monthId1").change(function () {
+        //var month1 = $("#monthId1 option:selected").text();
+        //if (templategid == "--Select--") {
+        //    $("#txtWoTempl").val("");
+        //}
+        if ($("#monthId1").val() != "--Select--") {
+
+            var month = $("#monthId").val();
+            var month1 = $("#monthId1").val();
+            var freq = $("#freqId").val();
+            if (month1.trim() != "") {
+                $("#monthId1").removeClass('required');
+                $("#monthId1").addClass('valid');
+            }
+            else {
+                $("#monthId1").removeClass('valid');
+                $("#monthId1").addClass('required');
+            }
+            var objraiser =
+            {
+                "monthId": month,
+                "monthId1": month1,
+                "freqId": freq
+            };
+
+            $.ajax({
+                url: '@Url.Action("GetWoSplit", "WoRaiser")',
+                data: objraiser,
+                type: 'POST',
+                success: function (msg) {
+                    $("#wogrid").empty().append(msg);
+                },
+                error: function () { }
+            });
+        }
+    });*@
+</script>

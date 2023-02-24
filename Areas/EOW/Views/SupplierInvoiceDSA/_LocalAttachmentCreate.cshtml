@@ -1,0 +1,362 @@
+﻿@model IEM.Areas.EOW.Models.EOW_File
+@{
+    ViewBag.Title = "Index";
+}
+
+ 
+<div id="createAttachment">
+    <div style="padding:0;margin:0;">
+        <input type="hidden" id="ecfamomtssession" value="@Session["Ecfamountlocal"]" />
+        <table class="myTableStyleTabNew" style="width: 100%;">
+            <tr>
+                @*<td style="width:50%;">
+                    <span>Select File</span><br />
+                    <form id="theuploadformemp">
+                        <input type="file" name="UploadFile" id="fileuploadnew" class="fileuploadnew" />
+                    </form>
+                </td>*@
+                <td style="width:50%;">
+                    <span>Select File</span><br />
+                    <form id="theuploadformemp">
+                        @Html.AntiForgeryToken()
+                        <input type="file" name="UploadFile" style="width: 95%;padding-top: 5px;" id="fileuploadnew" class="fileuploadnew" />
+                    </form>
+                </td>
+                <td style="width:50%;">
+                    <span>Attachment Type</span><br />
+                    @Html.DropDownListFor(model => model.AttachmentTypeId, Model.AttachmentTypeData, "--Select--", new { @class = "textboxStyle required", @id = "ddlAttachmentType" })
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <span>Description</span><br />
+                    @Html.TextAreaFor(model => model.AttachmentDescription, new { disable = true, @class = "textboxStyle txtarea required", @id = "txtDescription", @maxlength = "250" })
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center">
+                    <center>
+                        <button type="button" title="Save" disabled="disabled" name="Save" id="btnsavattvala" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                        <button type="button" id="btncanattFF" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexAttachmentV()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                    </center>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+ 
+
+<style>
+    .txtarea {
+        width: 620px;
+        height: 90px;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnsavattvala").click(function () {
+            var AttachmentType = $("#ddlAttachmentType").val();
+            var Description = $("#txtDescription").val();
+            $('#btnsavattvala').attr('disabled', true);
+            if (AttachmentType == null || AttachmentType == "" || AttachmentType == "0") {
+                jAlert("Please select the type of attachment ", "Message");
+                $("#ddlAttachmentType").focus();
+                return false;
+            }
+            if (Description == null || Description == "") {
+                jAlert("Please Enter Description.", "Message");
+                $("#txtDescription").focus();
+                return false;
+            }
+            else {
+                var NewAttmodel = {
+                    "AttachmentTypeName": AttachmentType,
+                    "AttachmentDescription": Description
+                };
+                $.post('../SupplierInvoiceDSA/_LocalAttachmentCreate', NewAttmodel,
+                function (data) {
+                    if (data == "No") {
+                        jAlert("Please Select File.", "Message");
+                        return false;
+                    }
+                    else if (data == "Yes") {
+                        jAlert("Saved Successfully.", "Message");
+                        var url = '@Url.Action("_LocalAttachmentDetails", "SupplierInvoiceDSA")?' + new Date().getTime();
+                        $("#wgAttachmentdataa").load(url);
+                        objDialogAttachmentGlocal.dialog("close");
+                        objDialogAttachmentGlocal.dialog("close");
+                        window.parent.jQuery('#ForPartialViewEmpAttachmentmewl').dialog('close');
+                        objDialogAttachmentGlocal.dialog({
+                            autoOpen: false,
+                            cache: false
+                        });
+                    }
+                    else {
+                        jAlert(data, "Message");
+                        return false;
+                    }
+                }, 'json');
+            }
+        });
+    });
+    function GotoIndexAttachmentV() {
+        $("#ui-icon-closethick").click();
+        objDialogAttachmentGlocal.dialog("close");
+        objDialogAttachmentGlocal.dialog("close");
+        objDialogAttachmentGlocal.dialog("close");
+        window.parent.jQuery('#ForPartialViewEmpAttachmentmewl').dialog('close');
+    }
+</script>
+
+<script>
+    $(".fileuploadnew").on('change', function (e) {
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#theuploadformemp');
+        var Attach_list = Attachment_list();
+        var Attachment_fomat = Attached_fileformat();
+        form.attr("action", "../SupplierInvoiceDSA/UploadFilesatt/?attach=" + Attach_list + '&attaching_format=' + Attachment_fomat);
+        //form.attr("action", "../SupplierInvoiceDSA/UploadFilesatt");
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe");
+        form.attr("file", $('#fileuploadnew').val());
+        form.submit();
+        return false;
+    });
+
+   
+    $(document).ready(function () {
+        $("#ddlAttachmentType").keyup(function () {
+            var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlAttachmentType").removeClass('required');
+                $("#ddlAttachmentType").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlAttachmentType").removeClass('valid');
+                $("#ddlAttachmentType").addClass('required'); cheval();
+            }
+        });
+        $("#ddlAttachmentType").change(function () {
+            var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlAttachmentType").removeClass('required');
+                $("#ddlAttachmentType").addClass('valid'); cheval();
+            }
+            else {
+                $("#ddlAttachmentType").removeClass('valid');
+                $("#ddlAttachmentType").addClass('required'); cheval();
+            }
+        });
+        var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+        if (txtContractFrom.trim() != "--Select--") {
+            $("#ddlAttachmentType").addClass('valid'); cheval();
+        }
+        else {
+            $("#ddlAttachmentType").addClass('required');
+        }
+        $("#txtDescription").keyup(function () {
+            var txtContractFrom = $("#txtDescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtDescription").removeClass('required');
+                $("#txtDescription").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtDescription").removeClass('valid');
+                $("#txtDescription").addClass('required'); cheval();
+            }
+        });
+        $("#txtDescription").change(function () {
+            var txtContractFrom = $("#txtDescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtDescription").removeClass('required');
+                $("#txtDescription").addClass('valid'); cheval();
+            }
+            else {
+                $("#txtDescription").removeClass('valid');
+                $("#txtDescription").addClass('required'); cheval();
+            }
+        });
+        var txtContractFrom = $("#txtDescription").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtDescription").addClass('valid'); cheval();
+        }
+        else {
+            $("#txtDescription").addClass('required'); cheval();
+        }
+    });
+
+    function cheval() {
+        var ddlAttachmentType1 = $("#ddlAttachmentType").val();
+        var ddlAttachmentType = $("#ddlAttachmentType option:selected").text();
+
+        var txtDescription = $("#txtDescription").val();
+
+        if (ddlAttachmentType1 != null && ddlAttachmentType != "--Select--" && txtDescription != "") {
+            $('#btnsavattvala').attr('disabled', false);
+        }
+        else {
+            $('#btnsavattvala').attr('disabled', true);
+        }
+    }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+@*<script type="text/javascript">
+        $(document).ready(function () {
+            $("#btnsavattvall").click(function () {
+                var AttachmentType = $("#ddlAttachmentType").val();
+                var Description = $("#txtDescription").val();
+
+                if (AttachmentType == null || AttachmentType == "" || AttachmentType == "0") {
+                    jAlert("Please select the type of attachment ", "Message");
+                    $("#ddlAttachmentType").focus();
+                    return false;
+                }
+                if (Description == null || Description == "") {
+                    jAlert("Please Enter Description.", "Message");
+                    $("#txtDescription").focus();
+                    return false;
+                }
+                else {
+                    var NewAttmodel = {
+                        "AttachmentTypeName": AttachmentType,
+                        "AttachmentDescription": Description
+                    };
+                    $.post('../SupplierInvoiceDSA/_LocalAttachmentCreate', NewAttmodel,
+                    function (data) {
+                        if (data == "No") {
+                            jAlert("Please Select File.", "Message");
+                            return false;
+                        }
+                        else if (data == "Yes") {
+                            jAlert("Saved Successfully.", "Message");
+                            var url = '@Url.Action("_LocalAttachmentDetails", "SupplierInvoiceDSA")?' + new Date().getTime();
+                            $("#wgAttachmentdataa").load(url);
+                            objDialogAttachmentGlocal.dialog("close");
+                            objDialogAttachmentGlocal.dialog("close");
+                            window.parent.jQuery('#ForPartialViewEmpAttachmentmewl').dialog('close');
+                            objDialogAttachmentGlocal.dialog({
+                                autoOpen: false,
+                                cache: false
+                            });
+                        }
+                    }, 'json');
+                }
+            });
+        });
+        function GotoIndexAttachmentV() {
+            $("#ui-icon-closethick").click();
+            objDialogAttachmentGlocal.dialog("close");
+            objDialogAttachmentGlocal.dialog("close");
+            objDialogAttachmentGlocal.dialog("close");
+            window.parent.jQuery('#ForPartialViewEmpAttachmentmewl').dialog('close');
+        }
+    </script>
+
+    <script>
+        $('#fileupload').on('change', function (e) {
+            var files = e.target.files;
+            if (files.length > 0) {
+                if (window.FormData !== undefined) {
+                    var data = new FormData();
+                    for (var x = 0; x < files.length; x++) {
+                        // alert(files[x].name34);
+                        data.append("temp_" + x, files[x]);
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: '../SupplierInvoiceDSA/UploadFilesatt',
+                        contentType: false,
+                        processData: false,
+                        data: data,
+                        success: function (result) {
+
+                        },
+                        error: function (xhr, status, p3, p4) {
+                            var err = "Error " + " " + status + " " + p3 + " " + p4;
+                            if (xhr.responseText && xhr.responseText[0] == "{")
+                                err = JSON.parse(xhr.responseText).Message;
+                            console.log(err);
+                        }
+                    });
+                } else {
+                    jAlert("This browser doesn't support HTML5 file uploads!", "Message");
+                    return false;
+                }
+            }
+        });
+
+        $(document).ready(function () {
+            $("#ddlAttachmentType").keyup(function () {
+                var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+                if (txtContractFrom.trim() != "--Select--") {
+                    $("#ddlAttachmentType").removeClass('required');
+                    $("#ddlAttachmentType").addClass('valid');
+                }
+                else {
+                    $("#ddlAttachmentType").removeClass('valid');
+                    $("#ddlAttachmentType").addClass('required');
+                }
+            });
+            $("#ddlAttachmentType").change(function () {
+                var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+                if (txtContractFrom.trim() != "--Select--") {
+                    $("#ddlAttachmentType").removeClass('required');
+                    $("#ddlAttachmentType").addClass('valid');
+                }
+                else {
+                    $("#ddlAttachmentType").removeClass('valid');
+                    $("#ddlAttachmentType").addClass('required');
+                }
+            });
+            var txtContractFrom = $("#ddlAttachmentType option:selected").text();
+            if (txtContractFrom.trim() != "--Select--") {
+                $("#ddlAttachmentType").addClass('valid');
+            }
+            else {
+                $("#ddlAttachmentType").addClass('required');
+            }
+            $("#txtDescription").keyup(function () {
+                var txtContractFrom = $("#txtDescription").val();
+                if (txtContractFrom.trim() != "") {
+                    $("#txtDescription").removeClass('required');
+                    $("#txtDescription").addClass('valid');
+                }
+                else {
+                    $("#txtDescription").removeClass('valid');
+                    $("#txtDescription").addClass('required');
+                }
+            });
+            $("#txtDescription").change(function () {
+                var txtContractFrom = $("#txtDescription").val();
+                if (txtContractFrom.trim() != "") {
+                    $("#txtDescription").removeClass('required');
+                    $("#txtDescription").addClass('valid');
+                }
+                else {
+                    $("#txtDescription").removeClass('valid');
+                    $("#txtDescription").addClass('required');
+                }
+            });
+            var txtContractFrom = $("#txtDescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtDescription").addClass('valid');
+            }
+            else {
+                $("#txtDescription").addClass('required');
+            }
+        });
+    </script>*@
+

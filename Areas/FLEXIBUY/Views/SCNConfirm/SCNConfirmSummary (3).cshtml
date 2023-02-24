@@ -1,0 +1,114 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/angular.min.js"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div ng-app="SCNConfirm">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">SCN Confirmation Summary</span></b></legend>
+            <br />
+            <div ng-controller="SCNConfirmController">
+                <div class="table-responsive">
+                    @*<input ng-model="search.$" class="col-lg-10 textboxStyle" />*@
+                    <table class="tableSmall table-bordered table-hover table-responsive">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th style="width:5%; display:none;">
+                                    SCNHeadGid
+                                </th>
+                                <th style="width:5%;">
+                                    S.No
+                                </th>
+                                <th style="width:10%;">
+                                    SCN Date<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.grndate">
+                                </th>
+                                <th style="width:10%;">
+                                    SCN RefNo<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.grnrefno">
+                                </th>
+
+                                <th style="width:10%;">
+                                    WO RefNo<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.poworefno">
+                                </th>
+                                <th style="width:20%;">
+                                    Vendor Name<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.vendorname">
+                                </th>
+                                <th style="width:8%;">
+                                    Received Qty<br />
+                                    <input type="text" class="textboxStyle" ng-model="search.grnQuantity">
+                                </th>
+                                <th style="width:10%;">
+                                    Action<br />
+                                </th>
+
+                            </tr>
+                        </thead>
+                        <tbody ng-repeat="SCNConfirm in SCNConfirm | filter:search:strict | orderBy:predicate:reverse">
+                            <tr>
+                                <td style="width:10%; display:none;">
+                                    {{SCNConfirm.grnheadgid}}
+                                </td>
+                                <td style="width:5%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{SCNConfirm.grndate}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{SCNConfirm.grnrefno}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{SCNConfirm.poworefno}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{SCNConfirm.vendorname}}
+                                </td>
+                                <td style="width:8%;">
+                                    {{SCNConfirm.grnQuantity}}
+                                </td>
+                                <td style="width:10%;">
+                                    <input class="btn btn-link" name="command" onclick="SCNReview(this)"
+                                           value="Review" title="Review" type="button" />
+                                </td>
+
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<script type="text/javascript">
+    var myApp = angular.module('SCNConfirm', []);
+    myApp.service("SCNConfirmService", function ($http) {
+        this.getSCNConfirmList = function () {
+            return $http.get("../SCNConfirm/GetSCNConfirm?" + new Date().getTime());
+        };
+
+    });
+    myApp.controller('SCNConfirmController', function ($scope, SCNConfirmService) {
+        GetSCNConfirm();
+        function GetSCNConfirm() {
+            var getData = SCNConfirmService.getSCNConfirmList();
+            getData.then(function (emp) {
+                $scope.SCNConfirm = emp.data;
+            }, function () {
+                alert('Error');
+            });
+        }
+
+    });
+    function SCNReview(element) {
+        var row = $(element).closest('tr');
+        var wohead = row.find('td:eq(0)').text();
+        location = '../SCNConfirm/SCNConfirm?grnheadgid=' + wohead;
+      
+    }
+
+</script>

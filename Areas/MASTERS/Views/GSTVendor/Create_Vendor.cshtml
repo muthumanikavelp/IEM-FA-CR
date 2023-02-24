@@ -1,0 +1,402 @@
+﻿@model IEM.Areas.MASTERS.Models.EntityGstvendor
+@using IEM.Common
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;" border="0">
+        <tr>
+
+            <td style="width:25%; padding:0px 10px 0px 3px;">
+                <span> GST Registered  </span>
+                <br />
+                <span>
+                    <select name="Gstapplicable"
+                            id="Gstapplicable"
+                            class="fstextbox" onchange="isgst()">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </span>
+        </tr>
+        <tr>
+            <td style="width:45%; padding:0px 10px 0px 3px;">
+                <span> State </span>
+                <br /> 
+                @Html.DropDownListFor(m => m.suppliergst_stateid, Model.GetState, "--Select State--", new { @class = "fstextbox  chosen-select", @style = "display: block", @id = "state_gid", @onchange = "CheckFieldsHeader()" })
+            </td>
+        </tr>
+         
+        <tr>
+            <td style="width:45%; padding:0px 10px 0px 3px;">
+                <span> Business Vertical </span>
+                <br />
+                <input type="text"
+                       name="Vertical"
+                       id="Vertical"
+                       value="@ViewBag.filter1"
+                       class="textboxStyle"
+                       maxlength="64" />
+
+            </td>
+        <tr>
+            <td style="width:45%; padding:0px 10px 0px 3px;">
+                <span> GSTIN </span>
+                <br />
+                <input type="text"
+                       name="gsttin"
+                       id="gsttin"
+                       value="@ViewBag.filter1"
+                       class="textboxStyle"
+                       maxlength="15" />
+
+            </td>
+        </tr> 
+
+        <tr>
+            <td style="width:45%; padding:0px 10px 0px 3px;">
+                <span> Status </span>
+                <br />
+                <span>
+                    <select name="Gststatus"
+                            id="Gststatus"
+                            class="fstextbox">
+                        <option value="Y">Active</option>
+                        <option value="N">In Active</option>
+                    </select>
+                </span>
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center;">
+                <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()" style="margin-top:10px;  color:white;">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;" font-size:12px;></span> Save
+                </button>
+
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+
+            </td>
+        </tr>
+        </table>
+        }
+<script type="text/javascript">
+    $("#state_gid").change(function () {
+        if ($("#state_gid").val() != "") {
+            $("#state_gid").removeClass('required');
+            $("#state_gid").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#state_gid").removeClass('valid');
+            $("#state_gid").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+    $("#Vertical").keyup(function () {
+        var txtPincode = $("#Vertical").val();
+        if (txtPincode.trim() != "") {
+            $("#Vertical").removeClass('required');
+            $("#Vertical").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#Vertical").removeClass('valid');
+            $("#Vertical").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#gsttin").keyup(function () {
+        var txtPincode = $("#gsttin").val();
+        if (txtPincode.trim() != "") {
+            $("#gsttin").removeClass('required');
+            $("#gsttin").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#gsttin").removeClass('valid');
+            $("#gsttin").addClass('required');
+            CheckFieldsHeader();
+        } 
+    });
+    $('#gsttin').keyup(function () {
+        var text = $(this).val();
+        $(this).val(text.toUpperCase());
+    });
+    ////Invalid GST!!!
+
+    //// 2 digits (State Code); 10 Alphanumeric (PAN No.)  ; 1 digit (Entity no. of the same PAN holder in a State); 
+    //1 Character (Alphabet Z by default); 1 digit (Check Sum digit)
+    function checktin() {
+        var tin = $("#gsttin").val();
+        var pan = "";
+        if (tin.length == 15) {
+            for (var i = 0, len = tin.length; i < len; i++) {
+                if (i == 0 || i == 1) {
+                    var regex = /^[0-9]+$/;
+                    if (!tin[i].match(regex)) {
+                        alert("Invalid GSTIN : First 2 digits (State Code)");
+                        return false;
+                    }
+                }
+                else if (i > 1 && i < 12) {
+                    pan = pan + tin[i];
+                    if (pan.length == 10) { 
+                        var ObjVal = pan;
+                        var panPattern = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+                        var matchArray = ObjVal.match(panPattern);
+
+                        if (matchArray == null) {
+                            alert("Invalid GSTIN :  3-12 Alphanumeric (PAN No.)");
+                            return false;
+                        }
+                    }
+                }
+
+                else if (!tin[12].match(regex)) {
+                    alert("Invalid GSTIN : 13- 1 digit (Check Sum digit)")
+                    return false;
+
+                }
+         
+                else if (!tin[13].match(regex)) { 
+                    alert("Invalid GSTIN :  14- 1 Character (Alphabet Z by default)");
+                    return false;
+
+                }   
+
+                    else if (!tin[14].match(regex)) {                         
+                        alert("Invalid GSTIN : 1 digit (Check Sum digit)")
+                        return false; 
+                    }  
+            }
+        }
+        else {
+            
+                alert("Total Length check GST!") 
+          
+        } 
+    }
+
+
+    function ValidatePAN(pan) {
+
+        var PANNo = pan;
+        alert("sssss:"+PANNo)
+        if (PANNo.value != "") {
+            var ObjVal = PANNo;
+            var panPattern = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+            var matchArray = ObjVal.match(panPattern);
+
+            if (matchArray == null) {
+                alert('Invalid PAN Card No.');
+                return false;
+            }
+
+            return true;
+        }
+    }
+    function isgst() {
+        var Gstapplicable = $("#Gstapplicable").val();
+        if ($("#Gstapplicable").val() == "Yes") {
+            $("#gsttin").removeAttr('disabled');
+            $("#gsttin").removeClass('valid');
+            $("#gsttin").addClass('required');
+
+            $("#Vertical").removeAttr('disabled');//08/03/2017 vertical disabled
+            $("#Vertical").removeClass('valid');
+            $("#Vertical").addClass('required');
+        }
+        else {
+            $("#gsttin").val("");
+            $("#gsttin").attr('disabled', 'disabled');
+            $("#gsttin").removeClass('required');
+            $("#gsttin").removeClass('valid');
+
+            $("#Vertical").val("");//08/03/2017 vertical disabled
+            $("#Vertical").attr('disabled', 'disabled');
+            $("#Vertical").removeClass('required');
+            $("#Vertical").removeClass('valid');
+        }
+    }
+    function CheckFieldsHeader() {
+        var ErrCount = 0;
+        if ($("#state_gid").val() == "") {
+            ErrCount = 2;
+        }
+        
+        if ($("#Gstapplicable").val() == "Yes") {
+            if ($("#Vertical").val().trim() == "" || $("#Vertical").val() == null) {
+                ErrCount = 1;
+            }
+            if ($("#gsttin").val().trim() == "" || $("#gsttin").val() == null) {
+                ErrCount = 2;
+            }
+        }
+        if ($("#state_gid").val().trim() == "" || $("#state_gid").val() == null) {           
+            ErrCount = 3;
+        }
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+
+    function twoDigit(number) {
+        var twodigit = number >= 10 ? number : "0" + number.toString();
+        return twodigit;
+    }
+    function SAVE() {       
+        var Gstapplicable = $("#Gstapplicable").val();
+        var State = twoDigit($("#state_gid").val());
+        var Vertical = $("#Vertical").val().trim();
+        var gsttin = $("#gsttin").val().trim();
+        var Statusid = $("#Gststatus").val();
+        var execut = "Y"; 
+        
+        var Gstapplicable = $("#Gstapplicable").val();
+        if ($("#Gstapplicable").val() == "Yes") {
+            if (Vertical == "") {
+                jAlert("Please Enter Vertical.", "Information")
+
+                $("#Vertical").focus();
+                return false;
+
+            }
+            if (gsttin == "") {
+                jAlert("Please Enter Gst Tin.", "Information")
+
+                $("#gsttin").focus();
+                return false;
+            }
+
+            //checktin();
+            var tin = $("#gsttin").val();
+            var pan = "";
+            if (tin.length == 15) {
+                for (var i = 0, len = tin.length; i < len; i++) {
+                    if (i == 0 || i == 1) {
+                        var regex = /^[0-9]+$/;
+                        if (!tin[i].match(regex)) {
+                            alert("Invalid GSTIN : First 2 digits (State Code)");
+                            return false;
+                        }
+                        else {
+                            //if (State != tin[0] + "" + tin[1]) {                            
+                            //    alert("Invalid GSTIN : First 2 digits not in (State Code)");
+                            //    return false;
+                            //}
+                        }
+                    }
+                    else if (i > 1 && i < 12) {
+                        pan = pan + tin[i];
+                        if (pan.length == 10) {
+                            var ObjVal = pan;
+                            var panPattern = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+                            var matchArray = ObjVal.match(panPattern);
+
+                            if (matchArray == null) {
+                                alert("Invalid GSTIN :  3-12 Alphanumeric (PAN No.)");
+                                return false;
+                            }
+                        }
+                    }
+
+                    else if (!tin[12].match(regex)) {
+                        //alert("Invalid GSTIN :  13- 1 Character (Alphabet Z by default)");
+                        //return false;
+
+                    }
+
+                    else if (!tin[14].match(regex)) {
+                        //  alert("Invalid GSTIN : Last 1 digit (Check Sum digit)")
+                        //  return false;
+                    }
+                }
+            }
+            else {
+
+                alert("Invalid GSTIN : Total Length check GST!")
+                return false;
+
+            }
+        }
+        else
+        {
+            Vertical = "";
+            $("#Vertical").val('')
+        }
+        //
+        //var Gstapplicable = $("#Gstapplicable").val();
+        //if ($("#Gstapplicable").val() == "No") {
+        //    //-----------//03/08/2017 vertical disabled
+        //    $('#gridcountry > tbody > tr').each(function (index) {
+        //        var StateName = $("#state_gid option:selected").text().trim();
+        //        if (StateName == $(this).children('td:nth-child(2)').text()) {
+        //            jAlert("Please Modify the Existing Country : " + StateName, "Information", function () {
+        //                execut = "N";
+        //                return false;
+        //            });
+        //            execut = "N";
+        //            return false;
+        //        }
+        //    });
+        //}
+       // alert("check");
+        //-----------//03/08/2017 vertical disabled
+        $('#gridgstvendor > tbody > tr').each(function (index) {
+            var StateName = $("#state_gid option:selected").text().trim(); 
+            if (StateName == $(this).children('td:nth-child(3)').text() && $(this).children('td:nth-child(2)').text() == "NO") {
+                jAlert("Please Modify the Existing Country : " + StateName, "Information", function () {
+                    execut = "N";
+                    return false;
+                });
+                execut = "N";
+                return false;
+            }
+            else {
+                var app = $("#Gstapplicable").val();
+                if (StateName == $(this).children('td:nth-child(4)').text() && $(this).children('td:nth-child(3)').text() == "YES" && app == "No") {
+                    jAlert("Please Modify the Existing Country : " + StateName, "Information", function () {
+                        execut = "N";
+                        return false;
+                    });
+                    execut = "N";
+                    return false;
+                }
+            }
+        });
+        if (execut == "Y") {
+            var DocNameModel = { "suppliergst_app": Gstapplicable, "suppliergst_stateid": State, "suppliergst_vertical": Vertical, "suppliergst_tin": gsttin, "suppliergst_status": Statusid };
+            $.post('../Gstvendor/CreateVendor', DocNameModel,
+            function (data) {
+                if (data != "success") {
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    jAlert("Record inserted successfully !", "Information", function (r) {
+                        if (r == true) {
+                            location = '../Gstvendor/Index';
+                        }
+                    });
+
+                }
+
+            }, 'json');
+        }
+    }
+    function GotoIndex() {        
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+    </script>

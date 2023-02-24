@@ -1,0 +1,234 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@{
+
+    ViewBag.Title = "EditPRattach";
+    <script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+    <script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+    <script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+}
+@using (Html.BeginForm())
+{
+    <div>
+        <div>
+            <div id="createsupattachment">
+                <div class="panel panel-default">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+
+                                <table>
+                                    <tr>
+                                        <td style="padding:10px;">
+                                            <span>Document Date</span> <br />
+                                            <input type="text" name="_AttachDate" id="_AttachDate" disabled="disabled" value="@System.DateTime.Now.ToShortDateString()" maxlength="10" title="Document Date" class="textboxStyle" readonly />
+                                        </td>
+                                        <td style="padding:20px;">
+                                            @*<form id="fileattch">*@
+                                            <span>Select File</span><br />
+                                            @*<input type="file" name="UploadFile" id="txtUploadFile" multiple />*@
+                                            @Html.TextBoxFor(a => a.MyFile, new { @id = "fileupload1", @type = "file" })
+                                            @*</form>*@
+
+                                        </td>
+                                        <td style="padding:10px;">
+                                            <span>File Name</span> <br />
+                                            <input name="_AttachedFileName" readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" value="@Model.attachName" />
+                                        </td>
+
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding:10px;">
+                                            <span>Description</span> <br />
+                                            <input name="_AttachDescription" width="100%" id="_AttachDescription" class="textboxStyle" title="Description" type="text" value="@Model.attachmentDesc" />
+                                        </td>
+                                        <td style="padding:20px;">
+                                            <input type="button" class="btn btn-primary" id="btnSavePRAttachment" value="Save" name="command" onclick="SavePRAttachment()" />
+                                            &nbsp;&nbsp;
+                                            <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+
+                            </td>
+                        </tr>
+
+
+                        @*<tr>
+                            <td colspan="3" align="center" style="padding-left:240px;">
+                                @*<div>
+                                    <table width="100%" align="center">
+                                        <tr>
+                                            <td align="center">
+                                <input type="button" class="btn btn-primary" id="btnSavePRAttachment" value="Save" name="command" onclick="SavePRAttachment()" />
+                                <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                                <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />
+                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                            </td>
+                        </tr>*@
+                    </table>
+                </div>
+                <div>
+                    @Html.Partial("editPRattachgrid")
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+
+<script>
+    function back() {
+       // alert(sessionStorage["type"]);
+
+        if (sessionStorage["type"] == "Edit") {
+           // alert('hi');
+            objDialog7.dialog('close');
+            sessionStorage = "";
+        }
+        if (sessionStorage["type"] == "clone") {
+           // alert('hello');
+            objDialog8.dialog('close');
+            sessionStorage = "";
+        }
+        //else {
+        //    objDialog7.dialog('close');
+        //    sessionStorage = "";
+        //}
+
+    }
+    function refresh() {
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+    }
+
+    //$('#_AttachDate').datepicker({
+    //    dateFormat: 'dd-mm-yy'
+    //});
+    //$('#txtUploadFile').on('change', function (e) {
+    //    var files = e.target.files;
+    //    if (files.length > 0) {
+    //        if (window.FormData !== undefined) {
+    //            var data = new FormData();
+    //            for (var x = 0; x < files.length; x++) {
+    //                alert(files[x].name34);
+    //                data.append("temp_" + x, files[x]);
+    //            }
+    //            var fname = $("#_AttachedFileName").val();
+    //            $.ajax({
+    //                type: "POST",
+    //                url: '../../PRSummary/UploadedFiles/?fname=' + fname,
+    //                contentType: false,
+    //                processData: false,
+    //                data: data,
+    //                success: function (result) {
+
+    //                    $("#_AttachedFileName").val(result);
+    //                },
+    //                error: function (xhr, status, p3, p4) {
+    //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+    //                    if (xhr.responseText && xhr.responseText[0] == "{")
+    //                        err = JSON.parse(xhr.responseText).Message;
+    //                    console.log(err);
+    //                }
+    //            });
+    //        } else {
+    //            alert("This browser doesn't support HTML5 file uploads!");
+    //        }
+    //    }
+    //});
+
+    function SavePRAttachment() {
+
+        var AttachDate = $("#_AttachDate").val();
+        var AttachFileName = $("#_AttachedFileName").val();
+        var AttachDescription = $("#_AttachDescription").val();
+
+        if (AttachDescription == null || AttachDescription == "") {
+            jAlert("Please enter description!", "Error");
+            return false;
+        }
+
+        var attachmodel = {
+            "attachName": AttachFileName,
+            "attachmentDesc": AttachDescription,
+            "attachmentDate": AttachDate
+        }
+
+        $.post('@Url.Action("editPRattachgrid", "PRSummary")?' + new Date().getTime(), attachmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+                //$('#gridattachment').empty().append();
+                $('#gridattachment').load('@Url.Action("editPRattachgrid", "PRSummary")?' + new Date().getTime()); jAlert("Inserted Successfully", "Message"); refresh();
+            }
+        }, 'json');
+    }
+    var jqXHRData;
+
+    $(document).ready(function () {
+
+        initAutoFileUpload();
+    });
+    function initAutoFileUpload() {
+        'use strict';
+
+        $('#fileupload1').fileupload({
+
+            autoUpload: true,
+            url: '@Url.Action("UploadedFilesNew", "PRSummary")?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+
+                        }
+                        //alert(data.message);
+                        //  $("#gridattachment").load('../PRRaiser/PRattachgrid?' + new Date().getTime());
+
+                        $("#_AttachedFileName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            alert(textStatus + errorThrown + data);
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    alert(data.files[0].error);
+                }
+            }
+        });
+    }
+
+    //$("#fileupload1").on('change', function (e) {
+    //    var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+    //    $("body").append(iframe);
+    //    var form = $('#fileattch');
+    //    form.attr("action", "../PrSummary/UploadedFiles");
+    //    form.attr("method", "post");
+    //    form.attr("encoding", "multipart/form-data");
+    //    form.attr("enctype", "multipart/form-data");
+    //    form.attr("target", "postiframe");
+    //    form.attr("file", $('#fileupload1').val());
+    //    form.submit();
+    //    return false;
+    //});
+</script>

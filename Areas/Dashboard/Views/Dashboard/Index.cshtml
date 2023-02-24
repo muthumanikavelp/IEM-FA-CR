@@ -1,0 +1,3042 @@
+﻿@using IEM.Helper;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/Chart.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var _currDTTab = 0;
+    $(function () {
+        $("#Maintabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+    });
+</script>
+
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+
+    .breadcrumb {
+        margin-top: 12px;
+        margin-bottom: 6px;
+    }
+
+    li a {
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .ui-tabs .ui-tabs-panel {
+        padding: 1px 1px;
+    }
+
+    .activity {
+        width: 99%;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+    .notactive {
+        text-decoration: none;
+        pointer-events: none;
+        cursor: default;
+        opacity: 0.2;
+    }
+
+    table.d-tbl {
+        width: 100%;
+        border-radius: 5px;
+        background: #fff;
+        -webkit-box-shadow: 0px 0px 4px 0px rgba(50, 50, 50, 0.32);
+        -moz-box-shadow: 0px 0px 4px 0px rgba(50, 50, 50, 0.32);
+        box-shadow: 0px 0px 4px 0px rgba(50, 50, 50, 0.32);
+    }
+
+        table.d-tbl td {
+            padding: 0px;
+        }
+
+            table.d-tbl td h4 {
+                font-size: 14px;
+                margin-left: 15px;
+            }
+
+            table.d-tbl td span {
+                font-size: 13px;
+                line-height: 23px;
+            }
+</style>
+
+<div id="Maintabs" style="min-height: 350px; font-size: 12px; overflow:auto; margin-top:10px;">
+    <ul>
+        <li><a href="#tabs-1" data-bind="click: $root.LoadDashboard">Dashboard</a></li>
+        <li><a href="#tabs-2" data-bind="click: $root.LoadRequestTab">My Workbench</a></li>
+
+        <!--selva My Approval and Hold -->
+        @*<li><a href="#tabs-3" data-bind="click: $root.LoadApprovalTab">My Approval</a></li>
+            <li><a href="#tabs-4" data-bind="click: $root.LoadHoldTab">Hold </a></li>*@
+        <!--End-->
+    </ul>
+    <div>
+        <div id="tabs-1">
+            <!-- Dashbaord -->
+            @*<ol class="breadcrumb" data-bind="visible: IsDashbaord()">
+                    <li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>
+                </ol>*@
+
+            <!-- Vendor Part -->
+            <ol class="breadcrumb" data-bind="visible: IsVendorSummary()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li data-bind="text: 'Vendor Management - ' + VendorTitle()" class="active"></li>
+            </ol>
+
+            <ol class="breadcrumb" data-bind="visible: IsVendorDetail()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li><a data-bind="text: 'Vendor Management - ' + VendorTitle(), click: function(){ $root.clickASMSSummaryLink('0'); }"></a></li>
+                <li data-bind="text: 'Details'" class="active"></li>
+            </ol>
+
+            <!-- E-Procure -->
+            <ol class="breadcrumb" data-bind="visible: IsEProcure()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li data-bind="text: 'E-Procure - ' + EProcureTitle()" class="active"></li>
+            </ol>
+
+            <ol class="breadcrumb" data-bind="visible: IsEProcureDetail()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li><a data-bind="text: 'E-Procure - ' + EProcureTitle(), click: function(){ $root.clickEProcureSummaryLink('0'); }"></a></li>
+                <li data-bind="text: 'Details'" class="active"></li>
+            </ol>
+
+            <!-- E-claims -->
+            <ol class="breadcrumb" data-bind="visible: IsEclaims()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li data-bind="text: 'EOW - ' + EClaimTitle()" class="active"></li>
+            </ol>
+
+            <ol class="breadcrumb" data-bind="visible: IsEclaimsDetail()" style="display:none">
+                @*<li><a data-bind="click: $root.LoadDashboard"><span style="font-size: 14px;" class="glyphicon glyphicon-dashboard"></span>  Dashboard</a></li>*@
+                <li><a data-bind="text: 'EOW - ' + EClaimTitle(), click: function(){ $root.clickECLAIMSSummaryLink('0'); }"></a></li>
+                <li data-bind="text: 'Details'" class="active"></li>
+            </ol>
+
+            <!-- Dashbaord -->
+            <div class="row col-lg-12" data-bind="visible: IsDashbaord()">
+                <div style="padding-bottom: 10px; padding-top: 10px;" data-bind="css: VendorStatusArray().length > 0 ? 'col-md-9' : 'col-md-12'">
+                    <fieldset>
+                        @*for vendor management*@
+                        <legend>
+                            <table style="width:100%; display:none;" data-bind="visible: VendorArray().length > 0">
+                                <tr>
+                                    <td style="width:70%;"><span>Vendor Management</span></td>
+                                    <td style="width:30%; text-align:right; height:30px;"><a href="@Url.Action("ASMS","History")" style="text-decoration:none;"><span class="label label-primary" style="padding:6px; cursor:pointer;"><span style="color: white; font-size: 1.1em;" class="glyphicon glyphicon-time"></span>    HISTORY</span></a></td>
+                                </tr>
+                            </table>
+                        </legend>
+                        <div class="row">
+                            <div class="col-md-12" style="padding-bottom: 10px; padding-top: 10px; display: none; " data-bind="visible: VendorArray().length > 0">
+                                <!-- ko foreach: { data: VendorArray } -->
+                                <div style="margin-top:6px; float:left; margin-right:6px;">
+                                    <table class="d-tbl">
+                                        <tr>
+                                            <td style="height:35px; background:#eef0f2;">
+                                                <h4 data-bind="text: supplierheaderrequesttype"></h4>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:6px 15px;">
+
+                                                <div style="border-bottom:1px #ccc solid; " class="row">
+                                                    <div class="col-xs-8">
+                                                        <span>Draft</span>
+                                                    </div>
+                                                    <div class="col-xs-4">
+                                                        <a style="text-decoration:none;" data-bind="style: { cursor: draft != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickASMS(supplierheaderrequesttype,'draft', data);}"><span data-bind="text: draft" style="font-weight:bold; float:right; color:#e57118;"></span></a>
+                                                    </div>
+                                                </div>
+                                                <div style="border-bottom:1px #ccc solid; " class="row">
+                                                    <div class="col-xs-8">
+                                                        <span>Inprocess</span>
+                                                    </div>
+                                                    <div class="col-xs-4">
+                                                        <a style="text-decoration:none;" data-bind="style: { cursor: inprocess != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickASMS(supplierheaderrequesttype,'inprocess',data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: inprocess"></span></a>
+                                                    </div>
+                                                </div>
+                                                <div style="border-bottom:1px #ccc solid; " class="row">
+                                                    <div class="col-xs-8">
+                                                        <span>Rejected</span>
+                                                    </div>
+                                                    <div class="col-xs-4">
+                                                        <a style="text-decoration:none;" data-bind="style: { cursor: rejected != '0' ? 'pointer' : 'default' },click: function(data){ $root.clickASMS(supplierheaderrequesttype,'rejected',data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: rejected"></span></a>
+                                                    </div>
+                                                </div>
+                                                <div style="" class="row">
+                                                    <div class="col-xs-8">
+                                                        <span>For Approval</span>
+                                                    </div>
+                                                    <div class="col-xs-4">
+                                                        <a style="text-decoration:none;" data-bind="style: { cursor: waitingforapproval != '0' ? 'pointer' : 'default' },click: function(data){ $root.clickASMS(supplierheaderrequesttype,'waitingforapproval',data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: waitingforapproval"></span></a>
+                                                    </div>
+                                                </div>
+
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <!-- /ko -->
+                            </div>
+                        </div>
+                    </fieldset>
+
+
+                </div>
+                <div class="col-md-3" style="display: none; padding-left: 0px; padding-right: 0px; margin-top: 5px;" data-bind="visible: VendorStatusArray().length > 0">
+                    <canvas width="250" height="200" id="supplierPieChart"></canvas>
+                </div>
+            </div>
+
+            @*E-Procure and E-Claims*@
+            <div class="col-lg-12" data-bind="visible: IsDashbaord()">
+                <fieldset style="margin-top:16px;">
+
+                    <div class="row">
+                        <div class="col-md-12" style="padding-bottom: 10px; padding-top: 10px; display: none;" data-bind="visible: EProcureArray().length > 0|| EOWArray().length > 0">
+                            <table>
+                                <tr>
+                                    <td colspan="4"><span style="color:#333; font-size:small; font-weight: bold;">E-Procure</span></td>
+                                    <td align="right" style="padding-right:8px;"><a href="@Url.Action("EProcure", "History")" style="text-decoration:none;"><span class="label label-primary" style="padding:6px; cursor:pointer;"><span style="color: white; font-size: 1.1em;" class="glyphicon glyphicon-time"></span>    HISTORY</span></a></td>
+                                    <td colspan="2"><span style="color:#333; font-size:small; font-weight: bold;">E-Claims</span></td>
+                                    <td align="right" style="padding-right:8px;"><a href="@Url.Action("EClaim", "History")" style="text-decoration:none;"><span class="label label-primary" style="padding:6px; cursor:pointer;"><span style="color: white; font-size: 1.1em;" class="glyphicon glyphicon-time"></span>    HISTORY</span></a></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8" style="height:6px; border-bottom:1px #aaa solid;"></td>
+                                </tr>
+                                <tr>
+                                    <!-- ko foreach: { data: EProcureArray } -->
+                                    <td>
+                                        <div style="margin-top:6px; float:left; padding-right:6px;" data-bind="style: { borderRight : $index() == 4 ? '1px solid red' : ''  }">
+                                            <table class="d-tbl">
+                                                <tr>
+                                                    <td style="height:35px; background:#eef0f2;">
+                                                        <h4 data-bind="text: CATEGORY"></h4>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:6px 15px;">
+
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Draft</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: DRAFT != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickEPROCURE(CATEGORY,'DRAFT', data);}"><span data-bind="text: DRAFT" style="font-weight:bold; float:right; color:#e57118;"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Inprocess</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: INPROCESS != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickEPROCURE(CATEGORY,'INPROCESS', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: INPROCESS"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Rejected</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: REJECTED != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickEPROCURE(CATEGORY,'REJECTED', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: REJECTED"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="" class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>For Approval</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: WAITINGFORAPPROVAL != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickEPROCURE(CATEGORY,'WAITINGFORAPPROVAL', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: WAITINGFORAPPROVAL"></span></a>
+                                                            </div>
+                                                        </div>
+
+                                                    </td>
+                                                </tr>
+
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <!-- /ko -->
+                                    <!-- ko foreach: { data: EOWArray } -->
+                                    <td>
+                                        <div style="margin-top:6px; float:left; margin-right:6px;" data-bind="style: { paddingLeft : $index() == 0 ? '6px' : ''  }">
+                                            <table class="d-tbl">
+                                                <tr>
+                                                    <td style="height:35px; background:#eef0f2;">
+                                                        <h4 data-bind="text: CLAIM"></h4>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:6px 15px;">
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Draft</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: DRAFT != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocDraft', 'DRAFT', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: DRAFT"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Inprocess</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: INPROCESS != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocAppoalc','INPROCESS', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: INPROCESS"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Rejected</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: REJECTED != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocReject', 'REJECTED', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: REJECTED"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="" class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>For Approval</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: ForMyApproval != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'queueformyapprvolcount', 'ForMyApproval', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: ForMyApproval"></span></a>
+                                                            </div>
+                                                        </div>
+
+                                                    </td>
+                                                </tr>
+
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <!-- /ko -->
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
+
+                </fieldset>
+            </div>
+
+
+            <!--selva-->
+            @*For Fixed Asset Dashboard TOA and WOA SOA*@
+
+            <div class="col-lg-12" data-bind="visible: IsDashbaord()">
+                <fieldset style="margin-top:16px;">
+
+                    <div class="row">
+                        <div class="col-md-12" style="padding-bottom: 10px; padding-top: 10px; display: none;" data-bind="visible: FixedassetArray().length > 0|| EOWArray().length > 0">
+                            <table>
+                                <tr>
+                                    <td colspan="4"><span style="color:#333; font-size:small; font-weight: bold;">Fixed Asset</span></td>
+                                    @*<td align="right" style="padding-right:8px;"><a href="@Url.Action("EProcure", "History")" style="text-decoration:none;"><span class="label label-primary" style="padding:6px; cursor:pointer;"><span style="color: white; font-size: 1.1em;" class="glyphicon glyphicon-time"></span>    HISTORY</span></a></td>*@
+
+                                </tr>
+                                <tr>
+                                    <td colspan="8" style="height:6px; border-bottom:1px #aaa solid;"></td>
+                                </tr>
+                                <tr>
+                                    <!-- ko foreach: { data: FixedassetArray } -->
+                                    <td>
+                                        <div style="margin-top:6px; float:left; padding-right:6px;" data-bind="style: { borderRight : $index() == 4 ? '1px solid red' : ''  }">
+                                            <table class="d-tbl">
+                                                <tr>
+                                                    <td style="height:35px; background:#eef0f2;">
+                                                        <h4 data-bind="text: CATEGORY"></h4>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:6px 15px;">
+
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Draft</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: DRAFT != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickFIXEDASSET(CATEGORY,'DRAFT', data);}"><span data-bind="text: DRAFT" style="font-weight:bold; float:right; color:#e57118;"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Inprocess</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: INPROCESS != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickFIXEDASSET(CATEGORY,'INPROCESS', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: INPROCESS"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="border-bottom:1px #ccc solid; " class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>Rejected</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: REJECTED != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickFIXEDASSET(CATEGORY,'REJECTED', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: REJECTED"></span></a>
+                                                            </div>
+                                                        </div>
+                                                        <div style="" class="row">
+                                                            <div class="col-xs-8">
+                                                                <span>For Approval</span>
+                                                            </div>
+                                                            <div class="col-xs-4">
+                                                                <a style="text-decoration:none;" data-bind="style: { cursor: FORMYAPPROVAL != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickFIXEDASSET(CATEGORY,'FORMYAPPROVAL', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: FORMYAPPROVAL"></span></a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <!-- /ko -->
+                                    <!-- ko foreach: { data: EOWArray } -->
+                                    @*<td>
+                                            <div style="margin-top:6px; float:left; margin-right:6px;" data-bind="style: { paddingLeft : $index() == 0 ? '6px' : ''  }">
+                                                <table class="d-tbl">
+                                                    <tr>
+                                                        <td style="height:35px; background:#eef0f2;">
+                                                            <h4 data-bind="text: CLAIM"></h4>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="padding:6px 15px;">
+                                                            <div style="border-bottom:1px #ccc solid; " class="row">
+                                                                <div class="col-xs-8">
+                                                                    <span>Draft</span>
+                                                                </div>
+                                                                <div class="col-xs-4">
+                                                                    <a style="text-decoration:none;" data-bind="style: { cursor: DRAFT != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocDraft', 'DRAFT', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: DRAFT"></span></a>
+                                                                </div>
+                                                            </div>
+                                                            <div style="border-bottom:1px #ccc solid; " class="row">
+                                                                <div class="col-xs-8">
+                                                                    <span>Inprocess</span>
+                                                                </div>
+                                                                <div class="col-xs-4">
+                                                                    <a style="text-decoration:none;" data-bind="style: { cursor: INPROCESS != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocAppoalc','INPROCESS', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: INPROCESS"></span></a>
+                                                                </div>
+                                                            </div>
+                                                            <div style="border-bottom:1px #ccc solid; " class="row">
+                                                                <div class="col-xs-8">
+                                                                    <span>Rejected</span>
+                                                                </div>
+                                                                <div class="col-xs-4">
+                                                                    <a style="text-decoration:none;" data-bind="style: { cursor: REJECTED != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'GetMydocReject', 'REJECTED', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: REJECTED"></span></a>
+                                                                </div>
+                                                            </div>
+                                                            <div style="" class="row">
+                                                                <div class="col-xs-8">
+                                                                    <span>For Approval</span>
+                                                                </div>
+                                                                <div class="col-xs-4">
+                                                                    <a style="text-decoration:none;" data-bind="style: { cursor: ForMyApproval != '0' ? 'pointer' : 'default' }, click: function(data){ $root.clickECLAIMS(CLAIM,'queueformyapprvolcount', 'ForMyApproval', data);}"><span style="font-weight:bold; float:right; color:#e57118;" data-bind="text: ForMyApproval"></span></a>
+                                                                </div>
+                                                            </div>
+
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+                                            </div>
+                                        </td>*@
+                                    <!-- /ko -->
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
+
+                </fieldset>
+            </div>
+
+
+        </div>
+
+        <div id="tabs-2">
+            <div class="col-lg-12">
+                <fieldset style="margin-top:16px;">
+                    <legend>
+                        <span>Vendor Management</span>
+                    </legend>
+                    <div style="min-height: 150px; margin-top: 5px;">
+                        <table id="gvMyReqASMS" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: MyReqASMSArray().length > 0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%; min-width: 60px; max-width: 60px;">
+                                        SLNo
+                                    </th>
+                                    <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                                        Action
+                                    </th>
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Supplier Code
+                                    </th>
+                                    <th style="width: 20%; min-width: 350px; max-width: 350px;text-align: left;">
+                                        Supplier Name
+                                    </th>
+                                    <th style="width: 8%; min-width: 160px; max-width: 160px; text-align: left;">
+                                        Supplier Category
+                                    </th>
+                                    <th style="width: 10%; min-width: 180px; max-width: 180px; text-align: left;">
+                                        Supplier Status
+                                    </th>
+                                    <th style="width: 10%; min-width: 150px; max-width: 150px; text-align: left;">
+                                        Request Type
+                                    </th>
+                                    <th style="width: 9%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Request Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach:{ data: MyReqASMSArray, afterRender: MyReqASMSDatatableCall }, visible: MyReqASMSArray().length > 0">
+                                <tr>
+                                    <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                                        <span data-bind="text: $index()+1"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+
+
+                                        <a style="text-decoration:underline;color:blue">
+                                            <span title="View Document"
+                                                  data-bind="text:supplierheaderrequeststatus,click: $root.MyReqASMSURL" style="cursor:pointer;">
+                                            </span>
+                                        </a>
+
+
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: supplierheadersuppliercode"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 350px; max-width: 350px;" align="left">
+
+                                        <span data-bind="text: $root.ShortDescription(supplierheadername), attr: { title: supplierheadername }"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 160px; max-width: 160px;" align="left">
+                                        <span data-bind="text: suppliercategoryname"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 180px; max-width: 180px;" align="left">
+                                        <span data-bind="text: supplierheaderstatus"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 150px; max-width: 150px;" align="left">
+                                        <span data-bind="text: supplierheaderrequesttype"></span>
+                                    </td>
+                                    <td style="width: 9%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: supplierheaderrequeststatus"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="borderStyle" style="margin-top:5px;" data-bind="visible: MyReqASMSArray().length == 0">
+                            @HelperHtml.NoRecFound()
+                        </div>
+                    </div>
+                </fieldset>
+
+
+                <fieldset style="margin-top:16px;">
+                    <legend>
+                        <span>E-Procure</span>
+                    </legend>
+                    <div style="min-height: 150px; margin-top: 5px;">
+                        <table id="gvMyReqEPROCURE" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: MyReqEProcureArray().length > 0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%; min-width: 60px; max-width: 60px;">
+                                        SLNo
+                                    </th>
+                                    <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                                        Action
+                                    </th>
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Doc.No
+                                    </th>
+                                    <th style="width: 8%; min-width: 120px; max-width: 120px;" class="colDate">
+                                        Doc.Date
+                                    </th>
+                                    <th style="width: 20%; min-width: 280px; max-width: 280px;text-align: left;">
+                                        Raiser
+                                    </th>
+                                    <th style="width: 9%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Amount
+                                    </th>
+                                    <th style="width: 20%; min-width: 338px; max-width: 338px; text-align: left;">
+                                        Description
+                                    </th>
+                                    <th style="width: 10%; min-width: 150px; max-width: 150px; text-align: left;">
+                                        Request Type
+                                    </th>
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Request Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach:{ data: MyReqEProcureArray, afterRender: MyReqEPROCUREDatatableCall }, visible: MyReqEProcureArray().length > 0">
+                                <tr>
+                                    <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                                        <span data-bind="text: $index()+1"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+
+                                        <a style="text-decoration:underline;color:blue">
+                                            <span title="View Document"
+                                                  data-bind="text:RequestStatus,click: $root.MyReqEPROCUREURL" style="cursor:pointer;">
+                                            </span>
+                                        </a>
+
+
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: DocNo"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 120px; max-width: 120px;" align="center">
+                                        <span data-bind="text: DocDate"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 280px; max-width: 280px;" align="left">
+                                        <span data-bind="text: $root.ShortDescription(Raiser), attr: { title: Raiser }"></span>
+                                    </td>
+                                    <td style="width: 9%; min-width: 120px; max-width: 120px;" align="right">
+                                        <span data-bind="text: DocAmount"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 338px; max-width: 338px;" align="left">
+                                        <span data-bind="text: $root.ShortDescription(Descriptions), attr: { title: Descriptions }"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 150px; max-width: 150px;" align="left">
+                                        <span data-bind="text: RequestType"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: RequestStatus"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="borderStyle" style="margin-top:5px;" data-bind="visible: MyReqEProcureArray().length == 0">
+                            @HelperHtml.NoRecFound()
+                        </div>
+                    </div>
+                </fieldset>
+
+
+                <fieldset style="margin-top:16px;">
+                    <legend>
+                        <span>E-Claims</span>
+                    </legend>
+                    <div style="min-height: 150px;  margin-top: 5px;">
+                        <table id="gvMyReqEOW" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: MyReqEOWArray().length > 0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%; min-width: 60px; max-width: 60px;">
+                                        SLNo
+                                    </th>
+                                    <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                                        Action
+                                    </th>
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        ECF No
+                                    </th>
+                                    <th style="width: 8%; min-width: 120px; max-width: 120px;" class="colDate">
+                                        ECF Date
+                                    </th>
+                                    <th style="width: 20%; min-width: 280px; max-width: 280px;text-align: left;">
+                                        ECF Raiser
+                                    </th>
+                                    <th style="width: 20%; min-width: 338px; max-width: 338px; text-align: left;">
+                                        Supplier Name
+                                    </th>
+                                    <th style="width: 10%; min-width: 150px; max-width: 150px; text-align: left;">
+                                        Claim Type
+                                    </th>
+                                    <th style="width: 9%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Amount
+                                    </th>
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach:{ data: MyReqEOWArray, afterRender: MyReqEOWDatatableCall }, visible: MyReqEOWArray().length > 0">
+                                <tr>
+                                    <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                                        <span data-bind="text: $index()+1"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+
+                                        @*<span title="View Document"
+                                                  data-bind="click: $root.MyReqECLAIMURL, css: (DocStatus.toLowerCase() == 'draft' || DocStatus.toLowerCase() == 'rejected' || DocStatus.toLowerCase() == 'inprocess') ? 'active' : 'notactive'" style="cursor:pointer;">
+                                                <span class="glyphicon glyphicon-new-window"></span>
+                                            </span>*@
+
+                                        @*<a title="View Document" style="text-decoration:underline; color:blue;" data-bind="text:STATUSNAME,click: $root.MyReqECLAIMURL, css: (DocStatus.toLowerCase() == 'draft' || DocStatus.toLowerCase() == 'rejected' || DocStatus.toLowerCase() == 'inprocess' ||DocStatus.toLowerCase() == 'hold' ) ? 'active' : 'notactive'"></a>*@
+
+                                        <a style="text-decoration:underline;color:blue">
+                                            <span title="View Document"
+                                                  data-bind="text:STATUSNAME,click: $root.MyReqECLAIMURL, css: (DocStatus.toLowerCase() == 'draft' || DocStatus.toLowerCase() == 'rejected' || DocStatus.toLowerCase() == 'inprocess' ||DocStatus.toLowerCase() == 'hold'||DocStatus.toLowerCase() =='approved') ? 'active' : 'notactive'" style="cursor:pointer;">
+                                            </span>
+                                        </a>
+
+
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: ecfNo"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 120px; max-width: 120px;" align="center">
+                                        <span data-bind="text: ecfDate"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 280px; max-width: 280px;" align="left">
+                                        <span data-bind="text: $root.ShortDescription(rempname), attr: { title: rempname }"></span>
+                                    </td>
+                                    <td style="width: 20%; min-width: 338px; max-width: 338px;" align="left">
+                                        <span data-bind="text: ecfsupplieremployee == 'S' ? $root.ShortDescription(suppliername) : $root.ShortDescription(employeename), attr: { title: ecfsupplieremployee == 'S' ? suppliername : employeename }"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 150px; max-width: 150px;" align="left">
+                                        <span data-bind="text: DocType"></span>
+                                    </td>
+                                    <td style="width: 9%; min-width: 120px; max-width: 120px;" align="right">
+                                        <span data-bind="text: ecfamount"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: DocStatus"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="borderStyle" style="margin-top:5px;" data-bind="visible: MyReqEOWArray().length == 0">
+                            @HelperHtml.NoRecFound()
+                        </div>
+                    </div>
+                </fieldset>
+
+
+                @*For Fixed Asset Work bench grid load*@
+                <fieldset style="margin-top:16px;">
+                    <legend>
+                        <span>Fixed Asset</span>
+                    </legend>
+                    <div style="min-height: 150px; margin-top: 5px;">
+                        @*FixedassetArray1*@
+                        <table id="gvMyReqFixedAsset" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible:FixedassetArray1().length > 0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%; min-width: 60px; max-width: 60px;">
+                                        SLNo
+                                    </th>
+
+                                    <th style="width:11%; min-width:120px; max-width: 120px;">
+                                        Action
+                                    </th>
+
+                                    <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        Asset Number
+                                    </th>
+                                    <th style="width: 8%; min-width: 120px; max-width: 120px;" class="colDate">
+                                        Asset Date
+                                    </th>
+
+                                    <th style="width: 9%; min-width: 120px; max-width: 120px; text-align: left;">
+                                        No of Records
+                                    </th>
+                                    <th style="width: 20%; min-width: 338px; max-width: 338px; text-align: left;">
+                                        Asset Status
+                                    </th>
+                                    <th style="width: 20%; min-width: 338px; max-width: 338px; text-align: left;">
+                                        id
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach:{ data: FixedassetArray1, afterRender: MyReqFixedAssetDatatableCall }, visible: FixedassetArray1().length > 0">
+                                <tr>
+                                    <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                                        <span data-bind="text: $index()+1"></span>
+                                    </td>
+
+                                    <td style="width:11%; min-width: 80px; max-width: 80px;" align="center">
+                                        <a style="text-decoration:underline;color:blue">
+                                            <span title="View Document"
+                                                  data-bind="text:status_name,click: $root.MyReqFAURL" style="cursor:pointer;">
+                                            </span>
+                                        </a>
+                                    </td>
+
+
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text:number"></span>
+                                    </td>
+                                    <td style="width: 8%; min-width: 120px; max-width: 120px;" align="center">
+
+                                        <span data-bind="text: date"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+
+                                        <span data-bind="text: records"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: status_name"></span>
+                                    </td>
+                                    <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                                        <span data-bind="text: Gid"></span>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="borderStyle" style="margin-top:5px;" data-bind="visible: FixedassetArray1().length == 0">
+                            @HelperHtml.NoRecFound()
+                        </div>
+                    </div>
+                </fieldset>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Vendor Part -->
+    <div class="col-lg-12" data-bind="visible: IsVendorSummary()" style="display:none;">
+        @*supplierheadercurrentapprovalstage
+            Supplierheadergid
+            supplierheadersuppliercode
+            supplierheadername
+            suppliercategoryname
+            supplierheaderstatus
+            supplierheaderrequesttype
+            supplierheaderrequeststatus*@
+        <div style="overflow: auto; height:100%;">
+            <table id="gvVendorSummary" class="tableSmall table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width: 5%; min-width: 60px; max-width: 60px;">
+                            SLNo
+                        </th>
+                        <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                            Action
+                        </th>
+                        <th style="width: 12%; min-width: 120px; max-width: 120px;">
+                            Request Type
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px; text-align: left;">
+                            Supplier Code
+                        </th>
+                        <th style="width: 20%; min-width: 338px; max-width: 338px; text-align: left;">
+                            Supplier Name
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px;" class="colDate">
+                            Request Date
+                        </th>
+                        <th style="width: 20%; min-width: 280px; max-width: 280px;text-align: left;">
+                            Raiser
+                        </th>
+                        <th style="width: 15%; min-width: 120px; max-width: 120px; ">
+                            Request Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:{ data: VendorSummaryArray, afterRender: DatatableCall }, visible: VendorSummaryArray().length > 0">
+                    <tr>
+                        <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+                            @*<span style="cursor:pointer; padding-right:5px;" title="process" data-bind="click: $root.VMProcess"><span style="color: blue;">Details</span></span>*@
+                            <span title="View" data-bind="click: $root.VMProcess, visible: $root.IsVendorAction()" style="cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"></span></span>
+                            <span title="View Document" data-bind="click: $root.ASMSURL" style="cursor:pointer;"> <span class="glyphicon glyphicon-new-window"></span></span>
+                        </td>
+                        <td style="width: 12%; min-width: 120px; max-width: 120px;" align="center">
+                            <span data-bind="text: supplierheaderrequesttype"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px;" align="left">
+                            <span data-bind="text: supplierheadersuppliercode"></span>
+                        </td>
+                        <td style="width: 20%; min-width: 338px; max-width: 338px;" align="left">
+                            <span data-bind="text: $root.ShortDescription(supplierheadername), attr: { title: supplierheadername }"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px;" align="center">
+                            <span data-bind="text: RequestDate"></span>
+                        </td>
+                        <td style="width: 20%; min-width: 280px; max-width: 280px;" align="left">
+                            <span data-bind="text: $root.ShortDescription(Raiser), attr: { title: Raiser }"></span>
+                        </td>
+                        <td style="width: 15%; min-width: 120px; max-width: 120px;" align="center">
+                            <span data-bind="text: supplierheaderrequeststatus"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="well activity" data-bind="visible: IsVendorDetail()" style="display:none;">
+        <div class="row">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text"
+                                   id="txtASMSSupplierDetails"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text"
+                                   id="txtASMSRaiserDetails"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6" data-bind="visible: IsVendorRENEWAL()">
+                        <div class="form-group">
+                            <span>Prev. Contract Start Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtASMSPrevContractStrDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6" data-bind="visible: IsVendorRENEWAL()">
+                        <div class="form-group">
+                            <span>Prev. Contract End Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtASMSPrevContractEndDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Contract Start Date</span>
+                            <input type="text"
+                                   id="txtASMSContractStrDate"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Contract End Date</span>
+                            <input type="text"
+                                   id="txtASMSContractEndDate"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-6" data-bind="visible: IsVendorACTIVATION()">
+                        <div class="form-group">
+                            <span>Activation From</span>
+                            <input type="text"
+                                   id="txtASMSActivationFrom"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6" data-bind="visible: IsVendorACTIVATION()">
+                        <div class="form-group">
+                            <span>Activation To</span>
+                            <input type="text"
+                                   id="txtASMSActivationTo"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" data-bind="visible: IsVendorONBOARDING() || IsVendorRENEWAL()">
+                        <div class="form-group">
+                            <span>Approx Contract Value</span>
+                            <input type="text"
+                                   id="txtASMSApproxContractValue"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6" data-bind="visible: IsVendorONBOARDING() || IsVendorRENEWAL()">
+                        <div class="form-group">
+                            <span>GSTIN Provided</span>
+                            <input type="text"
+                                   id="txtASMSGSTINProvided"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12" data-bind="visible: IsVendorACTIVATION()">
+                        <div class="form-group">
+                            <span>Activation Reason</span>
+                            <textarea id="txtASMSActivationReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12" data-bind="visible: IsVendorDEACTIVATION()">
+                        <div class="form-group">
+                            <span>Activation Reason</span>
+                            <textarea id="txtASMSDeActivationReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Reason</span>
+                            <textarea id="txtASMSRaiserReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Previous Approver Code/Name</span>
+                            <input type="text"
+                                   id="txtASMSPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Previous Approver Remarks</span>
+                            <textarea id="txtASMSPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtASMSCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnApprove" class="btn btn-success" data-bind="click: function(){ $root.ASMSSubmit('1'); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnReject" class="btn btn-danger" data-bind="click: function(){ $root.ASMSSubmit('0'); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(),click: function(){ $root.ViewASMS(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View Request
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppASMS(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View Request
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- E-Procure -->
+    <div class="col-lg-12" data-bind="visible: IsEProcure()" style="display:none;">
+        <div style="max-height: 450px; overflow: auto; height:100%;" data-bind="visible: EProcureSummaryArray().length > 0">
+            <table id="gvEProcureSummary" class="tableSmall table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width: 5%; min-width: 60px; max-width: 60px; ">
+                            SLNo
+                        </th>
+                        <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                            Action
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px; ">
+                            Request Type
+                        </th>
+                        <th style="width: 15%; min-width: 120px; max-width: 120px; text-align:left;">
+                            Document No
+                        </th>
+                        <th style="width: 10%; min-width: 100px; max-width: 100px; ">
+                            Document Date
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px; ">
+                            Document Amt
+                        </th>
+                        <th style="width: 20%; min-width: 245px; max-width: 245px; text-align: left; ">
+                            Raiser
+                        </th>
+                        <th style="width: 20%; min-width: 250px; max-width: 250px; text-align: left; ">
+                            Description
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px; ">
+                            Request Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:{ data: EProcureSummaryArray, afterRender: EProcureSummaryDatatableCall }, visible: EProcureSummaryArray().length > 0">
+                    <tr>
+                        <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+                            <span title="View" data-bind="click: $root.FBProcess, visible: $root.IsEProcureAction()" style="cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"></span></span>
+                            <span title="View Document" data-bind="click: $root.EPROCUREURL" style="cursor:pointer; visibility:hidden;"> <span class="glyphicon glyphicon-new-window"></span></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px;" align="center">
+                            <span data-bind="text: RequestType"></span>
+                        </td>
+                        <td style="width: 15%; min-width: 120px; max-width: 120px;" align="left">
+                            <span data-bind="text: DocNo"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 100px; max-width: 100px;">
+                            <span data-bind="text: DocDate"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px;" align="right">
+                            <span data-bind="text: $root.formatNumber(DocAmount)"></span>
+                        </td>
+                        <td style="width: 20%; min-width: 245px; max-width: 245px;" align="left">
+                            <span data-bind="text: $root.ShortDescription(Raiser), attr: { title: Raiser }"></span>
+                        </td>
+                        <td style="width: 20%; min-width: 250px; max-width: 250px; " align="left">
+                            <span data-bind="text: $root.ShortDescription(Descriptions), attr: { title: Descriptions }"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px;">
+                            <span data-bind="text: RequestStatus"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="well activity" data-bind="visible: IsEProcureDetail()" style="display:none;">
+        <!--PAR-->
+        <div class="row" data-bind="visible: IsPARDetails()">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR #</span>
+                            <input type="text" class="textboxStyleBig" id="txtPARNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtPARDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtPARRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Budgeted</span>
+                            <input type="text" class="textboxStyleBig" id="txtBudgeted" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtPARAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:160px;">
+                                <table style="width:95%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%;">
+                                                SLNo
+                                            </th>
+                                            <th style="width:30%;">
+                                                Expense Type
+                                            </th>
+                                            <th style="width:20%;">
+                                                FY From
+                                            </th>
+                                            <th style="width:20%;">
+                                                FY To
+                                            </th>
+                                            <th style="width:20%;">
+                                                Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: FBArray1 }, visible: FBArray1().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index()+1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ExpenseType"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: FYFrom"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: FYTo"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Amount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:160px;">
+                                <table style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40%;">
+                                                Approver Code
+                                            </th>
+                                            <th style="width:40%; text-align:left;">
+                                                Approver Name
+                                            </th>
+                                            <th style="width:20%;">
+                                                Date
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: FBArray2 }, visible: FBArray2().length > 0">
+                                        <tr>
+                                            <td>
+                                                <span data-bind="text: ApproverCode"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ApproverName"></span>
+                                            </td>
+                                            <td align="center">
+                                                <span data-bind="text: ApprovalDate"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Reason</span>
+                            <textarea id="txtPARRaiserReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Approver Remarks</span>
+                            <textarea id="txtPARCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnPARApprove" class="btn btn-success" data-bind="click: function(){ $root.EProcureSubmit('PAR', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnPARReject" class="btn btn-danger" data-bind="click: function(){ $root.EProcureSubmit('PAR', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PAR
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PAR
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--CBF-->
+        <div class="row" data-bind="visible: IsCBFDetails()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Request For</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFRequestFor" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF Mode</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFMode" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR/PR #</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFPARPRNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR/PR Amt</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFPARPRAmt" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF Approval</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFApproval" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Budgeted</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFBudgeted" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtCBFBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:100%;">
+                                <table style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:120px;">
+                                                Prod/Service
+                                            </th>
+                                            <th style="min-width:180px;">
+                                                Product Group
+                                            </th>
+                                            <th style="min-width:200px;">
+                                                Product Name
+                                            </th>
+                                            <th style="min-width:220px;">
+                                                Description
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                UOM
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Qty
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Amount
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                GL Code
+                                            </th>
+                                            <th style="min-width:200px;">
+                                                CC
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Budget Line
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: CBFArray }, visible: CBFArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: ProdServiceFlag"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductGroup"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductCode + ProductName"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductDescription"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: UOM"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Qty"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TotalAmount"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: GLCode"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: FccName"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: BudgetLine"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>CBF Justification</span>
+                            <br />
+                            <textarea id="txtCBFJustification" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtCBFPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtCBFPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtCBFCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnCBFApprove" class="btn btn-success" data-bind="click: function(){ $root.EProcureCBF(0); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnCBFReject" class="btn btn-danger" data-bind="click: function(){ $root.EProcureCBF(1); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View CBF
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View CBF
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--PR-->
+        <div class="row" data-bind="visible: IsPRDetails()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PR #</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PR Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Budgeted</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRBudgeted" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PR Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Request For</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRRequestFor" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CAPEX/OPEX</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRMode" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>BS && CC</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRBSCC" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtPRBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:100%;">
+                                <table style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:200px;">
+                                                Product Name
+                                            </th>
+                                            <th style="min-width:220px;">
+                                                Description
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                UOM
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Qty
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: PRArray }, visible: PRArray().length > 0">
+                                        <tr>
+                                            <td align="left">
+                                                <span data-bind="text: Product"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductDescription"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: UOM"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Qty"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TotalAmount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtPRRaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtPRPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtPRPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtPRCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnPRApprove" class="btn btn-success" data-bind="click: function(){ $root.EProcureSubmit('PR', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnPRReject" class="btn btn-danger" data-bind="click: function(){ $root.EProcureSubmit('PR', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PR
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PR
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--PO-->
+        <div class="row" data-bind="visible: IsPODetails()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PO #</span>
+                            <input type="text" class="textboxStyleBig" id="txtPONo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PO Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtPODate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtPORaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOSupplierDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOCBFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CBF Line Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOCBFLineAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Mode</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOMode" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR/PR #</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOPARPRNo" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch Single</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOBranchSingle" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CC</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOCC" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PO Amt</span>
+                            <input type="text" class="textboxStyleBig" id="txtPOAmt" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:100%;">
+                                <table id="gvPO" style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:120px;">
+                                                SlNo
+                                            </th>
+                                            <th style="min-width:150px;">
+                                                Product Code
+                                            </th>
+                                            <th style="min-width: 280px;">
+                                                Product Name
+                                            </th>
+                                            <th style="min-width: 280px;">
+                                                Description
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                UOM
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Qty
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Unit Price
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Discount
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Tax
+                                            </th>
+                                            <th style="min-width: 280px;">
+                                                Others
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Total Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: POArray, afterRender: PODatatableCall }, visible: POArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index()+1"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductCode"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: $root.ShortDescription(ProductName), attr: { title: ProductName }"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: $root.ShortDescription(ProductDescription), attr: { title: ProductDescription }"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: UOM"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Qty"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: UnitPrice"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Discount"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Tax"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: $root.ShortDescription(Others), attr: { title: Others }"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TotalAmount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtPOPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtPOPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtPOCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnPOApprove" class="btn btn-success" data-bind="click: function(){ $root.EProcurePO(0); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnPOReject" class="btn btn-danger" data-bind="click: function(){ $root.EProcurePO(1); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PO
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View PO
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--WO-->
+        <div class="row" data-bind="visible: IsWODetails()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>WO #</span>
+                            <input type="text" class="textboxStyleBig" id="txtWONo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>WO Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtWODate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtWORaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOSupplierDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>OBF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOOBFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>OBF Line Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOOBFLineAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Mode</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOMode" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PAR/PR #</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOPARPRNo" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch Single</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOBranchSingle" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>CC</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOCC" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>WO Amt</span>
+                            <input type="text" class="textboxStyleBig" id="txtWOAmt" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:100%;">
+                                <table id="gvWO" style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:120px;">
+                                                SlNo
+                                            </th>
+                                            <th style="min-width:180px;">
+                                                Product Code
+                                            </th>
+                                            <th style="min-width:250px;">
+                                                Product Name
+                                            </th>
+                                            <th style="min-width:250px;">
+                                                Description
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                UOM
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Qty
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Unit Price
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Discount
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Tax
+                                            </th>
+                                            <th style="min-width:250px;">
+                                                Others
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Total Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: WOArray, afterRender: WODatatableCall }, visible: WOArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index()+1"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: ProductCode"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: $root.ShortDescription(ProductName), attr: { title: ProductName }"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: $root.ShortDescription(ProductDescription), attr: { title: ProductDescription }"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: UOM"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Qty"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: UnitPrice"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Discount"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Tax"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: $root.ShortDescription(Others), attr: { title: Others }"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TotalAmount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtWOPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtWOPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtWOCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:15px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnWOApprove" class="btn btn-success" data-bind="click: function(){ $root.EProcureSubmit('WO', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnWOReject" class="btn btn-danger" data-bind="click: function(){ $root.EProcureSubmit('WO', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View WO
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppEPROCURE(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View WO
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- E-claims -->
+    <div class="col-lg-12" data-bind="visible: IsEclaims()" style="display:none;">
+        <div style="overflow: auto; height:100%;">
+            <table id="gvEOW" class="tableSmall table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:60px; max-width:60px; ">
+                            SLNo
+                        </th>
+                        <th style="width: 8%; min-width: 80px; max-width: 80px;" class="nosort">
+                            Action
+                        </th>
+                        <th style="width: 15%; min-width: 200px; max-width: 200px; text-align: left;">
+                            Document Type
+                        </th>
+                        <th style="width: 10%; min-width: 160px; max-width: 160px; text-align:left;">
+                            ECF No
+                        </th>
+                        <th style="width: 10%; min-width: 108px; max-width: 108px;" class="colDate">
+                            ECF Date
+                        </th>
+                        <th style="width: 10%; min-width: 120px; max-width: 120px;">
+                            ECF Amount
+                        </th>
+                        <th style="width: 25%; min-width: 350px; max-width: 350px; text-align:left;">
+                            Raiser
+                        </th>
+                        <th style="width: 10%; min-width: 160px; max-width: 160px;">
+                            Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:{ data: EOWSummaryArray, afterRender: EOWDatatableCall }, visible: EOWSummaryArray().length > 0">
+                    <tr>
+                        <td style="width: 5%; min-width: 60px; max-width: 60px;" align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td style="width: 8%; min-width: 80px; max-width: 80px;" align="center">
+                            <span title="View" data-bind="click: $root.ECLAIMProcess, visible : $root.IsEClaimAction()" style="cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"></span></span>
+                            @*<span title="View Document" data-bind="click: $root.ECLAIMURL" style="cursor:pointer;"> <span class="glyphicon glyphicon-edit"></span></span>*@
+                        </td>
+                        <td style="width: 15%; min-width: 200px; max-width: 200px;  visibility:hidden;" align="left">
+                            <span data-bind="text: $root.EClaimTitle()"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 160px; max-width: 160px; " align="left">
+                            <span data-bind="text: ecfno"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 108px; max-width: 108px;" align="center">
+                            <span data-bind="text: ecfdate"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 120px; max-width: 120px; " align="right">
+                            <span data-bind="text: $root.formatNumber(ecfamount)"></span>
+                        </td>
+                        <td style="width: 25%; min-width: 350px; max-width: 350px; " align="left">
+                            <span data-bind="text: $root.ShortDescription(rempname), attr: { title: rempname }"></span>
+                        </td>
+                        <td style="width: 10%; min-width: 160px; max-width: 160px; " align="center">
+                            <span data-bind="text: ecfstatus"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="well activity" data-bind="visible: IsEclaimsDetail()" style="display:none;">
+        <input type="hidden" id="hdfSConcurrentApprovalId" value="0" />
+
+        <!--Supplier Invoice [NON-PO / PO / WO] -->
+        <div class="row" data-bind="visible: SI_NON_PO()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimPOSupplierDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimPORaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimPOECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimPOECFAmount" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:100%;">
+                                @*ECFId
+                                    InvoiceNo
+                                    InvoiceDate
+                                    InvoiceAmount
+                                    GSTApplicable
+                                    POWONo
+                                    TType
+                                    TSubtype
+                                    Taxtype
+                                    Rate
+                                    TaxableAmount
+                                    TaxAmount*@
+                                <table id="gvEClaimNONPO" style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="min-width:80px;">
+                                                SlNo
+                                            </th>
+                                            <th style="min-width:140px;">
+                                                Invoice #
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Invoice Date
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Invoice Amount
+                                            </th>
+                                            <th style="min-width:140px;">
+                                                PO/WO #
+                                            </th>
+                                            <th style="min-width:140px;">
+                                                GST Applicability
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Taxable Amount
+                                            </th>
+                                            <th style="min-width:180px;">
+                                                Tax Type
+                                            </th>
+                                            <th style="min-width:120px;">
+                                                Tax Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: EClaimPOArray, afterRender: EClaimPODatatableCall }, visible: EClaimPOArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index()+1"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: InvoiceNo"></span>
+                                            </td>
+                                            <td align="center">
+                                                <span data-bind="text: InvoiceDate"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: InvoiceAmount"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: POWONo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: GSTApplicable"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TaxableAmount"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: Taxtype"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: TaxAmount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimPORaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimPOPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimPOPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimPOIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:70%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimPOCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimPOApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimPO', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimPOReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimPO', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimPOHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimPO', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+                            <button type="button" accesskey="c" id="btnEClaimPOCApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimPO', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--Supplier Invoice DSA -->
+        <div class="row" data-bind="visible: SIDSA()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSASupplierDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSARaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSAECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSAECFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>No.Of.Vendor</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSANoOfVendor" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Service Month</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimDSAServiceMonth" disabled />
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimDSARaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimDSAPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimDSAPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimDSAIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:50%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimDSACheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimDSAApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimDSA', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimDSAReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimDSA', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimDSAHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimDSA', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+                            <button type="button" accesskey="c" id="btnEClaimDSAApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimDSA', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--Employee Reimbursement Local Conveyance -->
+        <div class="row" data-bind="visible: EclaimLC()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCECFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>No.Of.Employees</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCNoOfEmployee" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Service Month</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCServiceMonth" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Highest Claim Amt</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCHighestClaimAmt" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimLCBranch" disabled />
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimLCRaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimLCPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimLCPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimLCIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:50%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimLCCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimLCApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimLC', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimLCReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimLC', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimLCHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimLC', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+                            <button type="button" accesskey="c" id="btnEClaimLCApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimLC', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--Employee Reimbursement Traval / Non-Traval -->
+        <div class="row" data-bind="visible: EclaimTravalType()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ECF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalECFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Period From</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalPeriodFrom" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Period To</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalPeriodTo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Service Month</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalServiceMonth" disabled />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimTravalBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div style="overflow: auto; height:160px;">
+                                <table style="width:100%;" class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%;">
+                                                SLNo
+                                            </th>
+                                            <th style="width:40%;">
+                                                Expense Category
+                                            </th>
+                                            <th style="width:30%;">
+                                                Sub Category
+                                            </th>
+                                            <th style="width:20%;">
+                                                Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:{ data: TravalArray }, visible: TravalArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index()+1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Category"></span>
+                                            </td>
+                                            <td align="left">
+                                                <span data-bind="text: SubCategory"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Amount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimTravalRaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimTravalPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimTravalPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimTravalIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:50%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimTravalCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimTravalApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimTraval', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimTravalReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimTraval', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimTravalHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimTraval', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+
+                            <button type="button" accesskey="c" id="btnEClaimTravalCApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimTraval', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!--ARF - Employee & Petty Cash -->
+        <div class="row" data-bind="visible: EclaimARFEP()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPECFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF Type</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPARFType" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Advance Type</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPAdvanceType" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Target Liq.Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPLiqDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFEPBranch" disabled />
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:3px 5px;">
+                            <span>ARF Description</span>
+                            <br />
+                            <textarea id="txtEClaimARFEPDescription" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                        <td style="width:50%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimARFEPRaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimARFEPPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimARFEPPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimARFEPIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:50%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimARFEPCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimARFEPApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFEP', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimARFEPReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFEP', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimARFEPHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFEP', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+
+                            <button type="button" accesskey="c" id="btnEClaimARFEPCApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFEP', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ARF - Supplier -->
+        <div class="row" data-bind="visible: EclaimARFF()" style="display:none;">
+            <div class="col-sm-12 col-md-10 col-lg-8 col-xs-12 col-md-offset-1 col-lg-offset-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Raiser Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFRaiserDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <span>Supplier Code/Name</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFSupplierDetails" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFECFNo" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF Amount</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFAmount" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>ARF Type</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFARFType" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Advance Type</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFAdvanceType" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Target Liq.Date</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFLiqDate" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Branch</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFBranch" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>Proforma Invoice #</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFProformaInv" disabled />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <span>PO#</span>
+                            <input type="text" class="textboxStyleBig" id="txtEClaimARFFPO" disabled />
+                        </div>
+                    </div>
+                </div>
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:3px 5px;">
+                            <span>ARF Description</span>
+                            <br />
+                            <textarea id="txtEClaimARFFDescription" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                        <td style="width:50%; padding:3px 5px;">
+                            <span>Raiser Comments</span>
+                            <br />
+                            <textarea id="txtEClaimARFFRaiserComments" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Code/Name</span>
+                            <br />
+                            <input type="text"
+                                   id="txtEClaimARFFPreviousApproverDetails"
+                                   class="textboxStyleBig" disabled />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Previous Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimARFFPreviousApproverReason" rows="2" class="txtboxStyleBig" style="width:100%; background-color: white; border-radius: 4px;" disabled></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:2%;"><input type="checkbox" id="chkEClaimARFFIsConcurrentApp" class="eclaimCheckBox" /></td>
+                                    <td style="width:15%; padding-left:10px;"><span>Concurrent Approval</span></td>
+                                    <td style="width:50%; display:none;" class="DivconcurrentApproval"><input type="text" class="textboxStyleBig searchConcurrentApproval" /></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:3px 5px;">
+                            <span>Approver Remarks</span>
+                            <br />
+                            <textarea id="txtEClaimARFFCheckerRemark" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; padding:8px 5px; text-align:center;">
+                            <button type="button" accesskey="a" id="btnEClaimARFFApprove" class="btn btn-success" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFF', 1); }">
+                                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                                Approve
+                            </button>
+                            <button type="button" accesskey="r" id="btnEClaimARFFReject" class="btn btn-danger" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFF', 2); }">
+                                <span class="glyphicon glyphicon-remove" style="color:white;"></span>
+                                Reject
+                            </button>
+                            <button type="button" accesskey="h" id="btnEClaimARFFHold" class="btn btn-primary" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFF', 3); }">
+                                <span class="glyphicon glyphicon-header" style="color:white;"></span>
+                                Hold
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width:100%; text-align:center;">
+
+                            <button type="button" accesskey="c" id="btnEClaimARFFCApproval" class="btn btn-warning" data-bind="click: function(){ $root.EClaimSubmit('EClaimARFF', 4); }">
+                                <span class="glyphicon glyphicon-random" style="color:white;"></span>
+                                Concurrent Approval
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: !IsApprovalClick(), click: function(){ $root.ViewECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                            <button type="button" accesskey="v" class="btn btn-info" data-bind="visible: IsApprovalClick(), click: function(){ $root.ViewMyAppECF(); }">
+                                <span class="glyphicon glyphicon-eye-open" style="color:white;"></span>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!--Release Popup window-->
+    <input type="hidden" value="" id="hfECFHoldData" />
+    <div id="ShowHoldECFDig" style="display:none;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:100%; padding:0px 5px;">
+                    Remarks
+                    <br />
+                    <textarea id="txtECFHoldRemarks" rows="3" class="txtboxStyle required" style="width:100%; border-radius: 4px;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100%; padding:0px 5px; text-align:center;">
+                    <br />
+                    <button type="button" id="btnECFHold" accesskey="r" class="btn btn-primary" data-bind="click: $root.ReleaseHold">
+                        <span class="glyphicon glyphicon-send" style="color:white;"></span>
+                        Hold Release
+                    </button>
+                    <button type="button" class="btn btn-warning" accesskey="c" data-bind="click: $root.CloseDetails">
+                        <span style="color:white;" class="glyphicon glyphicon-remove"></span>
+                        Close
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!--End-->
+</div>
+<script>
+    var UrlDet = "@Url.Action("GetOverAllDashboard", "Dashboard", new { Area = "Dashboard" })"
+    var MUrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper", new { Area = "FLEXISPEND" })"
+    var EOWUrlDet = "@Url.Action("MyDocDetails", "MyDashDocDetails", new { Area = "EOW" })"
+    var ASMSUrlDet = "@Url.Action("Index", "Modification", new { Area = "ASMS" })"
+    var EProcureUrlDet = "@Url.Action("Index", "flexibuydashboard", new { Area = "FLEXIBUY" })"
+
+    //For Fixed asset  TOA Selva
+    var IFAMSUrlDet = "@Url.Action("TransferedSummary", "AssetTransfer", new { Area = "IFAMS" })"
+    // For WOA
+    var IFAMSUrlDetWOA = "@Url.Action("WMSummary", "AssetWriteOff", new { Area = "IFAMS" })"
+
+    // For SOA
+    var IFAMSUrlDetSOA = "@Url.Action("SASummary", "AssetSale", new { Area = "IFAMS" })"
+
+
+</script>
+<script src="@Url.Content("~/Areas/Dashboard/DashboardScript/jsOverAllDashboard.js")" type="text/javascript"></script>

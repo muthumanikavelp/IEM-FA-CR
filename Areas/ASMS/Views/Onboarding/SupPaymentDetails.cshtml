@@ -1,0 +1,244 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.PaymentDetails
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<PaymentDetails> lst = new List<PaymentDetails>();
+
+    lst = (List<PaymentDetails>)Session["PaymentSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetPaymentDetails().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<div id="wgPayment">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgPayment", ajaxUpdateCallback: "DummyFunction14()");
+        int rowcount = 0;
+    }
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridPayment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                                grid.Column("_PaymentID", objCmnFunctions.Sorter("_PaymentID", "ID", grid), canSort: false),
+                                grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                                         grid.Column("_PaymodeName", objCmnFunctions.Sorter("_PaymodeName", "Pay Mode", grid), style: "colmediumBreak"),
+                                                  grid.Column("_BankName", objCmnFunctions.Sorter("_BankName", "Bank", grid), style: "collargeBreak"),
+                                                  grid.Column("_BankBranch", objCmnFunctions.Sorter("_BankBranch", "Bank Branch", grid), style: "collargeBreak"),
+                                         grid.Column("_IfscCode", objCmnFunctions.Sorter("_IfscCode", "IFSC Code", grid), style: "colmediumBreak"),
+                                         grid.Column("_AccountTypeName", objCmnFunctions.Sorter("_AccountTypeName", "Account Type", grid), style: "colmediumBreak"),
+                                                  grid.Column("_AccountNo", objCmnFunctions.Sorter("_AccountNo", "Account No", grid), style: "collargeBreak"),
+                                                  grid.Column("_BeneficiaryName", objCmnFunctions.Sorter("_BeneficiaryName", "Beneficiary Name", grid), style: "collargeBreak"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='Edit' style='text-decoration:none' onclick='EditPaymentDetails(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                    @*@Html.Raw("<a title='Delete' style='text-decoration:none' onclick='DeletePaymentDetails(" + item._PaymentID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")*@
+
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+</div>
+<script type="text/javascript">
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridPayment td:nth-child(1),#wgridPayment th:nth-child(1)").hide();
+        $("#wgridPayment td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridPayment td:nth-child(10),#wgridPayment th:nth-child(10)").hide();
+        }
+
+    });
+    function DummyFunction14() {
+        $("#wgridPayment td:nth-child(1),#wgridPayment th:nth-child(1)").hide();
+        $("#wgridPayment td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridPayment td:nth-child(10),#wgridPayment th:nth-child(10)").hide();
+        }
+
+    }
+    function EditPaymentDetails(element) {
+        debugger;
+       
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_PaymentID").val(ids);
+        var paymode = tds.eq(2).text();
+        var bank = tds.eq(3).text();
+        var bankbranch = tds.eq(4).text();
+        var ifsccode = tds.eq(5).text();
+        var accounttype = tds.eq(6).text();
+        var accountno = tds.eq(7).text();
+        var beneficiaryname = tds.eq(8).text();
+        
+        $("#selectedPaymodeID option").each(function () {
+            if ($(this).text() == paymode) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+        
+        $("#selectedBankID option").each(function () {
+            if ($(this).text() == bank) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+        $("#selectedAccountTypeID option").each(function () {
+            if ($(this).text() == accounttype) {
+                $(this).attr('selected', 'selected').trigger('chosen:updated');
+            }
+        });
+        $("#_BankBranch").val(bankbranch);
+        $("#_IfscCode").val(ifsccode);
+        $("#_AccountNo").val(accountno);
+        $("#_BeneficiaryName").val(beneficiaryname);
+
+        if ($("#selectedPaymodeID").val() != "0" && $("#selectedPaymodeID").val() != "") {
+            $("#selectedPaymodeID_chosen").addClass('valid');
+            $("#selectedPaymodeID_chosen").removeClass('required');
+        }
+        else {
+            $("#selectedPaymodeID_chosen").addClass('required');
+            $("#selectedPaymodeID_chosen").removeClass('valid');
+        }
+        if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 6) == "CHEQUE") {
+            $("#selectedBankID").removeClass('valid');
+            $("#selectedAccountTypeID").removeClass('valid');
+            $("#_AccountNo").removeClass('valid');
+            $("#_IfscCode").removeClass('valid');
+
+            $("#selectedBankID").removeClass('required');
+            $("#selectedAccountTypeID").removeClass('required');
+            $("#_AccountNo").removeClass('required');
+            $("#_IfscCode").removeClass('required');
+
+            $("#selectedBankID").attr("disabled", "disabled");
+            $("#selectedAccountTypeID").attr("disabled", "disabled");
+            $("#_AccountNo").attr("disabled", "disabled");
+            $("#_IfscCode").attr("disabled", "disabled");
+            $("#_BankBranch").attr("disabled", "disabled");
+
+            $("#_BeneficiaryName").addClass("required");
+
+            if ($("#_BeneficiaryName").val() != "" && $("#_BeneficiaryName").val() != null) {
+                $("#_BeneficiaryName").addClass('valid');
+                $("#_BeneficiaryName").removeClass('required');
+            }
+            else {
+                $("#_BeneficiaryName").addClass('required');
+                $("#_BeneficiaryName").removeClass('valid');
+            }
+        }
+        else if ($("#selectedPaymodeID option:selected").text().toUpperCase().substring(0, 10) == "ELECTRONIC") {
+            $("#selectedBankID").removeClass('valid');
+            $("#selectedAccountTypeID").removeClass('valid');
+            $("#_AccountNo").removeClass('valid');
+            $("#_IfscCode").removeClass('valid');
+            $("#_BeneficiaryName").removeClass('valid');
+
+            $("#selectedBankID").addClass('required');
+            $("#selectedAccountTypeID").addClass('required');
+            $("#_AccountNo").addClass('required');
+            $("#_IfscCode").addClass('required');
+            $("#_BeneficiaryName").addClass('required');
+
+            $("#_BankBranch").removeAttr("disabled");
+            $("#selectedBankID").removeAttr("disabled");
+            $("#selectedAccountTypeID").removeAttr("disabled");
+            $("#_AccountNo").removeAttr("disabled");
+            $("#_IfscCode").removeAttr("disabled");
+
+            if ($("#selectedBankID").val() != "0" && $("#selectedBankID").val() != "") {
+                $("#selectedBankID").addClass('valid');
+                $("#selectedBankID").removeClass('required');
+            }
+            else {
+                $("#selectedBankID").addClass('required');
+                $("#selectedBankID").removeClass('valid');
+            }
+            if ($("#selectedAccountTypeID").val() != "0" && $("#selectedAccountTypeID").val() != "") {
+                $("#selectedAccountTypeID").addClass('valid');
+                $("#selectedAccountTypeID").removeClass('required');
+            }
+            else {
+                $("#selectedAccountTypeID").addClass('required');
+                $("#selectedAccountTypeID").removeClass('valid');
+            }
+            if ($("#_AccountNo").val() != "" && $("#_AccountNo").val() != null) {
+                $("#_AccountNo").addClass('valid');
+                $("#_AccountNo").removeClass('required');
+            }
+            else {
+                $("#_AccountNo").addClass('required');
+                $("#_AccountNo").removeClass('valid');
+            }
+            if ($("#_IfscCode").val() != "" && $("#_IfscCode").val() != null) {
+                $("#_IfscCode").addClass('valid');
+                $("#_IfscCode").removeClass('required');
+            }
+            else {
+                $("#_IfscCode").addClass('required');
+                $("#_IfscCode").removeClass('valid');
+            }
+            if ($("#_BeneficiaryName").val() != "" && $("#_BeneficiaryName").val() != null) {
+                $("#_BeneficiaryName").addClass('valid');
+                $("#_BeneficiaryName").removeClass('required');
+            }
+            else {
+                $("#_BeneficiaryName").addClass('required');
+                $("#_BeneficiaryName").removeClass('valid');
+            }
+        }
+
+    }
+    function DeletePaymentDetails(id) {
+        $("#_PaymentID").val("0");
+        jConfirm("Do you want to delete this Payment Detail: ", Title_3, function (e) {
+            if (e == true) {
+                var objSupPaymentDetails = { "_PaymentID": id }
+                $.post('../Onboarding/DeletepaymentDetails', objSupPaymentDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             jAlert("Successfully Deleted", "success");
+                             ClearPaymentDetails();
+                             $("#wgPayment").load("../onboarding/SupPaymentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+</script>

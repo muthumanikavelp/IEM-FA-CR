@@ -1,0 +1,1826 @@
+﻿@model IEM.Areas.IFAMS.Models.SaleMakerModel
+@using IEM.Areas.IFAMS.Models
+@using IEM.Common
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript">
+
+</script>
+@{
+
+    string SaleNumber = Model.soapaySaleno;
+    var tollinitemval = Model.soaSalevalue;
+    int rowVal = 0;
+
+    SaleMakerModel objvat = new SaleMakerModel();
+    IfamsDataModel_M ifr = new IfamsDataModel_M();
+    objvat.soaGid = Convert.ToInt32(Session["SaleNo"].ToString());
+    if (objvat.soaGid != 0)
+    {
+        // Model.auditTrailLst = suditmodel.saPopulateAuditTrail(objaudit);
+        Model.VatModel = new SelectList(ifr.Getvat(), "vatid", "vatstate", objvat.vatstate);
+    }
+    objvat.VatModel = Model.VatModel;
+    //  objaudit.auditTrailLst = Model.auditTrailLst;
+    //var auditGrid = new WebGrid(source: Model.auditTrailLst, canSort: false, canPage: false, ajaxUpdateContainerId: "saauditTrail", ajaxUpdateCallback: "saauditTrailLst()");
+    CmnFunctions objcmnFunctions = new CmnFunctions();
+    var statuss = @Model.statname;
+}
+<style>
+    .hidden-column {
+        display: none;
+    }
+</style>
+<div id="_gridfull">
+    <div class="myTableStyleTabNew">
+        Sale Number :
+        <span>
+            <label id="lblsnonew">
+                @Model.soapaySaleno
+            </label>
+        </span>
+    </div>
+    <label id="Sastatus" hidden="hidden">@Session["status"]</label>
+
+    <div id="audit" style="font-size:12px">
+        <ul>
+            <li><a href="#tabs-1" onclick="showbut()">Details [<label id="idtab1"></label>]</a></li>
+            <li><a href="#tabs-2" onclick="hidebut()">Audit Trail [<label id="idtab2"></label>]</a></li>
+        </ul>
+        <div id="tabs-2">
+            @Html.Partial("SOAAuditTrial")
+        </div>
+        <div id="tabs-1">
+            <div class="borderStyleNew " style="overflow-y:scroll;overflow-x:scroll;width:900px; height:220px;" id="gridfull">
+                @{ var grid = new WebGrid(source: Model.TModel, canPage: false, canSort: false);
+                @grid.GetHtml(htmlAttributes: new { id = "wgridSOAdetails" },
+           tableStyle: "tableSmall table-bordered table-hover",
+           mode: WebGridPagerModes.All,
+           columns: grid.Columns(
+                     grid.Column(header: "S.No", canSort: true, format: item => rowVal = rowVal + 1),
+                     grid.Column("soaGid", "salegid", null, "hidden-column"),
+                     grid.Column("assetgid", "Assetdetgid", null, "hidden-column"),
+                     grid.Column("assetdetgid", "Assetdetgid", null, "hidden-column"),
+                    grid.Column("assetdetDetid", "Asset ID", style: " MidColumn40"),
+                    grid.Column("assetcategory", "Category", style: "MidColumn30"),
+                    grid.Column("assetsubcategory", "Sub-Category Name", style: "MidColumn30"),
+                    grid.Column("assetdetCode", "Sub-Category Code", style: "MidColumn30"),
+                        // grid.Column(header: "HSN Code", style: "MidColumn30", format: @item => Html.DropDownListFor(X => X.hsn_gid, (IEnumerable<SelectListItem>)Model.TModel[rowVal - 1].HsnDetails, new { id = "hsnid", @class = "textboxStyle" })),
+                    grid.Column(header: "HSN Code", style: "MidColumn30", format: @item => Html.DropDownList("hsnid", (IEnumerable<SelectListItem>)Model.TModel[rowVal - 1].HsnDetails, new { id = "hsnid", @class = "textboxStyle" })),
+                                     grid.Column("hsn_code", "HSN Code", style: "MidColumn30"),
+                  grid.Column("branch_name", "Branch Name", style: "MidColumn30"),
+                    grid.Column("soadetSalevalue", "Cheque Split Amount", style: "MidColumn20"),
+                    grid.Column("cgst_amount", "CGST", style: "MidColumn30"),
+                    grid.Column("sgst_amount", "SGST", style: "MidColumn30"),
+                    grid.Column("igst_amount", "IGST", style: "MidColumn30"),
+                    grid.Column("cgcess_amount", "CGCESS", style: "MidColumn30"),
+                    grid.Column("sgcess_amount", "SGCESS", style: "MidColumn30"),
+                    grid.Column("igcess_amount", "IGCESS", style: "MidColumn30"),
+                    grid.Column("saleamt", "Sale Amount", style: "MidColumn20 rig"),
+                    grid.Column("soadetWdvalue", "WD Value", style: "MidColumn20 rig"),
+                    grid.Column("soaRectifAmt", "Rectification Amount", style: "MidColumn20 rig"),
+                   grid.Column("soadetProfitloss", "Profit/Loss", style: " MidColumn20 rig")
+                                     ))
+                }
+
+                <div style="width:1230px" class=" table-bordered " align="center">
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="" align="center">
+                            <b> @ViewBag.Message </b>
+                        </div>
+                    }
+                </div>
+
+            </div>
+            <br />
+
+
+            <div id="audit1" style="font-size:12px">
+
+                <ul>
+                    <li><a href="#intabs-1">Sale Details</a></li>
+                    <li><a id="btngst" href="#intabs-2">GST</a></li>
+                    @*<li><a href="@Url.Action("SASummary", "AssetSale")">GST</a></li>*@
+
+                </ul>
+
+                <div id="intabs-2">
+                    <div class="borderStyleNew " style="overflow-y:scroll;overflow-x:scroll;width:875px; height:220px;" id="gridgst">
+                        @{ var gstgrid = new WebGrid(source: Model.Tmodelgst, canPage: true, rowsPerPage: 7, canSort: false, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "");
+                        @grid.GetHtml(htmlAttributes: new { id = "wgridSOAdetailsgst" },
+                                fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive",
+           mode: WebGridPagerModes.All,
+                    columns: gstgrid.Columns(
+                                      gstgrid.Column("hsn_gid", "S.No"),
+                                               gstgrid.Column("hsn_code", "Asset Code", style: " MidColumn40"),
+                                               gstgrid.Column("hsn_description", "HSN Code", style: "MidColumn30"),
+                                               gstgrid.Column("taxsubtype", "HSN  Description", style: "MidColumn30"),
+                                               gstgrid.Column("taxrate", "Taxable Amount", style: "MidColumn30"),
+                                               gstgrid.Column("amount", "Tax Rate", style: "MidColumn20 rig"),
+                                               gstgrid.Column("taxamount", "Tax  Amount", style: "MidColumn20 rig")
+))
+                        }
+
+                        <div style="width:1230px" class=" table-bordered " align="center">
+                            @if (ViewBag.Message != null)
+                            {
+                                <div class="" align="center">
+                                    <b> @ViewBag.Message </b>
+                                </div>
+                            }
+                        </div>
+                        @*<span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>*@ @*<span class="myTableStyleTabNew"> Total No of Records:@grid.TotalRowCount</span>*@
+                    </div>
+                </div>
+
+                <div id="intabs-1">
+                    <div class="borderStyleNew " style="overflow-y:scroll;overflow-x:scroll;width:882px; height:280px;" id="sale">
+                        <div id="datafill">
+                            <div>
+                                <div>
+                                    @using (Html.BeginForm())
+                                    {
+                                        <table class="myTableStyleTabNew" style="background-color:white" align="left">
+                                            <tr>
+                                                <td>
+                                                    <span>Cheque No</span><br />
+                                                    <input type="text" name="cheque" id="cheque" onkeyup="checkRequired()" value="@Model.soapayChqno" readonly="readonly" maxlength="6" class="textboxStyle required" />
+                                                </td>
+                                                <td>
+                                                    <span>Cheque Amount</span><br />
+                                                    <input type="text" name="chamt" id="chequeamt" readonly="readonly" onkeyup="checkRequired()" value="@Model.soapayAmount" maxlength="6" class="textboxStyle required" onkeypress="return isNumberKey(event)" />
+                                                </td>
+                                                <td>
+                                                    <span>Cheque Date</span><br />
+                                                    <input type="text" name="datecheque" id="datecheque" readonly="readonly" onchange="checkRequired()" value="@Model.soapaychqdat" class="textboxStyle required" />
+                                                </td>
+
+                                                <td style="width:33%; padding:3px;">
+                                                    <span> GST Charged</span>
+                                                    <br />
+                                                    <input checked="checked" id="rdogstChargedFlagYes" class="rdb" name="rdogstChargedFlag" type="radio" value="Y" style="margin-top: 10px; margin-right:5px;">Yes
+                                                    <input id="rdogstChargedFlagNo" name="rdogstChargedFlag" class="rdb" type="radio" value="N" style="margin: 10px 5px 0px 20px;">No
+                                                </td>
+
+
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <span>Tax Amount</span><br />
+                                                    <input type="text" name="taxamount" readonly id="taxamount" value="@Model.taxamount" maxlength="10" onkeyup="checkRequired()" class="textboxStyle required" onkeypress="return isNumberKey(event)" />
+                                                </td>
+
+
+                                                <td>
+                                                    <input type="text" id="GetCustomergid" value="@Model.customer_gid" style="display:none" />
+                                                    <input type="text" id="GetCustomercode" value="@Model.customer_code" style="display:none" />
+                                                    <span>Vendor Name</span><br />
+                                                    <input type="text" name="vendornam" id="vendnam" onkeyup="checkRequired()" maxlength="30" value="@Model.customer_name" class="textboxStyle required" />
+                                                    <a onclick="GetCustomer()" id="btncustomerSearchHeader"><span class="glyphicon glyphicon-search"></span></a>
+                                                </td>
+
+                                                <td colspan="2">
+                                                    <input type="text" id="GetContactgid" value="@Model.contact_gid" style="display:none" />
+                                                    <span>Vendor Address</span><br />
+                                                    @Html.TextAreaFor(m => m.Address, new { @id = "vendaddr", @class = "textboxStyle required", @style = "height:40px;", onkeyup = "checkRequired()", rows = 4, columns = 40, disabled = "disabled" })
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <span>Sale Amount</span><br />
+                                                    @*<input type="text" name="ivamt"   id="invoiceamt"  readonly  onkeyup="checkRequired()" value="@Model.soaWtaxamt" maxlength="10" class="invoiceamount required textboxStyle" onkeypress="return isNumberKey(event)" />*@
+                                                    <input type="text" name="sa" readonly id="saleamount" value="@Model.soaWtaxamt" maxlength="10" class="textboxStyle required" onkeypress="return isNumberKey(event)" />
+                                                </td>
+
+                                                <td>
+                                                    <span>Sale Date</span><br />
+                                                    <input type="text" name="saldat" id="datesale" readonly="readonly" class="textboxStyle required" value="@Model.soaSaledate" />
+
+                                                </td>
+                                                <td>
+                                                    <span>Pincode</span><br />
+                                                    <input type="text" name="pincode" id="pincode" value="@Model.Pincode" onkeyup="checkRequired()" maxlength="30" readonly class="textboxStyle required" />
+                                                </td>
+
+
+                                                <td>
+                                                    <span>District</span><br />
+                                                    <input type="text" name="district" id="district" value="@Model.District" onkeyup="checkRequired()" readonly maxlength="30" class="textboxStyleBig required" />
+
+                                                </td>
+                                            <tr>
+
+
+                                                <td>
+                                                    <div class="input-gstnumber">
+                                                        <span>Provider State</span><br />
+                                                        <input type="text" name="pstate" id="p_state" value="@Model.TModel[0].provider_statename" onkeyup="checkRequired()" readonly maxlength="30" class="textboxStyle required" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-gstnumber">
+                                                        <span>Provider GST Number</span><br />
+                                                        <input type="text" name="pgstnumber" id="P_gstnumber" value="@Model.TModel[0].provider_gstnumber" onkeyup="checkRequired()" readonly maxlength="30" class="textboxStyle required" />
+                                                    </div>
+
+                                                </td>
+
+
+
+                                                <td>
+                                                    <div class="input-gstnumber">
+                                                        <span>Receiver State</span><br />
+                                                        <input type="text" name="state" id="state" value="@Model.State" onkeyup="checkRequired()" readonly maxlength="30" class="textboxStyle required" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-gstnumber">
+                                                        <span> Receiver GST Number</span><br />
+                                                        <input type="text" name="gstnumber" id="gstnumber" value="@Model.gstnumber" onkeyup="checkRequired()" readonly maxlength="30" class="textboxStyle required" />
+                                                    </div>
+
+                                                </td>
+                                                <td>
+                                                    <input type="hidden" id="customergid" value="@Model.customer_gid" />
+                                                    <input type="hidden" id="gstcharged" value="@Model.gstcharged" />
+                                                    <input type="hidden" id="customer_stategid" />
+                                                </td>
+                                                @*<td>
+                                                        <span></span><br />
+                                                        <input type="checkbox" name="propotion" id="propot" onclick="chechfun()" value="y" />
+                                                        <span> Proportion</span>
+                                                    </td>*@
+                                            </tr>
+
+
+                                        </table>
+
+                                        /*    @if (statuss == "DRAFT")
+                                                        {
+                                                            @Html.DropDownListFor(m => m.vatstate, Model.VatModel, new { @class = "textboxStyleBig", @id = "vatper", @onchange = "checkRequired()" })
+                                                        }
+                                                        else
+                                                        {
+                                                            <input type="text" name="vat" id="vatpertxtdraft" onkeyup="checkRequired()" disabled value="@Model.vatstate" class="vatpetcentage valid textboxStyleBig" />
+                                                        }*/
+
+                                        <input type="hidden" id="vendorid" />
+                                        <input type="text" name="vat" id="vatpertxtdraft" style="display:none" disabled value="@Model.vatstate" class="vatpetcentage valid textboxStyleBig" />
+
+                                        <input type="text" name="vat" id="vatpertxt" style="display:none" hidden disabled="disabled" value="@Model.vatstate" class="vatpetcentage valid textboxStyleBig" />
+
+                                        <input type="text" name="vatamount" style="display:none" disabled id="vatamt" value="@Model.soaVatamt" maxlength="6" class="vatamount required textboxStyle" onkeypress="return isNumberKey(event)" />
+
+                                    }
+                                    <br />
+                                    <br />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div>
+            @if (ViewBag.viewfor == "checkerView")
+            {
+                <div class="myTableStyleTabNew" align="left">
+                    <span>Remarks</span>
+                    <input type="text" autofocus="" id="_txtRemaks" name="salremarks" class=" textboxStyleSearch required" maxlength="256" width="150" height="100" onkeyup="CheckFieldHeaderchecker()" />
+                </div>
+            }
+
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+
+                    @using (Html.BeginForm())
+                    {
+
+                        if (ViewBag.viewfor == "view" && ViewBag.success == "R")
+                        {
+
+                            @*<td class="form-group" nowrap="nowrap">
+                                <div>
+                                    <span>
+                                        <button class="btn btn-primary ststus" type="button" disabled="disabled" id="_Update" onclick="Updategstdetail()"><span style=" color:white" class="glyphicon glyphicon-ok"></span> Update</button>
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="form-group" nowrap="nowrap">
+                                <div>
+                                    <span>
+                                        <button class="btn btn-primary ststus" type="submit" id="_save" disabled="disabled" onclick="savegstdetails()"><span style="color:white" class="glyphicon glyphicon-ok"></span> Submit</button>
+                                    </span>
+                                </div>
+                            </td>*@
+                        }
+                        else
+                        {
+
+                            if (ViewBag.viewfor == "view" && ViewBag.success == "M")
+                            {
+
+                                <td class="form-group" nowrap="nowrap">
+                                    <div>
+                                        <span>
+                                            <button class="btn btn-primary ststus" type="button" disabled="disabled" id="_Update" onclick="Updategstdetail()"><span style=" color:white" class="glyphicon glyphicon-ok"></span> Update</button>
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-danger" id="_reject" disabled type="button" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                                        </span>
+                                    </div>
+                                </td>
+
+
+                                <td class="form-group" nowrap="nowrap">
+                                    <div>
+                                        <span>
+                                            <button class="btn btn-primary ststus" type="submit" id="_save" disabled="disabled" onclick="savegstdetails()"><span style="color:white" class="glyphicon glyphicon-ok"></span> Submit</button>
+                                        </span>
+                                    </div>
+                                </td>
+                            }
+                        }
+
+                    }
+
+                    <td class="form-group" nowrap="nowrap">
+                        @if (ViewBag.viewfor == "abort")
+                        {
+                            <div>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-danger btndanger" type="submit" name="command" value="abort"><span style="color:white" class="glyphicon glyphicon-trash"></span> Delete</button>
+                                </span>
+                            </div>
+                        }
+                    </td>
+                    @using (Html.BeginForm())
+                    {
+                        if (ViewBag.viewfor == "checkerView")
+                        {
+                            <td class="form-group" nowrap="nowrap">
+                                <div>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-success" id="_approve" disabled type="button" name="command" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                            <td class="form-group" nowrap="nowrap">
+
+                                <div>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-danger" id="_reject" disabled type="button" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="form-group" nowrap="nowrap">
+
+                                <div>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-primary" id="_clear" type="button" name="command" value="Clear"><span style="color:white" class="glyphicon glyphicon-remove"></span> Clear</button>
+                                    </span>
+                                </div>
+                            </td>
+                        }
+                    }
+
+
+                    <td class="form-group" nowrap="nowrap">
+
+                        <div>
+                            <span class="input-group-btn">
+
+                                <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                            </span>
+                        </div>
+                    </td>
+
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="hdnHsnData" />
+<div class="innerBox">
+    <div id="customersearch" title="Customer Details"></div>
+</div>
+
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+
+    .MidColumn100 {
+        width: 1000px;
+    }
+
+    /*table.hovertable
+     {
+         border: 1px solid green;
+         border-collapse: collapse;
+     }
+
+    table.hovertable  th
+     {
+         border: 1px solid black;
+         background-color: green;
+         color: white;
+     }*/
+</style>
+<script type="text/javascript">
+
+    $('#hsnid').on('change', function () {
+        debugger;
+        if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+            hsndata();
+
+            if (($('#GetCustomergid').val() != 0) && ($('#GetCustomergid').val() != null)) {
+                var Contactgid = $("#GetContactgid").val();
+                var Customergid = $("#GetCustomergid").val();
+                var CustomerCode = $("#GetCustomercode").val();
+                //var CustomerName = $("#CustomerNameFind_").val();
+                //var CustomerAddress = $("#CustomerAddressFind_" + id + "").val();
+                var Customerstate = $("#customer_stategid").val();
+                var Customerpincode = $("#pincode").val();
+                //var CustomerGstNumber = $("#CustomerGSTFind_" + id + "").val();
+                //var CustomerDistrict = $("#CustomerDistrictFind_" + id + "").val();
+                var salgid = '@Session["SaleNo"]';
+                var gstcharged = $("input[name='rdogstChargedFlag']:checked").val();
+                if (gstcharged == "Y") {
+                    var hsndata = $("#hdnHsnData").val();
+                }
+                else {
+                    var hsndata = "";
+                }
+                var CustomerDetail = {
+                    "customer_gid": Customergid,
+                    "customer_code": CustomerCode,
+                    "state_gid": Customerstate,
+                    "Pincode": Customerpincode,
+                    "soaGid": salgid,
+                    "gstcharged": gstcharged,
+                    "hsn_description": hsndata
+                }
+                $.ajax({
+                    type: "POST",
+                    url: '../AssetSale/GetGstCustomerDetails',
+                    data: JSON.stringify(CustomerDetail),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (JSON.parse(response.Data1 != null)) {
+                            Data1 = JSON.parse(response.Data1);
+                            $('#taxamount').val(Data1[0].taxamount);
+                            if (gstcharged == "Y") {
+                                $('#saleamount').val(Data1[0].saleamount);
+                                $("#rdogstChargedFlagYes").prop('checked', true);
+                            }
+                            else {
+                                $("#rdogstChargedFlagNo").prop('checked', true);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    $('#idtab1').text('@grid.TotalRowCount')
+    var val = 0;
+    var Error_Count = 0;
+    var ErrorsCount = 0;
+
+    var ob;
+    ob = $("[id$='customersearch']");
+    ob.dialog({
+        autoOpen: false,
+        modal: true,
+        width: 750,
+        height: 550,
+        duration: 300,
+        show: 'fade-in',
+        close: 'fade-out',
+        resizable: false
+
+    });
+
+    $(document).ready(function () {
+
+        debugger;
+
+        var sastatus = '@Session["SAStatus"]';
+        if (sastatus == "1") {
+            // $("#wgridSOAdetails td:nth-child(9),#wgridSOAdetails th:nth-child(9)").show();
+            // $("#wgridSOAdetails td:nth-child(10),#wgridSOAdetails th:nth-child(10)").hide();
+            $("#wgridSOAdetails td:nth-child(9),#wgridSOAdetails th:nth-child(9)").hide();
+            $("#wgridSOAdetails td:nth-child(10),#wgridSOAdetails th:nth-child(10)").show();
+        }
+        else {
+            $("#wgridSOAdetails td:nth-child(9),#wgridSOAdetails th:nth-child(9)").hide();
+            $("#wgridSOAdetails td:nth-child(10),#wgridSOAdetails th:nth-child(10)").show();
+        }
+
+        var customerid = $("#customergid").val();
+        var gstcharged = $("#gstcharged").val();
+        if ((customerid != "") && (customerid != 0)) {
+            $("#_save").removeAttrs('disabled');
+            //$("#_Update").attr('disabled', 'disabled');
+            if (gstcharged == "Y") {
+                hsndata();
+                $("#rdogstChargedFlagYes").prop('checked', true);
+            }
+            else {
+                $("#rdogstChargedFlagNo").prop('checked', true);
+                $(".input-gstnumber").hide();
+            }
+        }
+        var MUrlHelper = "@Url.Action("GetAutoCompleteVendor", "Helper")"
+
+        if ('@ViewBag.viewfor' == "checkerView")
+        { $("#wgridSOAdetails td:nth-child(10),#wgridSOAdetails th:nth-child(11)").show(); }
+        else {
+            // $("#wgridSOAdetails td:nth-child(10),#wgridSOAdetails th:nth-child(10)").hide();
+        }
+
+        $("#btngst").click(function () {
+            debugger;
+            if ($("#vendnam").val() == "") {
+                $("#btngst").attr("href", "#");
+            }
+            else {
+                var sno =@Session["SaleNo"].ToString()
+                $.ajax({
+                    url: '../AssetSale/gstdetailsale?pincode=' + $('#pincode').val() + '&saleid= ' + sno + '&hsndesc=' + $("#hdnHsnData").val(),
+                    type: "POST",
+                    success: function (data) {
+                        $("#gridgst").html(data);
+
+                    }
+                });
+
+                $("#btngst").attr("href", "#intabs-2");
+            }
+        });
+
+
+        var sacurrentTab4 = 0;
+        $(function () {
+            $("#audit").tabs({
+                select: function (e, i) {
+                    sacurrentTab4 = i.index;
+                }
+            });
+        });
+        var sacurrentTab5 = 0;
+        $(function () {
+            $("#audit1").tabs({
+                select: function (e, i) {
+                    sacurrentTab5 = i.index;
+                }
+            });
+        });
+
+        var status = '@Model.statname';
+        if (status == "DRAFT") {
+            // $("#datesale").removeAttrs('disabled');
+            $("#chequeamt").val('@tollinitemval');
+            $("#_Update").show();
+        }
+        else if (status == "APPROVED") {
+            $("#cheque").attr("readonly", true);
+            $("#chequeamt").attr("readonly", true);
+            $("#datecheque").attr("disabled", true);
+            $("#saleamount").attr("readonly", true);
+            $("#datesale").attr("disabled", true);
+            $("#vendnam").attr("readonly", true);
+            $("#_approve").hide();
+            $("#_reject").hide();
+            $("#_save").hide();
+            $("#_Update").hide();
+        }
+
+        else if (status == "REJECTED") {
+
+            $("#cheque").attr("readonly", true);
+            $("#chequeamt").attr("readonly", true);
+            $("#datecheque").attr("disabled", true);
+            $("#saleamount").attr("readonly", true);
+            $("#datesale").attr("disabled", true);
+            $("#vendaddr").attr("readonly", true);
+            $("#vendnam").attr("readonly", true);
+            $(".rdb").attr('disabled', 'disabled');
+            $("#btncustomerSearchHeader").hide();
+            $("#_approve").hide();
+            $("#_reject").hide();
+            $("#_save").hide();
+            $("#_Update").hide();
+        }
+
+        else if (status == "DELMAT APPROVED") {
+
+            $("#cheque").attr("readonly", true);
+            $("#chequeamt").attr("readonly", true);
+            $("#datecheque").attr("disabled", true);
+            $("#saleamount").attr("readonly", true);
+            $("#datesale").attr("disabled", true);
+            $("#vendaddr").attr("readonly", true);
+            $("#vendnam").attr("readonly", true);
+            $(".rdb").attr('disabled', 'disabled');
+            $("#btncustomerSearchHeader").hide();
+            $("#_save").show();
+            $("#_Update").show();
+            $("#_reject").show();
+        }
+
+        else {
+            $("#cheque").attr("readonly", true);
+            $("#chequeamt").attr("readonly", true);
+            $("#datecheque").attr("disabled", true);
+            $("#invoiceamt").attr("readonly", true);
+            $("#datesale").attr("disabled", true);
+            $("#vatper").attr("disabled", true);
+            $("#vatamt").attr("readonly", true);
+            $("#vendaddr").attr("readonly", true);
+            $("#vendnam").attr("readonly", true);
+            $(".rdb").attr('disabled', 'disabled');
+            $("#btncustomerSearchHeader").hide();
+            $("#_save").hide();
+            $("#_Update").hide();
+        }
+
+        function SaveData() {
+            var items;
+            var customer_gid, state_gid;
+            var vendorcode = $("#vendorid").val();
+            var saleid = '@Session["SaleNo"]';
+            $.getJSON('../AssetSale/Vendordetails?vendorcode=' + vendorcode + '&saleid=' + saleid,
+                function (data) {
+                    //console.log(data);
+                    var obj = JSON.parse(data);
+                    $("#vendaddr").val(obj[0][1]);
+                    $("#state").val(obj[1][1]);
+                    $("#district").val(obj[2][1]);
+                    $("#pincode").val(obj[3][1]);
+                    $("#customergid").val(obj[4][1]);
+                    $("#customer_stategid").val(obj[5][1]);
+                    //$("#saleamount").val(obj[6][1]);
+                    //$("#taxamount").val(obj[7][1]);
+                    $("#gstnumber").val(obj[8][1]);
+                    if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+                        $("#taxamount").val(obj[7][1]);
+                        $("#saleamount").val(obj[6][1]);
+                    }
+                    else {
+                        $("#taxamount").val(0);
+                        $("#saleamount").val($("#chequeamt").val().trim());
+                    }
+                    checkRequired();
+                });
+        }
+
+        $(function () {
+            $("#cheque").focus();
+        });
+        $("#cheque").focus();
+        $("#cheque").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#chequeamt").focus();
+        $("#chequeamt").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+
+        });
+
+        $("#invoiceamt").focus();
+        $("#invoiceamt").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#vatper").focus();
+        $("#vatper").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#vatamt").focus();
+        $("#vatamt").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#vendnam").focus();
+        $("#vendnam").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+
+        var a = '@ViewBag.viewfor';
+        $(".backbtn").click(function () {
+            $('#sagridId').find('tr').css('background', 'none');
+            if (a == 'checkerView') {
+                location = '@Url.Action("SAChkSummary", "AssetSale")?' + new Date().getTime();
+            }
+            else {
+                location = '@Url.Action("SASummary","AssetSale")?' + new Date().getTime();
+            }
+        });
+
+
+
+        (function () {
+            $('#wgridSOAdetails tbody tr:first').find('td.hidden-column').each(function (i, td) {
+                var indexOfHiddenColumn = $(td).index();
+                $('#wgridSOAdetails thead th').eq(indexOfHiddenColumn).addClass('hidden-column');
+            });
+        }());
+
+
+    });
+
+    $("#datecheque").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-M-yy',
+        yearRange: '-1:new Date.getFullYear()',
+        maxdate: new Date(),
+    });
+
+    $("#datesale").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-M-yy',
+        // yearRange: 'new Date.getFullYear():+1',
+        yearRange: '-1:new Date.getFullYear()',
+        maxdate: new Date(),
+    });
+
+
+
+    var id = $("#Sastatus").text();
+    // alert("1st");
+    if ('@ViewBag.viewfor' == "abort") {
+
+        $("#wgridSOAdetails td:nth-child(9),#wgridSOAdetails th:nth-child(9)").hide();
+    }
+
+    $(".btndanger").click(function () {
+        var id = '@Session["SaleNo"]';
+        jConfirm("Are You Sure to delete this sale of asset", "Message", function (t) {
+
+            if (t == true) {
+                $.post('../AssetSale/SaleMakerView?id=' + id + '&command=abort&' + new Date().getTime(),
+                function (data) {
+                    if (data == 0) {
+                        location = location.href;
+                    }
+                    else {
+                        window.parent.jQuery('#ForPartialViews').dialog('close');
+                        $('#sagridId').find('tr').css('background', 'none');
+                        location = '@Url.Action("SASummary","AssetSale")?' + new Date().getTime();
+                        jAlert("Sale deleted Sucessfully", "Message");
+                    }
+                }, 'json');
+            }
+        });
+    });
+
+    $("#_clear").click(function () {
+
+        $("#_txtRemaks").val("");
+        checkRequired();
+
+    });
+
+    @*$("#_approve").click(function () {
+        var id = '@Session["SaleNo"]';
+        var Remark = $("#_txtRemaks").val();
+        jConfirm("Are You Sure Approve that Records", "Message", function (t) {
+            if (t == true) {
+                showProgress();
+
+                $.post('@Url.Action("SaleMakerView","AssetSale")?id=' + id + '&command=Approve&remarks=' + Remark + '&' + new Date().getTime(),
+                    function (data) {
+                        if (data == 0) {
+                            location = location.href;
+                            hideProgress();
+                        }
+                        else {
+                            window.parent.jQuery('#ForPartialViews').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+                            location = '@Url.Action("SAChkSummary","AssetSale")?' + new Date().getTime();
+                            jAlert("Record Approved Successfully", "Message");
+                            hideProgress();
+                        }
+
+                    }, 'json');
+            }
+        });
+
+    });*@
+
+
+    function savegstdetails() {
+        debugger;
+        var soagi = '@Session["SaleNo"]';
+        var soa_saleno = '@Session["SaleNumber"]';
+        var cheque_no = $("#cheque").val().trim();
+        var cheque_amount = $("#chequeamt").val().trim();
+        var cheque_date = $("#datecheque").val().trim();
+        //var invoice_amount = $("#invoiceamt").val().trim();
+        var saleamount = $("#saleamount").val().trim();
+        var sale_date = $("#datesale").val().trim();
+        //var vatpercentage = $("#vatper").val().trim();
+        //var vat_amount = $("#vatamt").val().trim();
+        var vendor_address = $("#vendaddr").val().trim();
+        //var proPortion = $("#propot").val().trim();
+        var vendor_name = $("#vendnam").val().trim();
+        var taxamount = $("#taxamount").val().trim();
+        var state = $("#state").val().trim();
+        var district = $("#district").val().trim();
+        var pincode = $("#pincode").val().trim();
+        var customer_code = $("#GetCustomergid").val();
+        var gstnumber = $("#gstnumber").val();
+        var IsGstCharged = $("input[name='rdogstChargedFlag']:checked").val();
+
+        if ('@ViewBag.success' == "M") {
+            var status = {
+
+                "soapayChqno": cheque_no,
+                "soapayAmount": cheque_amount,
+                "soapayment_sale_chq_date": cheque_date,
+                "soaVendorname": vendor_name,
+                "soaSaledate": sale_date,
+                "soavendoradd": vendor_address,
+                "soaGid": soagi,
+                "taxamount": taxamount,
+                "State": state,
+                "District": district,
+                "Pincode": pincode,
+                "gstnumber": gstnumber,
+                "GSTCharged": IsGstCharged,
+                "soaSalenumber": '@SaleNumber',
+                "soaStatus": "WAITING FOR APPROVAL",
+                "action_status": "Approve"
+            };
+        }
+
+        else {
+
+            var status = {
+
+                "soapayChqno": cheque_no,
+                "soapayAmount": cheque_amount,
+                "soapayment_sale_chq_date": cheque_date,
+                "soaVendorname": vendor_name,
+                "soaSaledate": sale_date,
+                "soavendoradd": vendor_address,
+                "soaGid": soagi,
+                "taxamount": taxamount,
+                "State": state,
+                "District": district,
+                "Pincode": pincode,
+                "gstnumber": gstnumber,
+                "GSTCharged": IsGstCharged,
+                "soaSalenumber": '@SaleNumber',
+                "soaStatus": "INPROCESS",
+                "action_status": "Submit"
+            };
+        }
+
+
+
+        $.ajax({
+            url: '@Url.Action("SaleMakerView", "AssetSale")',
+            data: JSON.stringify(status),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                debugger;
+                if (data == 0) {
+                    hideProgress();
+                    location = location.href;
+                }
+                else if (data.Result != "1") {
+                    var msg = data.Msg;
+                    hideProgress();
+                    window.parent.jQuery('#forAttachment').dialog('close');
+                    $('#sagridId').find('tr').css('background', 'none');
+                    jAlert(msg, "Inforamtion", function (t) {
+                        if (t == true) {
+                            location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                        }
+                    });
+                }
+                else {
+                    var msg = data.Msg;
+                    hideProgress();
+                    // window.parent.jQuery('#ForPartialViews').dialog('close');
+                    $('#sagridId').find('tr').css('background', 'none');
+                    //jAlert(msg, "Inforamtion");
+
+
+                    jAlert(msg, "Inforamtion", function (t) {
+                        if (t == true) {
+                            location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                        }
+                    });
+
+
+                    @*location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();*@
+
+
+                }
+            }
+        });
+    }
+
+
+    $("#_approve").click(function () {
+        debugger;
+        var id = '@Session["SaleNo"]';
+        var soa_saleno = '@Session["SaleNumber"]';
+        var Remark = $("#_txtRemaks").val();
+
+
+        var commandType = $('#btnApprove').val();
+        var status = {
+            "soaSalenumber": '@SaleNumber',
+            "soaStatus": "INPROCESS",
+            "action_status": "Approve",
+            "action_remark": Remark
+        }
+
+        jConfirm("Are You Sure Approve that Records", "Message", function (t) {
+            if (t == true) {
+                showProgress();
+
+                $.ajax({
+                    url: '@Url.Action("SaleMakerView", "AssetSale")',
+                    data: JSON.stringify(status),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        debugger;
+                        if (data == 0) {
+                            hideProgress();
+                            location = location.href;
+                        }
+                        else if (data.Result != "1") {
+                            var msg = data.Msg;
+                            hideProgress();
+                            window.parent.jQuery('#forAttachment').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+                            jAlert(msg, "Inforamtion", function (t) {
+                                if (t == true) {
+                                    location = '@Url.Action("SAChkSummary", "AssetSale")?' + new Date().getTime();
+                                }
+                            });
+                        }
+                        else {
+                            var msg = data.Msg;
+                            hideProgress();
+                            // window.parent.jQuery('#ForPartialViews').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+
+                            //jAlert(msg, "Inforamtion");
+                            @*location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();*@
+
+                            jAlert(msg, "Inforamtion", function (t) {
+                                if (t == true) {
+                                    location = '@Url.Action("SAChkSummary", "AssetSale")?' + new Date().getTime();
+                                }
+                            });
+
+
+                        }
+                    }
+                });
+            }
+        });
+
+    });
+
+
+    $("#_reject").click(function () {
+        var id = '@Session["SaleNo"]';
+        var soa_saleno = '@Session["SaleNumber"]';
+        var Remark = $("#_txtRemaks").val();
+
+
+        var commandType = $('#btnApprove').val();
+        var status = {
+            "soaSalenumber": soa_saleno,
+            "soaStatus": "INPROCESS",
+            "action_status": "Reject",
+            "action_remark": Remark
+        }
+
+        jConfirm("Are You Sure Reject that Record", "Message", function (t) {
+            if (t == true) {
+                showProgress();
+
+                $.ajax({
+                    url: '@Url.Action("SaleMakerView", "AssetSale")',
+                    data: JSON.stringify(status),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        debugger;
+                        if (data == 0) {
+                            hideProgress();
+                            location = location.href;
+                        }
+                        else if (data.Result != "1") {
+                            var msg = data.Msg;
+                            hideProgress();
+                            window.parent.jQuery('#forAttachment').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+                            jAlert(msg, "Inforamtion", function (t) {
+                                if (t == true) {
+                                    location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                                }
+                            });
+                        }
+                        else {
+                            var msg = data.Msg;
+                            hideProgress();
+                            // window.parent.jQuery('#ForPartialViews').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+                            jAlert(msg, "Inforamtion");
+                            location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                            //}
+
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+
+
+
+    @*$("#_reject").click(function () {
+        var id = '@Session["SaleNo"]';
+        var Remark = $("#_txtRemaks").val();
+
+        jConfirm("Are You Sure Reject that Record", "Message", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('@Url.Action("SaleMakerView","AssetSale")?id=' + id + '&command=Reject&remarks=' + Remark + '&' + new Date().getTime(),
+                    function (data) {
+                        if (data == 0) {
+                            location = location.href;
+                            hideProgress();
+                        }
+                        else {
+                            window.parent.jQuery('#ForPartialViews').dialog('close');
+                            $('#sagridId').find('tr').css('background', 'none');
+                            location = '@Url.Action("SAChkSummary","AssetSale")?' + new Date().getTime();
+                            jAlert("Record Rejected Successfully", "Message");
+                            hideProgress();
+                        }
+                    }, 'json');
+            }
+        });
+    });*@
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+
+    function CheckFieldHeaderchecker() {
+
+        CheckFieldHeader();
+
+        if ($("#_txtRemaks").val() == "" || $("#_txtRemaks").val() == null) {
+            Error_Count = 1;
+        }
+        if ((Error_Count == 0) && (ErrorsCount == 0)) {
+            $("#_approve").removeAttrs('disabled');
+            $("#_reject").removeAttrs('disabled');
+        }
+        else {
+            $("#_approve").attr('disabled', 'disabled');
+            $("#_reject").attr('disabled', 'disabled');
+        }
+    }
+
+    function Updatecheque() {
+        var vatper = $("#vatper").val();
+        var sodetcount = ' @Model.soaTnorecords';
+        // alert(vatper);
+        var soagi = '@Session["SaleNo"]';
+        var cheque_no = $("#cheque").val().trim();
+        var cheque_amount = $("#chequeamt").val().trim();
+        var cheque_date = $("#datecheque").val().trim();
+        var invoice_amount = $("#invoiceamt").val().trim();
+        var sale_date = $("#datesale").val().trim();
+        var vatpercentage = $("#vatper").val().trim();
+        var vat_amount = $("#vatamt").val().trim();
+        var vendor_address = $("#vendaddr").val().trim();
+        // var proPortion = $("#propot").val().trim();
+        var vendor_name = $("#vendnam").val().trim();
+        // var realiztion_date = $("#date1").val().trim();
+        // alert(cheque_no);
+        // alert(cheque_amount);
+        //var CategoryModel1 = {
+        //    "soapayChqno": cheque_no, "soapayAmount": cheque_amount,
+        //    "soaVendorname": vendor_name, "soaVatamt": vat_amount,
+        //    "soaVatper": vatpercentage, "soaSaledate": sale_date,
+        //    /*"ert": invoice_amount,*/ /*"dfghds": cheque_date,*/
+        //    /*"sdfg": vendor_address,*/ "soapayRealizationdate": realiztion_date,
+        //    /*"aysd": proPortion,*/ "soaGid": soagi
+        //};
+        //  alert(cheque_date);
+        var VATcalUp = {
+            "soapayChqno": cheque_no, "soapayAmount": cheque_amount, "soapaychqdat": cheque_date,
+            "soaVendorname": vendor_name, "soaVatamt": vat_amount,
+            "soaVatper": vatpercentage, "soaSaledate": sale_date,
+            "soaWtaxamt": invoice_amount, /*"dfghds": cheque_date,*/
+            "soavendoradd": vendor_address, /*"soapayRealizationdate": realiztion_date,*/
+            /*"aysd": proPortion,*/ "soaGid": soagi, "soaTnorecords": sodetcount, "vatid": vatper
+
+
+        };
+        $.ajax({
+            url: '@Url.Action("vatup","AssetSale")?' + new Date().getTime(),
+            type: 'post',
+            data: VATcalUp,
+            success: function (data) {
+                if (data == "success") {
+                    var soagi = '@Session["SaleNo"]';
+                    // alert("success");
+
+                    $.ajax({
+                        type: 'get',
+                        url: '@Url.Action("SaleMakerView", "AssetSale")?viewfor=view&id=' + soagi + '&' + new Date().getTime(),
+                        data: {},
+                        success: function (data) {
+                            $("#_gridfull").empty().append(data);
+                            $("#vatpertxt").removeAttrs('hidden');
+                            $("#vatper").attr('hidden', 'hidden');
+                            $("#_save").removeAttrs('disabled');
+                        },
+                        error: function () {
+                            $("#vatpertxt").attr('hidden', 'hidden');
+                            $("#vatper").removeAttrs('hidden');
+                            $("#_Update").removeAttrs('disabled');
+                            $("#_save").attr('disabled', 'disabled');
+                        }
+                    });
+                }
+
+            }
+
+        });
+    }
+
+
+    function submitcheque() {
+        debugger;
+        var soagi = '@Session["SaleNo"]';
+        var cheque_no = $("#cheque").val().trim();
+        var cheque_amount = $("#chequeamt").val().trim();
+        var cheque_date = $("#datecheque").val().trim();
+        var invoice_amount = $("#invoiceamt").val().trim();
+        var sale_date = $("#datesale").val().trim();
+        var vatpercentage = $("#vatper").val().trim();
+        var vat_amount = $("#vatamt").val().trim();
+        var vendor_address = $("#vendaddr").val().trim();
+        //var proPortion = $("#propot").val().trim();
+        var vendor_name = $("#vendnam").val().trim();
+        //  var realiztion_date = $("#date1").val().trim();
+        // alert(cheque_no);
+        // alert(cheque_amount);
+        //  alert(soagi);
+        var CategoryModel1 = {
+            "soapayChqno": cheque_no, "soapayAmount": cheque_amount, "soapayment_sale_chq_date": cheque_date,
+            "soaVendorname": vendor_name, "soaVatamt": vat_amount,
+            "soaVatper": vatpercentage, "soaSaledate": sale_date,
+            /*"ert": invoice_amount,*/ /*"dfghds": cheque_date,*/
+            "soavendoradd": vendor_address,/* "soapayRealizationdate": realiztion_date,*/
+            /*"aysd": proPortion,*/ "soaGid": soagi
+        };
+
+        $.post('@Url.Action("SaleMakerView", "AssetSale")?command=submit', CategoryModel1,
+            function (data) {
+                if (data != "success") {
+                    jAlert("Successfully Submited.", "Inforamtion", function (r) {
+                        if (r = true) {
+                            window.parent.jQuery('#ForPartialViews').dialog('close');
+                            location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                            jAlert("Sale raised sucessfully", "Message");
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    window.parent.jQuery('#ForPartialViews').dialog('close');
+                    $('#sagridId').find('tr').css('background', 'none');
+                    location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                    jAlert("Sale was not raised !!", "Message");
+                    return false;
+                }
+            }
+            )
+    }
+
+
+    function hidebut() {
+
+        $("#_save").hide();
+        $("#_approve").hide();
+        $("#_reject").hide();
+        $("#_Update").hide();
+    }
+
+    function showbut() {
+
+        var status = '@Model.statname';
+        //alert(status);
+        if (status == "DRAFT") {
+
+            $("#_save").show();
+            $("#_approve").show();
+            $("#_reject").show();
+            $("#_Update").show();
+        }
+        else {
+            // $("#_save").show();
+            $("#_approve").show();
+            $("#_reject").show();
+        }
+    }
+
+    $(".ui-icon-closethick").click(function () {
+        $('#sagridId').find('tr').css('background', 'none');
+    });
+
+
+    function Updategstdetail() {
+        debugger;
+        if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+            var array = new Array();
+            $('#wgridSOAdetails').find('tbody > tr').each(function (index) {
+
+                var row = $(this).closest('tr');
+                var salegid = row.find("td").eq(1).html()
+                var assetgid = row.find("td").eq(2).html();
+                var assetdetgid = row.find("td").eq(3).html();
+                var hsngid = row.find("td").eq(8).find("#hsnid option:selected").val();
+
+                if (hsngid == "0" || hsngid == null) {
+                    alert("HSN Code Not Mapped For Asset ID:" + assetdetgid);
+                    return false;
+                }
+
+                var soahsndetails = salegid + ',' + assetgid + ',' + assetdetgid + ',' + hsngid;
+                array.push(soahsndetails);
+            });
+            var _hsndata = "";
+            $.each(array, function (index) {
+                var a = undefined;
+                var b = array[index];
+                if (b != a) {
+                    _hsndata += array[index] + '^';
+                }
+            });
+            $("#hdnHsnData").val(_hsndata);
+            var model = { "hsn_description": _hsndata }
+            $.post('../AssetSale/UpdateHsnDetail', model,
+              function (data) {
+                  if (data == "Sucess") {
+                      //jAlert("Record updated Successfully!!!", "Information", function (r) {
+                      //    if (r = true)
+                      //    {
+                      //     location = '../IEM_CUSTOMERDETAIL/Index';
+                      //    }
+                      //         });
+                      //return false;
+                  }
+
+              }, 'json');
+
+
+        }
+
+        var sodetcount = '@Model.soaTnorecords';
+        var soagi = '@Session["SaleNo"]';
+        var cheque_no = $("#cheque").val().trim();
+        var cheque_amount = $("#chequeamt").val().trim();
+        var cheque_date = $("#datecheque").val().trim();
+        var saleamount = $("#saleamount").val().trim();
+        var tax_amount = $("#taxamount").val().trim();
+        var sale_date = $("#datesale").val().trim();
+        var vendor_address = $("#vendaddr").val().trim();
+        var vendor_name = $("#vendnam").val().trim();
+        var vendor_state = $("#state").val().trim();
+        var vendor_district = $("#district").val().trim();
+        var vendor_pincode = $("#pincode").val().trim();
+        var customer_code = $("#GetCustomergid").val();
+        var contact_gid = $("#GetContactgid").val();
+        var gstnumber = $("#gstnumbar").val();
+        var IsGstCharged = $("input[name='rdogstChargedFlag']:checked").val();
+        var hsndata = $("#hdnHsnData").val();
+
+        var gstupdate = {
+
+            "soaGid": soagi,
+            "soapayChqno": cheque_no,
+            "soapayAmount": cheque_amount,
+            "soapaychqdat": cheque_date,
+            "saleamt": saleamount,
+            "soaWtaxamt": saleamount,
+            "soaSaledate": sale_date,
+            "soaVendorname": vendor_name,
+            "Address": vendor_address,
+            "State": vendor_state,
+            "District": vendor_district,
+            "Pincode": vendor_pincode,
+            "customer_code": customer_code,
+            "contact_gid": contact_gid,
+            "gstnumber": gstnumber,
+            "GSTCharged": IsGstCharged,
+            "hsn_description": hsndata
+        };
+        $.ajax({
+            url: '@Url.Action("assetsalegstupdate","AssetSale")?' + new Date().getTime(),
+            type: 'post',
+            data: gstupdate,
+            success: function (data) {
+                if (data == "success") {
+                    var soagi = '@Session["SaleNo"]';
+                    $.ajax({
+                        type: 'get',
+                        url: '@Url.Action("SaleMakerView", "AssetSale")?viewfor=view&id=' + soagi + '&' + new Date().getTime(),
+                        data: {},
+                        success: function (data) {
+                            $("#_gridfull").empty().append(data);
+                            $("#vatpertxt").removeAttrs('hidden');
+                            $("#vatper").attr('hidden', 'hidden');
+                            $("#_save").removeAttrs('disabled');
+                        },
+                        error: function () {
+                            $("#vatpertxt").attr('hidden', 'hidden');
+                            $("#vatper").removeAttrs('hidden');
+                            $("#_Update").removeAttrs('disabled');
+                            $("#_save").attr('disabled', 'disabled');
+                        }
+                    });
+                }
+
+            }
+
+        });
+    }
+
+
+
+    @*function savegstdetails() {
+        debugger;
+
+        var soagi = '@Session["SaleNo"]';
+        var cheque_no = $("#cheque").val().trim();
+        var cheque_amount = $("#chequeamt").val().trim();
+        var cheque_date = $("#datecheque").val().trim();
+        //var invoice_amount = $("#invoiceamt").val().trim();
+        var saleamount = $("#saleamount").val().trim();
+        var sale_date = $("#datesale").val().trim();
+        //var vatpercentage = $("#vatper").val().trim();
+        //var vat_amount = $("#vatamt").val().trim();
+        var vendor_address = $("#vendaddr").val().trim();
+        //var proPortion = $("#propot").val().trim();
+        var vendor_name = $("#vendnam").val().trim();
+        var taxamount = $("#taxamount").val().trim();
+        var state = $("#state").val().trim();
+        var district = $("#district").val().trim();
+        var pincode = $("#pincode").val().trim();
+        var customer_code = $("#GetCustomergid").val();
+        var gstnumber = $("#gstnumber").val();
+        var IsGstCharged = $("input[name='rdogstChargedFlag']:checked").val();
+
+        var CategoryModel1 = {
+            "soapayChqno": cheque_no, "soapayAmount": cheque_amount, "soapayment_sale_chq_date": cheque_date,
+            "soaVendorname": vendor_name,// "soaVatamt": vat_amount,
+            // "soaVatper": vatpercentage,
+            "soaSaledate": sale_date,
+            "soavendoradd": vendor_address,
+            "soaGid": soagi,
+            "taxamount": taxamount,
+            "State": state,
+            "District": district,
+            "Pincode": pincode,
+            "gstnumber": gstnumber,
+            "GSTCharged": IsGstCharged
+        };
+
+        $.post('@Url.Action("SaleMakerView", "AssetSale")?command=submit', CategoryModel1,
+            function (data) {
+                if (data != "success") {
+                    jAlert("Successfully Submited.", "Inforamtion", function (r) {
+                        if (r = true) {
+                            window.parent.jQuery('#ForPartialViews').dialog('close');
+                            location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                            jAlert("Sale raised sucessfully", "Message");
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    window.parent.jQuery('#ForPartialViews').dialog('close');
+                    $('#sagridId').find('tr').css('background', 'none');
+                    location = '@Url.Action("SASummary", "AssetSale")?' + new Date().getTime();
+                    jAlert("Sale was not raised !!", "Message");
+                    return false;
+                }
+            }
+            )
+    }*@
+
+
+    function checkRequired() {
+
+        var cheque_no = $("#cheque").val();
+        if (cheque_no.trim() != "") {
+            $("#cheque").removeClass('required');
+            $("#cheque").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#cheque").removeClass('valid');
+            $("#cheque").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var cheque_amount = $("#chequeamt").val();
+        if (cheque_amount.trim() != "") {
+            $("#chequeamt").removeClass('required');
+            $("#chequeamt").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#chequeamt").removeClass('valid');
+            $("#chequeamt").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+
+        var cheque_date = $("#datecheque").val();
+        if (cheque_date.trim() != "") {
+            $("#datecheque").removeClass('required');
+            $("#datecheque").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#datecheque").removeClass('valid');
+            $("#datecheque").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+
+        var saleamount = $("#saleamount").val();
+        //  alert(invoice_amount);
+        if (saleamount.trim() != "" && saleamount != 0) {
+            $("#saleamount").removeClass('required');
+            $("#saleamount").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#saleamount").removeClass('valid');
+            $("#saleamount").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+
+        var sale_date = $("#datesale").val();
+        if (sale_date.trim() != "") {
+            $("#datesale").removeClass('required');
+            $("#datesale").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#datesale").removeClass('valid');
+            $("#datesale").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var vendor_address = $("#vendaddr").val();
+        if (vendor_address.trim() != "") {
+            $("#vendaddr").removeClass('required');
+            $("#vendaddr").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#vendaddr").removeClass('valid');
+            $("#vendaddr").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+
+        var vendor_name = $("#vendnam").val();
+        if (vendor_name.trim() != "") {
+            $("#vendnam").removeClass('required');
+            $("#vendnam").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#vendnam").removeClass('valid');
+            $("#vendnam").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var taxamount = $("#taxamount").val();
+        if (taxamount.trim() != "") {
+            $("#taxamount").removeClass('required');
+            $("#taxamount").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#taxamount").removeClass('valid');
+            $("#taxamount").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var pincode = $("#pincode").val();
+        if (pincode.trim() != "") {
+            $("#pincode").removeClass('required');
+            $("#pincode").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#pincode").removeClass('valid');
+            $("#pincode").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var district = $("#district").val();
+        if (district.trim() != "") {
+            $("#district").removeClass('required');
+            $("#district").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#district").removeClass('valid');
+            $("#district").addClass('required');
+            CheckFieldHeader();
+        }
+        var state = $("#state").val();
+        if (state.trim() != "") {
+            $("#state").removeClass('required');
+            $("#state").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#state").removeClass('valid');
+            $("#state").addClass('required');
+            CheckFieldHeader();
+        }
+
+        var p_state = $("#p_state").val();
+        if (p_state.trim() != "") {
+            $("#p_state").removeClass('required');
+            $("#p_state").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#p_state").removeClass('valid');
+            $("#p_state").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+        var P_gstnumber = $("#P_gstnumber").val();
+        if (P_gstnumber.trim() != "") {
+            $("#P_gstnumber").removeClass('required');
+            $("#P_gstnumber").addClass('valid');
+            CheckFieldHeader();
+        }
+        else {
+            $("#P_gstnumber").removeClass('valid');
+            $("#P_gstnumber").addClass('required');
+            CheckFieldHeader();
+        }
+
+
+    }
+
+
+    function CheckFieldHeader() {
+
+        ErrorsCount = 0;
+        var chqamt = $("#chequeamt").val();
+        if ($("#cheque").val().trim() == "" || $("#cheque").val() == null) {
+
+            ErrorsCount = 1;
+        }
+        if ($("#chequeamt").val().trim() == "" || $("#chequeamt").val() == null) {
+            $("#vatper").attr('disabled', 'disabled');
+            ErrorsCount = 2;
+        }
+        else if (parseInt(chqamt) == parseInt(0)) {
+            $("#chequeamt").val("");
+            jAlert("The  Cheque Amount is zero !!!");
+
+            ErrorsCount = 2;
+        }
+
+        if ($("#datecheque").val().trim() == "" || $("#datecheque").val() == null) {
+            ErrorsCount = 3;
+        }
+
+        if ($("#saleamount").val().trim() == "" || $("#saleamount").val() == null) {
+            ErrorsCount = 4;
+
+        }
+
+
+        if ($("#datesale").val().trim() == "" || $("#datesale").val() == null) {
+            ErrorsCount = 5;
+        }
+
+        if ($("#vendaddr").val().trim() == "" || $("#vendaddr").val() == null) {
+            ErrorsCount = 6;
+        }
+        if ($("#vendnam").val().trim() == "" || $("#vendnam").val() == null) {
+            ErrorsCount = 7;
+        }
+        if ($("#taxamount").val().trim() == "" || $("#taxamount").val() == null) {
+            ErrorsCount = 8;
+        }
+        if ($("#pincode").val().trim() == "" || $("#pincode").val() == null) {
+            ErrorsCount = 9;
+        }
+        if ($("#district").val().trim() == "" || $("#district").val() == null) {
+            ErrorsCount = 10;
+        }
+        if ($("#state").val().trim() == "" || $("#state").val() == null) {
+            ErrorsCount = 11;
+        }
+        if ($("#p_state").val().trim() == "" || $("#p_state").val() == null) {
+            ErrorsCount = 12;
+        }
+        if ($("#P_gstnumber").val().trim() == "" || $("#P_gstnumber").val() == null) {
+            ErrorsCount = 13;
+        }
+        if (ErrorsCount == 0) {
+
+            $("#_Update").removeAttrs('disabled');
+        }
+        else {
+
+            $("#_Update").attr('disabled', 'disabled');
+        }
+    }
+
+    $("input[name=rdogstChargedFlag]:radio").change(function () {
+
+
+        if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+
+            GSTChargedYes();
+
+        }
+        else {
+
+            GSTChargedNo();
+
+        }
+    });
+
+
+    function GetCustomer() {
+        debugger;
+
+        if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+            hsndata();
+        }
+
+        var IsGstCharged = $("input[name='rdogstChargedFlag']:checked").val();
+        ob.load('../AssetSale/SearchCustomer?listfor=' + IsGstCharged + '&formname=owner&' + new Date().getTime());
+        ob.dialog({ title: 'Customer List' });
+        ob.dialog("open");
+    }
+
+    function GSTChargedYes() {
+        $(".input-gstnumber").show();
+        $("#btngst").show();
+        //$('.textboxStyle').val("");
+        //$('.textboxStyle').addClass('required')
+        $("#taxamount").val(0)
+        $("#saleamount").val(0).val();
+        $("#datecheque").val("");
+        $("#vendaddr").val("");
+        $("#vendnam").val("");
+        $("#state").val("");
+        $("#district").val("");
+        $("#pincode").val("");
+        $("#vendorid").val("");
+        $("#gstnumber").val("");
+        //$("#p_state").val("");
+        //$("#P_gstnumber").val("");
+
+
+        $("#vendnam").addClass('required');
+        $("#vendaddr").addClass('required');
+        $("#pincode").addClass('required');
+        $("#district").addClass('required');
+        $("#state").addClass('required');
+        $("#gstnumber").addClass('required');
+        $("#taxamount").addClass('required');
+        $("#saleamount").addClass('required');
+        $("#datesale").addClass('required');
+        $("#p_state").addClass('required');
+        $("#P_gstnumber").addClass('required');
+
+    }
+    function GSTChargedNo() {
+        $(".input-gstnumber").hide();
+        $("#btngst").hide();
+        $("#chequeamt").val().trim();
+        $("#cheque").val();
+        $("#saleamount").val($("#chequeamt").val().trim());
+        $("#taxamount").val(0)
+        $("#datecheque").val("");
+        $("#vendaddr").val("");
+        $("#vendnam").val("");
+        $("#state").val("");
+        $("#district").val("");
+        $("#pincode").val("");
+        $("#vendorid").val("");
+        $("#gstnumber").val("");
+        //$("#p_state").val("");
+        //$("#P_gstnumber").val("");
+
+        $("#vendnam").addClass('valid');
+        $("#vendaddr").addClass('valid');
+        $("#pincode").addClass('valid');
+        $("#district").addClass('valid');
+        $("#state").addClass('valid');
+        $("#gstnumber").addClass('valid');
+        $("#taxamount").addClass('valid');
+        $("#saleamount").addClass('valid');
+        $("#datesale").addClass('valid');
+        $("#p_state").addClass('valid');
+        $("#P_gstnumber").addClass('valid');
+    }
+
+    function hsndata() {
+        debugger;
+        var array = new Array();
+        $('#wgridSOAdetails').find('tbody > tr').each(function (index) {
+
+            var row = $(this).closest('tr');
+            var salegid = row.find("td").eq(1).html()
+            var assetgid = row.find("td").eq(2).html();
+            var assetdetgid = row.find("td").eq(3).html();
+            var hsngid = row.find("td").eq(8).find("#hsnid option:selected").val();
+
+            if (hsngid == "0" || hsngid == null) {
+                alert("HSN Code Not Mapped For Asset ID:" + assetdetgid);
+                return false;
+            }
+
+            var soahsndetails = salegid + ',' + assetgid + ',' + assetdetgid + ',' + hsngid;
+            array.push(soahsndetails);
+        });
+        var _hsndata = "";
+        $.each(array, function (index) {
+            var a = undefined;
+            var b = array[index];
+            if (b != a) {
+                _hsndata += array[index] + '^';
+            }
+        });
+        $("#hdnHsnData").val(_hsndata);
+    }
+
+</script>
+
+
+

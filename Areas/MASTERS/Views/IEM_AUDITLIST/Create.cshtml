@@ -1,0 +1,241 @@
+﻿@using IEM.Areas.MASTERS.Models
+@model IEM.Areas.MASTERS.Models.iem_mst_auditlist
+@{
+    iem_mst_auditlist groupname = (iem_mst_auditlist)ViewBag.groupname;
+    iem_mst_auditlist auditsubgroupname = (iem_mst_auditlist)ViewBag.subgroupname;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>AluditList Name</span>
+                    <br />
+                    <input name="CategoryName" id="txtcauditlist" maxlength="64" type="text" style="width:265px;height:30px;" data-val="true" />                    
+                </div>
+            </td>
+            </tr>
+        <tr>
+            <td style="padding-top:0px;">
+                <div class="input-append">
+                    <span>Audit Group Name</span>
+                    <br />
+                    <select name="Group" id="CGroupname" class="form-control" style="width: 265px;" onclick="checkgroupname()">
+                        <option value="-----Select----">-----Select----</option>
+                        @foreach (var pitem in groupname.selctgroupname)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.selctgroupname == pitem.Text)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+                </div>
+            </td>
+            </tr>
+        <tr>
+            <td style="padding-top:0px;">
+                <div class="input-append">
+                    <span>Audit Sub Group Name</span>
+                    <br />
+                    <select name="SubGroupname" id="CSubGroupname" class="form-control" style="width: 265px;" onclick="checksubgroupname()">
+                        <option value="-----Select----">-----Select----</option>
+                        @foreach (var pitem in auditsubgroupname.selectsubgroupname)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.selectsubgroupname == pitem.Text)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+                </div>
+            </td>
+            </tr>
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Template</span>
+                    <br />
+                   <textarea id="txtctemplate" name="template" style="width:265px;height:60px;" maxlength="255"/>
+                </div>
+            </td>            
+        </tr>
+    </table>   
+    <br />
+    <div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <button type="button" id="_save111" disabled="disabled" value="Save" class="btn btn-primary" onclick="SaveCategoryName()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(function () {
+            $("#txtcauditlist").focus();
+        });
+
+        $("#txtcauditlist").focus();
+        $("#txtcauditlist").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txttemplate").focus();
+        $("#txttemplate").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+
+    $("#txtcauditlist").keypress(function () {
+        var txtSupplierName = $("#txtcauditlist").val();
+            if (txtSupplierName.trim() != "")
+            {
+                $("#txtcauditlist").removeClass('required');
+                $("#txtcauditlist").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#txtcauditlist").removeClass('valid');
+                $("#txtcauditlist").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+
+    $("#txtctemplate").keypress(function () {
+        var txtSupplierName = $("#txtctemplate").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtctemplate").removeClass('required');
+            $("#txtctemplate").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#txtctemplate").removeClass('valid');
+            $("#txtctemplate").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    function checkgroupname()
+    {
+        var groupname = $("#CGroupname").val();
+        if (groupname == "-----Select----") {
+            CheckFieldsHeader();
+            $("#CGroupname").removeClass('valid');
+            $("#CGroupname").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#CGroupname").removeClass('required');
+            $("#CGroupname").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+    function checksubgroupname() {
+        var sgname = $("#CSubGroupname").val();
+        if (sgname == "-----Select----")
+            {
+            CheckFieldsHeader();
+            $("#CSubGroupname").removeClass('valid');
+            $("#CSubGroupname").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#CSubGroupname").removeClass('required');
+            $("#CSubGroupname").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }  
+</script>
+<script type="text/javascript">
+    function SaveCategoryName() {
+        var auditlistname = $("#txtcauditlist").val().trim();
+        var groupname = $("#CGroupname").val().trim();
+        var subgroupname = $("#CSubGroupname").val();
+        var template = $("#txtctemplate").val();
+       
+        var CategoryModel = {
+            "auditlist_name": auditlistname, "auditlist_template": template, "auditlist_auditsubgroup_gid": subgroupname, "auditlist_auditgroup_gid": groupname
+        };
+        $.post('../IEM_AUDITLIST/InsertAuditlist', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r = true) { return false; }
+                        });
+                    }
+                    else {
+                        jAlert("Record Inserted Successfully!!!", "Information", function (r) {
+                            if (r = true) { location = '../IEM_AUDITLIST/Index'; }
+                        });
+
+                    }
+                }
+            , 'json');
+
+    }
+        function GotoIndex() {
+
+            window.parent.jQuery('#ForPartialViewforauditlist').dialog('close');
+        }
+
+
+        function CheckFieldsHeader() {
+
+           
+            var ErrCount = 0;
+
+            
+            if ($('#txtcauditlist').val() == "" || $('#txtcauditlist').val() == null)
+            {
+                ErrCount=1
+            }
+            if ($('#txtctemplate').val() == "" || $('#txtctemplate').val() == null) {
+                ErrCount = 2
+            }
+            if ($("#CGroupname").val() == "-----Select----" || $("#CGroupname").val() == null) {
+                ErrCount = 3;              
+               
+            }
+            if ($("#CSubGroupname").val() == "-----Select----" || $("#CSubGroupname").val() == null) {
+                ErrCount = 4;               
+            }            
+          
+            if (ErrCount == 0) {
+               
+                $("#_save111").removeAttr('disabled');
+            }
+            else {
+                $("#_save111").attr('disabled', 'disabled');
+            }
+          
+        }
+
+
+</script>
+
+
+
+
+
+
+

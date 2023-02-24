@@ -1,0 +1,136 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SupplierHeader>
+@using IEM.Common
+@using IEM.Areas.ASMS.Models
+@{
+    List<SupplierHeader> lst = new List<SupplierHeader>();
+    SupDataModel dm = new SupDataModel();
+    if (Model == null)
+    {
+        lst = dm.GetFinancialReviewSummary().ToList();
+        if (lst.Count == 0)
+        {
+            ViewBag.NoRecordsFound = "No Records Found";
+        }
+    }
+    else
+    {
+        lst = (List<SupplierHeader>)Model;
+        if (lst.Count == 0)
+        {
+            ViewBag.NoRecordsFound = "No Records Found";
+        }
+    }
+    if (Session["ChkEmpIsFinanceReviewer"] != null)
+    {
+        ViewBag.ChkEmpIsFinanceReviewer = (Int32)Session["ChkEmpIsFinanceReviewer"];
+    }
+    var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgFinReviewQueue", ajaxUpdateCallback: "DummyFunction81()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgFinReviewQueue">
+    <div class="overflowx">
+        @grid.GetHtml(
+            htmlAttributes: new { id = "wgridFinReviewQueue" },
+            tableStyle: "tableSmall table-bordered",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("_HeaderID", objCmnFunctions.Sorter("_HeaderID", "ID", grid), canSort: false),
+            grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_SupplierCode", objCmnFunctions.Sorter("_SupplierCode", "Supplier Code", grid)),
+            grid.Column("_SupplierName", objCmnFunctions.Sorter("_SupplierName", "Supplier Name", grid)),
+            grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+        @if (Convert.ToInt32(ViewBag.ChkEmpIsFinanceReviewer) > 0)
+        {
+              <a onclick="FinancialReview(this)"><span class="btn btn-link">Proceed</span></a>
+        }
+        else
+        {
+               <a onclick="FinancialReviewView(this)"><span class="btn btn-link">View</span></a>
+        }
+              
+                </text>)
+                                           ))
+    </div>
+    <div class="borderStyle">
+        @ViewBag.NoRecordsFound
+    </div>
+    <div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#wgridFinReviewQueue td:nth-child(1),#wgridFinReviewQueue th:nth-child(1)").hide();
+        $("#wgridFinReviewQueue td:nth-last-child(1)").show();
+    });
+    function DummyFunction81() {
+        $("#wgridFinReviewQueue td:nth-child(1),#wgridFinReviewQueue th:nth-child(1)").hide();
+        $("#wgridFinReviewQueue td:nth-last-child(1)").show();
+    }
+    function FinancialReview(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        var supcode = tds.eq(2).text();
+        var objSupHeaderDetails = {
+            "_SupplierCode": supcode
+        };
+               
+        $.ajax({
+            url: '@Url.Action("CheckSupplierIsLocked", "Onboarding")',
+            data: JSON.stringify(objSupHeaderDetails),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data.length > 0) {
+                    var lockedbycode = data[0]._LockedByCode;
+                    var lockedbyname = data[0]._LockedByName;
+                    var lockeddate = data[0]._LockedDate;
+                    var LockedBy = lockedbycode.fontcolor("Navy") + " - " + lockedbyname.fontcolor("Navy");
+                    jConfirm("This Supplier Already Locked By " +  LockedBy.bold()  + " from " + lockeddate.bold().fontcolor("Navy") + ". Are you Interested to view this supplier?", Title_3, function (e) {
+                        if (e == true) {
+                            location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+                        }
+                        else {
+                            return false;
+                        }
+                    });
+                }
+                if (data.length == 0) {
+                    $.ajax({
+                        url: '@Url.Action("LockMySupplier", "Onboarding")',
+                        data: JSON.stringify(objSupHeaderDetails),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&isFinancialReviewer=yes&' + new Date().getTime();
+                        },
+                        error: function (result) {
+                            jAlert("Something went wrong", "Error");
+                        }
+                    });
+                   
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+       
+    }
+    function FinancialReviewView(element) { 
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+
+        location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+    }
+   
+</script>

@@ -1,0 +1,209 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+           @using IEM.Areas.FLEXIBUY.Models
+@{
+    var grid = new WebGrid();
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit" || viewfor=="clone")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    PrSumEntity obj = new PrSumEntity();
+    prsummodel objrep = new prsummodel();
+    obj.attachment = objrep.getattachmentdetails(Convert.ToString(Session["prgid"]), "PR");
+    grid = new WebGrid(source: obj.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment", ajaxUpdateCallback: "grid()");
+
+    //}
+
+
+}
+
+
+    
+        <div id="createsupattachment" class="borderstyle panel panel-default">
+
+            @*<table id="createsupattachmenttable" class="myTableStyleTab" align="center">
+                <tr>
+                    <td>
+                        <span>Document Date</span> <br />
+                        <input type="text" @ViewBag.viewmode name="Cbf_AttachDate" id="_AttachDate" value="@Model.attachmentDate" maxlength="10" title="Document Date" class="textboxStyle valid" />
+                    </td>
+                    <td>
+                        <span>Select File</span><br />
+                        <input type="file" @ViewBag.viewmode name="UploadFile" id="txtUploadFile" multiple />
+                    </td>
+                    <td>
+                        <span>File Name</span> <br />
+                        <input name="_AttachedFileName" @ViewBag.viewmode readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" value="@Model.attachment1" />
+                    </td>
+                    <td>
+                        <span>Description</span> <br />
+                        <input name="_AttachDescription" @ViewBag.viewmode id="_AttachDescription" class="textboxStyle" title="Description" type="text" value="@Model.attachmentDesc" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align:right;padding-right:5%;">
+
+                        @*<input type="button" name="btnSaveSupAttachment" @ViewBag.viewmode id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+
+                    <input type="button" class="btn btn-primary" @ViewBag.viewmode id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                    <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />*@
+                    @*</td>
+                </tr>
+
+            </table>*@
+        </div>
+
+        <div class=" panel panel-default" id="gridattachment1">
+
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                          mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="button" disabled="disabled" value="Delete" class="btn btn-link" id="@item.attachGid" @ViewBag.viewmode title="Delete" onclick="attachmentDetele(id)" />
+                </text>)))
+
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@grid.TotalRowCount</span>
+    
+
+<script>
+    $(document).ready(function () {
+        if ('@ViewBag.viewmode' == 'disabled') {
+            $('#createsupattachment').hide(0);
+            $('#createsupattachmenttable').hide(0);
+            
+        }
+
+    });
+   
+
+
+    function back() {
+        window.parent.jQuery('#viewboqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+    }
+    function DownloadSupAttachment(filename) {
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("DownloadDocument", "PRRaiser")', supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '@Url.Action("Download", "PRRaiser")' }
+        }, 'json');
+    }
+    @*function attachmentDetele(id) {
+        var id2 = '@Session["cbfdetails"].ToString()';
+        var supattachmentmodel =
+                {
+                    "attachment1": id
+                };
+
+        $.post('../CbfRaiserEdit/DeleteAttachment', supattachmentmodel,
+        function (data) { if (data == 0) { location = location.href; } else { $('#attach').load('../CbfRaiserEdit/Viewboqattachment?id=' + id2); } }, 'json');
+
+    }*@
+    //$('#txtUploadFile').on('change', function (e) {
+    //    var files = e.target.files;
+    //    if (files.length > 0) {
+    //        if (window.FormData !== undefined) {
+    //            var data = new FormData();
+    //            for (var x = 0; x < files.length; x++) {
+
+    //                data.append("temp_" + x, files[x]);
+    //            }
+    //            var fname = $("#_AttachedFileName").val();
+    //            $.ajax({
+    //                type: "POST",
+    //                url: '../CbfRaiser/UploadedFiles/?fname=' + fname,
+    //                contentType: false,
+    //                processData: false,
+    //                data: data,
+    //                success: function (result) {
+
+    //                    $("#_AttachedFileName").val(result);
+    //                },
+    //                error: function (xhr, status, p3, p4) {
+    //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+    //                    if (xhr.responseText && xhr.responseText[0] == "{")
+    //                        err = JSON.parse(xhr.responseText).Message;
+    //                    console.log(err);
+    //                }
+    //            });
+    //        } else {
+    //            alert("This browser doesn't support HTML5 file uploads!");
+    //        }
+    //    }
+    //});
+    @*function SaveSupAttachment() {
+        alert($('#viewboqdate').val());
+      id = '@Session["cbfdetails"].ToString()';
+        var AttachDate = $("#_AttachDate").val();
+        var AttachFileName = $("#_AttachedFileName").val();
+        var AttachDescription = $("#_AttachDescription").val();
+        var attachmodel = {
+            "selectedValue": $('#viewboqdate').val(),
+            "amoun": id,
+            "attachment1": AttachFileName,
+            "des": AttachDescription,
+            "attachmentdate": AttachDate
+        };
+
+        if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+            jAlert("Please Select Attachment Date.", "Error");
+            return false;
+        }
+
+        if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+            jAlert("Please Select Attachmnet.", "Error");
+            return false;
+        }
+        if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+            jAlert("Please Enter Descritption.", "Error");
+            return false;
+        }
+        $.post('../CbfRaiserEdit/Viewboqattachment', attachmodel,
+        function (data) {
+
+            if (data == 0) { location = location.href; } else {
+                $('#attach').load('../CbfRaiserEdit/Viewboqattachment?id=' + id); jAlert("Inserted Successfully", "Message"); refresh();
+            }
+        }, 'json');
+    }*@
+</script>

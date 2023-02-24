@@ -1,0 +1,203 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.EmployeeSearch
+@using IEM.Common;
+@{
+    if (Session["rownumemp"] != null)
+    {
+        ViewBag.rownumemp = (string)Session["rownumemp"];
+    }
+    ViewBag.Title = "Index";
+    var grid = new WebGrid(source: Model.lListEmp, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "poemplgrid", ajaxUpdateCallback:"fnEmployeesearch()");
+    CmnFunctions obj = new CmnFunctions();
+}
+
+<div id="searchgrid">
+    @* <span style="color: rgb(52, 108, 196);">Employee details</span>*@
+
+    @*<h2>Employee details</h2>*@
+
+@using (Html.BeginForm())
+    {
+    @Html.AntiForgeryToken()
+    
+    <div class="row">
+        <div class="col-sm-10">
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td>
+                        <span>Employee Code</span>
+                        <br />
+                        <input type="text"
+                               name="empcode"
+                               id="txtempcode1"
+                               value="@TempData["code"]"
+                               class="textboxStyle"
+                               placeholder="Enter Employee Code" />
+                    </td>
+                    <td>
+                        <span>Employee Name</span>
+                        <br />
+                        <input type="text"
+                               name="empname"
+                               id="txtempname1"
+                               value="@TempData["name"]"
+                               class="textboxStyle"
+                               placeholder="Enter Employee Name" />
+                    </td>
+                    <td style="padding-top:20px;">
+                        <div>
+                            <span>
+                                <button class="btn btn-primary" onclick="searchemployee()" id="btnsearch" value="search" name="command"
+                                        type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                            </span>
+                        </div>
+                    </td>
+                    <td style="padding-top:20px;">
+                        <div>
+                            <span>
+                                <button class="btn btn-primary" onclick="webgridrefresh()" id="btnrefresh" value="Clear" name="command"
+                                        type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                                </button>
+                            </span>
+                        </div>
+                    </td>
+                    @* <a id="btnsearch" onclick="searchemployee()"><span class="glyphicon glyphicon-search cursorpointer"></span></a>*@
+
+                    @* <a id="btnrefresh" onclick="webgridrefresh()"><span class="glyphicon glyphicon-refresh cursorpointer"></span></a>*@
+
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div id="emplgrid">
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "poemplgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                                    grid.Column("SlNo", obj.Sorter("SlNo", "Sl", grid)),
+                                    grid.Column("employeeGid", obj.Sorter("employeeGid", "ID", grid), format: @<text><span id="lblempgid">@item.employeeGid</span></text> ),
+                                    grid.Column("empCode", obj.Sorter("empCode", "Employee Code", grid), format: @<text><span id="lblempcode">@item.empCode</span></text>),
+                                    grid.Column("empName", obj.Sorter("empName", "Employee Name", grid), format: @<text><span id="lblempname">@item.empName</span></text>),
+                                    grid.Column("empdesignation", obj.Sorter("empdesignation", "Employee Designation", grid), format: @<text><span id="lblempdesign">@item.empdesignation</span></text>),
+                                      grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                        <a><span class="btn btn-link btnselect" onclick="selectfun(this)">Select</span></a>
+                    </text>)))
+        @if (@TempData["records"] != null || @TempData["records"] == "")
+        {
+            <div class="borderStyle">
+                @TempData["records"]
+            </div>
+        }
+    </div>
+}
+    <script>
+        $(document).ready(function () {
+            $("#poemplgrid td:nth-child(2),#poemplgrid th:nth-child(2)").hide();
+            $("#poemplgrid td:nth-last-child(1)").show();
+        });
+        function searchemployee() {
+            var empcode = $('#txtempcode1').val();
+            var empname = $('#txtempname1').val();
+            //var listfor = "search";
+
+            var objownersearch = {
+                "empName": empname,
+                "empCode": empcode
+            };
+            $.ajax({
+                url: '@Url.Action("searchEmploy", "poraiser")?' + new Date().getTime(),
+                type: 'POST',
+                data: objownersearch,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        // $("#searchgrid").empty().append(data);
+                        @*$("#searchgrid").load('@Url.Action("searchEmp", "poraiser")?listfor=' + listfor + '&' + new Date().getTime());*@
+                        $("#searchgrid").load('@Url.Action("searchEmploy", "poraiser")?listfor=search' + '&' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+            //$.post('../ParRaiserEdit/searchEmp', objownersearch,
+            //     function (data) {
+            //         $("#searchgrid").load('../ParRaiserEdit/searchEmp?listfor=search');
+            //         //setTimeout(function () {
+            //         //    $('#txtempcode').val(empcode);
+            //         //    $('#txtempname').val(empname);
+            //         //},50);
+            //     }
+            //, 'json');
+        }
+        function webgridrefresh() {
+            @*$("#txtempcode").val("");
+            $("#txtempname").val("");
+            var EmployeeCode = $("#txtempcode").val();
+            var EmployeeName = $("#txtempname").val();
+            var objSearchEmployee = {
+                "empCode": EmployeeCode,
+                "empName": EmployeeName
+            };
+            $.post('@Url.Action("searchEmp", "ParRaiserEdit")', objSearchEmployee,
+            function (data) {
+                alert(data);
+                if (data == 0) {
+                    location = location.href;
+                }
+                else {
+                    $("#searchgrid").load('@Url.Action("searchEmp", "ParRaiserEdit")?listfor=refresh');
+                }
+            }, 'json');*@
+            $("#txtempcode").val("");
+            $("#txtempname").val("");
+            $("#searchgrid").load('@Url.Action("searchEmploy", "poraiser")?listfor=refresh' + '&' + new Date().getTime());
+        }
+
+        //$('.btnselect').click(function () {
+        //    var tr = $(this).parents('tr:first');
+        //    var empid = tr.find("#lblempgid").text();
+        //    alert(empid);
+        //    var empcode = tr.find("#lblempcode").text();
+        //    var empname = tr.find('#lblempname').text();
+        //    $('#empCode').val(empcode);
+        //    $('#employeeGid').val(empid);
+        //    $('#empName').val(empname);
+        //    GotoIndex();
+        //});
+        function selectfun(element) {
+            var tr = $(element).parents('tr:first');
+            var empid = tr.find("#lblempgid").text();
+            //alert(empid);
+            var empcode = tr.find("#lblempcode").text();
+            //var empname = tr.find('#lblempname').text();
+            //var empdesign = tr.find('#lblempdesign').text();
+            @*$("#incharge_@Model.rowNum").val(empcode);
+            $("#inchargeno_@Model.rowNum").val(empid);
+            $("#@Model.rowNum").val(empcode);*@
+            $("#incharge_@ViewBag.rownumemp").val(empcode);
+            $("#inchargeno_@ViewBag.rownumemp").val(empid);
+            $("#@ViewBag.rownumemp").val(empcode);
+            //$('#employee_name').val(empname);
+            //$('#employee_code').val(empcode);
+            //$('#employee_designation').val(empdesign);
+            //$('#txtemployee_no').val(empcode);
+            GotoIndex();
+        }
+        function fnEmployeesearch() {
+            $("#poemplgrid td:nth-child(2),#poemplgrid th:nth-child(2)").hide();
+            $("#poemplgrid td:nth-last-child(1)").show();
+        }
+        function GotoIndex() {
+            window.parent.jQuery('#empsearch').dialog('close');
+        }
+    </script>
+</div>

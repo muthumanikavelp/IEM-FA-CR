@@ -1,0 +1,181 @@
+﻿@model  IEnumerable<IEM.Areas.EOW.Models.ModeOfTravelEntity>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, canSort: true);
+    int rowVal = 0;
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">Mode Of Travel</span>
+</b>
+<br />
+<br />
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-4">
+                    <table class="myTableStyleTabNew" style="margin-left:-4px;">
+                        <tr>
+                            <td>
+                                <div class="input-append ">
+                                    <span>Mode Of Travel</span>
+                                    <br />
+                                    <input type="text"
+                                           name="ModeOfTravel"
+                                           id="ModeOfTravelIndexId"
+                                           value="@ViewBag.ModeOfTravel"
+                                           class="textboxStyleSearch"
+                                           style="display: block;width:250px"
+                                           maxlength="16" />
+                                 </div>
+                            </td>
+                           
+                            @*<td>
+                                <button class="glyphicon glyphicon-search" id="btnsearch" style="border:none;margin-top:15px;box-shadow: none;font-size: 1.9em;background-color: rgb(245, 245, 245);" name="command" type="submit"></button>
+                            </td>
+                            <td>
+                                <a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:15px;"></span></a>
+                            </td>*@
+                            <td>
+                                <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="refresh()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <br />
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:4px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:10px;">
+                            <button type="button" value="New Travel Mode" onclick="NewMode()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Travel Mode</button>
+                            <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning">
+                                <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            </div>
+        <div style="margin-top:2px;overflow-x:scroll">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+            htmlAttributes: new { id = "gridModeOfTravelid" },
+            tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("ModeOfTravel", Sorter("ModeOfTravel", "Mode Of Travel", grid), canSort: true),
+                grid.Column(header: "Action", canSort: true, style: "action",
+                format: @<text>
+                    @*<input  name="EmployeeId" id="Role" value="@item.ModeId" />*@
+                    <a title="View"> <span class="glyphicon glyphicon-eye-open" id="Color" onclick="View(@item.ModeId)"></span></a>
+                    <a title="Edit"> <span class="glyphicon glyphicon-edit" id="Color" onclick="Edit(@item.ModeId)"></span></a>
+                    <a title="Delete"> <span class="glyphicon glyphicon-trash" id="Color" onclick="DeleteMode(@item.ModeId)"></span></a>
+                </text>))))
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+        <br/>
+        @if (ViewBag.Message == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.Rows.Count</span>
+            </div>
+        }
+    </div>
+}
+
+<div id="ForPartialViewMode"></div>
+<script type="text/javascript">
+    var objDialogMode;
+    $(document).ready(function () {
+        $(function () {
+            $("#ModeOfTravelIndexId").focus();
+        });
+        objDialogMode = $("[id$='ForPartialViewMode']");
+        objDialogMode.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 350,
+            height: 240,
+            resizable: false
+        });
+        var tr = $("#gridModeOfTravelid").find('tr');
+        $("#gridModeOfTravelid tr #Color").click(function () {
+            $('#gridModeOfTravelid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+
+        $("#ModeOfTravelIndexId").keyup(function () {
+            var txtContractFrom = $("#ModeOfTravelIndexId").val();
+            if (txtContractFrom.trim() == "") {
+                $("#ModeOfTravelIndexId").removeClass('required');
+                $("#ModeOfTravelIndexId").removeClass('valid');
+            }
+            else {
+                $("#ModeOfTravelIndexId").removeClass('required');
+                $("#ModeOfTravelIndexId").removeClass('valid');
+            }
+        });
+        $("#ModeOfTravelIndexId").change(function () {
+            var txtContractFrom = $("#ModeOfTravelIndexId").val();
+            if (txtContractFrom.trim()== "") {
+                $("#ModeOfTravelIndexId").removeClass('required');
+                $("#ModeOfTravelIndexId").removeClass('valid');
+            }
+            else {
+                $("#ModeOfTravelIndexId").removeClass('required');
+                $("#ModeOfTravelIndexId").removeClass('valid');
+            }
+        });
+    });
+    function NewMode() {
+        objDialogMode.load('../ModeOfTravel/ModeAdd');
+        objDialogMode.dialog({ title: 'Add New Mode' });
+        objDialogMode.dialog("open");
+    }
+    function Edit(id) {
+        objDialogMode.load('../ModeOfTravel/ModeEdit?id=' + id + '&' + new Date().getTime());
+        objDialogMode.dialog({ title: 'Edit Mode' });
+        objDialogMode.dialog("open");
+    }
+    function View(id) {
+        objDialogMode.load('../ModeOfTravel/ModeView?id=' + id + '&' + new Date().getTime());
+        objDialogMode.dialog({ title: 'View Mode' });
+        objDialogMode.dialog("open");
+    }
+    function DeleteMode(id) {
+        objDialogMode.load('../ModeOfTravel/ModeDeletev?id=' + id + '&' + new Date().getTime());
+        objDialogMode.dialog({ title: 'Delete Mode' });
+        objDialogMode.dialog("open");
+    }
+    function refresh() {
+        $("#ModeOfTravelIndexId").val('');
+        location = "ModeIndex";
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "ModeOfTravel")"
+        ko.utils.postJson(UrlDet + '?ViewType=13&FileName=ModeOfTravel&' + new Date().getTime());
+    }
+</script>

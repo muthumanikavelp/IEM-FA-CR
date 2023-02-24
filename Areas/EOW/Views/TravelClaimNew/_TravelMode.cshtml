@@ -1,0 +1,135 @@
+﻿
+<div class="table-responsive" style="padding-right: 10px;">
+    <div align="right" style="padding-bottom:5px;">
+        @*<a class="btn btn-primary" data-modal="" href="~/Download/LCFTemplate.xls" id="DownloadTemplate">
+            <span style="font-weight:bold;font-size: 12px;"> Download Template</span>
+        </a>*@
+        <button type="button" id="btnempNewExpenset" value="New Travel Details" onclick="NewTravelMode()" class="btn btn-primary">
+            <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New Travel Details
+        </button>
+    </div>
+    @Html.Partial("_TravelModeDetails")
+</div>
+<br />
+<div id="ForPartialViewTravelmodenew"></div>
+<div id="ForPartialViewExpenseglno"></div>
+<script type="text/javascript">
+    var objDialogTravelmodenew;
+    $(document).ready(function () {
+        objDialogTravelmodenew = $("[id$='ForPartialViewTravelmodenew']");
+        objDialogTravelmodenew.dialog({
+            open: function (event, ui) {
+                $(this).parent().focus();
+            },
+            autoOpen: false,
+            cache: false,
+            modal: true, 
+            width: '86%',
+            height: 410,
+            show: 'fade-in',
+            close: 'fade-out'
+        });
+    });
+    var objDialogExpenseglno;
+    $(document).ready(function () {
+        objDialogExpenseglno = $("[id$='ForPartialViewExpenseglno']");
+        //objDialogExpenseglno.length = 1;
+        objDialogExpenseglno.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true, 
+            width: '97%',
+            height: 325
+        });
+    });
+    function EmpExpenseglno(id) {
+        var url = '@Url.Action("debitlinegldetails", "EmployeeClaimNew")?id=' + id + '&types=T&' + new Date().getTime();
+        objDialogExpenseglno.length = 1;
+        objDialogExpenseglno.load(url);
+        objDialogExpenseglno.dialog({ title: 'View GL Details' });
+        objDialogExpenseglno.dialog("open");
+    }
+    function GotoIndexExpense() {
+        objDialogTravelmodenew.dialog("close");
+        window.parent.jQuery('#ForPartialViewTravelmodenew').dialog('close');
+    }
+    function NewTravelMode() {
+        var url = '@Url.Action("_TravelModeCreate", "TravelClaimNew")?' + new Date().getTime();
+        objDialogTravelmodenew.length = 1;
+        objDialogTravelmodenew.load(url);
+        objDialogTravelmodenew.dialog({ title: 'Add Travel Details' });
+        objDialogTravelmodenew.dialog("open");
+    }
+    function EmpTravelModeEdit(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../TravelClaimNew/_Emplistaddtm', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_TravelModeEdit", "TravelClaimNew")?id=' + id + '&viewfor=edit&' + new Date().getTime();
+                objDialogTravelmodenew.length = 1;
+                objDialogTravelmodenew.load(url);
+                objDialogTravelmodenew.dialog({ title: 'Edit Travel Details' });
+                objDialogTravelmodenew.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpTravelModeView(id) {
+        showProgress();
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../TravelClaimNew/_Emplistaddtm', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_TravelModeEdit", "TravelClaimNew")?id=' + id + '&viewfor=view&' + new Date().getTime();
+                objDialogTravelmodenew.length = 1;
+                objDialogTravelmodenew.load(url);
+                objDialogTravelmodenew.dialog({ title: 'View Travel Details' });
+                objDialogTravelmodenew.dialog("open");
+            }
+            else {
+                hideProgress();
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpTravelModeDelete(id) {
+
+        jConfirm("Do you want to delete Travel Mode...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "TravelMode_GID": id }
+                $.post('../TravelClaimNew/DeleteTravelMode', EmpExpensemodel,
+              function (data) {
+                  if (data == 0) {
+                      jAlert("Error.", "Error");
+                      return false;
+                      location = location.href;
+                  } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      //alert('delete');
+                      var url = '@Url.Action("_TravelModeDetails", "TravelClaimNew")?' + new Date().getTime();
+                      $("#wgTravelmodett").load(url);
+                      var url1 = '@Url.Action("_LoadGstDetails", "TravelClaimNew")?' + new Date().getTime();
+                      $("#Grdgstdetls").load(url1);
+                      objDialogTravelmodenew.dialog("close");
+                      window.parent.jQuery('#ForPartialViewTravelmodenew').dialog('close');
+                  }
+              }, 'json');
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,172 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_role
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew" width="100%" >
+        <tr>
+            <td>
+                <span> Role Code </span>
+                <br />
+                <input id="_rolecode" type="text" maxlength=" 8" data-val="true" value="" class="fstextbox required " style="display: block;" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span> Role Name </span>
+                <br />
+                <input id="_rolename" type="text" maxlength=" 32" data-val="true" value="" class="fstextbox required " style="display: block;" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Role Group Name</span>
+                <br />
+                @Html.DropDownListFor(m => m.rolegroup_gid, Model.Getrolegroup, new { @class = "fstextbox chosen-select", @id = "rolegroup_gid" })
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="border:solid 1px black; margin-top:10px; padding:10px; background-color:#FAFAFA; width:100%; ">
+                    <div id="divtreeview" class="treeview" style="overflow:scroll;overflow-x: hidden; height:200px;">
+                        @if (Model.menu != null && Model.menu.Count() > 0)
+                        {
+                            @Treeview.GetTreeView(Model.menu, Model.menu.FirstOrDefault().menu_parent_gid);
+                        }
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Assign To</span><br />
+                <div class="layoutStyle" style="font-weight:normal; padding-left:10px;">
+                    <input type="radio" id="rbFicc" name="rblassignto" value="F" /> Fullerton Employees
+                    <br /><input type="radio" id="rbOthers" name="rblassignto" value="E" /> Except Fullerton Employees
+                    <br /><input type="radio" id="rbAll" name="rblassignto" value="A" /> All Employees
+                    <br /><input type="radio" id="rbNone" name="rblassignto" value="N" checked="checked" /> None
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<table class="myTableStyleTabNew" width="100%">
+    <tr>
+        <td style="padding: 5px 10px 5px 10px; text-align:right;">
+            <button class="btn btn-primary" onclick="SAVE()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+            <button class="btn btn-warning" id="btnCancelRole"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+        </td>
+    </tr>
+</table>
+<script>
+    
+    $(document).ready(function () {
+        $(".treeview li>ul").css('display', 'none'); // Hide all 2-level ul
+        $(".collapsible1").click(function (e) {
+            e.preventDefault();
+            $(this).toggleClass("collapse1 expand1");
+            $(this).closest('li').children('ul').slideToggle();
+        });
+
+        //auto complete BOx
+        $("#rolegroup_gid").chosen({});
+        $("#rolegroup_gid_chosen").css("width", "99%").addClass('required');
+
+        //close the dialog box.
+        $("#btnCancelRole").live('click', function () {
+            window.parent.jQuery('#ForPartialView12').dialog('close');
+            //window.parent.jQuery('#ForPartialView12').dialog('close');
+            //window.parent.jQuery('#ForPartialView12').dialog('close');
+        });
+
+        $("#_rolecode, #_rolename").keyup(function (e) {
+            var _data = $(this).val();
+            $(this).removeClass('required').removeClass('valid');
+            if (_data.trim() != "") {
+                $(this).addClass('valid');
+            }
+            else {
+                $(this).addClass('required');
+            }
+        });
+
+        $('#rolegroup_gid').change(function () {
+            var _data = $('#rolegroup_gid').val();
+            $("#rolegroup_gid_chosen").removeClass('valid').removeClass('required');
+            if (_data == "0")
+                $("#rolegroup_gid_chosen").addClass('required');
+            else
+                $("#rolegroup_gid_chosen").addClass('valid');
+        });
+    });
+
+    function SAVE() {
+
+        var checklist = null;
+        checklist = [];
+
+        var unchecklist = null;
+        unchecklist = [];
+
+        $(".treeview input").each(function () {
+            // alert(this.name + ';' + this.checked);
+            if (this.checked == true) {
+                checklist.push(this.name);
+            }
+            else {
+                unchecklist.push(this.name);
+            }
+        })
+        
+        var rolecode = $("#_rolecode").val();
+        var rolename = $("#_rolename").val();
+        var rolegroupgid = $("#rolegroup_gid").val();
+
+        if (rolecode == "" || rolename == "" || rolegroupgid == 0 || checklist == null || checklist.length == 0) {
+
+            jAlert("All fields are required", "Error");
+            return false;
+        }
+        else {
+
+            var DocNameModel = { "role_code": rolecode, "role_name": rolename, "rolegroup_gid": rolegroupgid };
+
+        }
+        var assignto = "N";
+        if ($('input[name=rblassignto]:checked').length > 0) {
+            assignto = $('input:radio[name=rblassignto]:checked').val();
+        }
+
+        var Student = {
+            "role_code": rolecode,
+            "role_name": rolename,
+            "rolegroup_gid": rolegroupgid,
+            "Selectedrole": checklist,
+            "unselectedrole": unchecklist,
+            "role_assignedto": assignto
+        };
+
+        $.ajax({
+            url: '../IEM_ROLE/HolidayNewAdd',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            async: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "Successfully Saved") {
+                    jAlert("Record Inserted Successfully!", "Message", function () {
+                        window.parent.jQuery('#ForPartialView12').dialog('close');
+                        location = '../IEM_ROLE/Index';
+                    });
+                }
+                else {
+                    jAlert(data, "Message");
+                    return false;
+                }
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+        })
+    }
+</script>

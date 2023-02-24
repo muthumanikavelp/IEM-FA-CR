@@ -1,0 +1,107 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+@{
+    ViewBag.Title = "AssetCapitalizationChecker";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+    var gridillcheck = new WebGrid(Model.Getapplist, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgpillcheck");
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">AssetCapitalization-Checker</span>
+</b>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew ">
+            <tr>
+                <td style="padding:10px;">
+                    <span>Ecf No</span><br />
+                    @Html.TextBoxFor(a => a.EcfNo, new { @id = "txtEcfNo", @class = "textboxStyleSearch" })
+                </td>
+                <td style="padding:10px;">
+                    <span>Invoice No</span><br />
+                    @Html.TextBoxFor(a => a.invoiceno, new { @id = "txtinvoiceno", @class = "textboxStyleSearch" })
+                </td>
+                @*<td style="padding:10px;">
+                        <span>Ecf Amount</span><br />
+                        @Html.TextBoxFor(a => a.EcfAmount, new { @id = "txtEcfAmount", @class = "textboxStyleSearch" })
+                    </td>*@
+                <td style="padding:10px;">
+                    <span>VendorName</span><br />
+                    @Html.TextBoxFor(a => a.Vendor, new { @id = "txtvendor", @class = "textboxStyleSearch" })
+                </td>
+                <td style="padding:30px;">
+                    <button type="submit" id="btnSearch" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                    <button type="submit" id="btnRefresh" name="Refersh" title="Refersh" value="Refersh" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Refersh</button>
+                    <button type="button" id="btnclear" value="Clear" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                </td>
+            </tr>
+        </table>
+
+        @gridillcheck.GetHtml(htmlAttributes: new { id = "wgpillcheck" },
+        tableStyle: "tableSmall table-bordered",
+        columns:
+                gridillcheck.Columns(
+                gridillcheck.Column("invoicegid", "SlNo"),
+                gridillcheck.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+                gridillcheck.Column("EcfNo", "Ecf No"),
+                gridillcheck.Column("Ecfdate", "Ecf Date"),
+                gridillcheck.Column("EcfAmount", "Ecf Amount"),
+                gridillcheck.Column("invoiceno", "Invoice No"),
+                gridillcheck.Column("invoiceamount", "Invoice Amount"),
+                gridillcheck.Column("Vendor", "Vendor Name"),
+                gridillcheck.Column("Status", "Status"),
+                gridillcheck.Column(header: "Action", canSort: false, style: "action",
+                                format: @<text>
+                    @*@if (item.Status == "WAITING FOR APPROVAL")*@
+                    @*{*@
+                    <a><span class="glyphicon glyphicon-eye-open" onclick="capitalizatiomakerchr(@item.invoicegid)"></span></a>
+                    @*}*@
+                                </text>)))
+        @if (Model.Getapplist.Count == 0)
+        {
+            <div class="borderStyle" align="center">
+                <b><span>No records found</span></b>
+            </div>
+        }
+        @*@Html.Partial("CaptalizationAssetDetails")<tr><td style="padding:10px;"></td> </tr>*@
+    </div>
+    <div id="ForPartialViewscap"></div>
+}
+<script>
+    $('#txtEcfNo').val('');
+    $('#txtinvoiceno').val('');
+    $('#txtvendor').val('');
+    $("#wgpillcheck td:nth-child(1),#wgpillcheck th:nth-child(1)").hide();
+    $("#wgpillcheck td:nth-last-child(1)").show();
+
+    var objforchkcap;
+    objforchkcap = $("[id$='ForPartialViewscap']");
+    function getinvoicedet(id) {
+
+        //  alert(id);
+        objforchkcap.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1250,
+            height: 650,
+            resizable: false
+        });
+        objforchkcap.load('@Url.Action("CaptalizationAssetDetails", "AssetCapitalizationChecker")?id=' + id + '&' + new Date().getTime());
+        objforchkcap.dialog({ title: 'Asset Details' });
+        objforchkcap.dialog("open");
+    }
+
+    $('#btnclear').on("click", function () {
+        $('#txtEcfNo').val('');
+        $('#txtinvoiceno').val('');
+        $('#txtvendor').val('');
+
+    });
+
+    function capitalizatiomakerchr(id) {
+        // alert(id);
+        location = '@Url.Action("Assetcap_mak_details", "AssetCapitalizationMakerDetails")?id=' + id + '&' + 'view=wait' + '&' + new Date().getTime();
+    }
+</script>

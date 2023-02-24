@@ -1,0 +1,65 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetTravelModedata(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "T").ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<div id="wgTravelmodettv">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridTravelmode = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "wgTravelmodettv", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+
+    <div class="container">
+        <div>
+            @gridTravelmode.GetHtml(
+                                 htmlAttributes: new { id = "wgridTravelmodet" },
+                                                   tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   gridTravelmode.Columns(gridTravelmode.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                    gridTravelmode.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesNames", "Nature of Expenses", gridTravelmode), canSort: false),
+                                                   gridTravelmode.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", gridTravelmode), canSort: false),
+                                                   gridTravelmode.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", gridTravelmode), canSort: false),
+                                                   gridTravelmode.Column("PlaceFrom", objCmnFunctions.Sorter("PlaceFrom", "Place From", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("PlaceTo", objCmnFunctions.Sorter("PlaceTo", "Place To", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("ClaimPeriodFrom", objCmnFunctions.Sorter("ClaimPeriodFrom", "Claim Period From", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("ClaimPeriodTo", objCmnFunctions.Sorter("ClaimPeriodTo", "Claim Period To", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("ClaimMonth", objCmnFunctions.Sorter("ClaimMonth", "GL No", gridTravelmode), canSort: false),
+                                  gridTravelmode.Column("TravelModeName", objCmnFunctions.Sorter("TravelModeName", "Travel Mode", gridTravelmode), canSort: false),
+                                  gridTravelmode.Column("TravelClassName", objCmnFunctions.Sorter("TravelClassName", "Travel Class", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("Rate", objCmnFunctions.Sorter("Rate", "Rate", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("Distance", objCmnFunctions.Sorter("Distance", "Distance", gridTravelmode), canSort: false),
+                                                    gridTravelmode.Column("FC", objCmnFunctions.Sorter("FC", "FC", gridTravelmode), canSort: false),
+                                                                      gridTravelmode.Column("CC", objCmnFunctions.Sorter("CC", "CC", gridTravelmode), canSort: false),
+                                                                      gridTravelmode.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", gridTravelmode), canSort: false),
+                                                                      gridTravelmode.Column("OUCode", objCmnFunctions.Sorter("OUCode", "OUCode", gridTravelmode), canSort: false),
+                                                                               gridTravelmode.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", gridTravelmode), canSort: false)))
+
+
+            @if (@ViewBag.NoRecords == "NoRecords")
+            {
+                <div class="borderStyle" style="font-size: 16px; height: 35px;color: red;padding-left: 1%;
+padding-top: 5px;">
+                    @ViewBag.NoRecordsFound
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,375 @@
+﻿@model IEnumerable<IEM.Areas.IFAMS.Models.SearchCustomer>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.formname = (string)Session["formname"];
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgCustomerList" );
+    //var grid = new WebGrid(Model, canSort: false, canPage: false);
+    //CmnFunctions objCmnFunctions = new CmnFunctions();
+    //int rowcount = 0;
+    int rowVal = 0;
+}
+
+
+<style type="text/css">
+    .hide {
+        display: none;
+    }
+
+     table, th, td {
+        white-space: nowrap;
+    }
+</style>
+
+<div id="wgCustomerList">
+    <div id="SearchEmpHedaer">
+        <table style="width:100%" class="myTableStyleTabNew">
+            <tr>
+                <td style="width:25%">
+                    <input type="hidden" name="txtFor" id="txtFor" />
+                    <span>Customer Code</span><br />
+                    <input type="text" name="txtCustomerCode" id="txtCustomerCode" class="textboxStyle" />
+                </td>
+                <td style="width:35%">
+                    <span>Customer Name</span><br />
+                    <input type="text" name="txtCustomerName" id="txtCustomerName" class="textboxStyle" />
+                </td>
+                <td style="width:40%;">
+                    <button id="btnSearch" class="btn btn-primary" value="Search" onclick="SearchCustomer()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button id="btnClear" class="btn btn-primary" value="Refresh" onclick="RefreshCustomer()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                    @*<a onclick="SearchEmployees()" class="btn btn-primary" wi><span class="glyphicon glyphicon-search"></span>Search</a>
+                        <a onclick="RefreshEmployees()" class="btn btn-primary"><span class="glyphicon glyphicon-refresh"></span>Refresh</a>*@
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    @*<div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+                htmlAttributes: new { id = "wgridCustomer" },
+                         tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                (
+                         grid.Column("_CustomerGid", "ID"),
+                grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1),
+                         grid.Column("_CustomerCode", "Employee Code"),
+                         grid.Column("_CustomerName", "Employee Name"),
+                grid.Column(header: "Action", style: "action",
+                    format: @<text>
+                    <a onclick="SelectCustomer(id)" id="@item._CustomerGid"><span class="btn btn-link">Select</span></a>
+                    </text>)))
+        </div>*@
+
+    <div style="margin-top:17px;" id="mainll">
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridcust" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+          mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No","hide", format: item => rowVal = rowVal + 1),
+                grid.Column("customer_gid", Sorter("customer_gid", "Customer Gid",grid),null,"hide"),
+                  grid.Column("customer_code", Sorter("customer_code", "Customer Code", grid)),
+                  grid.Column("customer_name", Sorter("customer_name", "Customer Name", grid)),
+                grid.Column("customer_address", Sorter("customer_address", "Address", grid),null,"hide"),
+                  grid.Column("state_name", Sorter("state_name", "State", grid)),
+                grid.Column("pincode_code", Sorter("pincode_code", "Pin Code", grid),null,"hide"),
+                  grid.Column("Gstin_number", Sorter("Gstin_number", "GST Number", grid)),
+
+                // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                 grid.Column(header: "Action", canSort: false, style: "action",
+               
+                format: @<text>
+                    <input type="hidden" id="CustomerIdFind_@item.contact_gid" name="customer_gid" value="@item.customer_gid" />
+                    <input type="hidden" id="CustomerContactIdFind_@item.contact_gid" name="contact_gid" value="@item.contact_gid" />
+                    <input type="hidden" id="CustomerCodeFind_@item.contact_gid" name="customer_code" value="@item.customer_code" />
+                    <input type="hidden" id="CustomerNameFind_@item.contact_gid" name="customer_name" value="@item.customer_name" />
+                    <input type="hidden" id="CustomerAddressFind_@item.contact_gid" name="customer_address" value="@item.customer_address" />
+                    <input type="hidden" id="CustomerStateFind_@item.contact_gid" name="state_name" value="@item.state_name" />
+                    <input type="hidden" id="CustomerPincodeFind_@item.contact_gid" name="pincode_code" value="@item.pincode_code" />
+                    <input type="hidden" id="CustomerGSTFind_@item.contact_gid" name="Gstin_number" value="@item.Gstin_number" />
+                    <input type="hidden" id="CustomerDistrictFind_@item.contact_gid" name="District" value="@item.district_name" />
+                    <a><span class="btn btn-link btn" id="CustomerSearch" onclick="SelectAdd(@item.contact_gid,@item.pincode_code)">Select</span></a>
+
+                </text>
+                    ))))
+    </div>
+
+
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount">
+            Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>
+        </div>
+    }
+</div>
+
+
+
+<script type="text/javascript">
+    var formname;
+    var customer_code;
+    var customer_name;
+
+   
+
+    $(document).ready(function () {
+        $("#txtCustomerCode").keyup(function () {
+            var txtSupplierName = $("#txtCustomerCode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtCustomerCode").removeClass('required');
+                $("#txtCustomerCode").addClass('valid');
+
+            }
+            else {
+                $("#txtCustomerCode").removeClass('valid');
+                $("#txtCustomerCode").addClass('required');
+
+            }
+        });
+        $("#txtCustomerName").keyup(function () {
+            var txtSupplierName = $("#txtCustomerName").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtCustomerName").removeClass('required');
+                $("#txtCustomerName").addClass('valid');
+
+            }
+            else {
+                $("#txtCustomerName").removeClass('valid');
+                $("#txtCustomerName").addClass('required');
+
+            }
+        });
+
+        $("#txtCustomerCode").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../AssetSale/getAutocompleteCode",
+                    type: "POST",
+                    dataType: "json",
+                    data: { customer_code: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.customer_code, value: item.customer_code };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#txtCustomerName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../AssetSale/getAutocomplete",
+                    type: "POST",
+                    dataType: "json",
+                    data: { customer_name: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.customer_name, value: item.customer_name };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+ 
+        (function () {
+            $('#wgridcust tbody tr:first').find('td.hide').each(function (i, td) {
+                var indexOfHiddenColumn = $(td).index();
+                $('#wgridcust thead th').eq(indexOfHiddenColumn).addClass('hide');
+            });
+        }());
+
+
+        $.ajaxSetup({
+            cache: false
+        });
+
+    });
+
+ 
+    function SearchCustomer() {
+        var CustomerCode = $("#txtCustomerCode").val();
+        var CustomerName = $("#txtCustomerName").val();
+        customer_code = CustomerCode;
+        customer_name = CustomerName;
+        var objSearchCustomer = {
+            "customer_code": CustomerCode,
+            "customer_name": CustomerName
+        };
+        $.post('../AssetSale/SearchCustomerdata', objSearchCustomer,
+        function (data) {
+
+            $("#wgCustomerList").load('../AssetSale/SearchCustomer?listfor=search&formname=' + formname + '&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtCustomerCode").val(customer_code);
+                $("#txtCustomerName").val(customer_name);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshCustomer() {
+        $("#txtCustomerCode").val("");
+        $("#txtEmployeeName").val("");
+        var CustomerCode = $("#txtCustomerCode").val();
+        var CustomerName = $("#txtCustomerName").val();
+        var objSearchCustomer = {
+            "_CustomerCode": CustomerCode,
+            "_CustomerName": CustomerName,
+            "_CustomerFor": formname
+        };
+        $.post('../AssetSale/SearchCustomer', objSearchCustomer,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgCustomerList").load('../AssetSale/SearchCustomer?listfor=refresh&formname=' + formname + '&' + new Date().getTime());
+            }
+        }, 'json');
+    }
+
+
+    function SelectAdd(id, pincode) {
+        debugger;
+        var Contactgid = $("#CustomerContactIdFind_" + id + "").val();
+        var Customergid = $("#CustomerIdFind_" + id + "").val();
+        var CustomerCode = $("#CustomerCodeFind_" + id + "").val();
+        var CustomerName = $("#CustomerNameFind_" + id + "").val();
+        var CustomerAddress = $("#CustomerAddressFind_" + id + "").val();
+        var Customerstate = $("#CustomerStateFind_" + id + "").val();
+        var Customerpincode = $("#CustomerPincodeFind_" + id + "").val();
+        var CustomerGstNumber = $("#CustomerGSTFind_" + id + "").val();
+        var CustomerDistrict = $("#CustomerDistrictFind_" + id + "").val();
+        var salgid = '@Session["SaleNo"]';
+        var gstcharged = '@(ViewBag.IsGStCharged)';
+        if (gstcharged == "Y") {
+            var hsndata = $("#hdnHsnData").val();
+        }
+        else
+        {
+            var hsndata = "";
+        }
+
+        $('#GetCustomergid').val(Customergid);
+        $('#GetContactgid').val(Contactgid);
+        $('#GetCustomercode').val(CustomerCode);
+        $('#vendnam').val(CustomerName);
+        $('#vendaddr').val(CustomerAddress);
+        $('#pincode').val(Customerpincode);
+        $('#district').val(CustomerDistrict);
+        $('#state').val(Customerstate);
+        $('#gstnumber').val(CustomerGstNumber);
+        var CustomerDetail = {
+            "customer_gid": Customergid,
+            "customer_code": CustomerCode,
+            "state_gid": Customerstate,
+            "Pincode": Customerpincode,
+            "soaGid": salgid,
+            "gstcharged": gstcharged,
+            "hsn_description": hsndata
+        }
+        $.ajax({
+            type:"POST",
+            url: '../AssetSale/GetGstCustomerDetails',
+            data: JSON.stringify(CustomerDetail),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                var Data1 = "";
+                if(JSON.parse(response.Data1!=null)) 
+                {       
+                    Data1 = JSON.parse(response.Data1);
+                    
+                    if (gstcharged == "Y") {
+                        $('#taxamount').val(Data1[0].taxamount);
+                        $('#saleamount').val(Data1[0].saleamount);
+                        $("#rdogstChargedFlagYes").prop('checked', true);
+                    }
+                    else
+                    {
+                        $('#taxamount').val(0);
+                        $("#rdogstChargedFlagNo").prop('checked', true);
+                    }
+                    Gottodel();
+                }  
+            }
+        });
+        validation();
+    }
+
+    function Gottodel() {
+        //ob.remove();
+        ob.dialog("close");
+        //$('#customersearch').dialog('refresh');
+        //ob.remove();
+        //window.parent.jQuery('#customersearch').dialog('close');
+
+    }
+
+    function validation()
+    {
+        $("#cheque").attr("readonly", false);
+        //$("#datecheque").attr("readonly", false);l
+
+        $("#vendnam").removeClass('required');
+        $("#vendaddr").removeClass('required');
+        $("#pincode").removeClass('required');
+        $("#district").removeClass('required');
+        $("#state").removeClass('required');
+        $("#gstnumber").removeClass('required');
+        $("#taxamount").removeClass('required');
+        $("#saleamount").removeClass('required');
+
+        $("#vendnam").addClass('valid');
+        $("#vendaddr").addClass('valid');
+        $("#pincode").addClass('valid');
+        $("#district").addClass('valid');
+        $("#state").addClass('valid');
+        $("#gstnumber").addClass('valid');
+        $("#taxamount").addClass('valid');
+        $("#saleamount").addClass('valid');
+        $("#datesale").addClass('valid');
+    }
+
+
+
+    
+ 
+    function reload1()
+    {
+        debugger;
+        
+        
+        $('#customersearch').dialog('refresh');
+
+        //location = '../IEM_CUSTOMERDETAIL/Index';
+    }
+
+
+</script>

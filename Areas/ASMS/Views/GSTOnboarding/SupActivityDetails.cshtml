@@ -1,0 +1,324 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupActivity
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupActivity> lst = new List<SupActivity>();
+
+    lst = (List<SupActivity>)Session["ActivitySearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetActivityDetails().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<div id="wgActivity">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "wgActivity", ajaxUpdateCallback: "DummyFunction15()");
+        int rowcount = 0;
+    }
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridActivity" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_ActivityID", objCmnFunctions.Sorter("_ActivityID", "ID", grid), canSort: false),
+                grid.Column("SlNo", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_Activitytype", objCmnFunctions.Sorter("_Activitytype", "Activity Type", grid), style: "colSmall"),
+                grid.Column("_ActivityName", objCmnFunctions.Sorter("_ActivityName", "Activity Name", grid), style: "colmediumBreak"),
+                grid.Column("_DescOfActivityType", objCmnFunctions.Sorter("_DescOfActivityType", "Description", grid), style: "collargeBreak"),
+                //grid.Column("_CategoryName", objCmnFunctions.Sorter("_CategoryName", "Category", grid)),
+                //grid.Column("_SubCategoryName", objCmnFunctions.Sorter("_SubCategoryName", "Sub category", grid)),
+                grid.Column("_ProjectContractSpend", objCmnFunctions.Sorter("_ProjectContractSpend", "Contract Spend", grid), format: @<text> @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item._ProjectContractSpend)))) </text>, style: "colamountlarge"),
+                grid.Column("_Saves", objCmnFunctions.Sorter("_Saves", "Saves", grid), format: @<text> @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item._Saves)))) </text>, style: "colamountlarge"),
+                //grid.Column("_ProjectContractSpend", objCmnFunctions.Sorter("_ProjectContractSpend", "Contract Spend", grid), style: "colamountlarge"),
+                //grid.Column("_Saves", objCmnFunctions.Sorter("_Saves", "Saves", grid), style: "colamountlarge"),
+                grid.Column("_ActivityStartDate", objCmnFunctions.Sorter("_ActivityStartDate", "Activity Start Date", grid), style: "action"),
+                grid.Column("_ActivityEndDate", objCmnFunctions.Sorter("_ActivityEndDate", "Activity End Date", grid), style: "action"),
+                grid.Column("_OICName", objCmnFunctions.Sorter("_OICName", @System.Configuration.ConfigurationManager.AppSettings["CompanyName"]+" Officer Incharge", grid), style: "colmediumBreak",
+                format: @<text>
+                    <input type="hidden" id="txtOICgid" value=@item._OIC /><span>@item._OICName</span>
+                </text>  ),
+                grid.Column("_ContactPersonName", objCmnFunctions.Sorter("_ContactPersonName", "Contact Person", grid),
+                 format: @<text>
+                    <input type="hidden" id="txtContactPersongid" value=@item._ContactPerson /><span>@item._ContactPersonName</span>
+                </text>, style:"colmediumBreak"
+                ),
+                                                          grid.Column("_FidelityInsuranceReqd", objCmnFunctions.Sorter("_FidelityInsuranceReqd", "Fidelity Insurance Reqd", grid), style: "colmediumBreak"),
+                                                          grid.Column("_BiddingName", objCmnFunctions.Sorter("_BiddingName", "Bidding", grid), style: "colmediumBreak"),
+                                                          grid.Column("_Reason", objCmnFunctions.Sorter("_Reason", "Reason", grid), style: "collargeBreak"),
+                grid.Column(header: "Action", canSort: false, style: "action", format: @<text>
+                    @*<a title='Edit' style="text-decoration:none;" onclick='EditActivityDetails(this)'> <span class='glyphicon glyphicon-edit'> </span> </a>
+        <a title='Delete' style="text-decoration:none;" onclick='DeleteActivityDetails(@item._ActivityID)'> <span class='glyphicon glyphicon-trash'> </span> </a>*@
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">
+            Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b>
+        </div>
+    }
+</div>
+<script type="text/javascript">
+    function EditActivityDetails(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_ActivityID").val(ids);
+        var activitytype = tds.eq(2).text();
+        var descofactivity = tds.eq(4).text();
+        var fidelityinsurancereqd = tds.eq(11).text();
+        //var categoryname = tds.eq(5).text();
+        //var subcategoryname = tds.eq(6).text();
+        var activityname = tds.eq(3).text();
+        var activitystartdate = tds.eq(7).text();
+        var activityenddate = tds.eq(8).text();
+        var bidding = tds.eq(12).text();
+        var contractspend = tds.eq(5).text();
+        var saves = tds.eq(6).text();
+        var oic = $.trim(tds.eq(9).text());
+        var contactperson = $.trim(tds.eq(10).text());
+        var reason = $.trim(tds.eq(13).text());
+
+        var oicgid = tds.find('#txtOICgid').val();
+        var contactpersongid = tds.find('#txtContactPersongid').val();
+        $("#_OIC").val(oicgid);
+        $("#_ContactPerson").val(contactpersongid);
+        $("#_DescOfActivityType").val(descofactivity);
+        $("#_ActivityStartDate").val(activitystartdate);
+        $("#_ActivityEndDate").val(activityenddate);
+        $("#_ProjectContractSpend").val(contractspend);
+        $("#_Saves").val(saves);
+        $("#_OICName").val(oic);
+        $("#_Reason").val(reason);
+        $("#_ContactPersonName").val(contactperson);
+        if (activitytype == "Product") {
+            $("#rbActivityProduct").prop("checked", true);
+        }
+
+        else if (activitytype == "Service") {
+            $("#rbActivityService").prop("checked", true);
+        }
+        if (fidelityinsurancereqd == "Yes") {
+            $("#rbFidelityYes").prop("checked", true);
+        }
+        else if (fidelityinsurancereqd == "No") {
+            $("#rbFidelityNo").prop("checked", true);
+        }
+
+        @*$("#selectedcategoryID option").each(function () {
+            if ($(this).text() == categoryname) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        var categorygid = $("#selectedcategoryID").val();
+        var objSupActivity =
+       {
+           "selectedcategoryID": categorygid
+       };
+        $.ajax({
+            url: '@Url.Action("GetSubcategory", "Onboarding")',
+            data: JSON.stringify(objSupActivity),
+            type: 'POST',
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedSubcategoryID").empty();
+                if (data.length > 0) {
+                    $("#selectedSubcategoryID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedSubcategoryID').attr('disabled', false);
+                        $("#selectedSubcategoryID").append("<option value=" + data[i]._SubCategoryID + " >" + data[i]._SubCategoryName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedSubcategoryID").empty();
+                    $("#selectedSubcategoryID").append("<option value='0' >--Select--</option>");
+                    $('#selectedSubcategoryID').val('0');
+                    $('#selectedSubcategoryID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong","Error");
+            }
+        });*@
+        $("#selectedBiddingID option").each(function () {
+            if ($(this).text() == bidding) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#selectedActivityNameID option").each(function () {
+            if ($(this).text() == activityname) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        //setTimeout(function () {
+        //    $("#selectedSubcategoryID option").each(function () {
+        //        if ($(this).text() == subcategoryname) {
+        //            $(this).attr('selected', 'selected');
+        //        }
+        //    });
+        //}, 40);
+
+        if ($("#selectedBiddingID").val() != "0" && $("#selectedBiddingID").val() != "") {
+            $("#selectedBiddingID").addClass('valid');
+            $("#selectedBiddingID").removeClass('required');
+        }
+        else {
+            $("#selectedBiddingID").addClass('required');
+            $("#selectedBiddingID").removeClass('valid');
+        }
+        if ($("#selectedActivityNameID").val() != "0" && $("#selectedActivityNameID").val() != "") {
+            $("#selectedActivityNameID").addClass('valid');
+            $("#selectedActivityNameID").removeClass('required');
+        }
+        else {
+            $("#selectedActivityNameID").addClass('required');
+            $("#selectedActivityNameID").removeClass('valid');
+        }
+        //if ($("#selectedcategoryID").val() != "0" && $("#selectedcategoryID").val() != "") {
+        //    $("#selectedcategoryID").addClass('valid');
+        //    $("#selectedcategoryID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedcategoryID").addClass('required');
+        //    $("#selectedcategoryID").removeClass('valid');
+        //}
+        //if ($("#selectedSubcategoryID").val() != "0" && $("#selectedSubcategoryID").val() != "") {
+        //    $("#selectedSubcategoryID").addClass('valid');
+        //    $("#selectedSubcategoryID").removeClass('required');
+        //}
+        //else {
+        //    $("#selectedSubcategoryID").addClass('required');
+        //    $("#selectedSubcategoryID").removeClass('valid');
+        //}
+        if ($("#_DescOfActivityType").val() != "" && $("#_DescOfActivityType").val() != null) {
+            $("#_DescOfActivityType").addClass('valid');
+            $("#_DescOfActivityType").removeClass('required');
+        }
+        else {
+            $("#_DescOfActivityType").addClass('required');
+            $("#_DescOfActivityType").removeClass('valid');
+        }
+        //if ($("#_ActivityStartDate").val() != "" && $("#_ActivityStartDate").val() != null) {
+        //    $("#_ActivityStartDate").addClass('valid');
+        //    $("#_ActivityStartDate").removeClass('required');
+        //}
+        //else {
+        //    $("#_ActivityStartDate").addClass('required');
+        //    $("#_ActivityStartDate").removeClass('valid');
+        //}
+        //if ($("#_ActivityEndDate").val() != "" && $("#_ActivityEndDate").val() != null) {
+        //    $("#_ActivityEndDate").addClass('valid');
+        //    $("#_ActivityEndDate").removeClass('required');
+        //}
+        //else {
+        //    $("#_ActivityEndDate").addClass('required');
+        //    $("#_ActivityEndDate").removeClass('valid');
+        //}
+        //if ($("#_Saves").val() != "" && $("#_Saves").val() != null) {
+        //    $("#_Saves").addClass('valid');
+        //    $("#_Saves").removeClass('required');
+        //}
+        //else {
+        //    $("#_Saves").addClass('required');
+        //    $("#_Saves").removeClass('valid');
+        //}
+        //if ($("#_ProjectContractSpend").val() != "" && $("#_ProjectContractSpend").val() != null) {
+        //    $("#_ProjectContractSpend").addClass('valid');
+        //    $("#_ProjectContractSpend").removeClass('required');
+        //}
+        //else {
+        //    $("#_ProjectContractSpend").addClass('required');
+        //    $("#_ProjectContractSpend").removeClass('valid');
+        //}
+        if ($("#_OICName").val() != "" && $("#_OICName").val() != null) {
+            $("#_OICName").addClass('valid');
+            $("#_OICName").removeClass('required');
+        }
+        else {
+            $("#_OICName").addClass('required');
+            $("#_OICName").removeClass('valid');
+        }
+        if ($("#_ContactPersonName").val() != "" && $("#_ContactPersonName").val() != null) {
+            $("#_ContactPersonName").addClass('valid');
+            $("#_ContactPersonName").removeClass('required');
+        }
+        else {
+            $("#_ContactPersonName").addClass('required');
+            $("#_ContactPersonName").removeClass('valid');
+        }
+        if ($("#_Reason").val() != "" && $("#_Reason").val() != null) {
+            $("#_Reason").addClass('valid');
+            $("#_Reason").removeClass('required');
+        }
+        else {
+            $("#_Reason").addClass('required');
+            $("#_Reason").removeClass('valid');
+        }
+    }
+    function DeleteActivityDetails(id) {
+        $("#_ActivityID").val("0");
+        jConfirm("Do you want to delete this Activity Detail: ", Title_3, function (e) {
+            if (e == true) {
+                var objSupActivity = { "_ActivityID": id }
+                $.post('../Onboarding/DeleteActivityDetails', objSupActivity,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             jAlert("Deleted Successfully", "Error");
+
+                             $("#wgActivity").load("../onboarding/SupActivityDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridActivity td:nth-child(1),#wgridActivity th:nth-child(1)").hide();
+        $("#wgridActivity td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridActivity td:nth-child(15),#wgridActivity th:nth-child(15)").hide();
+        }
+
+    });
+    function DummyFunction15() {
+        $("#wgridActivity td:nth-child(1),#wgridActivity th:nth-child(1)").hide();
+        $("#wgridActivity td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridActivity td:nth-child(15),#wgridActivity th:nth-child(15)").hide();
+        }
+
+    }
+</script>

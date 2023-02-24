@@ -1,0 +1,204 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_PO>
+@using IEM.Common
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    ViewBag.Title = "Index";
+    var grid = new WebGrid(source: Model, canSort: false, canPage: true, rowsPerPage: 7, ajaxUpdateContainerId: "searchpogrid", ajaxUpdateCallback: "fb_employee();");
+    int rowValAttachment = 0;
+}
+<div id="searchpogrid">
+    <div class="well">
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <span> PO No </span>
+                    <input name="po_no"
+                           id="po_no"
+                           type="text"
+                           class="textboxStyle "
+                           data-val="true"
+                           value="@ViewBag.po_no" />
+                </td>
+                <td>
+                    <span> PO Date </span>
+                    <input name="po_date"
+                           id="po_date"
+                           type="text"
+                           class="textboxStyle "
+                           data-val="true"
+                           value="@ViewBag.po_date" />
+                </td>
+                <td>
+                    <span> PO Amount </span>
+                    <input name="po_amount"
+                           id="po_amount"
+                           type="text"
+                           class="textboxStyle "
+                           data-val="true"
+                           value="@ViewBag.po_amount" />
+                </td>
+                <td>
+                    <button class="btn btn-primary" name="command" id="btnsearch" type="button" value="search">Search</button>
+                </td>
+                <td>
+                    <button class="btn btn-primary" name="btnclear" id="btnclear" type="button" value="Clear">Clear</button>
+                </td>
+                <td>
+                    <button class="btn btn-warning" name="commandcan" id="btnCancel1" type="button" value="Cancel" onclick="GotoIndexaddemps()">Cancel</button>
+                </td>
+            </tr>
+        </table>
+        <br />
+        <div id="emplgridpo">
+            <div class="overflowy">
+                <div style="max-height: 485px;">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+                    @grid.GetHtml(
+                             htmlAttributes: new { id = "wgempposupplier" },
+                 mode: WebGridPagerModes.All,
+                tableStyle: "table table-bordered table-hover table-responsive",
+                columns: grid.Columns
+                    (
+                 grid.Column("PO No", format: @<text>
+                        <label style="font-weight:normal;" id="PONo_@item.POGid">@item.PONo</label>
+
+                        <input type="hidden" id="tlblPONo_@item.POGid" name="EmployeeId" value="@item.PONo" />
+                        <input type="hidden" id="tPOdate_@item.POGid" name="EmployeeId" value="@item.POdate" />
+                        <input type="hidden" id="tPOStatus_@item.POGid" name="EmployeeId" value="@item.POStatus" />
+                        <input type="hidden" id="tPOAmount_@item.POGid" name="EmployeeId" value="@item.POAmount" />
+                </text>),
+                 grid.Column("PO Date", format:@<text><label style="font-weight:normal;" id="POdate_@item.POGid">@item.POdate</label></text>),
+                 grid.Column("PO Status", format:@<text><label style="font-weight:normal;" id="POStatus_@item.POGid">@item.POStatus</label></text>),
+                    @*grid.Column("PO Amount ", format:@<text><label style="font-weight:normal;" id="POAmount_@item.POGid">@item.POAmount</label></text>),*@
+ grid.Column(header: "PO Amount",
+                                                format: @<text>
+    @Html.Raw(String.Format("{0:#,##}",
+                                objCmnFunctions.GetINRAmount(Convert.ToString(@item.POAmount)
+                        ))) </text>, style: "colamountlarge"),
+                              grid.Column(header: "Action", canSort: false, style: "action acnwth",
+                         format: @<text>
+                                <a><span class="btn btn-link btn-link" onclick="SelectPO(@item.POGid)">Select</span></a>&nbsp;&nbsp;&nbsp;
+                                <a><span class="btn btn-link btn-link" onclick="ViewPO(@item.POGid)">View PO Details</span></a>
+                        </text>)))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .acnwth {
+        width: 27%;
+    }
+</style>
+<script type="text/javascript">
+    function FindLeftWindowBoundry() {
+        if (window.screenLeft) {
+            return window.screenLeft;
+        }
+        if (window.screenX)
+            return window.screenX;
+
+        return 0;
+    }
+    function FindTopWindowBoundry() {
+        if (window.screenTop) {
+            return window.screenTop;
+        }
+        if (window.screenY)
+            return window.screenY;
+
+        return 0;
+    }
+
+    function ViewPO(id) {
+        //id = "38";
+        //console.log(FindLeftWindowBoundry(), FindTopWindowBoundry());
+        var x = screen.width / 2 - 1200 / 2 + FindLeftWindowBoundry();
+        var y = screen.height / 2 - 800 / 2 + FindTopWindowBoundry();
+        @*var url = '@Url.Action("PoEditDetails", "SupplierInvoiceNewc")?id=' + id + '&viewfor=view&' + new Date().getTime();*@
+        var url = '@Url.Action("RaisePO", "PO")/' + id + '/0';
+        //window.open(url);
+        window.open(url, 'Page', 'scrollbars=1,height=800,width=1200,left=' + x + ',top=' + y);
+    }
+</script>
+<script>
+    $('#btnclear').click(function () {
+        $('#po_no').val('');
+        $('#po_date').val('');
+        $('#po_amount').val('');
+        $("#searchpogrid").load('../SupplierInvoiceNewc/_PoAdd?listfor=new');
+    });
+    $('#btnsearch').click(function () {
+        var potypes = $("#doctypeNames option:selected").text();
+        if (potypes != "") {
+            if (potypes == "PO") {
+                potypes = "P";
+            }
+            if (potypes == "WO") {
+                potypes = "W";
+            }
+            var po_no = $('#po_no').val();
+            var po_date = $('#po_date').val();
+            var po_amount = $('#po_amount').val();
+            var objownersearch = {
+                "PONo": po_no,
+                "POdate": po_date,
+                "POAmount": po_amount
+            };
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("searchpodetails", "SupplierInvoiceNewc")?potype=' + potypes + ' & ' + new Date().getTime(),
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchpogrid").load('../SupplierInvoiceNewc/_PoAdd?listfor=search');
+                },
+                error: function () {
+                }
+            });
+        }
+    });
+    function SelectPO(id) {
+
+        var pono = $("#tlblPONo_" + id + "").val();
+        var podate = $("#tPOdate_" + id + "").val();
+        var postatus = $("#tPOStatus_" + id + "").val();
+        var poamount = $("#tPOAmount_" + id + "").val();
+
+        var IntaxModel = {
+            "PONo": pono,
+            "POdate": podate,
+            "POStatus": postatus,
+            "POAmount": poamount,
+            "POGid": id
+        };
+
+        $.post('../SupplierInvoiceNewc/_PoAdd', IntaxModel,
+        function (data) {
+            if (data == "success") {
+                jAlert("Saved Successfully.", "Message");
+                var url = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNewc")?' + new Date().getTime();
+                $("#wgempposupplier").load(url);
+                window.parent.jQuery('#ForPartialViewsupplierTax').dialog('close');
+            }
+            else {
+                location = location.href;
+            }
+        }, 'json');
+
+        GotoIndexaddemps();
+    }
+    function GotoIndexaddemps() {
+        supplierpo.dialog("close");
+        window.parent.jQuery('#ForPartialViewsupplierpo').dialog('close');
+    }
+    function fb_employee() {
+        $("#grid td:nth-child(2),#grid th:nth-child(2)").show();
+    }
+</script>

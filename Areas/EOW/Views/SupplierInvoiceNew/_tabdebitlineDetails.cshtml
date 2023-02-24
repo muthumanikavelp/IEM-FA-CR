@@ -1,0 +1,192 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetSuppliserDedit(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "S").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+        ViewBag.NoRecordstol = "total";
+        Session["invoiceDebitamnt"] = remamount.ToString();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["Supplierpaydebitedit"] != null)
+    {
+        ViewBag.Msgt = "Edit";
+    }
+    else
+    {
+        ViewBag.Msgt = "";
+    }
+}
+<div id="wgTravelmodeotab2">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 10, ajaxUpdateContainerId: "wgTravelmodeotab2", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+    <div class="table-responsive" style="max-height: 350px;">
+        @grid.GetHtml(
+                                          htmlAttributes: new { id = "wgTravelmodeotab2" },
+                                                            tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   grid.Columns(
+                                                                               grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName", "Nature of Expenses", grid), canSort: false, style: "asupdebitline"),
+                                                                     grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense/Asset Category", grid), canSort: false, style: "dsupdebitline"),
+                                                                                                grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", " Expense/Asset Sub Category", grid), canSort: false, style: "dsupdebitline"),
+                                                                                grid.Column(header: "GL No", canSort: false, style: "csupdebitline",
+                                            format: @<text>
+                                                                                    <table id="tblglno" style="width: 155%;">
+                                                                                        <tr>
+                                                                                            <td>
+                                                                                                <label style="font-weight:normal;" id="RefException">@item.ClaimMonth</label>
+                                                                                                @Html.Raw("<a title='view' onclick='EmpExpenseglno(" + item.TravelMode_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                            </text>),
+                                                                                                                      grid.Column("FC", objCmnFunctions.Sorter("FC", "Business Segment(BU)", grid), canSort: false, style: "asupdebitline"),
+                                                                                                                       grid.Column("CC", objCmnFunctions.Sorter("CC", "Cost Center(CC)", grid), canSort: false, style: "dsupdebitline"),
+                                                                                                                       grid.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "Product Code", grid), canSort: false, style: "asupdebitline"),
+                                                                                                                       grid.Column("OUCode", objCmnFunctions.Sorter("OUCode", "Location Code(OUCode)", grid), canSort: false, style: "fsupdebitline"),
+                                  //grid.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", grid), canSort: false, style: "collargeBreak"),
+                               grid.Column(header: "Amount",
+                        format: @<text>
+                                @Html.Raw(String.Format("{0:#,##}",
+                                                          objCmnFunctions.GetINRAmount(Convert.ToString(@item.Amount)
+                        ))) </text>, style: "colamountlarge"),
+                                  grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @if (ViewBag.Msgt == "Edit")
+                                    {
+                                        if (item.Branch == "" || item.Branch == "0")
+                                        {
+                                            @Html.Raw("<a title='view' onclick='EmpOtherExpenseView(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                            @Html.Raw("<a title='Edit' onclick='EmpOtherExpenseEdit(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                            if (item.invoicepoitem_GID == "0")
+                                            {
+                                                @Html.Raw("<a title='Delete' onclick='EmpOtherExpenseDelete(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                            }
+                                        }
+                                    }
+                </text>)))
+        @if (@ViewBag.NoRecords == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFound </b>
+                </center>
+            </div>
+        }
+
+    </div>
+
+    @if (@ViewBag.NoRecordstol == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <div align="right">
+                            <span id="supplierdetlineamt">
+                                Total DebitLine Amount : <b>
+                                    <label style="display:none" id="supplierdetlineamtr">
+                                        @Session["invoiceDebitamnt"]
+                                    </label>
+                                    <label id="supplierpaymentd6r">
+                                        @objCmnFunctions.GetINRAmount(@Session["invoiceDebitamnt"].ToString())
+                                    </label>
+                                </b>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+</div>
+<style>
+    .csupdebitline {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .asupdebitline {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dsupdebitline {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .fsupdebitline {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //var Ecfamountvalmain = $("#txtInvoiceamount").val();
+        //var Ecfrowtolamt = $("#supplierdetlineamtr").text();
+
+        var Ecfamountvalmain = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var Ecfrowtolamt = $("#supplierdetlineamtr").text().replace(/,/g, "");
+
+        var val1 = parseFloat(Ecfamountvalmain);
+        var val2 = parseFloat(Ecfrowtolamt);
+        if (val1 == val2) {
+            var stylesSelect = $('#btndebitlieinvo');
+            stylesSelect.attr('disabled', true);
+            var stylesSelect = $('#btndebitlieinvoexcel');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            if (val2 != "0") {
+                var stylesSelect = $('#btndebitlieinvo');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#btndebitlieinvoexcel');
+                stylesSelect.attr('disabled', false);
+            }
+        }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgTravelmodeotab2 tr #id").click(function () {
+            $('#wgTravelmodeotab2').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

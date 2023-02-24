@@ -1,0 +1,94 @@
+﻿@using System.Data
+@using IEM.Areas.MASTERS.Models
+@{
+    List<iem_mst_delmat> lst = new List<iem_mst_delmat>();
+    if (Session["SlabGid"] != null)
+    {
+        IEM_MST_DELMAT delm = new IEM_MST_DELMAT();
+        DataTable t = new DataTable();
+        DataTable t1 = new DataTable();
+        var ser = ViewBag.viewfor;
+        t = delm.GetslabRangeByID(int.Parse(Session["SlabGid"].ToString()));
+        t1 = delm.GetSlabById(int.Parse(Session["SlabGid"].ToString()));
+        
+        var slabname = Convert.ToString(Session["slabname"]);
+        if (slabname == "")
+        {
+            foreach (DataRow dr in t1.Rows)
+            {
+                Session["slabname"] = dr["slab_name"].ToString();
+                slabname = dr["slab_name"].ToString();
+            }
+        }
+        foreach (DataRow dr in t.Rows)
+        {
+            lst.Add(
+            new iem_mst_delmat
+            {
+                SNo = int.Parse(dr["SNo"].ToString()),
+                slabrange_name = dr["slabrange_name"].ToString(),
+                slabrange_range_from = decimal.Parse(dr["slabrange_range_from"].ToString()),
+                slabrange_range_to = decimal.Parse(dr["slabrange_range_to"].ToString())
+
+            });
+        };
+        var grid = new WebGrid(lst, canSort: true);
+        using (Html.BeginForm())
+        {
+            
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Slab Name </span>
+                <br />
+                <input name="DocNameName" id="_slabname" type="text" data-val="true" disabled="disabled"
+                       value="@Session["slabname"]" @ViewBag.viewfor class="fstextbox valid " style="display: block;" />
+            </td>
+        </tr>
+        </table>
+
+
+
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+          htmlAttributes: new { id = "grid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                                        grid.Column(header: "slabrange Name", columnName: "slabrange_name"),
+                                              grid.Column(header: "slabrange Range From", columnName: "slabrange_range_from"),
+                                  grid.Column(header: "slabrange Range To", columnName: "slabrange_range_to")
+                         ))
+    </div>
+ 
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="closeview11()" style="margin-top:20px;"> 
+                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove"></span>Close</button>
+            </td>
+        </tr>
+    </table>
+
+
+        }
+    }
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+        //$('#grid tr th:nth-child(5)').addClass("nosort");
+        //$('#grid').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+    });
+    function closeview11() {
+        objDialogyPushAdd.dialog("close");          
+    }
+</script>

@@ -1,0 +1,1562 @@
+﻿@using IEM.Areas.ASMS.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageModeIndex = (string)Session["PageMode"];
+    }
+    if (Session["queuefor"] != null)
+    {
+        ViewBag.QueueForModification = (string)Session["queuefor"];
+    }
+
+    string Notify = "label label-danger";
+
+    SupplierHeader sh = (SupplierHeader)ViewBag.supplierheader;
+    ViewBag.SupplierHeaderGid = Convert.ToInt64(System.Web.HttpContext.Current.Session["SupplierHeaderGid"]);
+    if (ViewBag.PageModeIndex == "4")
+    {
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        if (ViewBag.QueueForModification == "6")
+        {
+            ViewBag.RequestStatus = "DRAFT";
+        }
+        else
+        {
+            ViewBag.RequestStatus = sh._Requeststatus.ToUpper() == "WAITINGFORAPPROVAL" ? "INPROCESS" : sh._Requeststatus.ToUpper();
+        }
+        ViewBag.RequestType = sh._RequestType.ToUpper();
+    }
+
+    else if (ViewBag.PageModeIndex == "5")
+    {
+        if (Session["isFinancialReviewer"] != null)
+        {
+            ViewBag.isFinancialReviewer = (string)Session["isFinancialReviewer"];
+            ViewBag.headertitle = "Financial Review";
+        }
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        ViewBag.RequestType = sh._RequestType.ToUpper();
+        ViewBag.RequestStatus = sh._Requeststatus.ToUpper() == "WAITINGFORAPPROVAL" ? "INPROCESS" : sh._Requeststatus.ToUpper();
+    }
+    else if (ViewBag.PageModeIndex == "2")
+    {
+        ViewBag.headertitle = "Supplier Modification";
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        ViewBag.RequestType = "MODIFICATION";
+        ViewBag.RequestStatus = "DRAFT";
+    }
+    else if (ViewBag.PageModeIndex == "6")
+    {
+        ViewBag.headertitle = "Supplier Renewal";
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        ViewBag.RequestType = "RENEWAL";
+        ViewBag.RequestStatus = "DRAFT";
+    }
+    else if (ViewBag.PageModeIndex == "3")
+    {
+        ViewBag.headertitle = "Current Approval Stage - " + sh._CurrentApprovalStageName.ToUpper();
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        ViewBag.RequestType = sh._RequestType.ToUpper();
+        ViewBag.RequestStatus = sh._Requeststatus.ToUpper() == "WAITINGFORAPPROVAL" ? "INPROCESS" : sh._Requeststatus.ToUpper();
+
+        ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+    }
+    else if (ViewBag.PageModeIndex == "1")
+    {
+        ViewBag.headertitle = "Supplier Onboarding";
+        ViewBag.RequestTypeCaption = "Request Type ";
+        ViewBag.RequestStatusCaption = "Request Status ";
+        ViewBag.RequestType = "ONBOARDING";
+        ViewBag.RequestStatus = "DRAFT";
+    }
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    .statusDivStyle {
+        width: 98%;
+        text-align: right;
+        margin-right: 25px;
+    }
+
+    .borderStyle {
+        border-radius: 5px;
+        opacity: 50;
+        border: 1px solid #ada8a8;
+        height: 100%;
+        padding: 8px;
+    }
+</style>
+
+<script type="text/javascript">
+    var dirCount;
+    var pagemodeindex = parseInt(@ViewBag.PageModeIndex);
+    var currentapprovalstage = parseInt(@sh._CurrentApprovalStage);
+    var requesttype;
+    var queuetotype;
+    var currentstage;
+    var nextlevel;
+    var ismandatoryqueue;
+    var supheadgid = parseInt(@ViewBag.SupplierHeaderGid);
+    var isallowapprovertoedit = parseInt(@ViewBag.IsAllowApproverToEdit);
+
+    $(function () {
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+        $("#tabs").css("display", "block");
+
+    });
+    var nextstagename;
+    var isClicked = "false";
+    $(document).ready(function () {
+
+        $('input:radio[name=IsApproved]').live('change', function () {
+            var rdbval = $(this).val();
+            var requesttype1 = '@sh._RequestType';
+            var currentstage = '@sh._CurrentApprovalStage';
+            var objApprovalModel = {
+                "_RequestType": requesttype,
+                "_QueueCurrentLevel": currentstage
+            };
+
+            $.ajax({
+                url: '../Onboarding/GetNextApprovalStage',
+                data: JSON.stringify(objApprovalModel),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+
+                    if (data.length > 0) {
+                        for (var i = 0; i < data.length; i++) {
+                            ismandatoryqueue = data[i]._NextApprovalIsMandatory;
+                            nextstagename = data[i]._NextApprovalGroup;
+                            nextlevel = data[i]._QueueCurrentLevel;
+                            queuetotype = data[i]._QueueToType;
+                        }
+                        if (rdbval == "1") {
+                            if (queuetotype != "G") {
+                                if (ismandatoryqueue == "N") {
+                                    $("#trOptionalChk").css("display", "block");
+                                    $("#trOptionalField").css("display", "block");
+                                    $("#spnOptionalFieldName").text("Select " + nextstagename);
+                                    $("#lblOptionalFieldChk").text("Is " + nextstagename + " Approval Required?");
+                                    $("#txtNextApprover").prop("disabled", true);
+                                    $("#trNextApproverLabel").css("display", "none");
+                                    $("#btnEmployeeSearchApproval span").prop("disabled", true);
+                                }
+                                else {
+                                    $("#trOptionalChk").css("display", "none");
+                                    $("#trOptionalField").css("display", "none");
+                                    $("#spnOptionalFieldName").text("");
+                                    $("#lblOptionalFieldChk").text("");
+                                    $("#txtNextApprovalQueue").val(nextstagename);
+                                    $("#txtNextApprovalQueue").prop("disabled", true);
+                                }
+                            }
+                        }
+                        else {
+                            $("#trOptionalChk").css("display", "none");
+                            $("#trOptionalField").css("display", "none");
+                            $("#spnOptionalFieldName").text("");
+                            $("#lblOptionalFieldChk").text("");
+                            $("#txtNextApprovalQueue").val(nextstagename);
+                            $("#txtNextApprovalQueue").prop("disabled", true);
+                        }
+
+                    }
+
+                },
+                error: function (result) {
+                    jAlert("Something Went wrong", "Error");
+                }
+            });
+
+
+
+        });
+        function roundNumbers(numbers) {
+            //if(parseInt(numbers) > 9 ){
+            //    numbers = "" + numbers ;
+            //}
+            //else{
+            //    numbers = "0" + numbers;
+            //}
+            //return numbers;
+            return parseInt(numbers) > 9 ? "" + numbers : "0" + numbers;
+
+        }
+
+        //   $("#divSubmitButton1").css("display", "none");
+        if (pagemodeindex == 6) {
+            @*$("#txtSupplierName").attr("disabled", "disabled");
+            $("#ContractToDateBlock").css("display", "block");
+            var contracttodate = '@sh._ContractTo';
+            var newdate = contracttodate.split('-');
+            var year = newdate[2];
+            var daystoadd = 0;
+            if (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) {
+                daystoadd = 364;
+            }
+            else {
+                // $("#txtSupplierName").removeAttr("disabled", "disabled");
+                daystoadd = 365;
+            }
+
+            //var dat = new Date();
+            //var format = 0;
+            //var monthname = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+
+            //dat.setDate(dat.getDate() + daystoadd);
+
+            //format = dat.getDate() + "-" + monthname[dat.getMonth() - 1] + "-" + dat.getFullYear();
+            //$("#txtContractTo").val(format);
+            var dat = new Date(newdate[2], newdate[1], newdate[0]);
+            var format = 0;
+            dat.setDate(dat.getDate() + daystoadd);
+            format = roundNumbers(dat.getDate()) + "-" + roundNumbers(dat.getMonth()) + "-" + dat.getFullYear();
+            $("#txtContractTo").val(format);*@
+
+            $("#txtContractTo").val("");
+            $("#txtContractFrom").val("");
+        }
+        //else {
+        //    $("#ContractToDateBlock").css("display", "none");
+        //}
+
+        if (pagemodeindex == 1) {
+            $("#divForStatus").css("display", "block");
+            $("#divForApproval").css("display", "none");
+            $("#divSubmitButton1").css("display", "none");
+            $("#tabs").tabs({ disabled: [1, 2, 3, 4, 5, 6, 7, 8] });
+        }
+
+        if (pagemodeindex == 2 || pagemodeindex == 4 || pagemodeindex == 6) {
+
+            $("#divForStatus").css("display", "block");
+            $("#divForApproval").css("display", "none");
+            $("#divSubmitButton1").css("display", "block");
+            $("#tabs").tabs({ disabled: [10] });
+        }
+        if (pagemodeindex == 3) {
+
+            $("#divForStatus").css("display", "block");
+            $("#divForApproval").css("display", "block");
+            $("#divSubmitButton1").css("display", "none");
+            $("#tabs").tabs({ disabled: [10] });
+            var ismodification = '@ViewBag.RequestType';
+            if ($.trim(ismodification).toString().toUpperCase() == "MODIFICATION") {
+                $("#divModificationHistory").css("display", "block");
+            }
+
+        }
+        if (pagemodeindex == 4) {
+            $("#divSubmitButton1").css("display", "block");
+        }
+
+
+        //if (isallowapprovertoedit == 1) {
+        //    $("#divForStatus").css("display", "block");
+        //    $("#divForApproval").css("display", "block");
+        //    $("#divSubmitButton").css("display", "none");
+        //    $("#tabs").tabs({ disabled: [9] });
+        //}
+        @*if (pagemodeindex == 5) {
+            var isvmu = '@ViewBag.isvmu';
+            if (isvmu == "N") {
+                $("#tabs-7").css("display", "none");
+                $("#tab7").css("display", "none");
+
+            }
+        }*@
+        var sheaderGid = parseInt('@ViewBag.SupplierHeaderGid');
+
+        if (sheaderGid != 0) {
+            requesttype = '@sh._RequestType';
+            currentstage = '@sh._CurrentApprovalStage';
+            var objApprovalModel = {
+                "_RequestType": requesttype,
+                "_QueueCurrentLevel": currentstage
+            };
+            if (pagemodeindex != "1") {
+                //  setTimeout(function () {
+                $.ajax({
+                    @*//url: '@Url.Action("GetNextApprovalStage", "Onboarding")',*@
+                    url: '../Onboarding/GetNextApprovalStage',
+                    data: JSON.stringify(objApprovalModel),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+
+                        if (data.length > 0) {
+                            for (var i = 0; i < data.length; i++) {
+                                ismandatoryqueue = data[i]._NextApprovalIsMandatory;
+                                nextstagename = data[i]._NextApprovalGroup;
+                                nextlevel = data[i]._QueueCurrentLevel;
+                                queuetotype = data[i]._QueueToType;
+                            }
+                            if (queuetotype = "I") {
+                                $("#trOptionalField").css("display", "block");
+                            }
+                            else if (queuetotype = "G") {
+                                $("#trOptionalField").css("display", "none");
+                            }
+                            if (ismandatoryqueue == "N") {
+                                $("#trOptionalChk").css("display", "block");
+                                $("#trOptionalField").css("display", "block");
+                                $("#spnOptionalFieldName").text("Select " + nextstagename);
+                                $("#lblOptionalFieldChk").text("Is " + nextstagename + " Approval Required?");
+                                $("#txtNextApprover").prop("disabled", true);
+                                $("#trNextApproverLabel").css("display", "none");
+                                $("#btnEmployeeSearchApproval span").prop("disabled", true);
+                            }
+                            else {
+                                $("#trOptionalChk").css("display", "none");
+                                $("#trOptionalField").css("display", "none");
+                                $("#spnOptionalFieldName").text("");
+                                $("#lblOptionalFieldChk").text("");
+                                $("#txtNextApprovalQueue").val(nextstagename);
+                                $("#txtNextApprovalQueue").prop("disabled", true);
+                            }
+
+                            if (parseInt(nextlevel) == parseInt(currentstage)) {
+                                $("#trOptionalChk").css("display", "none");
+                                $("#trOptionalField").css("display", "none");
+                                $("#spnOptionalFieldName").text("");
+                                $("#lblOptionalFieldChk").text("");
+                                $("#txtNextApprovalQueue").text("");
+                                $("#trNextApproverLabel").css("display", "none");
+                            }
+
+                        }
+
+                    },
+                    error: function (result) {
+                        jAlert("Something Went wrong", "Error");
+                    }
+                });
+                //  }, 50);
+            }
+        }
+
+        if ($.trim(supheadgid) == "") {
+            $("#tabs").tabs({ disabled: [1, 2, 3, 4, 5, 6, 7, 8, 9] });
+            $("#SessionSupplierGid").val("0");
+        }
+        else {
+            $("#tabs").tabs({ disabled: [11] });
+        }
+
+    });
+    function setActivityName(code) {
+        $("#selectedActivityNameID").val(code);
+        if ($("#selectedActivityNameID").val() != "0" && $("#selectedActivityNameID").val() != "") {
+            $("#selectedActivityNameID").addClass('valid');
+            $("#selectedActivityNameID").removeClass('required');
+        }
+        else {
+            $("#selectedActivityNameID").addClass('required');
+            $("#selectedActivityNameID").removeClass('valid');
+        }
+    }
+    function SelectEmployee(element, id) {
+        var row = $(element).closest('tr');
+        var empgid = row.find('td:eq(0)').text();
+        var empcode = row.find('td:eq(2)').text();
+        var empname = row.find('td:eq(3)').text();
+
+        if (id == "1") {
+            $("#SessionOwnerGid").val(empgid);
+            $("#txtOwnerID").val(empcode);
+            $("#txtOwnerName").val(empname);
+            $("#_OIC").val(empgid);
+            $("#_OICName").val(empcode + "-" + empname);
+            window.parent.jQuery("#ForPartialView1").dialog('close');
+
+            // window.parent.jQuery("#ForPartialView1").remove();
+            //window.parent.jQuery("[id$='ForPartialView1']").remove();
+        }
+        else if (id == "2") {
+            $("#_OIC").val(empgid);
+            $("#_OICName").val(empcode + "-" + empname);
+            window.parent.jQuery('#ForActivityPopup').dialog('close');
+        }
+        else if (id == "3") {
+            $("#_ContactPerson").val(empgid);
+            $("#_ContactPersonName").val(empcode + "-" + empname);
+            window.parent.jQuery('#ForActivityPopup').dialog('close');
+        }
+        else if (id == "4") {
+            $("#txtNextApproverGid").val(empgid);
+            $("#txtNextApprover").val(empcode + "-" + empname);
+            window.parent.jQuery('#divApprovalpopup').dialog('close');
+        }
+
+    }
+    var submitflag = 0;
+    //var spinnerVisible = false;
+    //function showProgress() {
+    //    if (!spinnerVisible) {
+    //        $("div#spinner").fadeIn("fast");
+    //        spinnerVisible = true;
+    //    }
+    //};
+    //function hideProgress() {
+    //    if (spinnerVisible) {
+    //        var spinner = $("div#spinner");
+    //        spinner.stop();
+    //        spinner.fadeOut("fast");
+    //        spinnerVisible = false;
+    //    }
+    //};
+    function SubmitMaker(submitfrom) {
+
+        showProgress();
+        var actionremark = "";
+        var queueto = "";
+        var actionstatus = 1;
+        var skipflag = 0;
+        var isexistsflag = $("#txtIsExistsFlag").val();
+        var isexistsapprovername = $("#txtIsExistsApproverName").val();
+        if ($.trim(isexistsflag).toString() == "Y") {
+            jAlert("This Supplier Already Approved By " + isexistsapprovername, "Error", function () {
+                var supcode = $("#txtSupplierCode").val();
+                var objSupHeaderDetails = {
+                    "_SupplierCode": supcode
+                };
+
+                $.ajax({
+                    url: '@Url.Action("ReleaseMySupplier", "Onboarding")',
+                    data: JSON.stringify(objSupHeaderDetails),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        location = "../AsmsMain/Dashboard?" + new Date().getTime();
+                    },
+                    error: function (result) {
+                        jAlert("Something went wrong", "Error");
+                    }
+                });
+            });
+            return false;
+        }
+        else {
+            var supcode1 = $("#txtSupplierCode").val();
+            var objSupHeaderDetails = {
+                "_SupplierCode": supcode1
+            };
+
+            $.ajax({
+                url: '@Url.Action("CheckApproverIsExists", "Onboarding")',
+                data: JSON.stringify(objSupHeaderDetails),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data == "Y")
+                        hideProgress();
+                    return false;
+                    //location = "../AsmsMain/Dashboard?" + new Date().getTime();
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+        }
+        if ($.trim(submitflag).toString() == "1") {
+            return false;
+        }
+        if (isallowapprovertoedit == "1") {
+            var requesttyperenewal = $('input:radio[name=IsApproved]:checked').val();
+            if (requesttyperenewal != "0") {
+                SaveAsDraft("approval");
+            }
+
+            //SaveAsDraft("approval");
+            //  setTimeout(function () {
+            if (submitfrom == "approver") {
+                actionstatus = $('input:radio[name=IsApproved]:checked').val();
+                actionremark = $("#txtApprovalRemarks").val();
+
+                if (queuetotype == "I") {
+                    if (ismandatoryqueue == "N") {
+
+                        if ($("#IsPushApproval").is(':checked')) {
+                            skipflag = 0;
+                            queueto = $("#txtNextApproverGid").val();
+                            if (queueto == null || $.trim(queueto) == "") {
+                                jAlert("Please Select Next Approver..", "Error", function () {
+                                    $("#txtNextApproverGid").focus();
+                                    hideProgress();
+                                    return false;
+                                });
+                                hideProgress();
+                                return false;
+                            }
+                        }
+                        else {
+                            skipflag = 1;
+                            //if (actionremark == "" || actionremark == null) {
+                            //    jAlert("Please Enter Remarks..", "Error", function () {
+                            //        $("#txtApprovalRemarks").focus();
+
+                            //    });
+                            //    return false;
+                            //}
+                        }
+                    }
+                    else if (ismandatoryqueue == "Y") {
+                        skipflag = 0;
+                        queueto = $("#txtNextApproverGid").val();
+                        if (queueto == null) {
+                            jAlert("Please Select Next Approver..", "Error", function () {
+                                $("#txtNextApproverGid").focus();
+                                hideProgress();
+                                return false;
+                            });
+                            hideProgress();
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    if (queuetotype == "G") {
+                        if (ismandatoryqueue == "N") {
+                            if ($("#IsPushApproval").is(':checked')) {
+                                skipflag = 0;
+                            }
+                            else {
+                                skipflag = 1;
+
+                                //if (actionremark == "" || actionremark == null) {
+                                //    jAlert("Please Enter Remarks..", "Error", function () {
+                                //        $("#txtApprovalRemarks").focus();
+
+                                //    });
+                                //    return false;
+                                //}
+                            }
+                        }
+                    }
+                    else if (ismandatoryqueue == "Y") {
+                        skipflag = 0;
+                        queueto = $("#txtNextApprovalQueue").val();
+                    }
+                }
+                if ($.trim(actionstatus).toString() == "0") {
+                    if (actionremark == "" || actionremark == null) {
+                        jAlert("Please Enter Remarks..", "Error", function () {
+                            $("#txtApprovalRemarks").focus();
+                            hideProgress();
+                            return false;
+                        });
+                        hideProgress();
+                        return false;
+                    }
+                }
+            }
+            else if (submitfrom == "maker") {
+                actionremark = "";
+                queueto = "";
+                actionstatus = 1;
+                skipflag = 0;
+                requesttype = "@ViewBag.RequestType";
+            }
+            objApprovalModel = {
+                "_RequestType": requesttype,
+                "_ActionRemarks": actionremark,
+                "_QueueTo": queueto,
+                "_ActionStatus": actionstatus,
+                "_SkipFlag": skipflag
+            };
+
+            $.post('../Onboarding/SubmitToQueue', objApprovalModel,
+              function (data) {
+                  if (data == "success") {
+                      submitflag = 1;
+                      //  isClicked = "false";
+                      hideProgress();
+                      jAlert("Successfully Submitted", "Success", function () {
+                          location = "../AsmsMain/Dashboard";
+                      });
+                  }
+                  else if (data == 0) {
+
+                      jAlert("Something went wrong" + data, "Error", function () {
+                          hideProgress();
+                          return false;
+                      });
+                      hideProgress();
+                      return false;
+                  }
+                  else if (data == 'Contrat to date should be greater than today date') {
+                      jAlert("contract to date should be greater than today date ", "Error", function () {
+                          hideProgress();
+                          return false;
+                      });
+                      hideProgress();
+                      return false;
+                  }
+                  else {
+                      jAlert("Please check supplier details" + data, "Error", function () {
+                          hideProgress();
+                          return false;
+                      });
+                      hideProgress();
+                      return false;
+                      //submitflag = 1;
+                      ////  isClicked = "false";
+                      //hideProgress();
+                      //jAlert("Successfully Submitted", "Success", function () {
+                      //    location = "../AsmsMain/Dashboard";
+                      //});
+                  }
+              }, 'json');
+            //  }, 100);
+        }
+        else {
+
+            if (submitfrom == "approver") {
+                actionstatus = $('input:radio[name=IsApproved]:checked').val();
+                actionremark = $("#txtApprovalRemarks").val();
+
+                if (queuetotype == "I") {
+                    if (ismandatoryqueue == "N") {
+
+                        if ($("#IsPushApproval").is(':checked')) {
+                            skipflag = 0;
+                            queueto = $("#txtNextApproverGid").val();
+                            if (queueto == null || $.trim(queueto) == "") {
+                                jAlert("Please Select Next Approver..", "Error", function () {
+                                    $("#txtNextApproverGid").focus();
+                                    hideProgress();
+                                    return false;
+                                });
+                                hideProgress();
+                                return false;
+                            }
+                        }
+                        else {
+                            skipflag = 1;
+                            //if (actionremark == "" || actionremark == null) {
+                            //    jAlert("Please Enter Remarks..", "Error", function () {
+                            //        $("#txtApprovalRemarks").focus();
+
+                            //    });
+                            //    return false;
+                            //}
+                        }
+                    }
+                    else if (ismandatoryqueue == "Y") {
+                        skipflag = 0;
+                        queueto = $("#txtNextApproverGid").val();
+                        if (queueto == null) {
+                            jAlert("Please Select Next Approver..", "Error", function () {
+                                $("#txtNextApproverGid").focus();
+                                hideProgress();
+                                return false;
+                            });
+                            hideProgress();
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    if (queuetotype == "G") {
+                        if (ismandatoryqueue == "N") {
+                            if ($("#IsPushApproval").is(':checked')) {
+                                skipflag = 0;
+                            }
+                            else {
+                                skipflag = 1;
+
+                                //if (actionremark == "" || actionremark == null) {
+                                //    jAlert("Please Enter Remarks..", "Error", function () {
+                                //        $("#txtApprovalRemarks").focus();
+
+                                //    });
+                                //    return false;
+                                //}
+                            }
+                        }
+                    }
+                    else if (ismandatoryqueue == "Y") {
+                        skipflag = 0;
+                        queueto = $("#txtNextApprovalQueue").val();
+                    }
+                }
+                if ($.trim(actionstatus).toString() == "0") {
+                    if (actionremark == "" || actionremark == null) {
+                        jAlert("Please Enter Remarks..", "Error", function () {
+                            $("#txtApprovalRemarks").focus();
+                            hideProgress();
+                            return false;
+
+                        });
+                        hideProgress();
+                        return false;
+                    }
+                }
+            }
+            else if (submitfrom == "maker") {
+                actionremark = "";
+                queueto = "";
+                actionstatus = 1;
+                skipflag = 0;
+                requesttype = "@ViewBag.RequestType";
+            }
+            objApprovalModel = {
+                "_RequestType": requesttype,
+                "_ActionRemarks": actionremark,
+                "_QueueTo": queueto,
+                "_ActionStatus": actionstatus,
+                "_SkipFlag": skipflag
+            };
+
+            $.post('../Onboarding/SubmitToQueue', objApprovalModel,
+              function (data) {
+                  if (data == "success") {
+                      submitflag = 1;
+                      hideProgress();
+                      jAlert("Successfully Submitted", "Success", function () {
+                          location = "../AsmsMain/Dashboard";
+                      });
+                      //hideProgress();
+                      //jAlert(data, "Error", function () {
+                      //    hideProgress();
+                      //    return false;
+                      //});
+                      //hideProgress();
+                      //return false;
+                  }
+                  else {
+                      hideProgress();
+                      jAlert(data, "Please check supplierheader details", function () {
+                          hideProgress();
+                          return false;
+                      });
+                      hideProgress();
+                      return false;
+                      //submitflag = 1;
+                      //hideProgress();
+                      //jAlert("Successfully Submitted", "Success", function () {
+                      //    location = "../AsmsMain/Dashboard";
+                      //});
+                  }
+              }, 'json');
+
+        }
+
+
+
+    }
+
+    $(document).keydown(function (e) {
+
+        if (($("#SessionSupplierGid").val() != "0") && ($("#SessionSupplierGid").val() != null) && ($.trim($("#SessionSupplierGid").val()) != "")) {
+            var direction = null;
+            if (e.ctrlKey || e.metaKey) {
+                if (e.keyCode == 37) {
+                    direction = 'prev';
+                } else if (e.keyCode == 39) {
+                    direction = 'next';
+                }
+            }
+            if (direction != null) {
+                var totaltabs = $('#tabs').tabs('length');
+                var selected = $('#tabs').tabs('option', 'selected');
+                if (direction == 'next') {
+                    if (selected <= totaltabs - 1)
+                        $('#tabs').tabs('select', selected + 1)
+                }
+                else {
+                    if (selected != 0)
+                        $('#tabs').tabs('select', selected - 1)
+                }
+            }
+        }
+    });
+    function SaveAsDraft(submitfor) {
+
+        debugger;
+        if ($.trim(submitfor) == "submit" || $.trim(submitfor) == "approval") {
+
+            if ($("#txtOwnerID").val().trim() == "" || $("#txtOwnerID").val() == null) {
+                jAlert("Please Select Supplier OWner from Header Tab", "Error", function () {
+                    $("#txtOwnerID").focus();
+                });
+                return false;
+            }
+            if (parseInt($("#wgridContactDetails tr").length) < 2) {
+                jAlert("Please Add Atleast One Record (Contact Details Tab - Address)", "Warning", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+            if (parseInt($("#wgridContactPersonDetails tr").length) < 2) {
+                jAlert("Please Add Atleast One Record (Contact Details Tab - Contact Person Details)", "Warning", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+            if (parseInt($("#wgridPayment tr").length) < 2) {
+                jAlert("Please Add Atleast One Record (Payment Tab - Payment Details)", "Warning", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+            if (parseInt($("#wgridActivity tr").length) < 2) {
+                jAlert("Please Add Atleast One Record (Activities Tab - Activity Details)", "Warning", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+            if (parseInt($("#wgridSupAttachment tr").length) < 2) {
+                jAlert("Please Add Atleast One Record (Attachments Tab - Supplier Attachments)", "Warning", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+        }
+        var supType;
+        supType = $('input:radio[name=IsPermanent]:checked').val();
+        var supIsActiveContract;
+        supIsActiveContract = $('input:radio[name=rblActiveContract]:checked').val();
+
+        var supCode = $("#txtSupplierCode").val();
+        var supName = $("#txtSupplierName").val();
+        var supCompanyRegNo = $("#txtCompanyRegNo").val();
+        var supApproxSpend = $("#txtApproxSpend").val();
+        var supActualSpend = $("#txtActualSpend").val();
+        var supContractFrom = $("#txtContractFrom").val();
+        var supContractTo = $("#txtContractTo").val();
+        var supWebsite = $("#txtWebsite").val();
+        var supNoOfDirectors = $("#txtNoofDirectors").val();
+        var supEmailID = $("#txtEmailID").val();
+        var supReasonForNoContract = $("#txtReasonForNoContract").val();
+        var supOrganizationTypeID = $("#selectedOrganizationID").val();
+        var supServiceTypeID = $("#selectedServiceID").val();
+        var supCategoryID = $("#SelectedSupplierCategoryID").val();
+        var supContactTypeID = $("#SelectedSupContactTypeID").val();
+        var supRenewalDate = $("#txtRenewalDate").val();
+        var supPanNo = $("#txtSupplierPanNo").val();
+        var supTypeRemarks = $("#txtSupTypeRemarks").val();
+
+        if ($("#txtSupplierName").val().trim() == "" || $("#txtSupplierName").val() == null) {
+            jAlert("Please Enter Supplier Name", "Error", function () {
+                $("#txtSupplierName").focus();
+                hideProgress();
+                return false;
+            });
+            hideProgress();
+            return false;
+        }
+        if ($("#txtSupplierPanNo").val().trim() == "" || $("#txtSupplierPanNo").val() == null) {
+            //jAlert("Please Enter Supplier Pan Number", "Error", function () {
+            //    $("#txtSupplierName").focus();
+            //    hideProgress();
+            //    return false;
+            //});
+            //hideProgress();
+            //return false;
+        }
+        else {
+
+            var txtPanNum = $("#txtSupplierPanNo").val();
+            var panval = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+            var code1 = /([C,P,H,F,A,T,B,L,J,G])/;
+            var code_chk = txtPanNum.substring(3, 4);
+            if (txtPanNum.search(panval) == -1) {
+                jAlert("Invalid Pan Number", "Error", function () {
+                    $("#txtSupplierPanNo").focus();
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+            //if (code1.test(code_chk) == false) {
+            //    jAlert("Invalid Pan Number", "Error", function () {
+            //        $("#txtSupplierPanNo").focus();
+            //        hideProgress();
+            //        return false;
+            //    });
+            //    hideProgress();
+            //    return false;
+            //}
+        }
+        var supnameCount = 0;
+        var suppannoCount = 0;
+        var objSupHeader1 =
+          {
+              "_SupplierName": supName,
+              "_PanNo": supPanNo
+          };
+        //  setTimeout(function () {
+
+
+        $.ajax({
+            url: '@Url.Action("CheckSupplierName", "Onboarding")',
+            data: JSON.stringify(objSupHeader1),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                @*if (parseInt(data) > 0 && '@ViewBag.RequestType' != "MODIFICATION") {*@
+                if (parseInt(data) > 0) {
+                    supnameCount = data;
+                    jAlert("Supplier Name Already Exists with the Same PAN Number.", "Error", function () {
+                        $("#txtSupplierName").focus();
+                        hideProgress();
+                        return false;
+                    });
+                    hideProgress();
+                    return false;
+                }
+                else {
+                    var objSupHeader1 =
+                      {
+                          "_PanNo": supPanNo
+                      };
+
+                    $.ajax({
+                        url: '@Url.Action("CheckSupplierPanNo", "Onboarding")',
+                        data: JSON.stringify(objSupHeader1),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data > 0) {
+                                suppannoCount = data;
+                                jAlert("Supplier Pan Number Already Exists.", "Error", function () {
+                                    $("#txtSupplierPanNo").focus();
+                                    hideProgress();
+                                    return false;
+                                });
+                                hideProgress();
+                                return false;
+                            }
+                            else {
+                                //if ($("#txtNoofDirectors").val().trim() == "0" || $("#txtNoofDirectors").val().trim() == "" || $("#txtNoofDirectors").val() == null) {
+                                //    jAlert("Please add atleast one Director/Partner", "Error", function () {
+                                //        $("#btnDirectors").focus();
+                                //    });
+                                //    return false;
+                                //}
+                                if ($("#txtContractFrom").val().trim() == "" || $("#txtContractFrom").val() == null) {
+                                    jAlert("Please Enter Contract From Date", "Error", function () {
+                                        $("#txtContractFrom").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if ($("#txtContractTo").val().trim() == "" || $("#txtContractTo").val() == null) {
+                                    jAlert("Please Enter Contract To Date", "Error", function () {
+                                        $("#txtContractTo").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                //if ($("#txtApproxSpend").val().trim() == "" || $("#txtApproxSpend").val() == null) {
+                                //    jAlert("Please Enter Approx Spend", "Error", function () {
+                                //        $("#txtApproxSpend").focus();
+                                //    });
+                                //    return false;
+                                //}
+                                if ($("#txtRenewalDate").val().trim() == "" || $("#txtRenewalDate").val() == null) {
+                                    jAlert("Please Enter Renewal Date", "Error", function () {
+                                        $("#txtRenewalDate").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if ($("#selectedOrganizationID").val() == "" || $("#selectedOrganizationID").val() == "0" || $("#selectedOrganizationID").val() == null) {
+                                    jAlert("Please Select Organization Type", "Error", function () {
+                                        $("#selectedOrganizationID").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if ($("#SelectedSupplierCategoryID").val() == "" || $("#SelectedSupplierCategoryID").val() == "0" || $("#SelectedSupplierCategoryID").val() == null) {
+                                    jAlert("Please Select Supplier Category", "Error", function () {
+                                        $("#SelectedSupplierCategoryID").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if ($("#SelectedSupContactTypeID").val() == "" || $("#SelectedSupContactTypeID").val() == "0" || $("#SelectedSupContactTypeID").val() == null) {
+                                    jAlert("Please Select Supplier Contract Type", "Error", function () {
+                                        $("#SelectedSupContactTypeID").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if ($("#selectedServiceID").val() == "" || $("#selectedServiceID").val() == "0" || $("#selectedServiceID").val() == null) {
+                                    jAlert("Please Select Supplier Service", "Error", function () {
+                                        $("#selectedServiceID").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+
+                                var job_start_date = supContractFrom.split('-');
+                                var job_end_date = supContractTo.split('-');
+
+                                var new_supContractFrom = new Date(job_start_date[2], job_start_date[1], job_start_date[0]);
+                                var new_end_date = new Date(job_end_date[2], job_end_date[1], job_end_date[0]);
+                                if (new_end_date <= new_supContractFrom) {
+                                    jAlert("Contract To Date Should be greater than Contract From Date.", "Error", function () {
+                                        $("#txtContractTo").focus();
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if (pagemodeindex == "6") {
+                                    var old_ContractToDate = $("#lblOldContactTo").text();
+                                    var old_contractto_dte = old_ContractToDate.split('-');
+                                    var valid_contracttodate = new Date(old_contractto_dte[2], old_contractto_dte[1], old_contractto_dte[0]);
+                                    if (new_end_date <= valid_contracttodate) {
+                                        jAlert("New Contract To Date Should be greater than Old Contract To Date.", "Error", function () {
+                                            $("#txtContractTo").focus();
+                                            hideProgress();
+                                            return false;
+                                        });
+                                        hideProgress();
+                                        return false;
+                                    }
+
+                                }
+
+                                if ($("#selectedOrganizationID option:selected").text().toUpperCase().substring(0, 7) == "PRIVATE" || $("#selectedOrganizationID option:selected").text().toUpperCase().substring(0, 6) == "PUBLIC") {
+                                    if (supCompanyRegNo == "" || supCompanyRegNo == null) {
+                                        jAlert("Please Enter Company Registration Number", "Error", function () {
+                                            $("#txtCompanyRegNo").focus();
+                                            hideProgress();
+                                            return false;
+                                        });
+                                        hideProgress();
+                                        return false;
+                                    }
+                                }
+                                var NoOfYearsInBusiness = parseInt($("#txtNoofYearsInBusiness").val());
+                                var NoOfYearsOfAssociation = parseInt($("#txtNoofYearsOfAssociation").val());
+                                var NoOfFactories = $("#_NoofFactoriesInIndia").val();
+                                var NoOfOffices = $("#_NoofOfficesInIndia").val();
+                                var TotalNoOfEmployees = parseInt($("#_TotalEmployees").val());
+                                var ContractEmployees = parseInt($("#_ContractEmployees").val());
+                                var PermanentEmployees = parseInt($("#_PermanentEmployees").val());
+
+                                if (NoOfYearsInBusiness < NoOfYearsOfAssociation) {
+                                    jAlert("No Of Years Of Years In Business Should be greater than No Of Years Of Association.\n(In Supplier Profile Tab)", "Error", function () {
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                if (TotalNoOfEmployees < (ContractEmployees + PermanentEmployees)) {
+                                    jAlert("Total No Of Employees Should be greater than Addition Of Permanent Employees and Contract Employees.(In Supplier Profile Tab)", "Error", function () {
+                                        hideProgress();
+                                        return false;
+                                    });
+                                    hideProgress();
+                                    return false;
+                                }
+                                var ownergid;
+
+                                if ($("#SessionOwnerGid").val() == null || $("#SessionOwnerGid").val() == "") {
+                                    ownergid = 0;
+                                }
+                                else {
+                                    ownergid = $("#SessionOwnerGid").val();
+                                }
+                                var requesttype = $.trim($("#lblRequestTypeValue").text());
+                                var requeststatus = $.trim($("#lblRequestStatusValue").text());
+                                requesttype = requesttype.replace(" ", "");
+                                requeststatus = requeststatus.replace(" ", "");
+                                if (requeststatus == "INPROCESS") {
+                                    requeststatus = 'WAITINGFORAPPROVAL';
+                                }
+                                var ismsmed = $('input:radio[name=IsMSMED]:checked').val();
+
+
+                                if (pagemodeindex == "6" || pagemodeindex == "2") {
+                                    if (ismsmed == "Y") {
+                                        jAlert("MSME vendors are those registered under Micro, Small and Medium Enterprises Development Act, 2006. Please ensure MSME registration certificate is available & uploaded for such vendors", "Message", function () {
+                                            return false;
+                                        });
+                                    }
+                                }
+                                supPanNo = supPanNo.toUpperCase();
+                                var issueappointment = $('input:radio[name=IsAppointmentLetters]:checked').val();
+                                var performintegritychecks = $('input:radio[name=IsIntegrityChecks]:checked').val();
+                                var integritycheckdesc = $("#_IntegrityCheckDesc").val();
+                                var payminwages = $('input:radio[name=IsPayWages]:checked').val();
+                                var employbelow18yrs = $('input:radio[name=IsEmploybelow18Yrs]:checked').val();
+                                var pfregno = $("#_EmpPFRegNo").val();
+                                var shopregno = $("#_ShopRegNo").val();
+                                var empstateregno = $("#_EmpStateRegNo").val();
+                                var objSupHeader = {
+                                    "_SupplierType": supType,
+                                    // "_SupplierCode": supCode,
+                                    "_SupplierName": supName,
+                                    "_CompanyRegNo": supCompanyRegNo,
+                                    "_NoOfDirectors": supNoOfDirectors,
+                                    "_website": supWebsite,
+                                    "_IsActiveContract": supIsActiveContract,
+                                    "_ReasonForNoContract": supReasonForNoContract,
+                                    "_ContractFrom": supContractFrom,
+                                    "_ContractTo": supContractTo,
+                                    "_ApproxSpend": supApproxSpend,
+                                    "_ActualSpend": supActualSpend,
+                                    "_EmailID": supEmailID,
+                                    "SelectedSupContactTypeID": supContactTypeID,
+                                    "_RenewalDate": supRenewalDate,
+                                    "_OwnerId": ownergid,
+                                    "selectedServiceID": supServiceTypeID,
+                                    "selectedOrganizationID": supOrganizationTypeID,
+                                    "SelectedSupplierCategoryID": supCategoryID,
+                                    "_NoofYearsIBusiness": NoOfYearsInBusiness,
+                                    "_NoofYearsOfAssociation": NoOfYearsOfAssociation,
+                                    "_NoOfFactories": NoOfFactories,
+                                    "_NoOfOffices": NoOfOffices,
+                                    "_TotalEmployees": TotalNoOfEmployees,
+                                    "_PermanentEmployees": PermanentEmployees,
+                                    "_ContractEmployees": ContractEmployees,
+                                    "_RequestType": requesttype,
+                                    "_Requeststatus": requeststatus,
+                                    "_IssueAppointmentLetters": issueappointment,
+                                    "_PerformIntegrityChecks": performintegritychecks,
+                                    "_IntegrityCheckDesc": integritycheckdesc,
+                                    "_Payminwages": payminwages,
+                                    "_EmployLabourbelow18Yrs": employbelow18yrs,
+                                    "_EmpPFRegNo": pfregno,
+                                    "_ShopRegNo": shopregno,
+                                    "_EmpStateRegNo": empstateregno,
+                                    "_TaxisMSMED": ismsmed,
+                                    "_PanNo": supPanNo,
+                                    "_SupplierTypeRemarks": supTypeRemarks
+                                };
+                                $.post('../Onboarding/UpdateSupplierHeader', objSupHeader,
+            function (data) {
+                if (data == 0) {
+                    jAlert("Please check your supplierheader deatils", Title_1, function () {
+                        hideProgress();
+                        return false;
+                    });
+                    hideProgress();
+                    return false;
+                }
+                else if (data == 2) {
+                    jAlert("Session Expired", "Warning", function () {
+                        hideProgress();
+                        location = "../../LoginPage/empLoginPage";
+                    });
+                    location = "../../LoginPage/empLoginPage";
+                    hideProgress();
+                    return false;
+                }
+                else {
+                    if (submitfor == "submit") {
+                        ConfirmBeforeSubmit();
+                        //SubmitMaker('maker');
+
+                        //setTimeout(function () {
+                        //    jAlert("Successfully Submitted", "Success", function () {
+                        //        location = "../AsmsMain/Dashboard";
+                        //    });
+                        //}, 50);
+
+                        //location = "../AsmsMain/Dashboard";
+                    }
+                    else if (submitfor == "save") {
+                        jAlert("Successfully Saved as Draft Record", "Success", function () {
+                            location = "../AsmsMain/Dashboard";
+                        });
+                    }
+                    //setTimeout(function () {
+                    //    location = "../AsmsMain/Dashboard";
+                    //}, 60);
+                }
+            }, 'json');
+
+
+                            }
+                        },
+                        error: function (result) {
+                            jAlert("Something went wrong", "Error", function () {
+                                hideProgress();
+                                return false;
+                            });
+                            hideProgress();
+                            return false;
+                        }
+                    });
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error", function () {
+                    hideProgress();
+                    return false;
+                });
+                hideProgress();
+                return false;
+            }
+        });
+        // }, 100);
+
+    }
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">@ViewBag.headertitle</span>
+</div>
+<div class="well">
+    <div id="divForStatus" class="statusDivStyle">
+        <table class="statusTableStyle" id="ContractToDateBlock" style="display:none;" align="left">
+            <tr>
+                <td>
+                    <label id="lblOldContactToCaption">Contract To Date (old) :</label>
+                </td>
+                <td style="font-size:20px;vertical-align:top;">
+                    &nbsp;&nbsp;
+                </td>
+                <td>
+                    <label id="lblOldContactTo">@sh._ContractTo</label>
+                </td>
+            </tr>
+        </table>
+        <div id="divModificationHistory" style="display:none;float:left;">
+            <a onclick="ShowModificationHistory()" class="cursorpointer" title="Click Here To Show Modification History">Modification Summary</a>
+        </div>
+        @*class="statusTableStyle"*@
+        <table id="statusBlock" align="right">
+            <tr>
+                <td style="padding-right:8px;">
+                    <label id="lblRequestStatusCaption">@ViewBag.RequestTypeCaption</label>
+                </td>
+                <td>
+                    <label id="lblRequestTypeValue" style="font-size:12px; padding-left:5px;" class='@Notify'>@ViewBag.RequestType</label>
+                </td>
+                <td style="padding-left:8px; padding-right:8px; font-size:20px;vertical-align:top;">
+                    |
+                </td>
+                <td style="padding-right:8px;">
+                    <label id="lblRequestStatusCaption">@ViewBag.RequestStatusCaption</label>
+                </td>
+                <td>
+                    <label id="lblRequestStatusValue" style="font-size:12px;" class='@Notify'>@ViewBag.RequestStatus</label>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <br /><br />
+    <div id="spinner">
+        Please Wait...
+    </div>
+    <div id="tabs" style="display:none; font-size:14px;">
+        <ul>
+            <li><a href="#tabs-1">Header</a></li>
+            <li><a href="#tabs-2">Profile</a></li>
+            <li><a href="#tabs-3">Contact Details</a></li>
+            <li><a href="#tabs-5">Payment</a></li>
+            <li><a href="#tabs-6">Activities</a></li>
+            <li id="tab7"><a href="#tabs-7">Attachments</a></li>
+            <li><a href="#tabs-8">Others</a></li>
+            <li><a href="#tabs-4">Tax Details</a></li>
+            <li><a href="#tabs-10">GST</a></li>
+            @if (ViewBag.PageModeIndex != "1")
+            {
+                <li><a href="#tabs-9">Approval History</a></li>
+            }
+        </ul>
+        <div id="tabs-1">
+            @Html.Partial("Header")
+        </div>
+        <div id="tabs-2">
+            @Html.Partial("Profile")
+        </div>
+        <div id="tabs-3">
+            @Html.Partial("ContactDetails")
+        </div>
+        <div id="tabs-5">
+            @Html.Partial("SupPaymentIndex")
+        </div>
+        <div id="tabs-6">
+            @Html.Partial("SupActivityIndex")
+        </div>
+        <div id="tabs-7">
+            @Html.Partial("SupAttachmentIndex")
+        </div>
+        <div id="tabs-8">
+            @Html.Partial("SupOthers")
+        </div>
+        <div id="tabs-4">
+            @Html.Partial("TaxDetails")
+        </div>
+        @*/************** GST Work *********************************/*@
+        <div id="tabs-10">
+            @Html.Partial("GST")
+        </div>
+        @*/************** GST Work *********************************/*@
+        @if (ViewBag.PageModeIndex != "1")
+        {
+            <div id="tabs-9">
+                @Html.Partial("ApprovalHistory")
+            </div>
+        }
+
+
+    </div>
+    <br />
+    <div id="divSubmitButton1" style="display:none;">
+        <div style="text-align:right;padding-right:20px;" class="divforbutton">
+            <a name="btnSaveAsDraft" id="btnSaveAsDraft" class="btn btn-primary" onclick="SaveAsDraft('save')"><span style="color:white;" class="glyphicon glyphicon-briefcase"></span> Save As Draft</a>
+            <a name="btnSubmitFinal" id="btnSubmitFinal" class="btn btn-success" onclick="SaveAsDraft('submit')"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</a>
+        </div>
+    </div>
+    <br />
+    <div id="divForApproval" class="borderStyle" style="display:none;">
+        <center>
+            <table class="myTableStyleTab" style="width:36%;">
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <div style="height:27px;padding-top:5px;font-weight:normal;">
+                            <input type="radio" id="rbApprove" name="IsApproved" value="1" checked="checked" /> Approve
+                            &nbsp;<input type="radio" id="rbReject" name="IsApproved" value="0" /> Reject
+                        </div>
+                    </td>
+                </tr>
+                <tr id="trNextApproverLabel">
+                    <td>
+                        <span>Next Approval Stage</span>
+                    </td>
+                    <td>
+                        <input type="text" id="txtNextApprovalQueue" name="txtNextApprovalQueue" class="textboxStyle" />
+                    </td>
+                </tr>
+                <tr id="trOptionalChk">
+                    <td colspan="2" style="max-width:100%;text-wrap:normal;">
+                        <input type="checkbox" id="IsPushApproval" name="IsPushApproval" value="Y" />  <span id="lblOptionalFieldChk"></span>
+                    </td>
+                </tr>
+                <tr id="trOptionalField">
+                    <td><span id="spnOptionalFieldName"></span></td>
+                    <td>
+                        <input type="hidden" name="txtNextApproverGid" id="txtNextApproverGid" />
+                        &nbsp;&nbsp;<input type="text" name="txtNextApprover" id="txtNextApprover" class="textboxStyleMedium">
+                        &nbsp;&nbsp;&nbsp;<a onclick="GetNextApprover()" id="btnEmployeeSearchApproval"><span class="glyphicon glyphicon-search"></span></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="vertical-align:bottom;">
+                                    <span>Remarks</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align:top;">
+                                    <textarea id="txtApprovalRemarks" name="txtApprovalRemarks" style="resize:none ;width: 400px; height: 125px;" maxlength="250" class="textareaStyle"></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <div class="divforbutton">
+                            <input type="text" style="display:none;" class="textboxStyle" id="txtIsExistsFlag" name="txtIsExistsFlag" value="@sh._IsExistsFlagApprover" />
+                            <input type="text" style="display:none;" class="textboxStyle" id="txtIsExistsApproverName" name="txtIsExistsApproverName" value="@sh._IsExistsApproverName" />
+                            <a name="btnSubmitApproval" id="btnSubmitApproval" class="btn btn-success" onclick="SubmitMaker('approver')"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</a>
+                            &nbsp;    <a name="btnCancelApproval" id="btnCancelApproval" class="btn btn-warning" onclick="CancelApproval()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+
+    </div>
+</div>
+
+<div id="divApprovalpopup"></div>
+<div id="divApprovalpopup1"></div>
+
+<script type="text/javascript">
+    var objDialogIndex;
+    $(document).ready(function () {
+        objDialogIndex = $("[id$='divApprovalpopup']");
+        objDialogIndex.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            async: false,
+            show: 'fade-in',
+            close: 'fade-out',
+            //width: 660,
+            //height: 470,
+            cache: false
+
+        });
+
+    });
+    var objDialogIndex1;
+    $(document).ready(function () {
+
+        objDialogIndex1 = $("[id$='divApprovalpopup1']");
+        objDialogIndex1.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            async: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+            //width: 660,
+            //height: 470,
+            cache: false
+
+        });
+
+    });
+    function ConfirmBeforeSubmit() {
+        objDialogIndex1.load('../Onboarding/SupAttachmentDetailsConfirm?' + new Date().getTime());
+        objDialogIndex1.dialog({ title: 'Supplier Attachments List', width: '660', height: '570' });
+        objDialogIndex1.dialog("open");
+    }
+    function GetNextApprover() {
+        objDialogIndex.load('../Onboarding/SearchEmployee?listfor=new&formname=approver&' + new Date().getTime());
+        objDialogIndex.dialog({ title: 'Search Next Approver', width: '660', height: '570' });
+        objDialogIndex.dialog("open");
+    }
+    function CancelApproval() {
+        var supcode = $("#txtSupplierCode").val();
+        var objSupHeaderDetails = {
+            "_SupplierCode": supcode
+        };
+
+        $.ajax({
+            url: '@Url.Action("ReleaseMySupplier", "Onboarding")',
+            data: JSON.stringify(objSupHeaderDetails),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                location = "../AsmsMain/Dashboard?" + new Date().getTime();
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+
+    }
+    function ShowModificationHistory() {
+        objDialogIndex.load('../ModSummary/Index?&' + new Date().getTime());
+        objDialogIndex.dialog({ title: 'Modification History', width: '730', height: '600', resizable: true });
+        objDialogIndex.dialog("open");
+    }
+
+    function ConfirmBeforeSubmitSave() {
+        //if (isClicked == "false") {
+        //    isClicked = "true";
+        showProgress();
+        window.parent.jQuery('#divApprovalpopup1').dialog('close');
+        SubmitMaker('maker');
+        //setTimeout(function () {
+        //    jAlert("Successfully Submitted", "Success", function () {
+        //        location = "../AsmsMain/Dashboard";
+        //    });
+        //}, 50);
+        //}
+        //else {
+        //    return false;
+        //}
+    }
+
+
+    function DownloadSupplierAttachments(filename) {
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "Onboarding")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    location = "../Onboarding/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+</script>
+
+
+

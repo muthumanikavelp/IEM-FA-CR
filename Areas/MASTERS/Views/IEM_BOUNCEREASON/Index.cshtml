@@ -1,0 +1,178 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_bouncereason>
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />*@
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@*<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Bounce Reason </span>
+    </div>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="well" style="padding:10px;">
+
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span> Bounce Code  </span>
+                        <br />
+                        <input type="text"
+                               name="filter_code"
+                               id="txtFilterCode"
+                               value="@ViewBag.filter_code"
+                               class="fstextbox"
+                               maxlength="50" />
+                    </td>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span> Bounce Name  </span>
+                        <br />
+                        <input type="text"
+                               name="filter_name"
+                               id="txtFilterName"
+                               value="@ViewBag.filter_name"
+                               class="fstextbox"
+                               maxlength="70" />
+
+                    </td>
+                    <td style="width:50%; padding:0px 10px 0px 3px;">
+
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+
+                        @*<button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-export"></span> Export Excel
+                        </button>
+                        <button type="button" value="New Bounce" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span> New Bounce
+                        </button>
+
+
+                    </td>
+                </tr>
+            </table>
+
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+          htmlAttributes: new { id = "gridbounce" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                            grid.Column(header: "Bounce Code", columnName: "bouncereason_code"),
+                            grid.Column(header: "Bounce Name", columnName: "bouncereason_name"),
+                      grid.Column(header: "Bounce Type", columnName: "bouncereason_type", style: "colSmall"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.bouncereason_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.bouncereason_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteBounce(" + item.bouncereason_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+
+
+            </div>
+           </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+            $('#gridbounce tr th:nth-child(5)').addClass("nosort");
+            $('#gridbounce').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            $(function () {
+                $("#txtFilterCode").focus();
+            });
+
+            //var tr = $("#gridbounce").find('tr');
+            //$("#gridbounce tr #Color").click(function () {
+            //    $('#gridbounce').find('tr').css('background', 'none');
+            //    $(this).closest('tr').css('background', '#CEECF5');
+            //});
+
+            $("#txtFilterCode").keypress(function (event) {
+                return isAlphaNumeric(event, this);
+            });
+            $("#txtFilterName").keypress(function (event) {
+                return isAlphaNumeric(event, this);
+            });
+
+            objDialog = $("[id$='ForPartialView']");
+            //objDialogfordelete = $("[id$='ForPartialViewfordelete']");
+            //objDialogforedit = $("[id$='ForPartialViewforedit']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 350,
+                height: 250
+            });
+
+        });
+
+        function NewType() {
+            objDialog.load('../IEM_BOUNCEREASON/Create?' + new Date().getTime());
+            objDialog.dialog({ title: 'Add Bounce' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_BOUNCEREASON/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit Bounce ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_BOUNCEREASON/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View Bounce ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteBounce(id) {
+            objDialog.load('../IEM_BOUNCEREASON/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete Bounce Record ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function refresh() {
+            location = '../IEM_BOUNCEREASON/Index';
+        }
+        function GotoIndexRole() {
+
+            window.parent.jQuery('#ForPartialView').dialog('close');
+        }
+
+        function DummyFunction201() {
+            $("#gridbank td:nth-child(1),#gridbank th:nth-child(1)").show();
+        }
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=18&FileName=Bounce_Reason&' + new Date().getTime());
+        }
+    </script>

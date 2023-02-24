@@ -1,0 +1,138 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupplierTaxDetails> lst = new List<SupplierTaxDetails>();
+
+    lst = (List<SupplierTaxDetails>)Session["VatSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetVatDetails().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<div id="wgVat">
+    <center>
+
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgVat", ajaxUpdateCallback: "DummyFunction13()");
+            int rowcount = 0;
+        }
+
+        <div class="overflowx">
+            <div>
+
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridVat" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_VatID", objCmnFunctions.Sorter("_VatID", "ID", grid), canSort: false),
+                grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_VatStateName", objCmnFunctions.Sorter("_VatStateName", "State", grid)),
+                grid.Column("_VatRate", objCmnFunctions.Sorter("_VatRate", "Rate", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <a title='Edit' onclick='EditVat(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>
+                    <a title='Delete' onclick='DeleteVat(@item._VatID)' > <span class='glyphicon glyphicon-trash'> </span> </a>
+
+                </text>)
+                                                     ))
+            </div>
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b></div>
+
+    </center>
+  
+</div>
+<script type="text/javascript">
+    var viewmode1;
+    $(document).ready(function () {
+        viewmode1 = '@ViewBag.PageMode';
+        if ($.trim(viewmode1) == "3" || $.trim(viewmode1) == "5") {
+            $("#wgridVat td:nth-child(5),#wgridVat th:nth-child(5)").hide();
+        }
+        $("#wgridVat td:nth-child(1),#wgridVat th:nth-child(1)").hide();
+        $("#wgridVat td:nth-last-child(1)").show();
+    });
+    function DummyFunction13() {
+        if ($.trim(viewmode1) == "3" || $.trim(viewmode1) == "5") {
+            $("#wgridVat td:nth-child(5),#wgridVat th:nth-child(5)").hide();
+        }
+        $("#wgridVat td:nth-child(1),#wgridVat th:nth-child(1)").hide();
+        $("#wgridVat td:nth-last-child(1)").show();
+    }
+    function EditVat(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_VatID").val(ids);
+        var state = tds.eq(2).text();
+        var rate = tds.eq(3).text();
+       
+        $("#_VatRate").val(rate);
+        $("#selectedVatStateID option").each(function () {
+            if ($(this).text().toUpperCase() == $.trim(state).toUpperCase()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        
+        if ($("#_VatRate").val() != "" && $("#_VatRate").val() != null) {
+            $("#_VatRate").addClass('valid');
+            $("#_VatRate").removeClass('required');
+        }
+        else {
+            $("#_VatRate").addClass('required');
+            $("#_VatRate").removeClass('valid');
+        }
+        if ($("#selectedVatStateID").val() != "0" && $("#_VatCity").val() != "") {
+            $("#selectedVatStateID").addClass('valid');
+            $("#selectedVatStateID").removeClass('required');
+        }
+        else {
+            $("#selectedVatStateID").addClass('required');
+            $("#selectedVatStateID").removeClass('valid');
+        }
+    }
+    function DeleteVat(id) {
+        $("#_VatID").val("0");
+        jConfirm("Do you want to delete this vat : ", Title_3, function (e) {
+            if (e == true) {
+              //  alert(id);
+                var objSupplierTaxDetails = { "_VatID": id }
+                $.post('../Onboarding/DeleteVatDetails', objSupplierTaxDetails,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgVat").load("../onboarding/VatDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+       
+    }
+</script>

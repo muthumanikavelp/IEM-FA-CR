@@ -1,0 +1,172 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_hotel>
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, rowsPerPage: 15, canSort: true);
+    int id = @grid.PageIndex;
+    CmnFunctions cmn = new CmnFunctions();
+    int rowVal = 0;
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">Hotel Type</span>
+</b>
+<br /><br />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well">
+
+
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" style="margin-left:-3px;">
+                    <tr>
+                        <td>
+                            <div class="input-append">
+                                <span> Hotel Type  </span>
+                                <br />
+                                <input type="text"
+                                       name="filter_name"
+                                       id="txtFilterName"
+                                       value="@ViewBag.filter_name"
+                                       maxlength="32"
+                                       class="form-control"
+                                       style=" width:254px; block;"
+                                       autocomplete="off" />
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:20px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:10px;" class="myTableStyle">
+                            <button type="button" value="New Courier" onclick="NewType()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Hotel</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="margin-top:9px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+          htmlAttributes: new { id = "gridhoteltype" },
+     tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+        columns: grid.Columns
+            (
+        //Here I am going to add checkbox column
+        //grid.Column("courier_gid", Sorter("courier_gid", "ID", grid), canSort: false),
+grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+grid.Column("hoteltype_name", Sorter("hoteltype_name", "Hotel Type", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' onclick='ViewType(" + item.hoteltype_gid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Edit' onclick='EditType(" + item.hoteltype_gid + ")'> <span class='glyphicon glyphicon-edit' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Delete' onclick='DeleteHotel(" + item.hoteltype_gid + ")'> <span class='glyphicon glyphicon-trash' id='Color'> </span> </a> ")
+                </text>))))
+
+            @if (ViewBag.records != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.records
+                </h6>
+            </div>
+            }
+        </div>
+        <br />
+        @if (ViewBag.records == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+        }
+    </div>
+}
+<div id="ForPartialViewForhotel"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objDialogforedit;
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilterName").focus();
+        });
+        var tr = $("#gridhoteltype").find('tr');
+        $("#gridhoteltype tr #Color").click(function () {
+            $('#gridhoteltype').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+        $("#txtFilterName").focus();
+        $("#txtFilterName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+    });
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialViewForhotel']");
+        //objDialogfordelete = $("[id$='ForPartialViewfordelete']");
+        //objDialogforedit = $("[id$='ForPartialViewforedit']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 330,
+            height: 190,
+            resizable: false
+        });
+
+        });
+
+
+    function NewType() {
+        objDialog.load('../IEM_MST_HOTELTYPE/Create');
+        objDialog.dialog({ title: 'Add Hotel Type' });
+        objDialog.dialog("open");
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_MST_HOTELTYPE/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Hotel Type' });
+        objDialog.dialog("open");
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_MST_HOTELTYPE/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Hotel Type' });
+        objDialog.dialog("open");
+    }
+    function DeleteHotel(id) {
+        objDialog.load('../IEM_MST_HOTELTYPE/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Hotel Type' });
+        objDialog.dialog("open");
+    }
+    function refresh() {
+        location = '../IEM_MST_HOTELTYPE/Index';
+    }
+
+</script>

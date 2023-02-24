@@ -1,0 +1,110 @@
+﻿@model IEM.Areas.MASTERS.Models.BudgetOwner
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<table class="myTableStyleTabNew" width="100%">
+    <tr>
+        <td>
+            <span>Employee Details</span>
+            <br />
+            <input type="hidden" id="hdfEmployeeId" value="0" />
+            <input type="text"
+                   id="txtEmpCode"
+                   class="fstextbox" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <br />
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align:right;">
+            <button type="button" id="savebtn" name="command" onclick="SaveBudgetOwner()" class="btn btn-primary" value="Save"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+            <button type="button" id="closebtn" class="btn btn-warning" value="Cancel" onclick="BudgetClose()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //Load Employee Auto Complete
+        $("#txtEmpCode").keyup(function (e) {
+            if (e.which != 13) {
+                $("#hdfEmployeeId").val("0");
+            }
+            $("#txtEmpCode").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../FbBudgetOwner/GetAutoCompleteEmployeeAdd",
+                        data: "{ 'txt' : '" + $("#txtEmpCode").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }))
+                        },
+                        error: function (response) {
+                            //alert(response.responseText);
+                        },
+                        failure: function (response) {
+                            //alert(response.responseText);
+                        }
+                    });
+                },
+                minLength: 1,
+                select: function (e, i) {
+                    //var txt = i.item.label.split('-')[0].trim();
+                    $("#hdfEmployeeId").val(i.item.val);
+                    $("#txtEmpCode").val(i.item.label);
+                }
+            });
+        });
+
+        $("#txtEmpCode").focusout(function () {
+            var hdfId = $("#hdfEmployeeId").val();
+            var _data = $("#txtEmpCode").val();
+            if (_data.trim() != "" && (hdfId.trim() == "" || hdfId.trim() == "0")) {
+                $("#txtEmpCode").val("");
+            }
+        });
+    });
+
+    function SaveBudgetOwner() {
+        var empid = $("#hdfEmployeeId").val();
+        var _data = $("#txtEmpCode").val();
+        if ((_data.trim() != "" || _data.trim() == "") && (empid.trim() == "" || empid.trim() == "0")) {
+            jAlert("Ensure Employee Details!", "Message");
+            $('#txtEmpCode').focus();
+            return false;
+        }
+
+        var empcode = _data.split('-')[0].trim();
+        var empname = _data.split('-')[1].trim();
+
+        var objowner = {
+            "empName": empname,
+            "empCode": empcode,
+            "employeeGid": empid,
+        };
+
+        $.post('../FbBudgetOwner/Create', objowner,
+            function (data) {
+                if (data == 0) {
+                    jAlert("Duplicate Record!", "Message");
+                    return false;
+                }
+                else {
+                    jAlert(data, "Message", function (e) {
+                        location = '../FbBudgetOwner/Index';
+                    });
+                }
+            }, 'json');
+    }
+
+    function BudgetClose() {
+        objDialogbudget.dialog('close');
+    }
+</script>

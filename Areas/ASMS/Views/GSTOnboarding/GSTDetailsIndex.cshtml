@@ -1,0 +1,152 @@
+﻿@using IEM.Common
+@using IEM.Areas.ASMS.Models
+@model  IEM.Areas.ASMS.Models.EntityGstvendor 
+
+@{
+    GSTSupDataModel dm = new GSTSupDataModel(); 
+    List<EntityGstvendor> lst = new List<EntityGstvendor>();
+    string IsChecker = "";  
+    if (lst == null || lst.Count == 0)
+    {
+        lst = dm.getvendor(); 
+    }
+ 
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        //if (ViewBag.PageMode == "3")
+        //{
+        //    ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+        //    if (ViewBag.IsAllowApproverToEdit == "1")
+        //    {
+        //        ViewBag.PageMode = "2";
+        //    }
+        //}
+        if (ViewBag.PageMode == "2")
+        {
+            IsChecker = "Y";
+        }
+        else
+        {
+            IsChecker = "N";
+        }
+    }
+    if (Session["isFinancialReviewer"] != null)
+    {
+        ViewBag.isFinancialReviewer = (string)Session["isFinancialReviewer"];
+    }
+    else
+    {
+        ViewBag.isFinancialReviewer = "";
+    }
+    
+    //string IsChecker ="Y";
+    //string EnableData = (IsChecker == "X" ? "disabled" : "");
+    string AddData = (IsChecker == "Y" ? "visible" : "hidden");
+    string EnableData = IsChecker == "Y" ? "visible" : (IsChecker == "N" ? "hidden" : "hidden");
+ 
+}
+<style type="text/css">
+    .hide {display:none;}
+</style> 
+<div id="ForGSTDetails">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "ForGSTDetails", ajaxUpdateCallback: "DummyFunction9()");
+        int rowVal = 0; 
+    }
+    <div class="table-responsive" style="margin-top:10px; width:100%">
+ 
+ 
+
+      @grid.GetHtml(
+        htmlAttributes: new { id = "wgridGSTDetails" },
+                    tableStyle: "tableSmall table-bordered table-hover",
+        mode: WebGridPagerModes.All,
+        columns:
+            grid.Columns(            
+                    // grid.Column("suppliergst_gid", objCmnFunctions.Sorter("suppliergst_gid", "", grid), canSort: false, style: "slno"),
+           grid.Column ("S.No", style: "slno", format: item => rowVal = rowVal + 1, canSort: false),
+                     grid.Column("suppliergst_app", objCmnFunctions.Sorter("suppliergst_app", "Registered", grid), style: "colmedium"),
+            grid.Column("suppliergst_state", objCmnFunctions.Sorter("suppliergst_state", "State", grid), style: "colmedium"),
+            grid.Column("suppliergst_tin", objCmnFunctions.Sorter("suppliergst_tin", "GSTIN", grid), style: "colmedium"),
+            grid.Column("suppliergst_vertical", objCmnFunctions.Sorter("suppliergst_vertical", "Business Vertical", grid), style: "colmedium"),
+            grid.Column("suppliergst_status", objCmnFunctions.Sorter("suppliergst_status", "Status", grid), style: "colmedium"),
+            grid.Column(header: "Action", style: "action",
+            format: 
+            @<text> 
+                @Html.Raw("<a style='text-decoration:none;' title='View'  onclick='ViewType(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")                
+                @Html.Raw("<a style='text-decoration:none;' title='Edit' " + @EnableData + " onclick='EditType(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")                  
+                @*@Html.Raw("<a style='text-decoration:none;' title='Delete'  onclick='DeleteCountry(" + item.suppliergst_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")*@
+            </text>)))
+</div>
+     
+      @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+    
+   
+</div>
+
+<div id="ForTDSADDNEW"></div>
+<div id="ForTDSTAXANew"></div>
+<script type="text/javascript">
+    var objDialogTax;
+    var objATax;
+
+    if ($("#idhidden_ASMS1").val() == "") {
+        $("#idhidden_ASMS1").val("OPENED");
+
+        objDialogTax = $("[id$='ForTDSTAXANew']");
+        objDialogTax.dialog({
+            autoOpen: false,
+
+            modal: true,
+            async: false,
+
+            resizable: true,
+            cache: false
+
+
+        });
+    }
+    $(document).ready(function () {
+        $("#wgridGSTDetails td:nth-child(1),#wgridGSTDetails th:nth-child(1)").hide();
+        $("#wgridGSTDetails td:nth-last-child(1)").show(); 
+    });
+    function refreshcurrentpage() {
+        $("#ForTDSADDNEW").dialog("close");
+        $("#ForTDSADDNEW").dialog("dispose");
+        //   location.reload();
+    }
+    function DummyFunction9() {
+        $("#wgridGSTDetails td:nth-child(1),#wgridGSTDetails th:nth-child(1)").hide();
+        $("#wgridGSTDetails td:nth-last-child(1)").show();         
+    } 
+    function EditType(id) {
+        objDialog.load('../GSTOnboarding/GST_Edit_Vendor?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Vendor' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) { 
+        objDialog.load('../GSTOnboarding/GST_Edit_Vendor?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Vendor' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DeleteCountry(id) {
+        objDialog.load('../Onboarding/GST_Edit_Vendor?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Vendor' });
+        objDialog.dialog("open");
+        return false;
+    } 
+</script>
+

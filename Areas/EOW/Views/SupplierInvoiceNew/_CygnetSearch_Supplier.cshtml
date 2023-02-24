@@ -1,0 +1,380 @@
+﻿@model  IEM.Areas.EOW.Models.CygnetSearchModel
+@using IEM.Areas.EOW.Models
+@{
+    ViewBag.Title = "Invoice Search";
+    //CygnetDataModel objd = new CygnetDataModel();
+    //CygnetSearchModel objcyg = new CygnetSearchModel();
+    //List<CygnetSearchModel> lstTempInvoice = new List<CygnetSearchModel>();
+    //lstTempInvoice = (List<CygnetSearchModel>)TempData["SearchItems"];
+
+    //if (lstTempInvoice == null)
+    //{
+    //    ViewBag.IsSearched = "no";
+    //    if (Session["invoiceGid"] != null)
+    //    {
+    //        lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+    //    }
+    //    else
+    //    {
+    //        lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+    //    }
+    //}   
+    //if (lstTempInvoice.Count == 0)
+    //{
+    //    ViewBag.NoRecordsPayment = "NoRecords";
+    //    ViewBag.NoRecordsFoundPayment = "No Records Found";
+    //}
+}
+
+ 
+
+<div class="table-responsive" id="InvoiceSearchParams">
+    <br />
+    <div class="well table-responsive" style="width: 99%;border-color: #43B6F5;border-width: 1px;padding: 0px;">
+
+        <input hidden id="hdsupplier_gid" value=""/>
+        <input hidden id="hdCygnet_gid" value="" />
+        <table class="myTableStyleTab" style="width: 99%;">
+            <tr>
+                <td style="width:15%">
+                    <span>Pan No. </span>
+                    <input type="text"
+                           name="panno"
+                           id="txtpanno"
+                           value="@ViewBag.panno"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="width:15%">
+                    <span> Supplier Name </span>
+                    <input type="text"
+                           name="supname"
+                           id="txtsupname"
+                           value="@ViewBag.suppliername"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="width:15%">
+                    <span>GSTN No.</span>
+                    <input type="text"
+                           name="GSTNNo"
+                           id="txtGSTNNo"
+                           value="@ViewBag.GSTNNo"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td>
+                    <span>Invoice No</span><br />
+                    <input type="text"
+                           name="txtInvoiceNo"
+                           id="txtInvoiceNo"
+                           value="@ViewBag.InvoiceNo"
+                           class="textboxStyle" style="width:96%" />
+                </td>
+                <td style="padding-left: 15px;">
+                    <span>Invoice From Date</span><br />
+                    <input class="textboxStyle" type="text" value="@ViewBag.InvoiceFromDate" name="fromdate" id="txtInvoiceFromdate" maxlength="10" placeholder="dd-mm-yyyy" />
+                </td>
+
+                <td style="padding-left: 15px;">
+                    <span>Invoice To Date</span><br />
+                    <input class="textboxStyle" type="text" value="@ViewBag.InvoiceToDate" name="todate"  id="txtInvoiceTodate" maxlength="10" placeholder="dd-mm-yyyy" />
+                </td>
+            </tr>
+
+            <tr>
+                <td style="text-align:right;" colspan="3">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="SearchInvoice()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-search"></span> Search</button>
+                    </span>
+                </td>
+                <td style="text-align:left;" colspan="3">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="SelectClear()" style="margin-top:20px;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </span>
+                </td>
+            </tr>
+             <tr>
+                 <td colspan="6">
+                     @Html.Partial("CygnetGrid")
+                 </td>
+             </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnProceed" value="Search" type="button" onclick="InvoiceMismatch()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-share"></span> Invoice Mismatch</button>
+                    </span>
+                </td>
+                <td colspan="3" style="text-align:left;">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnProceed" value="Search" type="button" onclick="CreateECFInvoice()" style="margin-top:20px;color:white;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-share"></span> Proceed</button>
+                    </span>
+                    @*<span class="input-append">
+                        <button class="btn btn-primary" id="btnClear" value="Clear" type="button" onclick="ClearSelection()" style="margin-top:20px;"><span style="color:white;font-size:12px" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    </span>*@
+                </td>
+                
+            </tr>
+        </table>
+     
+    </div>
+</div>
+<div id="forpartialviewforposearch"></div>
+<script type="text/javascript">
+    var posearchdetails;
+    $(document).ready(function () {
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+        $("#txtInvoiceFromdate").datepicker(pickerOpts);
+        $("#txtInvoiceTodate").datepicker(pickerOpts);
+
+        posearchdetails = $("[id$='forpartialviewforposearch']");
+        posearchdetails.dialog({
+            autoOpen: false,
+            modal: true, 
+            width: 700,
+            height: 400,
+            duration: 300
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+    });
+    function InvoiceMismatch()
+    {
+        jConfirm("Do you want to Tag Invoice as Mismatch Invoice...? ", "Message", function (u) {
+            if (u == true) {
+        var array = "";
+        $('#wgTempInvoice').find('tbody > tr').each(function (index) {
+            var row = $(this).closest('tr');
+            first = row.find("td").eq(0).html()
+            var select = row.find("td").eq(0).find("input:checkbox").is(":checked")
+            if (select == true) {
+                array = array + row.find("td").eq(0).find("input:checkbox").val() + ',';
+            }
+        }); 
+        if (array == "") {
+            jAlert("Please select atleast one Invoice!", "Message");
+            return false;
+        } 
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("InvoiceMismatch", "SupplierInvoiceNew")?Cygnet_Gids=' + array,
+            //data: ObjCygnet,
+            success: function (response) {
+                debugger;
+                if (response.Data0 != null && response.Data0 != "" && JSON.parse(response.Data0) != null)
+                    Data0 = JSON.parse(response.Data0);
+                if (Data0.length > 0) {
+                    debugger;
+                    //jAlert(Data0[0].Msg, "Message");
+                    if (Data0[0].Clear == 1) {
+                        jAlert(Data0[0].Msg, "Message");
+                        var cyggrd = '@Url.Action("CygnetGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                        $("#wgTempInvoice").load(cyggrd);
+                    }
+                    else
+                    {
+                        jAlert("Not able to process your request! Please try again later.", "Message");
+                        return false;
+                    }
+                }
+            },
+            error: function () {
+            }
+        });
+            }
+        });
+    }
+    function DummyFunction() {
+
+    }
+    function CreateECFInvoice() {
+        debugger;
+        var first = "";
+        var array = "";
+        $('#wgTempInvoice').find('tbody > tr').each(function (index) { 
+            var row = $(this).closest('tr');
+            first = row.find("td").eq(0).html()
+            var select = row.find("td").eq(0).find("input:checkbox").is(":checked")
+            if (select == true) {
+                array = array + row.find("td").eq(0).find("input:checkbox").val() + ',';
+            } 
+        });
+        //jAlert(array, "Message");
+        if (array == "") {
+            jAlert("Please select atleast one Invoice!", "Message");
+            return false;
+        } 
+        //var ObjCygnet = {
+        //    "Cygnet_Gids": array
+        //};
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("CreateECFInvoice", "SupplierInvoiceNew")?Cygnet_Gids=' + array,
+            //data: ObjCygnet,
+            success: function (response) {
+                debugger;
+                if (response.Data0 != null && response.Data0 != "" && JSON.parse(response.Data0) != null)
+                    Data0 = JSON.parse(response.Data0);
+                if (Data0.length > 0) {
+                    jAlert(Data0[0].Msg, "Message");
+                    if (Data0[0].Clear == 1)
+                    { 
+                        location.href = '@Url.Action("selectdatadraft", "DashBoard")?id=' + Data0[0].ecf_gid + '&' + new Date().getTime(); 
+                    } 
+                }
+            },
+            error: function () {
+            }
+        });
+    }
+    function ClearSelection() {
+
+    }
+    function SearchInvoice() {
+        debugger;
+        //alert(1);
+        var SupplierPanNo = $('#txtpanno').val();
+        var SupplierName = $('#txtsupname').val();
+        var Supplier_GSTNNo = $('#txtGSTNNo').val();
+        var InvoiceNo = $('#txtInvoiceNo').val();
+        var InvoiceFromDate = $('#txtInvoiceFromdate').val();
+        var InvoiceToDate = $('#txtInvoiceTodate').val();
+        //var obsearch = {
+        //    "cygnet_supplierpanno": supplierpanno,
+        //    "cygnet_suppliername": suppliername,
+        //    "cygnet_supplier_gstnno": supplier_gstnno,
+        //    "cygnet_invoiceno": invoiceno,
+        //    "cygnet_invoicefromdate": invoicefromdate,
+        //    "cygnet_invoicetodate": invoicetodate
+        //};
+
+        $("#divInvoiceGrid").load('../SupplierInvoiceNew/CygnetGrid?panno=' + SupplierPanNo + "&suppliername=" + SupplierName + "&GSNTNNo=" + Supplier_GSTNNo + "&InvoiceNo=" + InvoiceNo +
+            "&FromDate=" + InvoiceFromDate + "&ToDate=" + InvoiceToDate);
+
+         
+        @*var url = '@(Url.Action("InvoiceSearch", "SupplierInvoiceNew"))';
+        $("#wgTempInvoice").load(url);*@
+        @*$.ajax({
+            type: 'POST',
+            url: '@Url.Action("InvoiceSearch", "SupplierInvoiceNew")',
+            data: objownersearch,
+            success: function (data) {
+
+                //var url = '@Url.Action("InvoiceSearch", "SupplierInvoiceNew")' + new Date().getTime();
+                //$("#wgTempInvoice").load(data);
+            },
+            error: function () {
+            }
+        });*@
+    }
+    function fn_gridshow() {
+        $("#grid td:nth-child(2),#grid th:nth-child(2)").show();
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        debugger;
+        $("#tCygnetEdit").show();
+        $("#searchgrid").hide();
+    });
+
+    function InvoiceTypePOEdit(Cygnet_gid, Cygnet_InvoiceNo, InvoiceSupplier_gid, Cygnet_InvoiceType, PO_Nos) {
+        debugger;
+        
+        // var ddlClaimTypename = $("#ddlCygClaimType option:selected").text();
+        var ddlClaimTypename = Cygnet_InvoiceType;
+        var url = "@(Html.Raw(Url.Action("POSearch", "SupplierInvoiceNew")))";
+        posearchdetails.load(url + '?id=' + InvoiceSupplier_gid + '&claimType=' + Cygnet_InvoiceType);
+        posearchdetails.dialog({
+            title: 'PO  Search ', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        posearchdetails.dialog("open");
+        debugger;
+        $("#txtCygInvoiceNo").val(Cygnet_InvoiceNo);
+        $("#hdsupplier_gid").val(InvoiceSupplier_gid);
+        $("#hdCygnet_gid").val(Cygnet_gid);
+        $("#ddlCygClaimType").val(Cygnet_InvoiceType);
+        $("#txtCygponumber").val(PO_Nos);
+        $("#tCygnetEdit").show();
+        $("#searchgrid").hide();
+    }
+   /* function NewsupplierPO() {
+        debugger;
+        var ddlClaimTypename = $("#ddlCygClaimType option:selected").text();
+        var ddlClaimTypeid = $("#ddlCygClaimType").val();
+        if (ddlClaimTypeid == "0" || ddlClaimTypename == "-- Select --") {
+            jAlert("Please Select Invoice Type", "Information");
+            return;
+        }
+        else if (ddlClaimTypeid == "P" || ddlClaimTypeid == "W") {
+            var url = 'atUrl.Action("_PoAdd", "SupplierInvoiceNew")?potype=' + ddlClaimTypename +  '&' + new Date().getTime();
+            posearchdetails.load(url);
+            posearchdetails.dialog({ title: 'New PO' });
+            posearchdetails.dialog("open");
+        }
+
+    }*/
+    function PoSearch() {
+        debugger;
+        var supp = $('#hdsupplier_gid').val();
+        var ddlClaimTypename = $("#ddlCygClaimType option:selected").text();
+        var ddlClaimTypeid = $("#ddlCygClaimType").val();
+        if (ddlClaimTypeid == "0" || ddlClaimTypename == "-- Select --") {
+            jAlert("Please Select Invoice Type", "Information");
+            return;
+        }
+
+        else if (ddlClaimTypeid == "P" || ddlClaimTypeid == "W") {
+            $.ajax({
+                url: '@Url.Action("posearchdetails", "Central")?id=' + supp + '&' + new Date().getTime(),
+                //data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    isSuccess = result;
+                    if (supp == null || supp == 0) {
+                        jAlert("You Can't Search PO/WO Number", "Information");
+                        return false;
+                    }
+                    else if (result == 0) {
+                        jAlert("This Supplier Don't have PO/WO Number", "Information");
+                        return false;
+                    }
+                    else {
+                        debugger;
+                        var url = "@(Html.Raw(Url.Action("POSearch", "SupplierInvoiceNew")))";
+                        posearchdetails.load(url + '?id=' + supp + '&claimType=' + ddlClaimTypeid);
+                        posearchdetails.dialog({
+                            title: 'PO  Search ', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+                        });
+                        posearchdetails.dialog("open");
+
+                        $("#searchgrid").show();
+                    }
+                },
+            });
+        }
+    }
+    function SelectClear()
+    {
+        $("#txtpanno").val("");
+        $("#txtsupname").val("");
+        $("#txtInvoiceNo").val("");
+        //$("#hdfSupplier").val("0");
+        $("#txtGSTNNo").val("");
+        $("#txtInvoiceFromdate").val("");
+        $("#txtInvoiceTodate").val("");
+
+        //$("#txtInvoiceFromdate").removeClass('required').removeClass('valid');
+        //$("#txtInvoiceTodate").removeClass('required').removeClass('valid');
+
+        //$("#txtInvoiceFromdate").addClass('required');
+        //$("#txtInvoiceTodate").addClass('required');
+    }
+</script>

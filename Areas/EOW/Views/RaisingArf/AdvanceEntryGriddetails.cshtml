@@ -1,0 +1,70 @@
+﻿@*@model IEM.Areas.EOW.Models.ArfRaising*@
+@using IEM.Areas.EOW.Models
+@using System.Data
+@{
+    List<EOW_arfraising> list = new List<EOW_arfraising>();
+    ArfRaising rais = new ArfRaising();
+    DataTable getdetails= new DataTable();
+    getdetails = rais.Getarfadvacedetails();
+    foreach (DataRow dr in getdetails.Rows)
+    {
+        list.Add(
+        new EOW_arfraising
+        {
+            ecfarf_gid = int.Parse(dr["ecfarf_gid"].ToString()),
+            ecfarf_advancetype_gid = int.Parse(dr["ecfarf_advancetype_gid"].ToString()),
+            ecfarf_dr_gl_no = dr["ecfarf_dr_gl_no"].ToString(),
+            ecfarf_desc = dr["ecfarf_desc"].ToString(),
+            ecfarf_amount = decimal.Parse(dr["ecfarf_amount"].ToString()),
+            ecfarf_exception = decimal.Parse(dr["ecfarf_exception"].ToString()),
+            ecfarf_po_no = dr["ecfarf_po_no"].ToString(),
+            ecfarf_cbf_no = dr["ecfarf_cbf_no"].ToString(),
+            ecfarf_fc_code = dr["ecfarf_fc_code"].ToString(),
+            ecfarf_cc_code = dr["ecfarf_cc_code"].ToString(),
+            ecfarf_product_code = dr["ecfarf_product_code"].ToString(),
+            ecfarf_ou_code = dr["ecfarf_ou_code"].ToString(),
+            ecfarf_liq_date = dr["ecfarf_liq_date"].ToString(),
+                    
+
+        });
+    };
+    WebGrid grid = new WebGrid(source: list, canPage: true, canSort: true);
+}
+@using (Html.BeginForm())
+{
+    <div class="well">       
+        <div style="margin-top:17px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+        tableStyle: "table table-bordered table-hover table-responsive",
+        columns: grid.Columns
+            (
+        //Here I am going to add checkbox column
+grid.Column("ecfarf_gid", Sorter("ecfarf_gid", "SNo", grid), canSort: false),
+grid.Column("ecfarf_advancetype_gid", Sorter("ecfarf_advancetype_gid", "Advance Type", grid)),
+grid.Column("ecfarf_desc", Sorter("ecfarf_desc", "Description", grid)),
+grid.Column("ecfarf_liq_date", Sorter("ecfarf_liq_date", "Target Liquidation Date", grid)),
+grid.Column("ecfarf_po_no", Sorter("ecfarf_po_no", "PO No", grid)),
+grid.Column("ecfarf_cbf_no", Sorter("ecfarf_cbf_no", "CBF No", grid)),
+grid.Column("ecfarf_fc_code", Sorter("ecfarf_fc_code", "FC", grid)),
+grid.Column("ecfarf_cc_code", Sorter("ecfarf_cc_code", "CC", grid)),
+grid.Column("ecfarf_product_code", Sorter("ecfarf_product_code", "Product Code", grid)),
+grid.Column("ecfarf_ou_code", Sorter("ecfarf_ou_code", "OC Code", grid)),
+grid.Column("ecfarf_amount", Sorter("ecfarf_amount", "Amount", grid)),
+
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' onclick='ViewType(" + item.ecfarf_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    @Html.Raw("<a title='Edit' onclick='EditType(" + item.ecfarf_gid + ")'> <span class='glyphicon glyphicon-edit'> </span> </a>")
+                    @Html.Raw("<a title='Delete' onclick='DeleteType(" + item.ecfarf_gid + ")'> <span class='glyphicon glyphicon-trash'> </span> </a> ")
+                </text>)))
+        </div>
+    </div>
+}

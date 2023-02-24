@@ -1,0 +1,164 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+@{
+    ViewBag.Title = "AssetMergeSummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.AssetParentSummary,
+                         canPage: true,
+                         rowsPerPage: 7,
+                         canSort: true,
+                         ajaxUpdateContainerId: "grid"
+                       );
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+
+}
+
+
+<span>
+    <b>
+        <span style="color: rgb(52, 108, 196);">Asset Merge - Checker</span>
+    </b>
+
+    @*<label id="lblsnonew22">
+            @if (@ViewBag.UserRole == "IOAMKR")
+            {
+
+                <b>
+                    <span style="color: rgb(52, 108, 196);">Impairment Maker</span>
+                </b>
+
+            }
+            else if (@ViewBag.UserRole == "IOACHK")
+            {
+                <b>
+                    <span style="color: rgb(52, 108, 196);">Impairment Checker</span>
+                </b>
+
+            }
+        </label>*@
+</span>
+
+
+
+
+<div class="well">
+
+    <div class="row">
+
+
+        <div class="col-sm-9">
+            @using (Html.BeginForm())
+            {
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                    <tr>
+                        <td>
+                            <div>
+                                <span> Asset ID </span>
+                                <br />
+                                <input type="text"
+                                       name="filter"
+                                       id="txtFilter"
+                                       value="@ViewBag.filter"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnclear" onclick="refreshpage()" value="Clear" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            }
+        </div>
+      
+    </div>
+
+    <div style="margin-top:17px;" class="overflowx overflowy">
+        @grid.GetHtml(
+fillEmptyRows: false,
+tableStyle: "tableSmall table-bordered table-hover table-responsive",
+mode: WebGridPagerModes.All,
+columns: grid.Columns(
+         grid.Column(header: "S.No", format: item => rowVal = rowVal + 1),
+         grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),
+         grid.Column("AssetCode", obj.Sorter("AssetCode", "Asset Code", grid), style: "MidColumns10"),
+         grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Decription", grid), style: "MidColumns10"),
+         grid.Column("AssetValue", obj.Sorter("AssetValue", "Asset Value", grid), style: "MidColumns10"),
+         grid.Column("status", obj.Sorter("status", "Status", grid), style: "MidColumns10"),
+         grid.Column(header: "Action", canSort: false, style: "action",
+       format: @<text> @Html.Raw("<a title='View' onclick='ViewType(" + item.AssetDetGid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+    </text>)
+
+                 ))
+
+        <div class="borderStyle btnCenter" align="center">
+            <b> @ViewBag.Message </b>
+        </div>
+        <br />
+        <div class="myTableStyleTabNew">
+            <span>  Total No Of Records : @Model.AssetParentSummary.Count()</span>
+        </div>
+
+    </div>
+
+
+
+</div>
+
+<div id="ViewMergeDet"></div>
+<script type="text/javascript">
+
+    var objDialog;
+
+    $(document).ready(function () {
+
+        objDialog = $("[id$='ViewMergeDet']");
+
+
+
+    });
+    function Merge() {
+
+        location = '@Url.Action("AssetMerge", "AssetMerge")';
+    }
+    function ViewType(id) {
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 950,
+            height: 600,
+            resizable: false
+        });
+        objDialog.load('@Url.Action("ViewMerge", "AssetMerge")?viewfor=Checker&id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Merged Assets' });
+        objDialog.dialog("open");
+    }
+
+
+
+    //$('#btnclear').click(function () {
+    //    alert("hai");
+       
+    //});
+
+    function refreshpage() {
+       
+        location = '../AssetMerge/AssetMergeSummaryy';
+    }
+</script>

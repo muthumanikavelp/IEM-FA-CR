@@ -1,0 +1,92 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@using System.Data
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lstPaymentpop = new List<EOW_TravelClaim>();
+    lstPaymentpop = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lstPaymentpop == null)
+    {
+        decimal remamount = 0;
+        ViewBag.IsSearched = "no";
+        lstPaymentpop = objd.GetLocalexpdatapopup(Session["EcfGid"].ToString(), Session["Ecfcurrentid"].ToString()).ToList();
+        for (int tr = 0; lstPaymentpop.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lstPaymentpop[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lstPaymentpop[tr].Amount.ToString());
+            }
+        }
+        Session["singletotals"] = remamount.ToString();
+    }
+    if (lstPaymentpop.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var gridPaymentpop = new WebGrid(lstPaymentpop, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempPaymenttlocal", ajaxUpdateCallback: "DummyFunction()");
+    int rowValPayment = 0;
+}
+
+<div class="container" style="padding-left: 0px;padding-right: 15px;">
+    <br />
+    <div id="wgempPaymenttlocal">
+        <div class="overflowy overflowx">
+            <div style="max-height: 350px;">
+                @gridPaymentpop.GetHtml(
+                                          htmlAttributes: new { id = "wgempPaymenttlocal" },
+                                          tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+            gridPaymentpop.Columns(gridPaymentpop.Column("S.No", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+            gridPaymentpop.Column("ClaimPeriodFrom", objCmnFunctions.Sorter("ClaimPeriodFrom", "Date", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("PlaceFrom", objCmnFunctions.Sorter("PlaceFrom", "Place From", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("PlaceTo", objCmnFunctions.Sorter("PlaceTo", "Place To", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("TravelModeName", objCmnFunctions.Sorter("TravelModeName", "Travel Mode", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("Rate", objCmnFunctions.Sorter("Rate", "Rate", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("Distance", objCmnFunctions.Sorter("Distance", "Distance", gridPaymentpop), canSort: false),
+            gridPaymentpop.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", gridPaymentpop), canSort: false)))
+
+
+                @if (@ViewBag.NoRecordsPayment == "NoRecords")
+                {
+                    <div class="borderStyle">
+                        <center>
+                            @ViewBag.NoRecordsFoundPayment
+                        </center>
+                    </div>
+                }
+                else
+                {
+                    <div align="right">
+                        <div align="right"> &nbsp;&nbsp; Total Records : <label id="lblDirectorCountnew">@Session["singletotals"]</label></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <br />
+    <div style="width: 100%;" align="center">
+        <div class="input-append ">
+            <span class="input-append">
+                <button type="button" id="btnCancel1h" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexivn()"><span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+            </span>
+        </div>
+    </div>
+</div>
+<script>
+    function GotoIndexivn() {
+        objDialogexpdetails.dialog("close");
+        window.parent.jQuery('#ForPartialViewexpdetails').dialog('close');
+    }
+</script>

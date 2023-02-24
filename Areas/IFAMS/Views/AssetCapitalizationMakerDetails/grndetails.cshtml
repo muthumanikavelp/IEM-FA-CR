@@ -1,0 +1,183 @@
+﻿@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common
+@model IEM.Areas.FLEXIBUY.Models.grnconfirmationdetails
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<div id="grnconfirm">
+   
+    @{
+        var grid = new WebGrid(source: Model.grnconfirmationdetail, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        int rowNum = 0;
+    }
+    <div>
+        <div style="overflow-x:scroll; width:100%">
+            <div>
+
+                @grid.GetHtml(
+         tableStyle: "table table-bordersed table-hover table-responsive",
+        htmlAttributes: new { id = "grncfmgrid" },
+        columns: grid.Columns
+            (
+                        //Here I am going to add checkbox column
+                   grid.Column("slno", objCmnFunctions.Sorter("slno", "Sl", grid)),
+                   grid.Column("grndetGid", objCmnFunctions.Sorter("grndetGid", "grndetGid", grid), style: "MidColumn30"),
+                        //grid.Column("SNo", format: a => rowNum = rowNum + 1),
+                grid.Column("productgroup", objCmnFunctions.Sorter("productgroup", "Product Group", grid), style: "MidColumn30"),
+               grid.Column("productcode", objCmnFunctions.Sorter("productcode", "Product Code", grid), style: "MidColumn30"),
+                                        grid.Column("productname", objCmnFunctions.Sorter("productname", "Product Name", grid), style: "MidColumn30"),
+                                        grid.Column("uomcode", objCmnFunctions.Sorter("uomcode", "Uom Code", grid), style: "MidColumn30"),
+                                        grid.Column("receivedqty", objCmnFunctions.Sorter("receivedqty", "Received Quantity", grid), style: "MidColumn30"),
+                                        grid.Column("receiveddate", objCmnFunctions.Sorter("receiveddate", "Received Date", grid), style: "MidColumn30"),
+
+                   grid.Column("manfName", objCmnFunctions.Sorter("manfName", "Manufacture Name", grid),
+                     format: @<text><span class="display" id="lblmanf">@item.manfName</span>
+                <input type="text" id="inmanf_@item.grndetGid" name="inmanf"
+                       href="@item.grndetGid" value="@item.manfName" style="width:200px"
+                       class=" textboxStyle edit" /> </text>,style:"MidColumn30"),
+
+                   grid.Column("assetSlno", objCmnFunctions.Sorter("assetSlno", "Asset Slno", grid),
+                   format: @<text><span class="display" id="lblasset">@item.assetSlno</span>
+                <input type="text" id="inassetno_@item.grndetGid" name="inassetno"
+                       href="@item.grndetGid" value="@item.assetSlno" style="width:100px"
+                       class="textboxStyle edit" /> </text>,style:"MidColumn30"),
+
+                   grid.Column("putToUseDate", objCmnFunctions.Sorter("putToUseDate", "PutToUseDate", grid),
+                   format: @<text><span class="display" id="lblput">@item.putToUseDate</span>
+                <input type="text" id="inusedate_@item.grndetGid" name="inusedate"
+                       onkeypress="return isDate(event, this);" onmouseover="getDate(id)"
+                       href="@item.grndetGid" value="@item.putToUseDate" style="width:100px"
+                       class="textboxStyle edit" /> </text>,style:"MidColumn30")
+
+                                 @*grid.Column(header: "Action", canSort: false, style: "MidColumn30",
+                     format: @<text>
+
+                                    <input type="button" value="Select" class="btn btn-link" onclick="samplefunction(@item.grndetGid,@item.grndetGid)" id="btn" title="Select" />
+                                    <span class='glyphicon glyphicon-floppy-save edit save-btn' style="cursor:pointer;" title="Save"> <label id="sdf34" hidden="hidden">@item.grndetGid</label></span>
+                                    &nbsp;
+                                    <span class='glyphicon glyphicon-edit display edit-btn cursor' style="cursor:pointer;" title="Edit"><label id="sdf67" hidden="hidden"> @item.grndetGid </label> </span>
+                                    &nbsp;
+
+                                    <span class='glyphicon glyphicon-remove edit cancel-btn cursor' style="cursor:pointer;" title="Cancel"> <label id="sdf000-" hidden="hidden"> @item.grndetGid</label></span>
+                    </text>)*@
+                )
+                )
+
+
+                </>
+            </div>
+            <div class="table-bordered">
+                @ViewBag.NoRecordsFound
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $("#grncfmgrid td:nth-child(2),#grncfmgrid th:nth-child(2)").hide();
+
+    $(document).ready(function () {
+        //$('#grncfmgrid').find('input[name="inusedate"]').each(function () {
+        //    ReceivedDate1($(this))
+        //});
+
+        $('.edit ').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+    //function ReceivedDate1(id) {
+    //    id.datepicker(pickerOpts);
+    //}
+    //var pickerOpts = {
+    //    changeMonth: true,
+    //    changeYear: true,
+    //    yearRange: '1950:2100',
+    //    currentText: "Now",
+    //    dateFormat: "dd-mm-yy"
+    //};
+    });
+    $('.save-btn').on('click', function () {
+
+        var tr = $(this).parents('tr:first');
+        var row = $(this).text();
+        var manname = tr.find("#inmanf_" + row.trim() + "").val();
+        var assetslno = tr.find("#inassetno_" + row.trim() + "").val();
+        var putusedate = tr.find("#inusedate_" + row.trim() + "").val();
+        var grndetailsid = tr.find("td:eq(1)").text();
+   
+        if (manname == null || manname.toString().trim() == "") {
+            jAlert("Please Enter Manufacturer Name", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if (assetslno == null || assetslno.toString().trim() == "") {
+            jAlert("Please Enter Asset Sl.No", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if (putusedate == null || putusedate.toString().trim() == "") {
+            jAlert("Please Enter PutToUseDate", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        var objInward =
+           {
+               "manfName": manname,
+               "assetSlno": assetslno,
+               "putToUseDate": putusedate,
+               "grndetGid": grndetailsid
+           };
+
+        $.ajax({
+            url: '@Url.Action("Grnsavedetails", "GRN")',
+            type: 'POST',
+            data: objInward,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#grnconfirm").empty().append(data);
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+        @*$.ajax({
+            url: '@Url.Action("Grnsavedetails", "GRN")',
+            type: 'POST',
+            data: objInward,
+            success: function (data) {
+                alert(data);
+                $("#grnconfirm").load('@Url.Action("Grnsavedetails", "GRN")');
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });*@
+    });
+    function getDate(id) {
+        var id1 = '#' + id;
+        ReceivedDate(id1);
+    }
+    function ReceivedDate(id1) {
+        $(id1).datepicker(pickerOpts);
+    }
+    var pickerOpts = {
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1950:2100',
+        currentText: "Now",
+        dateFormat: "dd-mm-yy"
+    };
+
+    //};
+</script>

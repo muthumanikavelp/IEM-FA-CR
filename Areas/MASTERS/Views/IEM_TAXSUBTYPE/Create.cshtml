@@ -1,0 +1,201 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_tax_subtype
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtDocNameName">
+                    <span> Sub-Tax Code </span>
+                    <br />
+                    <input name="DocNameName" id="_Taxsubcode" type="text" data-val="true" maxlength="8" value="" 
+                           class="fstextbox  required " style="display: block; " />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtDocNameName">
+                    <span> Sub-Tax  </span>
+                    <br />
+                    <input name="DocNameName" id="_Taxsubname" type="text" data-val="true" maxlength="70" value=""
+                            class="fstextbox  required " style="display: block; " />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtDocGrpName">
+                    <span>Tax </span>
+                    @Html.DropDownListFor(e => e.tax_gid, Model.Gettaxsub, "--Select Tax --", new { @class = "fstextbox  chosen-select", @style = "display: block", @id = "tax_gid" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <div id="txtDocNameName">
+                    <span> Gl Number </span>
+                    <br />
+                    <input name="glnumber"
+                           id="glnumberid"
+                           type="text"
+                           data-val="true"
+                           maxlength="70"
+                           class="fstextbox  required "
+                           style="display: block;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Active</span>
+                <br />
+                <input type="radio" id="Yes" value="Y" checked="checked" name="Radiotypename">
+                Yes &nbsp;
+                <input type="radio" id="No" value="N" name="Radiotypename">
+                No
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center;" >
+                <button type="button" class="btn btn-primary" id="btnsave" value="Save" onclick="SAVE()" style="margin-top:20px;">
+                <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save</button>
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:20px;">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+                @*<input type="button" class="btn btn-primary" value="Save" onclick="SAVE()" />
+            <input type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" />*@
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {        
+        $("#glnumberid").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../IEM_TAXSUBTYPE/GlNumber",
+                    type: "POST",
+                    dataType: "json",
+                    data: { GlNumber: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.GLCode, value: item.GLCode };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+      
+        
+    $("#_Taxsubcode").keyup(function () {
+        var taxsubcode = $("#_Taxsubcode").val();
+        var taxsubname = $("#_Taxsubname").val();
+        var taxgid = $("#tax_gid").val();
+        var avtive = $('input[name=Radiotypename]:checked').val();
+        if (taxsubcode == "" || taxsubname == "" || taxgid == "") {
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#btnsave").removeAttr('disabled');
+        }
+        var txtSupplierName = $("#_Taxsubcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Taxsubcode").removeClass('required');
+            $("#_Taxsubcode").addClass('valid');
+        }
+        else {
+            $("#_Taxsubcode").removeClass('valid');
+            $("#_Taxsubcode").addClass('required');
+        }
+    });
+    $("#_Taxsubname").keyup(function () {
+        var taxsubcode = $("#_Taxsubcode").val();
+        var taxsubname = $("#_Taxsubname").val();
+        var taxgid = $("#tax_gid").val();
+        var avtive = $('input[name=Radiotypename]:checked').val();
+        if (taxsubcode == "" || taxsubname == "" || taxgid == "") {
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#btnsave").removeAttr('disabled');
+        }
+        var txtSupplierName = $("#_Taxsubname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Taxsubname").removeClass('required');
+            $("#_Taxsubname").addClass('valid');
+        }
+        else {
+            $("#_Taxsubname").removeClass('valid');
+            $("#_Taxsubname").addClass('required');
+        }
+    });
+    $("#tax_gid").change(function () {
+        var taxsubcode = $("#_Taxsubcode").val();
+        var taxsubname = $("#_Taxsubname").val();
+        var taxgid = $("#tax_gid").val();
+        var avtive = $('input[name=Radiotypename]:checked').val();
+        if (taxsubcode == "" || taxsubname == "" || taxgid == "") {
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#btnsave").removeAttr('disabled');
+        }
+    });
+    function SAVE() {
+        var taxsubcode = $("#_Taxsubcode").val();
+        var taxsubname = $("#_Taxsubname").val();
+        var taxgid = $("#tax_gid").val();
+        var glcode=$("#glnumberid").val();
+        var avtive = $('input[name=Radiotypename]:checked').val();
+        if (taxsubcode == "" || taxsubname == "" || taxgid == "" || glcode == "") {
+            alert(" All Fields Are Required !");
+            return false;
+        }
+        else {
+            var taxModel = {
+                "taxsubtype_code": taxsubcode,
+                "taxsubtype_name": taxsubname,
+                "taxsubtype_parent_name": taxgid,
+                "taxsubtype_active_flag": avtive,
+                "GLCode": glcode
+            };
+
+            $.post('../IEM_TAXSUBTYPE/Createtaxsub', taxModel,
+                 function (data) {
+                     if (data != "success") {
+                         jAlert(data, "Information", function () {
+                             return false;
+                         });
+
+                     }
+                     else {
+                         jAlert('Record inserted successfully !', "Information", function (r) {
+                             if (r == true) {
+                                 location = '../IEM_TAXSUBTYPE/Index';
+                             }
+                         });
+
+                     }
+
+                 }
+
+            , 'json');
+        }
+
+    }
+    function GotoIndex() {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>

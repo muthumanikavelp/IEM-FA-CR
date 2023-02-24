@@ -1,0 +1,138 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetTravelModedata(Session["QEcfGid"].ToString(), Session["QinvoiceGid"].ToString(), "T").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+</style>
+<div id="wgTravelmodettv">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridTravelmode = new WebGrid(lst, canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "wgTravelmodettv", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridTravelmode.GetHtml(
+        htmlAttributes: new { id = "wgridTravelmodett" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        gridTravelmode.Columns(
+                //gridTravelmode.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                         gridTravelmode.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesNames", "Nature of Expenses", gridTravelmode), canSort: false, style: "atravelmode"),
+                         gridTravelmode.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", gridTravelmode), canSort: false, style: "dtravelmode"),
+                         gridTravelmode.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", gridTravelmode), canSort: false, style: "dtravelmode"),
+                         gridTravelmode.Column("PlaceFrom", objCmnFunctions.Sorter("PlaceFrom", "Place From", gridTravelmode), canSort: false, style: "atravelmode"),
+                         gridTravelmode.Column("PlaceTo", objCmnFunctions.Sorter("PlaceTo", "Place To", gridTravelmode), canSort: false, style: "atravelmode"),
+                         gridTravelmode.Column("ClaimPeriodFrom", objCmnFunctions.Sorter("ClaimPeriodFrom", " Period From", gridTravelmode), canSort: false, style: "ctravelmode"),
+                         gridTravelmode.Column("ClaimPeriodTo", objCmnFunctions.Sorter("ClaimPeriodTo", " Period To", gridTravelmode), canSort: false, style: "ctravelmode"),
+                //gridTravelmode.Column("ClaimMonth", objCmnFunctions.Sorter("ClaimMonth", "GL No", gridTravelmode), canSort: false),
+                         gridTravelmode.Column(header: "GL No", canSort: false, style: "ctravelmode",
+                                            format: @<text>
+                            <table id="tblglno" style="width: 155%;">
+                                <tr>
+                                    <td>
+                                        <label style="font-weight:normal;" id="RefException">@item.ClaimMonth</label>
+                                        @Html.Raw("<a title='view' onclick='EmpExpenseglnot(" + item.TravelMode_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    </td>
+                                </tr>
+                            </table>
+                                            </text>),
+                                                                                                                                                                                                             gridTravelmode.Column("TravelModeName", objCmnFunctions.Sorter("TravelModeName", "Travel Mode", gridTravelmode), canSort: false, style: "ctravelmode"),
+                                                                                                                                                                                                             gridTravelmode.Column("TravelClassName", objCmnFunctions.Sorter("TravelClassName", "Travel Class", gridTravelmode), canSort: false, style: "ctravelmode"),
+                //gridTravelmode.Column("Rate", objCmnFunctions.Sorter("Rate", "Rate", gridTravelmode), canSort: false),
+                //gridTravelmode.Column("Distance", objCmnFunctions.Sorter("Distance", "Distance", gridTravelmode), canSort: false),
+                                                                                                                                                                                                             gridTravelmode.Column("FC", objCmnFunctions.Sorter("FC", "Business Segment(BU)", gridTravelmode), canSort: false, style: "atravelmode"),
+                                                                                                                                                                                                             gridTravelmode.Column("CC", objCmnFunctions.Sorter("CC", "Cost Center(CC)", gridTravelmode), canSort: false, style: "dtravelmode"),
+                //gridTravelmode.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", gridTravelmode), canSort: false),
+                //gridTravelmode.Column("OUCode", objCmnFunctions.Sorter("OUCode", "OUCode", gridTravelmode), canSort: false),
+
+                                                                                                                                                                             gridTravelmode.Column(header: "Amount",
+                        format: @<text>
+                                                                                                                                                                                @Html.Raw(String.Format("{0:#,##}",
+                                                 objCmnFunctions.GetINRAmount(Convert.ToString(@item.Amount)
+                        ))) </text>, style: "colamountlarge")
+                                                                                                                                                                                                                                                                                                                                                             ))
+    </div>
+    @if (@ViewBag.NoRecords == "NoRecords")
+    {
+        <div class="borderStyle">
+            <center>
+                <b> @ViewBag.NoRecordsFound </b>
+            </center>
+        </div>
+    }
+    else
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="left">
+                        @*&nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@gridTravelmode.TotalRowCount</label>*@
+                    </td>
+                    <td align="right">
+                        <span> Total Travel Mode Amount : <b> <label id="Ecfrowtolamt">@objCmnFunctions.GetINRAmount(remamount.ToString())</label>  </b></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<style>
+    .ctravelmode {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .atravelmode {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dtravelmode {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+</style>

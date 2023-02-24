@@ -1,0 +1,267 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_finayear
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+
+        <tr>
+            <td>
+                <div id="txtDocGrpName">
+                    <span>Finance Year Code</span>
+                    <input name="DocNameName" id="txtfonanyearcode" type="text" data-val="true" maxlength="8" onkeypress="return isNumberKey(event)" value="" class="textboxStyle required " style="  width:228px;display: block;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="txtperiodfrom1">
+                    <span>Period From </span>
+                    <input name="DocNameName" id="txtfinyearperiodfrom" type="text" onchange="checkfinperiodfrom()" data-val="true" maxlength="10" value="" class="textboxStyle required " style="  width:228px;display: block;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="txtperiodto1">
+                    <span>Period To </span>
+
+                    <input name="DocNameName" id="txtfinyearperiodto" type="text" onchange="checkfinperiodto()" data-val="true" maxlength="10" value="" class="textboxStyle required " style="  width:228px;display: block;" />
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:19px;">
+                <div>
+                    <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td style="padding-top:19px;">
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+
+            $(document).ready(function () {
+
+                $("#txtfinyearperiodfrom").focus();
+                $("#txtfinyearperiodfrom").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                    CheckFieldsHeader();
+                });
+                $("#txtfinyearperiodto").focus();
+                $("#txtfinyearperiodto").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                    CheckFieldsHeader();
+                    }); 
+               });
+            //$("#txtfinyearperiodfrom").mouseover(function () {
+            //    CheckFieldsHeader();
+            //    $("#txtfinyearperiodfrom").datepicker({
+            //        changeMonth: true,
+            //        changeYear: true,
+            //        dateFormat: 'dd-mm-yy',
+            //        onSelect: function (selected) {
+
+            //            var dt = $('#txtfinyearperiodfrom').val();
+            //            var dt1 = $('#txtfinyearperiodto').val();
+            //            $("#txtfinyearperiodfrom").addClass('valid');
+            //            $("#txtfinyearperiodto").datepicker("option", "minDate", selected)
+            //        }
+            //    });
+            //});
+            //$("#txtfinyearperiodto").mouseover(function () {
+            //    CheckFieldsHeader();
+            //    $("#txtfinyearperiodto").datepicker({
+            //        changeMonth: true,
+            //        changeYear: true,
+            //        dateFormat: 'dd-mm-yy',
+
+            //        onSelect: function (selected) {
+            //            var dt = $('#txtfinyearperiodfrom').val();
+            //            var dt1 = $('#txtfinyearperiodto').val();
+            //            $("#txtfinyearperiodto").addClass('valid');
+            //        }
+            //    });
+            //});
+            $("#txtfinyearperiodfrom").mouseover(function () {
+                $("#txtfinyearperiodfrom").datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    onSelect: function (selected) {
+
+                        var dt = $('#txtfinyearperiodfrom').val();
+                        var dt1 = $('#txtfinyearperiodto').val();
+                        $("#txtfinyearperiodfrom").addClass('valid');
+                        $("#txtfinyearperiodto").datepicker("option", "minDate", selected)
+                    }
+                })
+                $("#txtfinyearperiodto").datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+
+                    onSelect: function (selected) {
+                        var dt = $('#txtfinyearperiodfrom').val();
+                        var dt1 = $('#txtfinyearperiodto').val();
+                        $("#txtfinyearperiodto").addClass('valid');
+                    }
+                });
+
+            });
+           
+            function isNumberKey(evt)
+            {
+                var charCode = (evt.which) ? evt.which : event.keyCode               
+
+                if (charCode == 45 || charCode==8 || charCode == 48 || charCode == 49 || charCode == 50 || charCode == 51 || charCode == 52 || charCode == 53 || charCode == 54 || charCode == 55 || charCode == 56 || charCode == 57)
+                {
+                    CheckFieldsHeader();
+                    return true;
+                }
+                else
+                {
+                    CheckFieldsHeader();
+                    return false;
+                }
+            }
+            function SAVE() {
+               
+
+                var periodfrom = $("#txtfinyearperiodfrom").val();
+
+                var periodto = $("#txtfinyearperiodto").val();
+
+                var finyearcode = $("#txtfonanyearcode").val();
+
+                var CityModel = {
+                    "finyear_start_date": periodfrom, "finyear_end_date": periodto,
+                    "finyear_code": finyearcode
+                };
+
+                $.post('../IEM_FINYEAR/CreateFinanceYear', CityModel,
+                function (data) {
+                    if (data != "success") {
+                        $("#txtfinyearperiodfrom").datepicker("destroy");
+                        $("#txtfinyearperiodto").datepicker("destroy");
+                        jAlert(data);
+                        return false;
+                    }
+                    else {
+                        jAlert("Record Inserted Successfully !", "Information", function (r) {
+                            if (r == true) {
+                                $("#txtfinyearperiodfrom").datepicker("destroy");
+                                $("#txtfinyearperiodto").datepicker("destroy");
+                                location = '../IEM_FINYEAR/Index';
+                            }
+                        });
+                    }
+                }, 'json');
+            }
+            function GotoIndex()
+            {
+                $("#txtfinyearperiodfrom").datepicker("destroy");
+                $("#txtfinyearperiodto").datepicker("destroy");
+                window.parent.jQuery('#ForPartialView').dialog('close');
+            }
+            //function checkfinperiodfrom() {
+            //    alert('1');
+            //    var finyearperiodfrom = $("#txtfinyearperiodfrom").text();
+            //    alert(finyearperiodfrom);
+            //    if (finyearperiodfrom.trim() == "") {
+            //        CheckFieldsHeader();
+            //        $("#txtfinyearperiodfrom").removeClass('required');
+            //        $("#txtfinyearperiodfrom").addClass('valid');
+            //        CheckFieldsHeader();
+            //    }
+            //    else {
+            //        CheckFieldsHeader();
+            //        $("#txtfinyearperiodfrom").removeClass('valid');
+            //        $("#txtfinyearperiodfrom").addClass('required');
+            //        CheckFieldsHeader();
+            //    }
+            //}
+            //function checkfinperiodto() {
+            //    alert('1');
+            //    var finyearperiodto = $("#txtfinyearperiodto").text();
+            //    alert(finyearperiodto);
+            //    if (finyearperiodto.trim() == "") {
+            //        CheckFieldsHeader();
+            //        $("#txtfinyearperiodto").removeClass('required');
+            //        $("#txtfinyearperiodto").addClass('valid');
+            //        CheckFieldsHeader();
+            //    }
+            //    else {
+            //        CheckFieldsHeader();
+            //        $("#txtfinyearperiodto").removeClass('valid');
+            //        $("#txtfinyearperiodto").addClass('required');
+            //        CheckFieldsHeader();
+            //    }
+            //}
+            ////function checkyearcode() {
+
+            ////    var fonanyearcode = $("#txtfonanyearcode").val();
+            ////    if (fonanyearcode.trim() == "") {
+            ////        CheckFieldsHeader();
+            ////        $("#txtfonanyearcode").removeClass('valid');
+            ////        $("#txtfonanyearcode").addClass('required');
+            ////        CheckFieldsHeader();
+            ////    }
+            ////    else {
+            ////        CheckFieldsHeader();
+            ////        $("#txtfonanyearcode").removeClass('required');
+            ////        $("#txtfonanyearcode").addClass('valid');
+            ////        CheckFieldsHeader();
+            ////    }
+    ////}
+            
+            $("#txtfonanyearcode").keyup(function () {
+                var txtContractTo = $("#txtfonanyearcode").val();
+                if (txtContractTo.trim() != "") {
+                    $("#txtfonanyearcode").removeClass('required');
+                    $("#txtfonanyearcode").addClass('valid');
+                    CheckFieldsHeader();
+                }
+                else {
+                    $("#txtfonanyearcode").removeClass('valid');
+                    $("#txtfonanyearcode").addClass('required');
+                }
+            });
+            function CheckFieldsHeader() {
+                $("#txtfinyearperiodfrom").datepicker("destroy");
+                $("#txtfinyearperiodto").datepicker("destroy");                
+                var ErrCount = 0;
+                if ($("#txtfonanyearcode").val() == "" || $("#txtfonanyearcode").val() == null) {
+                    alert($("#txtfonanyearcode").val());
+                    ErrCount = 4;
+                }
+               if ($("#txtfinyearperiodfrom").val() == "" || $("#txtfinyearperiodfrom").val() == null) {
+                   ErrCount = 2;
+                }
+               if ($("#txtfinyearperiodto").val() == "" || $("#txtfinyearperiodto").val() == null) {
+                    ErrCount = 3;
+               }
+                           
+               if (ErrCount == 0)
+               {
+                    $("#_save").removeAttr('disabled');
+               }
+               else
+               {
+                    $("#_save").attr('disabled', 'disabled');
+               }
+            }
+
+</script>
+
+
+
+

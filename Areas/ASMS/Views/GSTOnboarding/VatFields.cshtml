@@ -1,0 +1,137 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+@{
+    SupDataModel dm = new SupDataModel();
+    SupplierTaxDetails td = new SupplierTaxDetails();
+    td.lstVatState = new SelectList(dm.GetVatState(), "_VatStateID", "_VatStateName");
+}
+<div style="padding:0;margin:0;">
+    <div>
+        <center>
+            <table class="myTableStyleTabpopup">
+                <tr>
+                    <td>
+                        <input type="hidden" name="_VatID" id="_VatID" />
+                        @*<span>City</span><br />*@
+                        @*<input type="text" name="_VatCity" id="_VatCity" class="textboxStyle" />*@
+                        <span>State</span><br />
+                        @Html.DropDownListFor(j => j.selectedVatStateID, td.lstVatState, "--select--", new { @class = "textboxStyle", @id = "selectedVatStateID" })
+                    </td>
+                    <td>
+                        <span>Rate</span><br />
+                        <input type="text" name="_VatRate" id="_VatRate" class="textboxStyle" tabindex="3" />
+                    </td>
+                    <td style="vertical-align:bottom">
+                        <a onclick="SaveVatDetails()" id="btnSaveVatDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                        <a id="btnClearVatDetails" onclick="ClearVatDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</a>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#_VatID").val("0");
+        $("#selectedVatStateID").attr("tabindex", "1");
+        $("#_VatRate").attr("tabindex", "2");
+        $("#_VatRate").attr("maxlength", "19");
+        $("#btnSaveVatDetails").attr("tabindex", "3");
+        $("#btnClearVatDetails").attr("tabindex", "4");
+
+        $("#selectedVatStateID").addClass('required');
+        $("#_VatRate").addClass('required');
+
+        if ($("#selectedVatStateID").val() != "0" && $("#selectedVatStateID").val() != "") {
+            $("#selectedVatStateID").addClass('valid');
+            $("#selectedVatStateID").removeClass('required');
+        }
+        else {
+            $("#selectedVatStateID").addClass('required');
+            $("#selectedVatStateID").removeClass('valid');
+        }
+        if ($("#_VatRate").val() != "" && $("#_VatRate").val() != null) {
+            $("#_VatRate").addClass('valid');
+            $("#_VatRate").removeClass('required');
+        }
+        else {
+            $("#_VatRate").addClass('required');
+            $("#_VatRate").removeClass('valid');
+        }
+        $("#_VatRate").keypress(function (event) {
+            return isAmount(event, this);
+        });
+    });
+    $("#_VatRate").keyup(function () {
+        IsMandatory(this);
+    });
+    $("#selectedVatStateID").change(function () {
+        IsMandatoryVatDetails(this);
+    });
+    function IsMandatoryVatDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function SaveVatDetails() {
+        var state = $("#selectedVatStateID").val();
+        var rate = $("#_VatRate").val();
+        var ids = parseInt($("#_VatID").val());
+
+        if (state == "0" || state == null) {
+            jAlert("Please Select Vat State", "Error", function () {
+                $("#selectedVatStateID").focus();
+            });
+            return false;
+        }
+        if (rate == "" || rate == null) {
+            jAlert("Please Enter Vat Rate", "Error", function () {
+                $("#_VatRate").focus();
+            });
+            return false;
+        }
+       
+        var objSupplierTaxDetails = {
+            "_VatID": ids,
+            "selectedVatStateID": state,
+            "_VatRate": rate
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateVatDetails", objSupplierTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "success");
+                    ClearVatDetails();
+                    $("#wgVat").load("../onboarding/VatDetails?" + new Date().getTime());
+                }
+            }, 'json');
+
+        }
+        else {
+            $.post("../Onboarding/EditVatDetailsSave", objSupplierTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "success");
+                    ClearVatDetails();
+                    $("#wgVat").load("../onboarding/VatDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearVatDetails() {
+        $("#_VatID").val("0");
+        $("#selectedVatStateID").val("0");
+        $("#_VatRate").val("");
+        $("#selectedVatStateID").focus();
+        $("#selectedVatStateID").removeClass('valid');
+        $("#_VatRate").removeClass('valid');
+        $("#selectedVatStateID").addClass('required');
+        $("#_VatRate").addClass('required');
+    }
+</script>

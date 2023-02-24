@@ -1,0 +1,185 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@using System.Globalization;
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_EmployeeeExpense>
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_EmployeeeExpense> lst = new List<EOW_EmployeeeExpense>();
+    lst = (List<EOW_EmployeeeExpense>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetEmployeeeExpensenew(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Exp_Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Exp_Amount.ToString());
+            }
+        }
+        ViewBag.NoRecordse = "total";
+        Session["Ecfrowtolamt"] = remamount.ToString();
+
+        Session["Ecfrowtolamtdisp"] = remamount.ToString();
+
+        remamount = Convert.ToDecimal(Session["Ecfamountvalmain"].ToString()) - remamount;
+        Session["Ecfamountval"] = remamount.ToString();
+
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordse = "No";
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+
+@{
+
+    var grid = new WebGrid(lst, canSort: false, canPage: false, rowsPerPage: 10, ajaxUpdateContainerId: "wgExpense", ajaxUpdateCallback: "DummyFunction()");
+    int rowValExpense = 0;
+}
+
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+</style>
+<div id="wgExpense">
+    <div class="table-responsive" style="max-height: 350px;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridExpense" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                           grid.Columns(
+                                                                      grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName of Expenses", "Nature of Expenses", grid), canSort: false, style: "a"),
+                                                                               grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false, style: "d"),
+                                                                               grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false, style: "d"),
+                                                                      grid.Column("Exp_ClaimPeriodFrom", objCmnFunctions.Sorter("Exp_ClaimPeriodFrom", " Period From", grid), canSort: false, style: "c"),
+                                                             grid.Column("Exp_ClaimPeriodTo", objCmnFunctions.Sorter("Exp_ClaimPeriodTo", " Period To", grid), canSort: false, style: "c"),
+                                                              grid.Column(header: "GL No", canSort: false, style: "c",
+                                            format: @<text>
+                                                                <table id="tblglno" style="width: 155%;">
+                                                                    <tr>
+                                                                        <td>
+                                                                            <label style="font-weight:normal;" id="RefException">@item.Exp_ClaimMonth</label>
+                                                                            @Html.Raw("<a title='view' onclick='EmpExpenseglno(" + item.Exp_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                            </text>),
+                                  grid.Column("Exp_FC", objCmnFunctions.Sorter("Exp_FC", "Business Segment(BU)", grid), canSort: true, style: "a"),
+                                  grid.Column("Exp_CC", objCmnFunctions.Sorter("Exp_CC", "Cost Center(CC)", grid), canSort: true, style: "d"),
+                                  grid.Column("Exp_ProductCode", objCmnFunctions.Sorter("Exp_Product Code", "Product Code", grid), canSort: false, style: "a"),
+                                  grid.Column("Exp_OUCode", objCmnFunctions.Sorter("Exp_OUCode", "Location Code(OUCode)", grid), canSort: false, style: "f"),
+                                  grid.Column(header: "Amount",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                        objCmnFunctions.GetINRAmount(Convert.ToString(@item.Exp_Amount)
+                        ))) </text>, style: "colamountlarge"),
+                                  grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @Html.Raw("<a title='view' onclick='EmpExpenseView(" + item.Exp_GID + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    @Html.Raw("<a title='Edit' onclick='EmpExpenseEdit(" + item.Exp_GID + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                    @Html.Raw("<a title='Delete' onclick='EmpExpenseDelete(" + item.Exp_GID + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)))
+
+        @if (@ViewBag.NoRecords == "NoRecords")
+        {
+            <div class="borderStyle" style="font-weight:bold">
+                <center>
+                    @ViewBag.NoRecordsFound
+                </center>
+            </div>
+        }
+    </div>
+    @if (@ViewBag.NoRecordse == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <label style="font-weight:normal;display:none" id="Ecfamountvalmain">@Session["Ecfamountvalmain"]</label>
+                        <label style="font-weight:normal;display:none" id="Ecfrowtolamt">@Session["Ecfrowtolamt"]</label>
+                        <span>
+                            Total Expense Amount : <b>
+                                <label id="Ecfrowtolamtdisp">
+                                    @objCmnFunctions.GetINRAmount(@Session["Ecfrowtolamtdisp"].ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+</div>
+<style>
+    .c {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .a {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .d {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .f {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var Ecfamountvalmain = $("#Ecfamountvalmain").text();
+        var Ecfrowtolamt = $("#Ecfrowtolamt").text();
+        var val1 = parseFloat(Ecfamountvalmain);
+        var val2 = parseFloat(Ecfrowtolamt);
+        if (val1 == val2) {
+            var stylesSelect = $('#btnempNewExpense');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            var stylesSelect = $('#btnempNewExpense');
+            stylesSelect.attr('disabled', false);
+        }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgridExpense tr #id").click(function () {
+            $('#wgridExpense').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

@@ -1,0 +1,88 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@{
+    ViewBag.Title = "viewpipattachment";
+    int rowcount = 0;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid");
+    grid.Pager(WebGridPagerModes.All);
+
+}
+<table width="100%" align="center">
+    <tr>
+        <td>
+            <div id="gridattachment">
+                <table width="100%">
+                    <tr>
+                        <td>
+                            @functions {
+                                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                                {
+                                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                        "▼" : string.Empty);
+                                }
+                            }
+                            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                                grid.Column("attachedDate", Sorter("attachedDate", "Attachment Date", grid)),
+                                grid.Column("fileName", Sorter("fileName", "File name", grid),
+                                format: @<text>
+                                    <a title='click here to download' onclick='DownloadPRAttachment("@item.filename")'>
+                                        @item.filename
+
+                                    </a></text>),
+                               grid.Column("description", Sorter("description", "Description", grid))
+                            @*grid.Column(header: "Action", canSort: false, style: "action",
+                                format: @<text>
+                                    <input type="button" value="View" class="btn btn-link" title="View" />
+                                </text>)*@
+))
+                            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+
+                        </td>
+                    </tr>
+                </table>
+
+
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td width="100%">
+
+            <input type="button" class="btn btn-primary" id="btnback1" onclick="back()" name="command" value="Back" />
+
+        </td>
+    </tr>
+</table>
+
+
+<script>
+    function back() {
+        objDialog6.dialog('close');
+
+    }
+    function DownloadPRAttachment(filename) {
+        //alert(filename);
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("Downloaded", "PIPInputsOnPR")?'+new Date().getTime(), prattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../../PIPInputsOnPR/Download' }
+        }, 'json');
+
+    }
+</script>

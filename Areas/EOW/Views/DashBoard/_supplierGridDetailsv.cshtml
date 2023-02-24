@@ -1,0 +1,87 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_SupplierModelgrid>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_SupplierModelgrid> lst = new List<EOW_SupplierModelgrid>();
+    lst = (List<EOW_SupplierModelgrid>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetSupplierdata(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "S").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+        ViewBag.NoRecords = "total";
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<div id="wgSuppliersuppliermain">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: false, canPage: false, rowsPerPage: 300, ajaxUpdateContainerId: "wgSuppliersuppliermain", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+    }
+
+    <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgSuppliersuppliermain" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   grid.Columns(grid.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                  grid.Column("InvoiceDate", objCmnFunctions.Sorter("InvoiceDate", "Invoice Date", grid), canSort: false, style: "collargeBreak"),
+                                  grid.Column("InvoiceNo", objCmnFunctions.Sorter("InvoiceNo", "Invoice No", grid), canSort: false, style: "collargeBreak"),
+                                  grid.Column("Description", objCmnFunctions.Sorter("Description", "Description", grid), canSort: false, style: "collargeBreak"),
+                //grid.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", grid), canSort: false, style: "collargeBreak"),
+                                   grid.Column(header: "Amount",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                                          objCmnFunctions.GetINRAmount(Convert.ToString(@item.Amount)
+                        ))) </text>, style: "colamountlarge"),
+                                   grid.Column("Provision", objCmnFunctions.Sorter("Provision", "Provision", grid), canSort: false, style: "collargeBreak"),
+                                  grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @Html.Raw("<a title='view' onclick='SupplierInvoiceViewm(" + item.Invoicegid + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ))
+
+
+        @if (@ViewBag.NoRecords == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundPayment </b>
+                </center>
+            </div>
+        }
+    </div>
+    @if (@ViewBag.NoRecords == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <span> Total Invoice Amount : <b><label id="suppliertolamt">@objCmnFunctions.GetINRAmount(remamount.ToString())</label> </b>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+</div>

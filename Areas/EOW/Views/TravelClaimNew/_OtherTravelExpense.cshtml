@@ -1,0 +1,122 @@
+﻿
+<table>
+    <tr>
+        <td align="right" style="padding-right: 14px; padding-bottom: 10px;">
+            @*<input type="button" id="btnempNewExpensetot" value="New Other Travel Expense" class="btn btn-primary" onclick="NewOtherTravelMode()" />*@
+            <button type="button" id="btnempNewExipendf" value="New Other Travel Expense" onclick="NewOtherTravelMode()" class="btn btn-primary">
+                <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span>New Other Travel Expense
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div>
+                @Html.Partial("_OtherTravelExpenseDetails")
+            </div>
+        </td>
+    </tr>
+</table>
+<br />
+<div id="ForPartialViewOtherTravelExpensenew"></div>
+
+<script type="text/javascript">
+    var objDialogOtherTravelmodenew;
+    $(document).ready(function () {
+        //$("#CustomerSearchPanel").hide();
+        objDialogOtherTravelmodenew = $("[id$='ForPartialViewOtherTravelExpensenew']");
+        objDialogOtherTravelmodenew.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 860,
+            height: 432
+
+        });
+
+    });
+   
+
+    function GotoIndexotherExpense() {
+        //objDialogTravelmodenew.remove();
+        objDialogOtherTravelmodenew.dialog("close");
+        window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+    }
+    function NewOtherTravelMode() {
+        //objDialogOtherTravelmodenew.load('../TravelClaimNew/_OtherTravelExpenseCreate?' + new Date().getTime());
+        var url = '@Url.Action("_OtherTravelExpenseCreate", "TravelClaimNew")?' + new Date().getTime();
+        objDialogOtherTravelmodenew.load(url);
+        objDialogOtherTravelmodenew.dialog({ title: 'New Other Travel Expense' });
+        objDialogOtherTravelmodenew.dialog("open");
+    }
+    function EmpOtherExpenseEdit(id) {
+
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../TravelClaimNew/_Emplistaddot', objowner,
+        function (data) {
+            if (data == "Success") {
+                //objDialogOtherTravelmodenew.load('../TravelClaimNew/_EmpExpenseEdit?id=' + id + '&viewfor=edit' + new Date().getTime());
+                var url = '@Url.Action("_OtherTravelExpenseEdit", "TravelClaimNew")?id=' + id + '&viewfor=edit&' + new Date().getTime();
+                objDialogOtherTravelmodenew.load(url);
+                objDialogOtherTravelmodenew.dialog({ title: 'Edit Other Travel Expense' });
+                objDialogOtherTravelmodenew.dialog("open");
+            }
+            else {
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpOtherExpenseView(id) {
+
+        var dats = id;
+        var objowner = {
+            "empName": dats,
+        };
+
+        $.post('../TravelClaimNew/_Emplistaddot', objowner,
+        function (data) {
+            if (data == "Success") {
+                var url = '@Url.Action("_OtherTravelExpenseEdit", "TravelClaimNew")?id=' + id + '&viewfor=view&' + new Date().getTime();
+                objDialogOtherTravelmodenew.load(url);
+                objDialogOtherTravelmodenew.dialog({ title: 'View Other Travel Expense' });
+                objDialogOtherTravelmodenew.dialog("open");
+            }
+            else {
+                jAlert(data, "Message");
+                return false;
+            }
+        }, 'json');
+    }
+    function EmpOtherExpenseDelete(id) {
+
+        jConfirm("Do you want to delete Other Travel Expense...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "TravelMode_GID": id }
+                $.post('../TravelClaimNew/DeleteOtherTravelExpense', EmpExpensemodel,
+              function (data) {
+                  if (data == 0) {
+                      jAlert("Error.", "Error");
+                      return false;
+                      location = location.href;
+                  } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      var url = '@Url.Action("_OtherTravelExpenseDetails", "TravelClaimNew")?' + new Date().getTime();
+                      $("#wgTravelmodeo").load(url);
+                      var url1 = '@Url.Action("_GetGstDetails", "TravelClaimNew")';
+                      $("#PoGstGrid").load(url1);
+                      var url2 = '@Url.Action("_LoadRCMDetails", "TravelClaimNew")';
+                      $("#GrdRCMdetls").load(url2);
+                      window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+                  }
+              }, 'json');
+            }
+        });
+    }
+
+</script>

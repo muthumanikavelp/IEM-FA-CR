@@ -1,0 +1,190 @@
+﻿@model IEnumerable<IEM.Areas.FLEXIBUY.Models.shipment>
+@using IEM.Common
+
+@{
+   // var grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "searchgrid");
+    var grid = new WebGrid(source: Model, canSort: false, canPage: false);
+    CmnFunctions obj = new CmnFunctions();
+}
+<style>
+    .SNoWidth{
+        width:10px;
+        max-width:10px;
+    }
+</style>
+<div id="searchgrid">
+    @*<div class="row">
+        <div class="col-sm-10">
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td>
+                        <span>Branch Code</span>
+                        <br />
+                        <input type="text"
+                               id="txtbranchcode"
+                               value="@TempData["code"]"
+                               class="textboxStyleSearch"
+                               />
+                    </td>
+                    <td>
+                        <span>Location</span>
+                        <br />
+                        <input type="text"
+                               id="txtbranchlocation"
+                               value="@TempData["name"]"
+                               class="textboxStyleSearch"
+                              />
+                    </td>
+                    <td>
+                         <span>
+                            <br />
+                            <button class="btn btn-primary" onclick="searchbranch()" id="btnsearch" value="search" name="command"
+                                    type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                            </button>
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <br />
+                            <button class="btn btn-primary" onclick="BranchDetailsRefresh()" id="btnsearch" value="search" name="command"
+                                    type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                            </button>
+                        </span>
+                    </td>
+           
+                </tr>
+            </table>
+        </div>
+    </div>*@
+   
+    <div id="emplgrid">
+       
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "branchgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                grid.Column("SrNo", "S.No", style: "SNoWidth"),
+                grid.Column("branchCode", "Branch Code"),
+                grid.Column("branchName", "Branch Name"),
+                grid.Column("address","Branch Address"),
+                grid.Column("location", "Location"),
+                grid.Column("inchargeID", "In-Charge ID"),
+                grid.Column("branchgid", "Branch gid"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+        <input type="hidden" name="txt_incharge_id" value="@item.empgid" />
+                        <a><span onclick="selectbranch(this)" class="btn btn-link btnselect">Select</span></a>
+                    </text>)))      
+    </div>
+    <br />
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div style="margin-left: 230px;">
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="BranchClose()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span>Close
+                    </button>
+                    @*<input type="button" class="btn btn-warning" value="Close" onclick="shipmentClose()" />*@
+                </div>
+            </td>
+        </tr>
+    </table>
+    <script>
+        $(document).ready(function () {
+            $("#branchgrid td:nth-child(7),#branchgrid th:nth-child(7)").hide();
+            $('#branchgrid tr th:nth-child(8)').addClass("nosort");
+            $('#branchgrid').dataTable({
+                "bSort": false
+            }).css("width", "99%");
+            $("#branchgrid td:nth-child(7),#branchgrid th:nth-child(7)").hide();
+        });
+       
+        function searchbranch() {
+            var branchcode = $("#txtbranchcode").val();
+            var branchlocation = $('#txtbranchlocation').val();
+            var objbranchsearch = {
+                "branchCode": branchcode,
+                "branchName": branchlocation
+            };
+            $.post('@Url.Action("searchbranch", "GrnReleaseForCWIP")', objbranchsearch,
+                 function (data) {
+                     if (data == 0) {
+                         jAlert("Error Occured", "Error");
+                         return false;
+                     }
+                     else {
+                         $("#searchgrid").load('@Url.Action("BranchDetailsForCwip", "GrnReleaseForCWIP")?listfor=search&' + new Date().getTime());
+                     }
+                 }
+            , 'json');
+        }
+        function BranchDetailsRefresh() {
+            $("#txtbranchcode").val("");
+            $("#txtbranchlocation").val("");
+            //var EmployeeCode = $("#txtbranchcode").val();
+            //var EmployeeName = $("#txtbranchlocation").val();
+            //var obj = {
+            //    "branchCode": branchcode,
+            //    "branchName": branchlocation
+            //};
+            //$.post('../../GrnReleaseForCWIP/BranchDetailsForCwip', obj,
+            //function (data) {
+            //    if (data == 0) {
+            //        location = location.href;
+            //    }
+            //    else {
+            //   $("#searchgrid").load("../../GrnReleaseForCWIP/BranchDetailsForCwip?listfor=refresh'");
+            var branchcode = $("#txtbranchcode").val();
+            var branchlocation = $('#txtbranchlocation').val();
+            var objbranchsearch = {
+                "branchCode": branchcode,
+                "branchName": branchlocation
+            };
+            $.post('@Url.Action("searchbranch", "GrnReleaseForCWIP")', objbranchsearch,
+                 function (data) {
+                     if (data == 0) {
+                         jAlert("Error Occured", "Error");
+                         return false;
+                     }
+                     else {
+                         $("#searchgrid").load('@Url.Action("BranchDetailsForCwip", "GrnReleaseForCWIP")?listfor=refresh&' + new Date().getTime());
+                     }
+                 }
+            , 'json');
+            //    }
+            //}, 'json');
+        }
+        $(".ui-icon-closethick").click(function () {
+            window.parent.jQuery('#branchdetailscwip').dialog('close');
+        });
+
+        function selectbranch(element)
+        {
+            var row = $(element).closest('tr');
+            var name = row.find('td:eq(2)').text();
+            var address = row.find('td:eq(3)').text();
+            var location = row.find('td:eq(4)').text();
+            var branchcode = row.find('td:eq(1)').text();
+            var inchargeID = row.find('td:eq(5)').text();
+            var branchgid = row.find('td:eq(6)').text();
+            var incharge_gid = row.find($("input[name$=txt_incharge_id]")).val();
+           
+            $("#hid_location").val(location);
+            $("#hid_branchgid").val(branchgid);
+            $("#txt_branchName").val(name);
+            $("#txt_addr1").val(address);
+            $("#txt_incharge").val(inchargeID);
+            $("#txt_incharge_gid").val(incharge_gid);
+            objbranch.dialog('close');
+        }
+
+        function BranchClose() {
+            //window.parent.jQuery('#branchdetails').dialog('close');
+            objbranch.dialog('close');
+        }
+    </script>
+</div>

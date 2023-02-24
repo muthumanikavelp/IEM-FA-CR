@@ -1,0 +1,140 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+@{
+    ViewBag.Title = "PRattachgrid";
+    ViewBag.Title = "Index";
+    PrSumEntity objMAttachment = new PrSumEntity();
+    prsummodel objRep = new prsummodel();
+    Session["cbfdetails"] = objMAttachment.attachid;
+    objMAttachment = objRep.Attachmentname(objMAttachment);
+    Session["cbfdetails"] = objMAttachment;
+    Model.attachment = objMAttachment.attachment;
+    Session["prattachment"] = Session["cbfdetails"];
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment12", ajaxUpdateCallback: "grid");
+    int rowcount = 0;
+
+    grid.Pager(WebGridPagerModes.All);
+
+}
+@*<div style="overflow-y: scroll; max-height: 400px; " class="overflowy OverflowVisible" id="gridattachment">*@
+    <div id="gridattachmentnew">
+        <div class="borderStyle" style="overflow-y:scroll;height:100px">
+
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment1234pr" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                        grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+
+                    <input type="button" value="Delete" class="btn btn-link" onclick='attachmentDetele("@item.filename")' id="@item.attachGid" title="Delete" />
+                </text>)))
+            <div class="borderStyle btnCenter">
+                @ViewBag.NoRecordsFound
+            </div>
+        </div>
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.attachment.Count</label>
+        </div>
+
+
+        <script>
+            function DownloadSupAttachment(filename) {
+
+                var supattachmentmodel =
+                        {
+                            "attachment1": filename
+                        };
+
+                $.post('../PRRaiser/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+                function (data) { if (data == 0) { location = location.href; } else { window.location = '../PRRaiser/Download' } }, 'json');
+
+            }
+            function attachmentDetele(id1) {
+
+                id = "";
+                alert(id1);
+                var obj =
+                        {
+                            "attachment1": id1
+                        };
+
+                $.post('@Url.Action("DeleteAttachment", "PRRaiser")?' + new Date().getTime(), obj,
+                function (data) {
+                    if (data == 0) {
+                        //alert();
+                        $('#gridattachmentnew').load('@Url.Action("BoqAttachGrid", "PRRaiser")?' + new Date().getTime());
+                       // $('#gridattachment1234pr').load('../PRRaiser/BoqAttachgrid?' + new Date().getTime());
+                      //  location = location.href;
+                    }
+                    else {
+                      //  alert("5");
+                      //  location = location.href;
+                        $('#gridattachmentnew').load('@Url.Action("BoqAttachGrid", "PRRaiser")?' + new Date().getTime());
+                    //    $('#gridattachment1234pr').load('../PRRaiser/BoqAttachgrid?' + new Date().getTime());
+                    }
+                }, 'json');
+
+            }
+
+
+
+            //function SavePRAttachment() {
+
+
+            //    var AttachDate = $("#_AttachDate").val();
+            //    var AttachFileName = $("#_AttachedFileName").val();
+            //    var AttachDescription = $("#_AttachDescription").val();
+            //    var attachmodel = {
+            //        "attachment1": AttachFileName,
+            //        "attachmentDesc": AttachDescription,
+            //        "attachmentdate": AttachDate
+            //    };
+
+            //    if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+            //        jAlert("Please Select Attachment Date.", "Error");
+            //        return false;
+            //    }
+
+            //    if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+            //        jAlert("Please Select Attachmnet.", "Error");
+            //        return false;
+            //    }
+            //    if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+            //        jAlert("Please Enter Descritption.", "Error");
+            //        return false;
+            //    }
+            //    $.post('../PRRaiser/BoqAttachgrid?' + new Date().getTime(), attachmodel,
+            //    function (data) {
+            //        if (data == 0) { location = location.href; } else {
+
+            //            jAlert("Inserted Successfully", "Message", function (r) {
+            //                if (r == true) {
+            //                    alert();
+            //                    $('#gridattachment1234pr').load('../PRRaiser/BoqAttachgrid?' + new Date().getTime());
+            //                }
+
+            //            });
+            //            //    $('#gridattachment1234pr').load('../PRRaiser/BoqAttachgrid?' + new Date().getTime());
+            //            // location='../../PRRaiser/Index?' + new Date().getTime();
+
+            //        }
+            //    }, 'json');
+            //}
+
+        </script>
+
+

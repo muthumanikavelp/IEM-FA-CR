@@ -1,0 +1,282 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.GRNInward
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "View1";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<input type="hidden" id="hid_poheadGid" value="@Model.poheadGid" />
+<input type="hidden" id="hid_dcno" value="@Model.grnDcNo" />
+<input type="hidden" id="hid_grnRefno" value="@Model.grnRefNo" />
+<input type="hidden" id="hid_grninvNo" value="@Model.grnInvoiceNo" />
+<input type="hidden" id="hid_grnRemarks" value="@Model.grnRemarks" />
+<input type="hidden" id="hid_grnheadgid" value="@Model.grnheadgid" />
+<input type="hidden" id="hid_grndetgid" value="@Model.grndetgid" />
+<b>
+    <span style="color: rgb(52, 108, 196);">GRN Inward</span>
+</b>
+<div class="well">
+    @*<h4>GRN Header</h4>*@
+    
+        <span style="color: rgb(52, 108, 196);">GRN Header</span>
+    
+    @using (Html.BeginForm())
+    {
+        <div class="borderStyle panel panel-default ">
+            <table class="myTableStyleTabNew" align="center" width="100%">
+                <tr>
+                    <td style="padding:10px;">
+                        <span>GRN Ref No</span>
+                        <br />
+                        <input type="text"
+                               name="txtgrnrefno"
+                               id="txtgrnrefno"
+                               disabled="disabled"
+                               class="textboxStyle required"  />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>GRN Date </span>
+                        <br />
+                        <input type="text"
+                               id="txtgrndate"
+                               maxlength="10"
+                               disabled="disabled"
+                               value="@string.Format("{0:yyyy-MM-dd}", Model.grnDate)"
+                               class="textboxStyle" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>Raised By</span>
+                        <br />
+                        <input type="text"
+                               name="txtraisedby"
+                               id="txtraisedby"
+                               disabled="disabled"
+                               value="@Model.raisedBy"
+                               class="textboxStyle valid" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>Vendor Name</span>
+                        <br />
+                        <input type="text"
+                               name="txtvendorname"
+                               id="txtvendorname"
+                               disabled="disabled"
+                               value="@Model.vendorName"
+                               class="textboxStyle valid" />
+                    </td>
+                </tr>
+                @*<tr>
+                        <td></td>
+                    </tr>*@
+                <tr>
+                    <td style="padding:10px;">
+                        <span>PO Ref No</span>
+                        <br />
+                        <input type="text"
+                               name="txtporefno"
+                               id="txtporefno"
+                               disabled="disabled"
+                               value="@Model.poRefNo"
+                               class="textboxStyle valid" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>DC No</span>
+                        <br />
+                        <input type="text"
+                               name="txt_dcno"
+                               class="textboxStyle valid"
+                               id="txtdcNo" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>Invoice No</span>
+                        <br />
+                        <input type="text"
+                               name="txt_invno"
+                               class="textboxStyleBig valid"
+                               id="txtinvNo" />
+                    </td>
+                    @*<td>
+                        <br />
+                        <button class="btn btn-primary"
+                                type="button"
+                                name="command"
+                                value="Add Attachment"
+                                onclick="NewAttachment()" >
+                            Add Attachment
+                        </button>
+                    </td>*@
+                </tr>
+                <tr>
+                    <td nowrap="nowrap" colspan="3" style="padding:10px;">
+                        <span>GRN Remarks</span>
+                        <br />
+                        <input type="text"
+                               name="txt_grn_remarks"
+                               class="textboxStyleBig valid"
+                               id="txt_grn_remarks" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        @*<h4>GRN Details</h4>*@
+        
+       <span style="color: rgb(52, 108, 196);">GRN Details</span>
+       
+        <div id="grndetailsgrid">
+            @if (@ViewBag.podetails != "Second")
+            {
+                <div>
+                    @Html.Partial("GrnDetails");
+                </div>
+            }
+            else
+            {
+                <div id="pogrid">
+
+                </div>
+            }
+        </div>
+    }
+</div>
+<div id="tabsat" style="height:350px;font-size:14px;">
+        <ul>
+           
+            <li><a href="#tabs-2">Attachments</a></li>
+        </ul>
+        
+        <div id="tabs-2">
+            @Html.Partial("BoqAttach")
+        </div>
+    </div>
+<div>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                    <div>
+                        <button type="button" id="btnsave" name="command" class="btn btn-primary" onclick="SaveCwipRelease()" value="Save">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save
+                        </button>
+                        <button type="button" id="btncancel" class="btn btn-warning" value="Back" onclick="BackToGrnSummary()">
+                            <span style="color:white;" class="glyphicon glyphicon-eye-close"></span> Back
+                        </button>
+                    </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<input type="hidden" id="hid_cwipbranch" value="" />
+<div id="branchdetailscwip"></div>
+<script>
+    $(document).ready(function () {
+        var currentTab = 0;
+        $(function () {
+            $("#tabsat").tabs({
+                select: function (e, i) {
+                    currentTab = i.index;
+                }
+            });
+        });
+
+
+        var invoiceNo = $("#hid_grninvNo").val();
+        $("#txtinvNo").val(invoiceNo);
+        var dcNo = $("#hid_dcno").val();
+        $("#txtdcNo").val(dcNo);
+        var grnRefNo = $("#hid_grnRefno").val();
+        $("#txtgrnrefno").val(grnRefNo);
+        var grnRemarks = $("#hid_grnRemarks").val();
+        $("#txt_grn_remarks").val(grnRemarks);
+        $("#hid_cwipbranch").val("");
+    });
+    var pickerOpts = {
+        changeMonth: true,
+        changeYear: true,
+        yearRange: '1950:2100',
+        currentText: "Now",
+        dateFormat: "dd-mm-yy"
+    };
+
+    $("#txtgrndate").datepicker(pickerOpts);
+
+    function SaveCwipRelease() {
+        //var grnDate = $("#txtgrndate").val();
+        //var raisedby = $("#txtraisedby").val();
+        var grnheadGid = $("#hid_grnheadgid").val();
+        var grndetGid = $("#hid_grndetailsgid").val();
+        //var grndcNo = $("#txtdcNo").val();
+        //var grnInvNo = $("#txtinvNo").val();
+        //var grnRemarks = $("#txt_grn_remarks").val();
+
+        if (grndetGid == "" || grndetGid == null) {
+            jAlert("Please select line item", "Error");
+            return false;
+        }
+        //else if(grnDate=="" || grnDate==null)
+        //{
+        //    jAlert("Please Select Date", "Error");
+        //    return false;
+        //}
+        //else if(grndcNo=="" || grndcNo==null)
+        //{
+        //    jAlert("Please enter Dc No", "Error", function (e)
+        //    {
+        //        if(e==true)
+        //        {
+        //            $("#txtdcNo").focus();
+        //        }
+        //    });
+        //    return false;
+        //}
+        //else if (grnInvNo == null || grnInvNo == "") {
+        //    jAlert("Please enter Invoice No", "Error", function (e) {
+        //        if (e == true) {
+        //            $("#txtinvNo").focus();
+        //        }
+        //    });
+        //    return false;
+        //}
+        //else if(grnRemarks=="" || grnRemarks==null)
+        //{
+        //    jAlert("Please Enter Remarks", "Error");
+        //    return false;
+        //}
+        else {
+            var objgrnheader =
+               {
+                   "grnheadgid": grnheadGid,
+                   "grndetgid": grndetGid
+               };
+            $.post('@Url.Action("SaveCwipReleaseDetails", "GrnReleaseForCWIP")', objgrnheader,
+               function (data) {
+                   if (data == 0) {
+                       jAlert("Error Occured", "Error");
+                       return false;
+                   }
+                   else {
+                       if (data == "success" || data == "Success") {
+                           jAlert("Inserted Successfully", "Success", function (e) {
+                               if (e == true) {
+                                   var viewfor = "refresh";
+                                   location = '@Url.Action("CwipSummaryForGrn", "GrnReleaseForCWIP")?viewfor=' + viewfor;
+                               }
+                           });
+                       }
+                       else if(data == "branch"){
+                           jAlert("Please Select Branch", "Error");
+                           return false;
+                       }                            
+                       else {
+                           jAlert(data, "Error");
+                           return false;
+                       }
+                   }
+               }, 'json');
+        }
+    }
+    function BackToGrnSummary()
+    {
+        location = '@Url.Action("CwipSummaryForGrn", "GrnReleaseForCWIP")';
+    }
+
+</script>
+

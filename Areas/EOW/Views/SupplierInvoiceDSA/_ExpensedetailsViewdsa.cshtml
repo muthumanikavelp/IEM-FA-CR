@@ -1,0 +1,281 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetSuppliserDeditdsaaler(Session["EcfGid"].ToString(), Session["Ecfcurrentiddsa"].ToString()).ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+        ViewBag.NoRecords = "total";
+        Session["invoiceDebitamnt"] = remamount.ToString();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+    //GST
+    List<EOW_TravelClaim> lstGST = new List<EOW_TravelClaim>();
+    lstGST = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lstGST == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstGST = objd.Getgstdetls(Session["EcfGid"].ToString(), Convert.ToString(Session["Ecfcurrentiddsa"]), "E").ToList();
+    }
+    if (lstGST.Count == 0)
+    {
+        ViewBag.NoRecordGST = "no";
+        ViewBag.NoRecordsGST = "NoRecords";
+        ViewBag.NoRecordsFoundGST = "No Records Found";
+    }
+
+    List<EOW_RCMEntries> lstRCM = new List<EOW_RCMEntries>();
+    lstRCM = (List<EOW_RCMEntries>)TempData["SearchItems"];
+    if (lstRCM == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstRCM = objd.GetRCMdetls(Convert.ToString(Session["Ecfcurrentiddsa"])).ToList();
+    }
+    if (lstRCM.Count == 0)
+    {
+        ViewBag.NoRecordseRCM = "no";
+        ViewBag.NoRecordsRCM = "NoRecords";
+        ViewBag.NoRecordsFoundRCM = "No Records Found";
+    }
+
+}
+<div id="wgTravelmodeotab2">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 10, ajaxUpdateContainerId: "wgTravelmodeotab2", ajaxUpdateCallback: "DummyFunction()");
+        //int rowValExpense = 0;
+
+
+        objCmnFunctions = new CmnFunctions();
+        var GridGstDtl = new WebGrid(lstGST, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "GstDtl", ajaxUpdateCallback: "DummyFunction()");
+        int rowValExpense = 0;
+
+        objCmnFunctions = new CmnFunctions();
+        var GridRCMDtl = new WebGrid(lstRCM, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "RCMDtl", ajaxUpdateCallback: "DummyFunction()");
+        rowValExpense = 0;
+    }
+    <br />
+    <span><b>Expense</b></span>
+    <div class="table-responsive" style="max-height: 350px;">
+        @grid.GetHtml(
+                                          htmlAttributes: new { id = "wgTravelmodeotab2" },
+                                                   tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   grid.Columns(
+                //grid.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                                               grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName", "Nature of Expenses", grid), canSort: false, style: "apopup"),
+                                                                     grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false, style: "dpopup"),
+                                                                     grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false, style: "dpopup"),
+                                                                      grid.Column(header: "GL No", canSort: false, style: "cpopup",
+                                            format: @<text>
+                                                                        <table id="tblglno" style="width: 155%;">
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <label style="font-weight:normal;" id="RefException">@item.ClaimMonth</label>
+                                                                                    @Html.Raw("<a title='view' onclick='EmpExpenseglno(" + item.TravelMode_GID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                            </text>),
+                                     grid.Column("FC", objCmnFunctions.Sorter("FC", "Business Segment(BU)", grid), canSort: false, style: "apopup"),
+                                                                             grid.Column("CC", objCmnFunctions.Sorter("CC", "Cost Center(CC)", grid), canSort: false, style: "dpopup"),
+                                                                                                                                                                  grid.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", grid), canSort: false, style: "fpopup"),
+                                                                              grid.Column("OUCode", objCmnFunctions.Sorter("OUCode", "Location Code(OUCode)", grid), canSort: false, style: "fpopup"),
+                                                                              grid.Column(header: "Amount",
+                        format: @<text>
+                                                                                @Html.Raw(String.Format("{0:#,##}",
+                                                 objCmnFunctions.GetINRAmount(Convert.ToString(@item.Amount)
+                        ))) </text>, style: "colamountlarge")))
+    </div>
+
+    @if (@ViewBag.NoRecords == "NoRecords")
+    {
+        <div class="borderStyle">
+            <center>
+                @ViewBag.NoRecordsFound
+            </center>
+        </div>
+    }
+    else
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <span>
+                            Total Expense Amount : <b>
+                                <label id="Ecfrowtolamtdisp6">
+                                    @objCmnFunctions.GetINRAmount(remamount.ToString())
+                                </label>
+                            </b>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+
+    <br />
+    <br />
+    @if (lstGST.Count > 0)
+    {
+        <span><b>GST</b></span>
+        <div class="table-responsive" style="max-height: 350px;" id="divGST">
+            @GridGstDtl.GetHtml(
+        htmlAttributes: new { id = "Grdgstdetls" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        GridGstDtl.Columns(
+                           GridGstDtl.Column("#", canSort: false, style: "ce", format: item => rowValExpense = rowValExpense + 1),
+                                    GridGstDtl.Column("GSTApplicable", objCmnFunctions.Sorter("GstApplicable", "GSTApplicable", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("Hsncode", objCmnFunctions.Sorter("Hsncode", "HSN Code", GridGstDtl), canSort: false, style: "de"),
+                           GridGstDtl.Column("HsnDesc", objCmnFunctions.Sorter("HsnDesc", "HSN Description", GridGstDtl), canSort: false, style: "ae"),
+                           GridGstDtl.Column("Subtax", objCmnFunctions.Sorter("Subtax", "Sub Tax", GridGstDtl), canSort: false, style: "ae"),
+                                    GridGstDtl.Column("TaxableAmt", objCmnFunctions.Sorter("TaxableAmt", "Taxable Amount", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("GstRate", objCmnFunctions.Sorter("GstRate", "Rate(%)", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("TaxAmt", objCmnFunctions.Sorter("TaxAmt", "Tax Amount", GridGstDtl), canSort: false, style: "de")
+                                    ))
+        </div>
+    }
+
+    @if (lstRCM.Count > 0)
+    {
+        <div style="width:100%; overflow:auto;" id="RCMDtl">
+            <span><b>RCM</b></span>
+            <div class="table-responsive" style="max-height: 350px;">
+                @GridRCMDtl.GetHtml(
+        htmlAttributes: new { id = "GrdRCMdetls" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        GridRCMDtl.Columns(
+                           GridRCMDtl.Column("#", canSort: false, style: "ce", format: item => rowValExpense = rowValExpense + 1),
+                                                               GridRCMDtl.Column("Expsubcat_Name", objCmnFunctions.Sorter("Expsubcat_Name", "Expsubcat Name", GridRCMDtl), canSort: false, style: "ae"),
+                                                               GridRCMDtl.Column("HsnCode", objCmnFunctions.Sorter("HsnCode", "Hsn Code", GridRCMDtl), canSort: false, style: "de"),
+                                                      GridRCMDtl.Column("DebitRCM_Type", objCmnFunctions.Sorter("DebitRCM_Type", "RCM Type", GridRCMDtl), canSort: false, style: "de"),
+                                                                                  GridRCMDtl.Column("Taxable_Amount", objCmnFunctions.Sorter("Taxable_Amount", "Taxable Amount", GridRCMDtl), canSort: false, style: "de"),
+                                                                                                             GridRCMDtl.Column("Taxgst_RCM_Display_Rate", objCmnFunctions.Sorter("Taxgst_RCM_Display_Rate", "RCM %", GridRCMDtl), canSort: false, style: "de"),
+                                                      GridRCMDtl.Column("debitrcm_rate", objCmnFunctions.Sorter("debitrcm_rate", "RCM Rate", GridRCMDtl), canSort: false, style: "de"),
+                                                               GridRCMDtl.Column("debitrcm_amount", objCmnFunctions.Sorter("debitrcm_amount", "RCM amount", GridRCMDtl), canSort: false, style: "de"),
+                                                                     GridRCMDtl.Column("debitrcm_reversechargegl", objCmnFunctions.Sorter("debitrcm_reversechargegl", "Reversecharge GL", GridRCMDtl), canSort: false, style: "ee"),
+                                                                                                GridRCMDtl.Column("Taxgst_InputCredit_Display_Rate", objCmnFunctions.Sorter("Taxgst_InputCredit_Display_Rate", "InputCredit %", GridRCMDtl), canSort: false, style: "ce"),
+                                                                                                            GridRCMDtl.Column("debitInputcreditRate", objCmnFunctions.Sorter("debitInputcreditRate", "InputCredit Rate", GridRCMDtl), canSort: false, style: "ce"),
+                                                                                                                              GridRCMDtl.Column("debitInputcreditAmt", objCmnFunctions.Sorter("debitInputcreditAmt", "InputCredit Amount", GridRCMDtl), canSort: false, style: "de"),
+                                                                                 GridRCMDtl.Column("debitrcm_inputcreditgl", objCmnFunctions.Sorter("debitrcm_inputcreditgl", "Inputcredit GL", GridRCMDtl), canSort: false, style: "ee")
+                                     ))
+
+            </div>
+
+        </div>
+    }
+    <br/>
+    <div style="width: 100%;" align="center">
+        <div class="input-append ">
+            <span class="input-append">
+                <button type="button" id="btnCancel1hNEW" title="Cancel" name="Cancel" class="btn btn-warning" onclick="GotoIndexivnNEW()"><span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+            </span>
+        </div>
+    </div>
+</div>
+<style>
+    .cpopup {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .apopup {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dpopup {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .fpopup {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+     .tableSmall thead td {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+
+    .ce {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 30px;
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+
+    .ae {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 350px;
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+
+    .de {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 75px;
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+
+    .ee {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+        white-space: nowrap;
+    }
+</style>
+<script>
+    function GotoIndexivnNEW() {
+        objDialogexpdetails.dialog("close");
+        objDialogexpdetails.dialog("close");
+        window.parent.jQuery('#ForPartialViewexpdetails').dialog('close');
+        window.parent.jQuery('#ForPartialViewexpdetails').dialog('close');
+    }
+</script>

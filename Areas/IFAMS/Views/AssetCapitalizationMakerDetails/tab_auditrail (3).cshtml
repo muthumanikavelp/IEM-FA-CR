@@ -1,0 +1,48 @@
+﻿
+           @using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+@{
+    poraiser objquenue = new poraiser();
+    fb_DataModelpr model = new fb_DataModelpr();
+    objquenue.gid = Convert.ToInt32(Session["pogid"].ToString());
+    objquenue.ref_flag = "8";
+    if (objquenue.gid != 0)
+    {
+        
+        Model.auditTrailLst = model.PopulateAuditTrail(objquenue);
+    }
+    objquenue.auditTrailLst = Model.auditTrailLst;
+    var auidtGrid = new WebGrid(source: Model.auditTrailLst, canPage: true, canSort: true, rowsPerPage: 10, ajaxUpdateContainerId: "auditTrail", ajaxUpdateCallback: "auditTrailLst()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+<div class="overflowx">
+    <div>
+
+        @auidtGrid.GetHtml(
+                            htmlAttributes: new { id = "wgridDashboard" },
+                            tableStyle: "tableSmall table-bordered aligncenter",
+                            mode: WebGridPagerModes.All,
+    columns:
+    auidtGrid.Columns(
+    auidtGrid.Column(header: "Sl", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(
+    auidtGrid.TotalRowCount / auidtGrid.PageCount) / auidtGrid.RowsPerPage) * auidtGrid.RowsPerPage * auidtGrid.PageIndex)
+    , auidtGrid.Column("employee_code", objCmnFunctions.Sorter("employee_code", "Employee ID-Name", auidtGrid))
+    //, auidtGrid.Column("employee_name", objCmnFunctions.Sorter("employee_name", "Employee Name", auidtGrid))
+    , auidtGrid.Column("action_date", objCmnFunctions.Sorter("action_date", "Action Date", auidtGrid))
+    , auidtGrid.Column("queue_to_type", objCmnFunctions.Sorter("queue_to_type", "Approval Stage", auidtGrid))
+    , auidtGrid.Column("action_status", objCmnFunctions.Sorter("action_status", "Staus", auidtGrid))
+    , auidtGrid.Column("action_remarks", objCmnFunctions.Sorter("action_remarks", "Remarks", auidtGrid))
+    ))
+
+        <div class="table-bordered btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+       
+    </div>
+
+</div>
+<script>
+
+    $("#idauditdetails").text('@objquenue.auditTrailLst.Count');
+
+</script>

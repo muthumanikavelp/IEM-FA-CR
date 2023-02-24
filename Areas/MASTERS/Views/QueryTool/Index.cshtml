@@ -1,0 +1,379 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.QueryTool>
+
+@{
+    ViewBag.Title = "QueryTool";
+}
+
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+
+    <div class="pageHeadingLayout">
+        <span class="pageHeading">QueryTool</span>
+        &nbsp;&nbsp;
+        <label id="ctrlTime" />
+    </div>
+    <div id="mydiv" class="well" style="padding:10px;width:100%;">
+        <table style="width:100%;" class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <div>
+                        <span>Query Name</span>
+                        @Html.DropDownList("ctrlSqlQuery", new SelectList(@Model, "sqlquery_gid", "sqlquery_name"))
+                    </div>
+                    <br />
+                </td>
+
+        </tr>
+        @*<tr>
+                <td>
+                    Field List :<br />
+                    <div>
+                        <select id="ddlFieldList" class="textboxStyle" name="ddlFieldList">
+                            <option value="0">-----Select-----</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Operator :<br />
+                    <div>
+                        <select id="ddlOperator" class="textboxStyle" name="ddlOperator">
+                            <option value="0">-----Select-----</option>
+                            <option value="<="><=</option>
+                            <option value=">=">>=</option>
+                            <option value="=">=</option>
+                            <option value="!=">!=</option>
+                            <option value="is null">is null</option>
+                            <option value="is not null">is not null</option>
+
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Condition : <br />
+                    <div>
+                        <select id="ddlCondition" class="textboxStyle" name="ddlOperator">
+                            <option value="0">-----Select-----</option>
+                            <option value="AND">AND</option>
+                            <option value="OR">OR</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Input : <br />
+                    <div>
+                        <input type="text" id="txtUserInput" class="textboxStyle" name="txtUserInput" />
+                    </div>
+                </td>
+            </tr>
+            <tr>
+
+                <td>
+                    <input type="button" class="btn btn-success cursorpointer" value="Add" id="btnAdd" name="btnAdd" />
+                    <input type="button" class="btn btn-success cursorpointer" value="Clear" id="btnClear" name="btnClear" />
+                </td>
+            </tr>*@
+        <tr>
+            <td>
+
+                    <div id="holder">
+
+                    </div>
+                </td>
+
+
+            </tr>
+            <tr>
+                <td>
+                    <textarea id="ctrlQry" name="qry" rows=19 style="width:100%; visibility:hidden;"></textarea>
+                    <input type="hidden" id="hfSqlQuery" name="hfSqlQuery" />
+                </td>
+            </tr>
+            <tr>
+                <td align="right">
+
+                    <button class="btn btn-primary" id="ctrlRun" type="submit" value="Run"
+                            style="margin-top:20px;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon glyphicon-refresh"></span> Run
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <script type="text/javascript">
+    var arrId = [];
+    var queryWhere = "";
+    var sqlMainQuery = "";
+    $('#ctrlRun').click(function () {
+        var qry = $.trim($('#ctrlQry').val());
+
+        if (qry.substr(0, 6).toUpperCase() != 'SELECT') {
+            alert('Invalid query !');
+            return;
+        }
+
+        //if (queryWhere == '') {
+        //    alert('Please Add Atleast one Condition !');
+        //    return;
+        //}
+        var count = 0;
+        if (arrId.length > 0) {
+
+            for (var i = 0; i < arrId.length; i++) {
+                var v = $('#' + arrId[i]).val();
+                if (v == "" || v == null) {
+                    count++;
+                }
+
+            }
+        }
+        if (count > 0) {
+            jAlert('Some Fields are missing')
+            return;
+        }
+
+        var result = confirm('Are you sure to run the script ?');
+        var updatequey = "";
+        updatequey = sqlMainQuery;
+        if (arrId.length > 0) {
+            for (var i = 1; i <= arrId.length; i++) {
+                updatequey = updatequey.replace('$d' + i, $('#' + arrId[i - 1]).val());
+
+            }
+        }
+
+        if (!result) return;
+
+        $("*").css("cursor", "progress");
+        $('#mydiv').find('input, textarea, button, select').attr('disabled', true);
+        $('#ctrlTime').text('Start Time : ' + getCurrDateTime());
+
+        try {
+            @*var url = '@Url.Action("ExecuteDownloadQry", "QueryTool")';
+            url = url + '?sql=' + qry;
+            window.location = url;*@
+            var data = {
+                //sql: $.trim($('#ctrlQry').val())
+
+                sql: updatequey
+            }
+
+            $.ajax({
+                type: "post",
+                url: '@Url.Action("ExecuteQry", "QueryTool")',
+                data: JSON.stringify(data),
+                async: false,
+                datatype: "json",
+                contentType: "application/json;",
+                success: function (response) {
+                    if (response.success == true) {
+                        window.location = '@Url.Action("ExecuteDownloadQry", "QueryTool")';
+                    }
+                    else {
+                        jAlert("Sorry! No Records Found.", "Message");
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert(errorThrown);
+                }
+            });
+
+
+
+        }
+        catch (err) {
+            alert(err.message);
+        }
+
+        $('#ctrlTime').text($('#ctrlTime').text() + ' - End Time : ' + getCurrDateTime());
+        $('#mydiv').find('input, textarea, button, select').attr('disabled', false);
+        $("*").css("cursor", "default");
+    });
+
+    // get current date time
+    function getCurrDateTime() {
+        var currentdate = new Date();
+        var d = currentdate.getDate()
+            + '/'
+            + (currentdate.getMonth() + 1) + '/'
+            + currentdate.getFullYear() + ' '
+            + currentdate.getHours() + ':'
+            + currentdate.getMinutes() + ':'
+            + currentdate.getSeconds();
+
+        return d;
+    }
+
+    // get the query from selected dropdown
+    $("#ctrlSqlQuery").change(function () {
+
+        sqlMainQuery = "";
+        var queryid = $('option:selected', $(this)).val();
+
+        var Data1 = "";
+
+        var data = {
+            sqlqueryid: queryid
+        }
+        $("#holder").html("");
+        arrId.length = 0;
+        $.ajax({
+            type: "post",
+            url: '@Url.Action("GetQueryParameter", "QueryTool")',
+            data: JSON.stringify(data),
+            async: false,
+            datatype: "json",
+            contentType: "application/json;",
+            success: function (response) {
+                if (response.Data1 != null) {
+                    var data1 = JSON.parse(response.Data1);
+                    var dd = Object.keys(data1).length;
+                    $('#ctrlQry').val(data1[0].sqlquery_sql);
+                    sqlMainQuery = data1[0].sqlquery_sql
+                    for (var i = 0; i < dd; i++) {
+
+                        if (data1[i].Sqlqueryparameter_gid != "" && data1[i].Sqlqueryparameter_gid != null) {
+                            var $ctrl = $('<input/>').attr({ type: 'text', name: data1[i].Sqlqueryparameter_fieldname + data1[i].Sqlqueryparameter_gid, id: data1[i].Sqlqueryparameter_fieldname + data1[i].Sqlqueryparameter_gid, class: 'textboxStyle' });
+                            arrId[i] = data1[i].Sqlqueryparameter_fieldname + data1[i].Sqlqueryparameter_gid;
+                            $("#holder").append('<span>' + data1[i].Sqlqueryparameter_Name + '</span>');
+                            $("#holder").append($ctrl);
+                        }
+                    }
+
+                }
+                else {
+
+                    jAlert("Sorry! No Records Found.", "Message");
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });
+
+
+
+    })
+
+    //Second Methode to select querydropdown
+    $("#ctrlSqlQuery1").change(function () {
+        $('#ctrlQry').val(($('option:selected', $(this)).val()));
+
+        var id = $('option:selected', $(this)).val();
+        sqlMainQuery = "";
+        queryWhere = "";
+
+
+        var Data1 = "";
+        var data = {
+            sqlqueryid: id
+        }
+        $('#ddlFieldList').html("");
+        $("#holder").html("");
+        $.ajax({
+            type: "post",
+            url: '@Url.Action("GetQueryParameter", "QueryTool")',
+            data: JSON.stringify(data),
+            async: false,
+            datatype: "json",
+            contentType: "application/json;",
+            success: function (response) {
+                if (response.Data1 != null) {
+                    var data1 = JSON.parse(response.Data1);
+                    var dd = Object.keys(data1).length;
+                    //alert(data1[0].Sqlqueryparameter_fieldname);
+                    sqlMainQuery = data1[0].sqlquery_sql
+                    alert(sqlMainQuery);
+
+                    $.each(data1, function () {
+                        $('#ddlFieldList').append('<option value=' +
+                          this.Sqlqueryparameter_gid + '>' + this.Sqlqueryparameter_fieldname + '</option>');
+                    });
+                }
+                else {
+
+                    jAlert("Sorry! No Records Found.", "Message");
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        });
+
+
+
+    })
+
+    $('#btnAdd').click(function () {
+
+        var fieldname1 = $('#ddlFieldList').text();
+        var operator = $('#ddlOperator').val();
+        var txtInput = $('#txtUserInput').val();
+        var fieldname = $('option:selected', $('#ddlFieldList')).text();
+        var con = $('option:selected', $('#ddlCondition')).text();
+        if (con == '' || con == '0') {
+            con = 'AND'
+        }
+        if (fieldname == "" || fieldname == "0" || fieldname == null) {
+            alert('Select Field Name');
+            return;
+        }
+        if (operator == "" || operator == "0" || operator == null) {
+            alert('Select Operator Name');
+            return;
+        }
+
+        if (operator != 'is null' && operator != 'is not null') {
+            if (txtInput == "" || txtInput == "0" || txtInput == null) {
+                alert('Input is Empty');
+                return;
+            }
+        }
+        if (queryWhere != null && queryWhere != "") {
+
+
+            if (operator != 'is null' && operator != 'is not null') {
+                if (txtInput == "" || txtInput == "0" || txtInput == null) {
+                    alert('Select Field Name');
+                    return;
+                } else {
+                    queryWhere = "  " + queryWhere + "  " + con + "  " + fieldname + " " + operator + "'" + txtInput + "'";
+                }
+            }
+            else {
+
+                queryWhere = "  " + queryWhere + "  " + con + "  " + fieldname + " " + operator;
+            }
+        }
+        else {
+            if (operator != 'is null' && operator != 'is not null') {
+                queryWhere = fieldname + operator + "'" + txtInput + "'";
+            }
+            else {
+                queryWhere = fieldname + " " + operator;
+            }
+        }
+        alert(queryWhere);
+
+        //var count = $('#ctrlSqlQuery').val();
+        $('#ctrlQry').val(sqlMainQuery + queryWhere);
+    })
+    $('#btnClear').click(function () {
+        queryWhere = "";
+        sqlMainQuery = "";
+        arrId = "";
+    })
+
+    </script>

@@ -1,0 +1,203 @@
+﻿@model IEM.Areas.MASTERS.Models.DocFrqModel
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+
+
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td colspan="2" style="display:none;">
+                <input name="DocFrqID" id="txtDocFrqID" type="text" placeholder="DocFrq ID" data-val="true" value="@Model.docFrqID" class="form-control " style="display: block;" />
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Frequency</span>
+                <br />
+                <div id="divDocFrqName">
+                    <input name="DocFrqeName" id="txtDocFrqName" maxlength="128" type="text" placeholder="DocFrq Name" data-val="true" value="@Model.docFrqName" @ViewBag.viewmode class="textboxStyle valid" style="display: block;width:250px;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span> No. of Months</span>
+                <br />
+                <div id="divMon">
+                    <input name="Month" id="txtMonth" maxlength="2" type="text" data-val="true" class="textboxStyle valid " value="@Model.docFrqMonth" @ViewBag.viewmode style="display: block;width:250px;" />
+                </div>
+            </td>
+        </tr>
+
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" style="margin-top:10px;" width="100%">
+        <tr>
+            <td style="width:100%; text-align:right;">
+               
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" disabled="disabled" id="btnsave" class="btn btn-primary" value="Save" onclick="UpdateDocFrq()"><span class="glyphicon glyphicon-floppy-save" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" class="btn btn-danger" value="Delete" onclick="Delete()"><span class="glyphicon glyphicon-trash" style="color:white;"></span> Delete</button>
+                    }
+               
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" class="btn btn-warning" value="Cancel" onclick="GoToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" class="btn btn-warning" value="Close" onclick="GoToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Close</button>
+                    }
+               
+            </td>
+        </tr>
+    </table>
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtDocFrqName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtMonth").keypress(function (event) {
+            return isNumber(event, this);
+        });
+    });
+    $("#txtDocFrqName").keyup(function () {
+        var name = $("#txtDocFrqName").val();
+        if (name.trim() != "") {
+            CheckFields();
+            $("#txtDocFrqName").removeClass('required');
+            $("#txtDocFrqName").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtDocFrqName").removeClass('valid');
+            $("#txtDocFrqName").addClass('required');
+            CheckFields();
+        }
+    });
+    $("#txtMonth").keyup(function () {
+        var mon = $("#txtMonth").val();
+        if (mon.trim() != "") {
+            CheckFields();
+            $("#txtMonth").removeClass('required');
+            $("#txtMonth").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtMonth").removeClass('valid');
+            $("#txtMonth").addClass('required');
+            CheckFields();
+        }
+    });
+
+    function UpdateDocFrq() {
+        var docFrqName = $("#txtDocFrqName").val();
+        var docFrqID = $("#txtDocFrqID").val();
+        var docFrqMonth = $("#txtMonth").val();
+        var docFrqModel =
+            {
+                "docFrqID": docFrqID
+                , "docFrqName": docFrqName.trim()
+                , "docFrqMonth": docFrqMonth
+            };
+        $.post('../AsmsFrequency/Edit', docFrqModel,
+        function (data) {
+            if (data != null) {
+                jAlert("Duplicate Record!", "Information", function (r) {
+                    if (r == true) {
+                        return false;
+                    }
+                }); return false;
+            }
+            else {
+                jAlert("Record Updated Successfully!!", "Information", function (r) {
+                    if (r == true) { location = location = '../AsmsFrequency/Index'; }
+                });
+
+            }
+        }, 'json');
+    }
+
+    function Delete() {
+        var docFrqID = $("#txtDocFrqID").val();
+        var docFrqModel =
+                {
+                    "docFrqID": docFrqID
+                };
+        jConfirm("Do you want to delete this Frequency? ", "Delete Frequency", function (r) {
+            if (r == true) {
+                $.post('../AsmsFrequency/Delete', docFrqModel,
+                     function (data) {
+                         if (data == null) {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r == true) {
+                                     location = '../AsmsFrequency/Index';
+                                 }
+                             });
+                         }
+                         else {
+                             jAlert("Can Not Delete this, Its Based On Some Other Category", "Information", function (r) {
+                                 if (r == true) {
+                                     return false;
+                                 }
+                             });
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    //$(".ui-icon-closethick").click(function () {
+    //    $('#gridId').find('tr').css('background', 'none');
+    //});
+    function GoToIndex() {
+        //$('#gridId').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFields() {
+        var ErrCount = 0;
+        if ($("#txtDocFrqName").val().trim() == "" || $("#txtDocFrqName").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#txtMonth").val().trim() == "" || $("#txtMonth").val() == null || $("#txtMonth").val() == 0) {
+            ErrCount = 2;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>

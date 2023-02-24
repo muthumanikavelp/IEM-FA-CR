@@ -1,0 +1,232 @@
+﻿@model IEnumerable<IEM.Areas.MASTERS.Models.BranchDataModel>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchgridbranch", ajaxUpdateCallback: "DummyFunctinforinwardseacrhBranch()");
+    int rowVal = 0;
+}
+<div id="searchgridbranch">
+
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew tblstyles" align="center">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> Employee Code </span>
+                            <input name="EmployeeCode"
+                                   id="txtinwardcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Employee Name </span>
+                            <input name="EmployeeName"
+                                   id="txtinwardempname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeName"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btncensearch" value="Search" name="command" type="button" onclick="Searempinward11()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="refreshecfinward123()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="Gotorefrefinward()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+            htmlAttributes: new { id = "wgridEmployeeCentralSearch" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("RaiserCode", Sorter("RaiserCode", "Employee Code", grid)),
+                grid.Column("RaiserName", Sorter("RaiserName", "Employee Name", grid)),
+            // grid.Column("RaiserCode", Sorter("RaiserCode", "Raiser Code", grid)),
+            // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="EmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />
+                    <input type="hidden" id="RaiserCodeFind_@item.EmployeeId" name="RaiserCode" value="@item.RaiserCode" />
+                    <input type="hidden" id="RaiserNameFind_@item.EmployeeId" name="RaiserName" value="@item.RaiserName" />
+                    <input type="hidden" id="RaiserDeptFind_@item.EmployeeId" name="RaiserCode" value="@item.EmployeeDepartment" />
+                    <a><span class="btn btn-link btnsearch" id="EmployeeSearch" onclick="Select(@item.EmployeeId)">Select</span></a>
+                </text>)
+          )))
+            </div>
+        </div>
+    }
+</div>
+<script>
+        $(document).ready(function () {
+            $("#txtinwardcode").keyup(function () {
+                var txtSupplierName = $("#txtinwardcode").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtinwardcode").removeClass('required');
+                    $("#txtinwardcode").addClass('valid');
+                }
+                else {
+                    $("#txtinwardcode").removeClass('valid');
+                    $("#txtinwardcode").addClass('required');
+                }
+            });
+            $("#txtinwardempname").keyup(function () {
+                var txtSupplierName = $("#txtinwardempname").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtinwardempname").removeClass('required');
+                    $("#txtinwardempname").addClass('valid');
+
+                }
+                else {
+                    $("#txtinwardempname").removeClass('valid');
+                    $("#txtinwardempname").addClass('required');
+
+                }
+            });
+        });
+        $(document).ready(function () {
+            $("#txtinwardcode").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/ECF/getAutocompleteCode",
+                        type: "POST",
+                        dataType: "json",
+                        data: { RaiserCode: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.RaiserCode, value: item.RaiserCode };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+            $("#txtinwardempname").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/ECF/getAutocomplete",
+                        type: "POST",
+                        dataType: "json",
+                        data: { RaiserName: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.RaiserName, value: item.RaiserName };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+        });
+        function refreshecfinward123() {
+            $('#EmployeeCodeSearch').val('');
+            $('#EmployeeNameSearch').val('');
+            var empcode = $('#EmployeeCodeSearch').val();
+            var empname = $('#EmployeeNameSearch').val();
+
+            var objownersearch =
+               {
+                   "RaiserName": empname,
+                   "RaiserCode": empcode
+               };
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EmployeeSearchforBranch", "Branch")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgridbranch").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+
+        }
+        function Searempinward11() {
+
+            var empname = $('#txtinwardempname').val();
+            var empcode = $('#txtinwardcode').val();
+
+            var objownersearch =
+                {
+                    "RaiserName": empname,
+                    "RaiserCode": empcode
+                };
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EmployeeSearchforBranch", "Branch")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgridbranch").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+        }
+        function Select(id) {
+            var Employeeid = $("#EmployeeIdFind_" + id + "").val();
+            var EmployeeName = $("#RaiserNameFind_" + id + "").val();
+            var EmployeeCode = $("#RaiserCodeFind_" + id + "").val();
+            var EmployeeDept = $("#RaiserDeptFind_" + id + "").val();
+            $('#EmployeeId').val(Employeeid);
+            $('#BranchIncharge').val(EmployeeCode + '-' + EmployeeName);
+            $("#BranchIncharge").removeClass('required');
+            $("#BranchIncharge").addClass('valid');
+            CheckFieldsHeader();
+            Gotorefrefinward();
+        }
+        function Gotorefrefinward() {
+            //objDialogySearch.remove();
+            objDialogybranchempse.dialog("close");
+            objDialogybranchempse.remove();
+            window.parent.jQuery('#forpartialviewforbranchempsearch').dialog('close');
+        }
+        function DummyFunctinforinwardseacrhBranch() {
+            $("#wgridEmployeeCentralSearch td:nth-child(2),#wgridEmployeeCentralSearch th:nth-child(2)").show();
+        }
+</script>

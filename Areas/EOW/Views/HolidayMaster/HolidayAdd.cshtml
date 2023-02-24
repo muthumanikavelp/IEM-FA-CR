@@ -1,0 +1,289 @@
+﻿@model IEM.Areas.EOW.Models.SupClassificationModel
+@{
+
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew" style="width:100%;">       
+        <tr>
+
+            <td style="width:40%; padding:0px 10px 0px 3px;">
+                <span>   Holiday Name </span>
+                <input type="text"
+                       id="holidayname"
+                       name="txtEmpcode"
+                       value="@ViewBag.filter"
+                       class="fstextbox required"
+                       maxlength="70" />
+                </td>
+
+
+            <td rowspan="3" style="width:60%; padding:0px 10px 0px 3px; padding-top  :20px;vertical-align:top;">
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td >
+                            <span>
+                                National Holiday</span>
+</td>
+                        <td>
+                            <div class="radio-inline" id="Cutoff">
+                                <input type="radio" id="id_rdpar" name="modeN" value="Y" />
+                                Yes
+                            </div>
+                            <div class="radio-inline" id="Cutoff">
+                                <input type="radio" id="id_rdpr" name="modeN" value="N" />
+                                No
+                            </div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td >
+                            <span> State Holiday</span>
+</td>
+                        <td >
+                            <div class="radio-inline" id="Cutoff">
+                                <input type="radio" id="id_rdparState" name="modeS" value="Y" />
+                                Yes
+                            </div>
+                            <div class="radio-inline" id="Cutoff">
+                                <input type="radio" id="id_rdprsState" name="modeS" value="N" />
+                                No
+                            </div>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span> cutoff flag</span>
+</td>
+                        <td >
+                            <div class="radio-inline" id="Cutoff">
+
+                                <input type="radio" id="id_rdparCutoff" name="modeC" value="Y" />
+                                Yes
+
+                            </div>
+                            <div class="radio-inline" id="Cutoff">
+
+                                <input type="radio" id="id_rdprCutoff" name="modeC" value="N" />
+                                No
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align :right  ; vertical-align:bottom; padding-top:125px;">
+                          
+                            <button type="button" id="btnsave" disabled="disabled" class="btn btn-primary" value="Save" onclick="SaveHoliday()"
+                                    style="margin-top:10px;  color:white;">
+                                <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                            </button>
+                       
+                            <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                                <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                            </button>
+                            
+                        </td>
+                    </tr>
+                </table>
+                </td>
+
+
+        </tr>
+        <tr>
+            <td style="width:40%; padding:0px 10px 0px 3px;">
+                <span>
+                    Holiday Date
+</span>
+                <input type="text"
+                       id="holidaydateAddid"
+                       name="holidaydateAddid"
+                       value="@ViewBag.filter"
+                       class="fstextbox required"
+                       onchange="checkdate()" />
+</td>
+        </tr>
+        <tr>
+            <td style="width:40%; padding:0px 10px 0px 3px;">
+                <span>
+                    State
+                </span>
+                <div id="divStudentlist" style="height: 150px; overflow: auto;border:solid; width:204px;">
+                    @foreach (var names in @Model.State)
+                    {
+                        var checkBoxId = "chk" + names.Value;
+                        var tdId = "td" + names.Value;
+                        <table style="width:100px;">
+                            <tr>
+                                <td width="20px">
+                                    <input type="checkbox" id="@checkBoxId" class="chkclass" value="@names.Value" />
+                                </td>
+                                <td id="@tdId" width="100px">
+                                    @names.Text
+                                </td>
+                            </tr>
+                        </table>
+                    }
+                </div>
+            </td>
+        </tr>
+        </table>
+            }
+            <script type="text/javascript">
+                var objDate = new Date();
+                var Presentyear = objDate.getFullYear();
+                $("#holidaydateAddid").datepicker({
+                    //yearRange: '1900:' + Presentyear,
+                    changeMonth: true,
+                    changeYear: true,
+                    minDate: 'd',
+                    dateFormat: 'dd-mm-yy'
+                });
+
+                //$(".fsDatePicker").datepicker({
+                //    yearRange: '1900:' + Presentyear,
+                //    changeMonth: true,
+                //    changeYear: true,
+                //    maxDate: 'y',
+                //    dateFormat: 'dd/mm/yy'
+                //});
+                
+                function SaveHoliday() {
+                    var holidaydate = $("#holidaydateAddid").val();
+                    var holidayname = $("#holidayname").val();
+                    var Nationalholiday = $("input[name='modeN']:checked").val();
+                    var Stateholiday = $("input[name='modeS']:checked").val();
+                    var Cutoff = $("input[name='modeC']:checked").val();
+                    var studentListVal = null;
+                    studentListVal = [];
+                    $('input:checkbox:checked').each(function () {
+                        studentListVal.push($(this).attr('value'));
+                    });
+                    if (holidaydate == "" || holidaydate == null) {
+                        jAlert("Please Enter Holiday Date", "Information");
+                        return false;
+                    }
+                    if (holidayname == "" || holidayname == null) {
+                        jAlert("Please Enter Holiday Name", "Information");
+                        return false;
+                    }
+                    if (Nationalholiday == "" && Stateholiday == "" && Cutoff == "" && Nationalholiday == null && Stateholiday == null && Cutoff == null) {
+                        jAlert("Please Select Any Category", "Information");
+                        return false;
+                    }
+                    var Student = {
+                        "HolidayName": holidayname,
+                        "HolidayDate": holidaydate,
+                        "NationalHoliday": Nationalholiday,
+                        "StateHoliday": Stateholiday,
+                        "Cutoff": Cutoff,
+                        "SelectedState": studentListVal
+                    };
+                    $.ajax({
+                        url: '../HolidayMaster/HolidayNewAdd',
+                        data: JSON.stringify(Student),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                            isSuccess = result;
+                            jAlert(result, "Information", function (r) {
+                                if (result != "Holiday Date Already Exists" && result != "Ensure State!" && result != "Duplicate Record") {
+                                    window.parent.jQuery('#ForPartialView1').dialog('open');
+                                    location.reload();
+                                }
+                            });
+                        },
+                        error: function (result) {
+                            isSuccess = result;
+                        }
+
+                    })
+                }
+                function GotoIndex()
+                {
+                    window.parent.jQuery('#ForPartialView1').dialog('close');
+
+                  //  window.parent.jQuery('#ForPartialView').dialog('close');
+                   // $('#gridHolidayid').find('tr').css('background', 'none');
+                }
+                $(".ui-icon-closethick").click(function () {
+                    window.parent.jQuery('#ForPartialView1').dialog('close');
+                    //$('#gridHolidayid').find('tr').css('background', 'none');
+                });
+                $(document).ready(function () {
+                    $("#holidayname").enabled = true;
+                    $("#holidaydateAddid").enabled = true;
+
+                    $("#holidayname").keyup(function () {
+                        var txtContractTo = $("#holidayname").val();
+                        if (txtContractTo.trim()!= "") {                         
+                          
+                            $("#holidayname").removeClass('required');
+                            $("#holidayname").addClass('valid');
+                            CheckFieldsHeader();
+                        }
+                        else {                           
+                            $("#holidayname").removeClass('valid');
+                            $("#holidayname").addClass('required');
+                            CheckFieldsHeader();
+                        }
+                    });
+                    
+                    $('#id_rdpar').change(function () {
+
+                        $("#id_rdpar").checked == true
+                        {
+                            var Nationalholiday = 'Y'
+                            $('#divState :input').attr('disabled', true);
+                        }
+                    });
+                   
+                    $('#id_rdpr').change(function () {
+                        $("#id_rdpr").checked == true
+                        {
+                            var Nationalholiday = 'N'
+                            $('#divState :input').attr('disabled', false);
+                        }
+                    });
+                   
+                });
+
+                function checkdate()
+                {
+                    var txtSESubCategoryName = $("#holidaydateAddid").val();
+                    if (txtSESubCategoryName.trim() != "") {
+                        CheckFieldsHeader();
+                        $("#holidaydateAddid").removeClass('required');
+                        $("#holidaydateAddid").addClass('valid');
+                        CheckFieldsHeader();
+                    }
+                    else {
+                        CheckFieldsHeader();
+                        $("#holidaydateAddid").removeClass('valid');
+                        $("#holidaydateAddid").addClass('required');
+                        CheckFieldsHeader();
+                    }
+                }
+                function CheckFieldsHeader()
+                {
+                   
+                    var ErrCount = 0;
+                    if ($("#holidayname").val()== "" || $("#holidayname").val() == null) {
+                        ErrCount = 1;
+                    }
+                    if ($("#holidaydateAddid").val()== "" || $("#holidaydateAddid").val() == null) {
+                        ErrCount = 2;
+                    }
+                   
+                    if (ErrCount == 0) {
+                        $("#btnsave").removeAttr('disabled');
+                    }
+                    else {
+                        $("#btnsave").attr('disabled', 'disabled');
+                    }
+                }
+            </script>

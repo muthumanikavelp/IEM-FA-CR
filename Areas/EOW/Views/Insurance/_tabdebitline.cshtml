@@ -1,0 +1,288 @@
+﻿<div style="padding-right: 10px;width:100%;">
+    <div class="table-responsive">
+        <table style="width:100%;">
+            <tr>
+                <td colspan="5" align="right" style="padding-bottom:5px;">
+                    @*@if (@ViewBag.POStatus != "PO")
+                    {*@
+                        <input type="button" value="Excel Upload" id="btndebitlieinvoexcel"  class="btn btn-primary" onclick="NewExceluploadsu()" />
+
+                    @*}*@
+                    &nbsp; &nbsp;&nbsp;
+                    <button type="button" id="btndebitlieinvo"  value="
+                            
+                            " onclick="NewOtherTravelMode()" class="btn btn-primary">
+                        <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New DebitLine
+                    </button>
+                </td>
+            </tr>
+            @*@if (@ViewBag.POStatus != "PO")
+            {*@
+                <tr id="exceluploadsupplier">
+                    <td style="width:25%;">
+                        <span>Select file</span><br />
+                        <form id="theuploadformempsup">
+                            <input type="file" style="padding-top: 5px;" name="UploadFile" id="fileupsupplier" class="fileupsupplier" />
+                        </form>
+                    </td>
+                    <td>
+                        <span>Select Sheet</span>
+                        <br />
+                        <select id="ddlSelectsheet" style="width:150px;" name="ddlSelectsheet" class="textboxStyle">
+                            <option value="0">--Select--</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <input type="button" id="btnfrstsubmit" class="btn btn-primary" value="Upload" onclick="Newexcelsunew()" />&nbsp;&nbsp;&nbsp;
+                        <input type="button" id="btnfrstClear" class="btn btn-warning" value="Clear" />
+                    </td>
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <a data-modal="" href="~/Download/DebitLineTemplate.xls" id="DownloadTemplate">
+                            <button id="DownloadTemplate" class="btn btn-primary" type="submit"><span style="color:white !important;font-size:12px;" class="glyphicon glyphicon-download"></span> Download Template</button>
+                        </a>
+                    </td>
+                    <td style="width:35%;"></td>
+                </tr>
+            @*}*@
+        </table>
+        @Html.Partial("_TabdebitlineDetails")
+    </div>
+</div>
+
+
+<div id="ForPartialViewExpenseglno"></div>
+<div id="ForPartialViewOtherTravelExpensenew"></div>
+<script type="text/javascript">
+    $('#btnfrstClear').click(function () {
+        var Provision = "N";
+        var NewAttmodel = {
+            "Provision": Provision
+        };
+        $.post('../SupplierInvoiceNew/_suppliserdebitclear', NewAttmodel,
+        function (data) {
+            if (data == "Error") {
+                alert('Error..........');
+                return false;
+            }
+            else {
+                $fileInput = $('#fileupsupplier');
+                $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                $("#fileupsupplier").val('');
+                $("#ddlSelectsheet").empty();
+                $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+                var url = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                $("#wgTravelmodeotab2").load(url);
+                var url1 = '@Url.Action("_GetGstDetails", "SupplierInvoiceNew")';
+                $("#PoGstGrid").load(url1);
+            }
+        }, 'json');
+    });
+    var objDialogExpenseglno;
+    $(document).ready(function () {
+        objDialogExpenseglno = $("[id$='ForPartialViewExpenseglno']");
+        objDialogExpenseglno.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: '97%',
+            height: 325
+        });
+    });
+    function EmpExpenseglno(id) {
+        var url = '@Url.Action("debitlinegldetails", "EmployeeClaimNew")?id=' + id + '&types=D&' + new Date().getTime();
+        objDialogExpenseglno.load(url);
+        objDialogExpenseglno.dialog({ title: 'View GL Details' });
+        objDialogExpenseglno.dialog("open");
+    }
+    var objDialogPayment;
+    $(document).ready(function () {
+        window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+        objDialogOtherTravelmodenew = $("[id$='ForPartialViewOtherTravelExpensenew']");
+        objDialogOtherTravelmodenew.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 800,
+            height: 430
+        });
+
+    });
+    $(document).ready(function () {
+        $("#exceluploadsupplier").hide();
+    });
+    function NewExceluploadsu() {
+        $("#ddlSelectsheet").empty();
+        $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+        $("#exceluploadsupplier").slideToggle(500);
+    }
+    function GotoIndexotherExpense() {
+        objDialogOtherTravelmodenew.dialog("close");
+        window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+    }
+    function NewOtherTravelMode() {
+        var sheetval = $("#txtInvoiceamount").val(); 
+        if (sheetval == null || sheetval == "0" || sheetval == "--Select--") {
+            jAlert("Please Enter Invoice Amount", "Message");
+            return false;
+        }
+
+        var url = '@Url.Action("_TabdebitlineCreate", "Insurance")?' + new Date().getTime();
+        objDialogOtherTravelmodenew.load(url);
+        objDialogOtherTravelmodenew.dialog({ title: 'Add DebitLine' });
+        objDialogOtherTravelmodenew.dialog("open");
+    }
+    function EmpOtherExpenseEdit(id) {
+        var url = '@Url.Action("_TabdebitlineEdit", "Insurance")?id=' + id + '&viewfor=edit&' + new Date().getTime();
+        objDialogOtherTravelmodenew.load(url);
+        objDialogOtherTravelmodenew.dialog({ title: 'Edit Debit Line' });
+        objDialogOtherTravelmodenew.dialog("open");
+    }
+    function EmpOtherExpenseView(id) {
+        var url = '@Url.Action("_TabdebitlineEdit", "Insurance")?id=' + id + '&viewfor=view&' + new Date().getTime();
+        objDialogOtherTravelmodenew.load(url);
+        objDialogOtherTravelmodenew.dialog({ title: 'View DebitLine' });
+        objDialogOtherTravelmodenew.dialog("open");
+    }
+    function EmpOtherExpenseDelete(id) {
+
+        jConfirm("Do you want to delete DebitLine...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "TravelMode_GID": id }
+                $.post('../SupplierInvoiceNew/DeleteOtherTravelExpense', EmpExpensemodel,
+                function (data) {
+                    if (data == 0) { location = location.href; } else {
+                        jAlert("Deleted Successfully.", "Message");
+                        var stylesSelect = $('#btndebitlieinvo');
+                        stylesSelect.attr('disabled', false);
+                        var url = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                        $("#wgTravelmodeotab2").load(url);
+                        var url1 = '@Url.Action("_GetGstDetails", "SupplierInvoiceNew")';
+                        $("#PoGstGrid").load(url1);
+                        var url2 = '@Url.Action("_LoadRCMDetails", "SupplierInvoiceNew")';
+                        $("#GrdRCMdetls").load(url2);
+                        window.parent.jQuery('#ForPartialViewOtherTravelExpensenew').dialog('close');
+                    }
+                }, 'json');
+            }
+        });
+    }
+    function Newexcelsunew() {
+        var sheet = $("#ddlSelectsheet option:selected").text();
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please Select valid File.", "Message");
+            $("#ddlSelectsheet").focus();
+            return false;
+        }
+        var objcbf =
+             {
+                 "Branch": sheet
+             };
+        $.ajax({
+            url: "../SupplierInvoiceNew/Localconveyancestatuserrs/",
+            type: 'POST',
+            cache: false,
+            data: objcbf,
+            success: function (data) {
+                if (data == "Success") {
+                    var urlVU = '@Url.Action("_Supplierexcelstatus", "SupplierInvoiceNew")?' + new Date().getTime();
+                    objDialogOtherTravelmodenew.load(urlVU);
+                    objDialogOtherTravelmodenew.dialog({ title: 'Upload Summary' });
+                    objDialogOtherTravelmodenew.dialog("open");
+
+                    $fileInput = $('#fileupsupplier');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#fileupsupplier").val('');
+                }
+                else {
+                    $fileInput = $('#fileupsupplier');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#fileupsupplier").val('');
+                    jAlert("Invalid Template", "Message");
+                    return false;
+                }
+            },
+            error: function () {
+                $fileInput = $('#fileupsupplier');
+                $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                $("#fileupsupplier").val('');
+                jAlert("something seems wrong", "Message");
+                return false;
+            }
+        });
+    }
+</script>
+
+<script>
+
+    $(".fileupsupplier").on('change', function (e) {
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#theuploadformempsup');
+        form.attr("action", "../SupplierInvoiceNew/UploadFilesnew");
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe");
+        form.attr("file", $('#fileupsupplier').val());
+        form.submit();
+        getsheets();
+        //return false;
+    });
+
+    function getsheets() {
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '../SupplierInvoiceNew/UploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                if (result == "") {
+                    $("#ddlSelectsheet").empty();
+                    $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+                    $fileInput = $('#fileupsupplier');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#fileupsupplier").val('');
+                    jAlert("Please Check The File Format and Upload", "Message");
+                    return false;
+                }
+                else {
+
+                    $("#ddlSelectsheet").empty();
+                    $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+                    var err = result[0].SheetName;
+                    if (err == "Error") {
+                        jAlert("Please Upload Valid File", "Message");
+                        return false;
+                    }
+                    else {
+                        if (result.length > 0) {
+                            for (var i = 0; i < result.length; i++) {
+                                var stylesSelect = $('#ddlSelectsheet');
+                                stylesSelect.attr('disabled', false);
+                                $("#ddlSelectsheet").append("<option value=" + result[i].SheetId + " >" + result[i].SheetName + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            var stylesSelect = $('#ddlSelectsheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    }
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                console.log(err);
+            }
+        });
+    }
+</script>

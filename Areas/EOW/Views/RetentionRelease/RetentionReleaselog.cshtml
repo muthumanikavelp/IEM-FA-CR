@@ -1,0 +1,71 @@
+﻿@model  IEM.Areas.EOW.Models.Retention_Release
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    DataTable getadvancetype = new DataTable();
+    List<Retention_Release> list = new List<Retention_Release>();
+    RetentionRelease rais = new RetentionRelease();
+    getadvancetype = rais.RetentionReleaseGrid_log(Session["log_id"].ToString());
+    foreach (DataRow dr in getadvancetype.Rows)
+    {
+
+        list.Add(
+        new Retention_Release
+        {
+            ecf_no = (dr["ecf_no"].ToString()),
+            Retention_date = (dr["retentionrelease_date"].ToString()),
+            Retention_amount = Convert.ToDecimal(dr["retentionrelease_amount"].ToString()),
+            invoice_desc = (dr["employee_name"].ToString())
+
+        });
+    };
+    WebGrid grid = new WebGrid(source: list, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "pppaylog", ajaxUpdateCallback: "DummyFunction2022();");
+    grid.Pager(WebGridPagerModes.All);
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div id="pppaylog">
+    <br />
+    <br />
+    <div class="well">
+        <div style="margin-top:-1px;width:500px; max-height:500px;" id="paygridlog" class="container overflowy">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+           tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+        columns: grid.Columns
+            (
+                    //Here I am going to add checkbox column
+                    //grid.Column("creditline_gid ", Sorter("creditline_gid ", "SNo", grid), canSort: false),
+                                                                             grid.Column("ecf_no", Sorter("ecf_no", "ECF_No", grid), canSort: false),
+                                             grid.Column("Retention_date", Sorter("Retention_date", "Release Date", grid), canSort: false),
+                                                       grid.Column("Retention_amount", Sorter("Retention_amount", "Release Amount", grid), canSort: false),
+                                             grid.Column("invoice_desc", Sorter("invoice_desc", "Release By", grid), canSort: false)
+
+              ))
+        </div>
+    </div>
+    <table align="center" class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnclearrelclose" class="btn btn-warning" value="Cancel" onclick="gotocloserelclose()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script type="text/javascript">
+    function gotocloserelclose() {
+        window.parent.jQuery('#ForPartialViewlog').dialog('close');
+    }
+    function DummyFunction2022() {
+        $("#paygridlog td:nth-child(2),#paygridlog th:nth-child(2)").show();
+    }
+</script>

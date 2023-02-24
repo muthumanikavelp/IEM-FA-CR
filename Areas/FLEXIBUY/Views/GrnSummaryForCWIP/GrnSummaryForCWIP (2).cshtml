@@ -1,0 +1,153 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.GRNInward
+@using IEM.Common;
+<div id="cwipsummary">
+    <link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+    @{
+        ViewBag.Title = "Index";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        var grid = new WebGrid(source: Model.objInwardList, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+        CmnFunctions obj = new CmnFunctions();
+    }
+    <b><span style="color: rgb(52, 108, 196);">GRN Release For PO</span></b>
+    @*<h4>GRN Release For PO</h4>*@
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-10">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>PO Date</span>
+                                <br />
+                                <input type="text"
+                                       name="podate"
+                                       id="podate"
+                                       value="@ViewBag.podate"
+                                       class="textboxStyleSearch"
+                                       @*placeholder="Enter Date"*@ />
+
+                            </td>
+                            <td>
+                                <span>PO Ref No</span>
+                                <br />
+                                <input type="text"
+                                       name="porefno"
+                                       id="porefno"
+                                       value="@ViewBag.porefno"
+                                       class="textboxStyleSearch"
+                                       @*placeholder="Enter POref No"*@ />
+
+                            </td>
+                            <td>
+                                <span>Vendor Name</span>
+                                <br />
+                                <input type="text"
+                                       name="vendorname"
+                                       id="vendorname"
+                                       value="@ViewBag.vendorname"
+                                       class="textboxStyleSearch"
+                                       @*placeholder="Enter Vendor Name"*@ />
+
+                            </td>
+                            @*<td>
+                                <span>Status</span>
+                                <br />
+                                @Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class="textboxStyleSearch" })
+                                @Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class = "textboxStyle valid" })
+                                @*//@Html.DropDownList("statusgid", Model.statusList, "--Select--", new { @class ="textboxStyleSearch valid" })
+
+                                @*<select name="ddlStatus" id="statusgid" class="textboxStyleSearch">
+                                    <option value="0">Select</option>
+                                    @foreach (var pitem in Model.statusList)
+                                    {
+                                        var childitemfilter = Model.statusList.Where(m => m.Value == pitem.Value);
+                                        if (childitemfilter != null)
+                                        {
+                                            foreach (var citem in childitemfilter)
+                                            {
+                                                string selectedValue = "";
+                                                if (Model.statusgid == Convert.ToInt32(citem.Value))
+                                                {
+                                                    selectedValue = "selected='selected'";
+                                                }
+
+                                                <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>*@
+                            @*</td>*@
+                            <td>
+                                @*<span class="glyphicon glyphicon-search" onclick="searchpo()"></span>*@
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                        type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                                @*<button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(245, 245, 245);" name="command" type="submit"></button>*@
+                            </td>
+                            <td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                                </button>
+                                @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                            </td>
+                            @*<td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnrefresh" value="Clear" onclick="ProdServrefresh()" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                                @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                            @*</td>*@
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="pogrid">
+
+            </div>
+            <div style="margin-top:17px" id="pogrid1">
+                <div>
+
+                    @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grnreleasegrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+            grid.Column("slno", obj.Sorter("slno", "Sl", grid)),
+       grid.Column("poDate", obj.Sorter("poDate", "PO Date", grid)),
+       grid.Column("poRefNo", obj.Sorter("poRefNo", "PO Ref No", grid)),
+       grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid)),
+      // grid.Column("status", obj.Sorter("status", "Status", grid)),
+      grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), style: "alignRight"),
+          grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+            <input class="btn btn-link" name="command" onclick="SelectForConfirm(id)" id="@item.poheadGid" value="Select" title="Select" type="button" />
+
+                    </text>)))
+                </div>
+
+                @if (@ViewBag.records != null || @ViewBag.records == "")
+                {
+                    <div class="borderStyle btnCenter">
+                        @ViewBag.records
+                    </div>
+                }
+                <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.objInwardList.Count</label>
+            </div>
+        </div>
+
+    }
+
+    <script type="text/javascript">
+        function SelectForConfirm(id)
+        {
+            location = '@Url.Action("CwipSummary", "CwipConfirmSummary")?poheadgid=' + id;
+        }
+    </script>
+</div>

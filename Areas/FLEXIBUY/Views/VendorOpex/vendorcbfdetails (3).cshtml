@@ -1,0 +1,1004 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var grid = new WebGrid(source: Model.cbfDetails, canPage: true, canSort: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid2", ajaxUpdateCallback: "Dummycbf()");
+    int rowNum = 0;
+    int add2 = 0;
+
+}
+<style>
+    cursor {
+        cursor: pointer;
+    }
+
+    panelwidth {
+        width: 100%;
+    }
+
+    .lblwth {
+        width: 170px;
+    }
+
+    .txtwth {
+        width: 150px;
+    }
+</style>
+<script type="text/javascript">
+    function calll(id) {
+       
+        var tr = $(this).parents('tr:first');
+        var row = id;
+        var pargid = $("#pargid").val();
+        var productgroup = $("#ProductGroup" + row.trim() + "").val();
+        var productgid = $("#ProductGid" + row.trim() + "").val();
+        var productcode = $("#productcode" + row.trim() + "").val();
+        var prodctname = $("#productname" + row.trim() + "").val();
+        var description = $("#description" + row.trim() + "").val();
+        var qty = $("#qty_" + row.trim() + "").val();
+        var untiprize = $("#unitprize_" + row.trim() + "").val();
+        var total = $("#total_" + row.trim() + "").val();
+        var vendor = $("#Vendor_" + row.trim() + "").val();
+        var vendorgid = $("#VendorGid_" + row.trim() + "").val();
+   
+        if (productgroup == null || productgroup == "" || productgroup == 0) {
+            jAlert("Please Enter Product Group.", "Error");
+            return false;
+        }
+        if (productcode == null || productcode == "") {
+            jAlert("Please Enter Product Code.", "Error");
+            return false;
+        }
+
+        if (prodctname == null || prodctname == "") {
+            jAlert("Please Enter Product Name", "Error");
+            return false;
+        }
+        if (description == null || description == "") {
+            jAlert("Please Enter Description.", "Error");
+            return false;
+        }
+
+        if (qty == null || qty == "") {
+            jAlert("Please Enter Qty.", "Error");
+            return false;
+        }
+        if (untiprize == null || untiprize == "") {
+            jAlert("Please Enter Unit Amount.", "Error");
+            return false;
+        }
+
+        if (total == null || total == "") {
+            jAlert("Total Amount Should Not Be Null", "Error");
+            return false;
+        }
+        if (vendor == null || vendor == "") {
+            jAlert("Please Select Any Vendor.", "Error");
+            return false;
+        }
+
+        $("#obf_amt").val(total);
+        var UserModel =
+           {
+               "prdetailsGid": pargid,
+               "productgroupid": productgroup,
+               "productgid": productgid,
+               "productcode": productcode,
+               "productname": prodctname,
+               "description": description,
+               "qty": qty,
+               "unitAmt": untiprize,
+               "total": total,
+               "vendorselection": vendor,
+               "vendorgid": vendorgid
+           };
+        $.ajax({
+            url: "../VendorOpex/CbfParSave/",
+            type: 'POST',
+            data: UserModel,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#cbfdetailsgridforpar").empty().append(data);
+                    jAlert("Inserted Successfully", "Message");
+                    $("#addnewrows").attr("disabled", true);
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+    }
+    function cancel(element) {
+        var flag = confirm('Are you sure to cancel');
+        if (flag) {
+            $(element).parents("tr").remove();
+        }
+    }
+    var objDialog1;
+    function getprogroup(id, title, value) {
+        if (value != "Select") {
+            $("#rowid").val(title);
+            if (id != 0) {
+                if ($("#ss").val() == "") {
+                    $("#ss").val('asd');
+                    objDialog1 = $("[id$='productserviewpopup']");
+                    objDialog1.dialog({
+                        autoOpen: false,
+                        modal: true,
+                        show: 'fade-in',
+                        close: 'fade-out',
+                        cache: false,
+                        width: 600,
+                        height: 400
+                    });
+
+                }
+                var id1 = id.value;
+
+                objDialog1.load('../VendorOpex/GetProductlist?lnid=' + id1);
+                objDialog1.dialog({ title: 'Product List' });
+                objDialog1.dialog("open");
+            }
+        }
+
+    }
+
+    $(function () {
+        $('.add').on('click', function () {
+           
+            var pargid = $(this).val();
+            $('#pargid').val(pargid);
+            var existrow = $('.save-btn1').length;
+           // debugger
+            if (existrow == 0) {
+                var index = $("#grid tbody tr").length + 1;
+                var productgroup = "ProductGroup" + index;
+                var productgid = "ProductGid" + index;
+                var productcode = "productcode" + index;
+                var productname = "productname" + index;
+                var description = "description" + index;
+                var VendorGid = "VendorGid_" + index;
+                var qty = "qty_" + index;
+                var unitprize = "unitprize_" + index;
+                var total = "total_" + index;
+                var Vendor = "Vendor_" + index;
+                var attach = "Attach_" + index;
+                var Save = "Save_" + index;
+                var Cancel = "Cancel_" + index;
+             
+                $.ajax({
+                    url: '../VendorOpex/GetProductGroup/',
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.length == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#" + productgroup + "").empty();
+                            $("#" + productgroup + "").append("<option value='0' >Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + productgroup + "").append("<option value=" + data[i].productGroupId + " >" + data[i].productGroupIdName + "</option>");
+
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Something Wrong");
+                    }
+
+                });
+
+
+                var newRow = '<tr class="alternate-row overflowx"><td><span></span></td><td><span> <select id="' + productgroup + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" onchange="getprogroup(this,title,value)"  style="display:block;">' + '<option value="select">select</option>' + '</select></span></td>' +
+                          '<td style="MidColumn20"><span> <input id="' + productgid + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                          '<td style="MidColumn20"><span> <input id="' + productcode + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                         '<td style="MidColumn20"><span> <input id="' + productname + '"   class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                         '<td style="MidColumn20"><span> <input id="' + description + '"   class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                         '<td style="MidColumn20"><span><input id="' + qty + '" value=1  disabled=disabled  class="textboxStyleBig" type="text"  onkeypress="return isNumber1(event, this);"  onkeyup="multi(this)"/></span></td>' +
+                         '<td style="MidColumn20"><span><input id="' + unitprize + '"  class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  onkeyup="multi1(this)" type="text"/></span></td>' +
+                         '<td style="MidColumn20"><span><input id="' + total + '"   class="textboxStyleBig" readonly="readonly" onkeypress="return isNumber1(event, this);" name="intotalnew" type="text"/></span></td>' +
+                            '<td style="MidColumn20"><span><input id="' + Vendor + '"  class="textboxStyleBig" onchange="change(id,value)" onkeypress="return isNumber1(event, this);" type="text"/></span><span class="glyphicon glyphicon-search edit searchpop cursorpointer" id="' + Vendor + '" title="' + index + '" onclick="NewSearch(title)"></span><span>  <input id="' + VendorGid + '" type="hidden" /></span></td>' +
+                         '<td style="MidColumn20"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+               '</tr>';
+                $("#grid2 tbody").append(newRow);
+                $('#btnSave').removeAttr('disabled');
+                $("#addnewrows").attr("disabled", true);
+            }
+            else {
+                jAlert("First Save Your Pervious record", "Message");
+            }
+        });
+
+
+        $('.edit ').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+        $('.delete-btn').on('click', function () {
+         
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var deleteval =
+                {
+                    "attch_Gid": row
+                }
+            $.ajax({
+                url: "../CbfRaiser/CbfDeletePar/",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(deleteval),
+                success: function (data) {
+                    if (data.length == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgridforpar").empty().append(data);
+                        $("#addnewrows").attr("disabled", false);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        })
+        $('.save-btn').on('click', function () {
+         
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var productgroup = $("#productgroup_" + row.trim() + "").val();
+            var productcode = $("#txtproductcode_" + row.trim() + "").val();
+            var prodctname = $("#txtproductname_" + row.trim() + "").val();
+            var description = $("#txtdescription_" + row.trim() + "").val();
+            var uom = tr.find("#uomddl_" + row.trim() + "").val();
+            var qty = tr.find("#inqty_" + row.trim() + "").val();
+            var unit = tr.find("#inunit_" + row.trim() + "").val();
+            var total = tr.find("#intotal_" + row.trim() + "").val();
+            var remark = tr.find("#inremarks").val();
+
+            var charttoaccount = tr.find("#inchartofaccount_" + row.trim() + "").val();
+            var Fccc = tr.find("#infcccgetpoup_" + row.trim() + "").val();
+            var budgetline = tr.find('#inbudgetline').val();
+            var vendor = $("#vendornamedit1_" + row.trim() + "").val();
+            var vendorgid = $("#vendorgid1_" + row.trim() + "").val();
+
+            if (productgroup == null || productgroup == "" || productgroup == 0) {
+                jAlert("Please Enter Product Group.", "Error");
+                return false;
+            }
+            if (productcode == null || productcode == "") {
+                jAlert("Please Enter Product Code.", "Error");
+                return false;
+            }
+
+            if (prodctname == null || prodctname == "") {
+                jAlert("Please Enter Product Name", "Error");
+                return false;
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (unit == null || unit == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+            if (vendor == null || vendor == "") {
+                jAlert("Please Select Any Vendor.", "Error");
+                return false;
+            }
+
+            $('.edit').hide();
+            var UserModel =
+            {
+                //"prdetails_gid": pargid,
+                "productgroupid": productgroup,
+                "productcode": productcode,
+                "productname": prodctname,
+                "description": description,
+                "unchecked12": row,
+                "uomGid": uom,
+                "qty": qty,
+                "unitAmt": unit,
+                "total": total,
+                "remarks": remark,
+                "chartofaccount": charttoaccount,
+                "Fccc": Fccc,
+                "budgetline": budgetline,
+                "vendorselection": vendor,
+                "vendorgid": vendorgid
+            };
+
+            $.ajax({
+                url: "../VendorOpex/CbfParSave/",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(UserModel),
+                success: function (data) {
+                    if (data.length == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgridforpar").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+        });
+    });
+    function Dummycbf() {
+        function calll(id) {
+
+            var tr = $(this).parents('tr:first');
+            var row = id;
+            var pargid = $("#pargid").val();
+            var productgroup = $("#ProductGroup" + row.trim() + "").val();
+            var productcode = $("#productcode" + row.trim() + "").val();
+            var prodctname = $("#productname" + row.trim() + "").val();
+            var description = $("#description" + row.trim() + "").val();
+            var uom = $("#uom_" + row.trim() + "").val();
+            var qty = $("#qty_" + row.trim() + "").val();
+            var untiprize = $("#unitprize_" + row.trim() + "").val();
+            var total = $("#total_" + row.trim() + "").val();
+            var remarks = $("#remarks" + row.trim() + "").val();
+            var chartofaccount = $("#chartofaccount" + row.trim() + "").val();
+            var fccc = $("#fccc" + row.trim() + "").val();
+            var budgetline = $("#budgetline" + row.trim() + "").val();
+            var attachment = $("#Attach" + row.trim() + "").val();
+
+            if (productgroup == null || productgroup == "" || productgroup == 0) {
+                jAlert("Please Enter Product Group.", "Error");
+                return false;
+            }
+            if (productcode == null || productcode == "") {
+                jAlert("Please Enter Product Code.", "Error");
+                return false;
+            }
+
+            if (prodctname == null || prodctname == "") {
+                jAlert("Please Enter Product Name", "Error");
+                return false;
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+            if (uom == null || uom == "" || uom == 0) {
+                jAlert("Please Select uom", "Error");
+                return false;
+            }
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (untiprize == null || untiprize == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+            if (remarks == null || remarks == "") {
+                jAlert("Please Any Remarks.", "Error");
+                return false;
+            }
+            if (chartofaccount == null || chartofaccount == "") {
+                jAlert("Please Select Chart of Account in Product and Service Master", "Error");
+                return false;
+            }
+            if (fccc == null || fccc == "" || fccc == 0) {
+                jAlert("Please Select FCCC Code.", "Error");
+                return false;
+            }
+            if (budgetline == null || budgetline == "") {
+                jAlert("Please Enter Budject Line.", "Error");
+                return false;
+            }
+            $("#obf_amt").val(total);
+            var UserModel =
+               {
+                   "prdetailsGid": pargid,
+                   "productgroupid": productgroup,
+                   "productcode": productcode,
+                   "productname": prodctname,
+                   "description": description,
+                   "uomgid": uom,
+                   "qty": qty,
+                   "unitAmt": untiprize,
+                   "total": total,
+                   "remarks": remarks,
+                   "chartofaccount": chartofaccount,
+                   "Fccc": fccc,
+                   "budgetline": budgetline
+               };
+            $.ajax({
+                url: "../CbfRaiser/CbfParSave/",
+                type: 'POST',
+                data: UserModel,
+                success: function (data) {
+                    if (data.length == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#cbfdetailsgridforpar").empty().append(data);
+                        jAlert("Inserted Successfully", "Message");
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        }
+        function cancel(element) {
+          
+            var flag = confirm('Are you sure to cancel');
+            if (flag) {
+                $(element).parents("tr").remove();
+            }
+        }
+        var objDialog1;
+        function getprogroup(id, title, value) {
+            if (value != "Select") {
+                $("#rowid").val(title);
+                if (id != 0) {
+                    if ($("#ss").val() == "") {
+                        $("#ss").val('asd');
+                        objDialog1 = $("[id$='productserviewpopup']");
+                        objDialog1.dialog({
+                            autoOpen: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+                            cache: false,
+                            width: 600,
+                            height: 400
+                        });
+
+                    }
+                    var id1 = id.value;
+
+                    objDialog1.load('../VendorOpex/GetProductlist?lnid=' + id1 + '&' + new Date().getTime());
+                    objDialog1.dialog({ title: 'Service List' });
+                    objDialog1.dialog("open");
+                }
+            }
+
+        }
+
+        $(function () {
+            $('.add').on('click', function () {
+                var pargid = $(this).val();
+                $('#pargid').val(pargid);
+                var existrow = $('.save-btn1').length;
+                debugger
+                if (existrow == 0) {
+                    var index = $("#grid tbody tr").length + 1;
+                    var productgroup = "ProductGroup" + index;
+                    var productcode = "productcode" + index;
+                    var productname = "productname" + index;
+                    var description = "description" + index;
+                    var uom = "uom_" + index;
+                    var qty = "qty_" + index;
+                    var unitprize = "unitprize_" + index;
+                    var total = "total_" + index;
+                    var remarks = "remarks" + index;
+                    var chartofaccount = "chartofaccount" + index;
+                    var Vendor = "Vendor" + index;
+                    var budgetline = "budgetline" + index;
+                    var attach = "Attach_" + index;
+                    var Save = "Save_" + index;
+                    var Cancel = "Cancel_" + index;
+                    $.ajax({
+                        url: '../CbfRaiser/GetProductGroup/',
+                        data: '{}',
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data.length == 0) {
+                                jAlert("Error Occured", "Error");
+                                return false;
+                            }
+                            else {
+                                $("#" + productgroup + "").empty();
+                                $("#" + productgroup + "").append("<option value='Select' >Select</option>");
+                                for (var i = 0; i < data.length; i++) {
+                                    $("#" + productgroup + "").append("<option value=" + data[i].productGroupId + " >" + data[i].productGroupIdName + "</option>");
+
+                                }
+                            }
+                        },
+                        error: function (result) {
+                            jAlert("Something Wrong");
+                        }
+
+                    });
+
+
+                    var newRow = '<tr class="alternate-row overflowx"><td><span></span></td><td><span> <select id="' + productgroup + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" onchange="getprogroup(this,title,value)"  style="display:block;">' + '<option value="select">select</option>' + '</select></span></td>' +
+                         '<td style="MidColumn20"><span> <input id="' + productgid + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                        '<td style="MidColumn20"><span> <input id="' + productcode + '"  class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                          '<td style="MidColumn20"><span> <input id="' + productname + '"   class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                          '<td style="MidColumn20"><span> <input id="' + description + '"   class="textboxStyleBig" readonly="readonly" type="text" /></span></td>' +
+                          '<td style="MidColumn20"><span><input id="' + qty + '"  class="textboxStyleBig" type="text"  onkeypress="return isNumber1(event, this);"  onkeyup="multi(this)"/></span></td>' +
+                          '<td style="MidColumn20"><span><input id="' + unitprize + '"  class="textboxStyleBig" onkeypress="return isNumber1(event, this);"  onkeyup="multi1(this)" type="text"/></span></td>' +
+                          '<td style="MidColumn20"><span><input id="' + total + '"  class="textboxStyleBig" readonly="readonly" onkeypress="return isNumber1(event, this);" name="intotalnew" type="text"/></span></td>' +
+                          '<td style="MidColumn20"><span> <input type="button" value="Attach BOQ" class="btn btn-link" onclick="Newboq1(id)"  id="' + attach + '" title="BOQ" /></span></td>' +
+                             '<td style="MidColumn20"><span><input id="' + Vendor + '" class="textboxStyleBig"  onkeypress="return isNumber1(event, this);" type="text"/></span><span class="glyphicon glyphicon-search edit searchpop" id="' + Vendor + '"  title="' + index + '"  onclick="NewSearch(title)"></span></td>' +
+                         '<td style="MidColumn20"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+                '</tr>';
+
+                    $("#grid2 tbody").append(newRow);
+                    $('#btnSave').removeAttr('disabled');
+                }
+                else {
+                    jAlert("First Save Your Pervious record", "Message");
+                }
+            });
+
+
+            $('.edit ').hide();
+            $('.edit-btn, .cancel-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+
+            });
+            $('.delete-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var deleteval =
+                    {
+                        "attch_Gid": row
+                    }
+                $.ajax({
+                    url: "../CbfRaiser/CbfDeletePar/",
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(deleteval),
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#cbfdetailsgridforpar").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            })
+            $('.save-btn').on('click', function () {
+
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var productgroup = $("#productgroup_" + row.trim() + "").val();
+                var productcode = $("#txtproductcode_" + row.trim() + "").val();
+                var prodctname = $("#txtproductname_" + row.trim() + "").val();
+                var description = $("#txtdescription_" + row.trim() + "").val();
+                var uom = tr.find("#uomddl_" + row.trim() + "").val();
+                var qty = tr.find("#inqty_" + row.trim() + "").val();
+                var unit = tr.find("#inunit_" + row.trim() + "").val();
+                var total = tr.find("#intotal_" + row.trim() + "").val();
+                var remark = tr.find("#inremarks").val();
+
+                var charttoaccount = tr.find("#inchartofaccount_" + row.trim() + "").val();
+                var Fccc = tr.find("#infcccgetpoup_" + row.trim() + "").val();
+                var budgetline = tr.find('#inbudgetline').val();
+
+
+                if (productgroup == null || productgroup == "" || productgroup == 0) {
+                    jAlert("Please Enter Product Group.", "Error");
+                    return false;
+                }
+                if (productcode == null || productcode == "") {
+                    jAlert("Please Enter Product Code.", "Error");
+                    return false;
+                }
+
+                if (prodctname == null || prodctname == "") {
+                    jAlert("Please Enter Product Name", "Error");
+                    return false;
+                }
+                if (description == null || description == "") {
+                    jAlert("Please Enter Description.", "Error");
+                    return false;
+                }
+                if (qty == null || qty == "") {
+                    jAlert("Please Enter Qty.", "Error");
+                    return false;
+                }
+                if (unit == null || unit == "") {
+                    jAlert("Please Enter Unit Amount.", "Error");
+                    return false;
+                }
+
+                if (total == null || total == "") {
+                    jAlert("Total Amount Should Not Be Null", "Error");
+                    return false;
+                }
+          
+
+                $('.edit').hide();
+                var UserModel =
+                {
+                    //"prdetails_gid": pargid,
+                    "productgroupid": productgroup,
+                    "productcode": productcode,
+                    "productname": prodctname,
+                    "description": description,
+                    "unchecked12": row,
+                    "uomGid": uom,
+                    "qty": qty,
+                    "unitAmt": unit,
+                    "total": total,
+                    "remarks": remark,
+                    "chartofaccount": charttoaccount,
+                    "Fccc": Fccc,
+                    "budgetline": budgetline
+
+
+                };
+
+                $.ajax({
+                    url: "../CbfRaiser/CbfParSave/",
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(UserModel),
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#cbfdetailsgridforpar").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+
+            });
+        });
+    }
+
+</script>
+
+@using (Html.BeginForm())
+{
+    <div>
+        @*<h4>
+            OBF Details
+        </h4>*@
+        <span style="color:rgb(52,108,196);">OBF Details</span>
+    </div>
+    <input type="hidden" hidden="hidden" id="pargid">
+    <div id="cbfdetails" class="borderStyle panel panel-default">
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+        <br />
+        <table align="right" >
+            <tr>
+                <td>
+                    <button class="btn btn-primary add"
+                            type="button"
+                            name="command"
+                            value="@ViewBag.pardetGid"
+                            id="addnewrows" >
+                        Add Obf Details
+                    </button>
+                </td>
+            </tr>
+            <tr style="display:none;">
+                <td>
+                    <input type="text"
+                           name="linamnt"
+                           class="textboxStyle"
+                           readonly="readonly"
+                           id="linamnt"
+                           value="@ViewBag.lnamt" />
+                </td>
+            </tr>
+        </table>
+        <div id="grid_details1" class="container overflowx overflowy">
+            <div >
+                @grid.GetHtml(
+     tableStyle: "tableSmall table-bordered",
+     mode: WebGridPagerModes.All,
+            htmlAttributes: new { id = "grid2" },
+            columns: grid.Columns(
+                             grid.Column("Sl", format: a => rowNum = rowNum + 1, canSort: false),
+                                    grid.Column("productgroup", sorter("productgroup", "Service Group", grid), format: @<text>
+                                        <select name="productgroup1" id="productgroup_@item.attch_Gid" disabled="disabled" title="@item.attch_Gid" onchange="getprogroup(this,title,value)" class="textboxStyleBig edit">
+                                            <option value="0">Select</option>
+
+                                            @{
+                                                var childitemfilter = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                                                if (childitemfilter != null)
+                                                {
+                                                    foreach (var citem in Model.productGroupList)
+                                                    {
+                                                        string selectedValue = "";
+                                                        if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                                        {
+                                                            selectedValue = "selected='selected'";
+                                                        }
+                                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                                    }
+                                                }
+                                            }
+
+                                        </select>
+                                        <select name="productgroup1" id="productgroup1" disabled="disabled" class="textboxStyleBig display">
+                                            <option value="0">Select</option>
+
+                                            @{
+                                                var childitemfilter1 = Model.productGroupList.Where(m => m.Value == @item.productGroupId);
+                                                if (childitemfilter1 != null)
+                                                {
+                                                    foreach (var citem in Model.productGroupList)
+                                                    {
+                                                        string selectedValue = "";
+                                                        if (@item.productGroupId == Convert.ToInt32(citem.Value))
+                                                        {
+                                                            selectedValue = "selected='selected'";
+                                                        }
+                                                        <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                                    }
+                                                }
+                                            }
+
+                                        </select></text>,style: "MidColumn50", canSort: false),
+                                     grid.Column("productgid",format: @<text><span class="display"><label id="lblproductgid">@item.productgid</label></span><input type="text" disabled="disabled" id="txtproductgid_@item.attch_Gid" value="@item.productgid" title="@item.productgid" class="edit textboxStyleBig" /> </text>, style: "MidColumn20", canSort: false),
+                                    grid.Column("productCode", sorter("productCode", "Service Code", grid), format: @<text><span class="display"><label id="lblproductcode">@item.productCode</label></span><input type="text" disabled="disabled" id="txtproductcode_@item.attch_Gid" value="@item.productCode" title="@item.productCode" class="edit textboxStyleBig" /> </text>, style: "MidColumn20", canSort: false),
+                                    grid.Column("productName", sorter("productName", "Service Name", grid),  format: @<text><span class="display"><label id="lblproductname">@item.productName</label></span><input type="text" disabled="disabled" id="txtproductname_@item.attch_gid" value="@item.productName" class="edit textboxStyleBig" title="@item.productName" /></text>, style: "MidColumn20", canSort: false),
+                                    grid.Column("description", sorter("description", "Service Description", grid), format: @<text><span class="display"><label id="lbldescription">@item.description</label></span><input type="text" disabled="disabled" id="txtdescription_@item.attch_gid" value="@item.description" class="edit textboxStyleBig" title="@item.description" /></text>, style: "MidColumn50", canSort: false),
+                                    grid.Column("qty", sorter("qty", "QTY", grid), format: @<text>  <span class="display">
+                <label id="lblqty">@item.qty</label></span><input type="text" title="@item.qty" id="inqty_@item.attch_gid" name="inqty" class="edit textboxStyleBig" onkeypress="return isNumber1(event, this);" value="@item.qty" href="@item.attch_gid" onkeyup="multInputs(title,value,this)" style="width:100px" /> </text>,style: "MidColumn10" , canSort: false),
+                                     grid.Column("unitAmt", sorter("unitAmt", "Price", grid),  format: @<text>  <span class="display"><label id="lblunit">@item.unitAmt</label></span> <input type="text" id="inunit_@item.attch_gid" name="inunit" onclick="multInputs1(id, value)" onkeypress="return isNumber1(event, this);" href="@item.attch_gid" value="@item.unitAmt" style="width:100px" class="edit textboxStyleBig" /> </text>,style: "MidColumn20", canSort: false),
+                                    grid.Column("total", sorter("total", "Total", grid), format: @<text>  <span class="display "><label id="lbltotal">@item.total</label> </span> <input type="text" id="intotal_@item.attch_gid" name="intotal" readonly="readonly" href="@item.attch_gid" onkeypress="return isNumber1(event, this);" value="@item.total" style="width:100px" class="edit textboxStyleBig" /> </text>,style: "MidColumn20", canSort: false),
+                   grid.Column("vendorselection", sorter("vendorselection", "Vendor Name", grid),format:@<text><span>
+                        <input id="vendorname_@item.attch_gid" type="text" value="@item.vendorselection" disabled="disabled" class="textboxStyle display" />
+                    </span>
+                    <input id="vendorgid_@item.attch_gid" type="hidden" value="@item.vendorgid" />
+                    <span><input id="vendornamedit1_@item.attch_gid" type="text" value="@item.vendorselection" class="textboxStyle edit" /> </span><span class='glyphicon glyphicon-search edit' id="@item.attch_gid" onclick="NewSearch(id)" style="cursor:pointer;" title="Search"></span>
+                </text>,style: "MidColumn40", canSort: false) ,
+                                    grid.Column(header: "Action", canSort: false, style: "action ",
+                                    format: @<text>
+                                        @*<span class="glyphicon glyphicon-floppy-open  display-mode add-btn"><label id="sdf34" hidden="hidden"> @rowNum</label></span>*@
+                                        <span class='glyphicon glyphicon-floppy-save edit save-btn' style="cursor:pointer;" title="Save"> <label id="sdf34" hidden="hidden">@item.attch_gid</label></span>
+                                        &nbsp;
+                                        <span class='glyphicon glyphicon-edit display edit-btn cursor' style="cursor:pointer;" title="Edit"><label id="sdf67" hidden="hidden"> @item.attch_gid</label> </span>
+                                        &nbsp;
+                                        <span class='glyphicon glyphicon-trash display delete-btn cursor' style="cursor:pointer;" title="Delete"><label id="sdf8989" hidden="hidden"> @item.attch_gid</label> </span>
+                                        &nbsp;
+                                        <span class='glyphicon glyphicon-remove edit cancel-btn cursor' style="cursor:pointer;" title="Cancel"> <label id="sdf000-" hidden="hidden">@item.attch_gid</label></span>
+
+                                    </text>)))
+                <div class="borderStyle">
+                    @ViewBag.NoRecordsFound
+                </div>
+            </div>
+
+        </div>
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.cbfDetails.Count</label>
+
+        <label id="para1"></label>
+        <p id="add" style="display:none"></p>
+        <input type="hidden" id="rowid" />
+    </div>
+}
+<div id="productserviewpopup"></div>
+<div id="forvendorselection"></div>
+<script>
+
+    $('.search').click(function () {
+    });
+    var objDialogforficc;
+    function NewSearch(title) {
+       
+        $("#dategid").val(title);
+        if ($('#hidden').val() == "") {
+            $('#hidden').val(2);
+            objDialogforficc = $("[id$='forvendorselection']");
+            objDialogforficc.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 500
+            })
+        }
+
+        objDialogforficc.load('../VendorOpex/VendorSelection?' + new Date().getTime());
+        objDialogforficc.dialog({ title: 'Select Vendor' });
+        objDialogforficc.dialog("open");
+
+    }
+    function Newboq1(id) {
+
+        objDialogforboq.load('../CbfRaiser/BoqAttach?id=' + id + '&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'Select BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+
+    $(document).ready(function () {
+       // $("#grid2 td:nth-child(3),#grid2 th:nth-child(3)").hide();
+        var add = 0;
+        if ('@grid.TotalRowCount' > 0) {
+            $('#Request').attr("disabled", true);
+            $('#id_rdpr').attr("disabled", true);
+            $('#id_rdpar').attr("disabled", true);
+        }
+        else {
+            $('#Request').attr("disabled", false);
+            $('#id_rdpr').attr("disabled", false);
+            $('#id_rdpar').attr("disabled", false);
+        }
+        $("#inbudgetline").keypress(function (event) {
+            return isNumber1(event, this);
+
+        });
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+
+
+    });
+    var dat = 0;
+    var value1 = 0;
+    function multInputs(title, value, element) {
+        var id1 = $(element).attr('href');
+        $('#intotal_' + id1 + '').val(value * $('#inunit_' + id1 + '').val());
+        var add = 0;
+       
+       
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+    }
+    function multi(element) {
+        var add = 0;
+        var str = $(element).attr("id").split("_");
+        var id = str[1];
+        $('#total_' + id + '').val($('#qty_' + id + '').val() * $('#unitprize_' + id + '').val());
+
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+        getadd(add);
+    }
+    function multi1(element) {
+        var add = 0;
+        var str = $(element).attr("id").split("_");
+        var id = str[1];      
+      //  var lmt = $("#linamnt").val();
+        var lmt = $('#hid_costest').val();
+        $('#total_' + id + '').val($('#qty_' + id + '').val() * $('#unitprize_' + id + '').val());
+        $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+            add += Number($(this).val());
+
+        });
+        $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#para1").text("Grand Total : " + add);
+        if (lmt >= add)
+        {
+            getadd(add);
+        }
+        else {
+            jAlert("Price Amount Should Be Less Than Or Equal To Line Amount", "Error");
+            $(element).val('');
+            $('#total_' + id + '').val("");
+            $("#para1").text("Grand Total : " + 0);
+            $("#obf_amt").val('');
+            return false;
+        }
+    }
+    function multInputs1(id, value) {
+        $("#grid2 td").find("input[name=inunit]:text").each(function () {
+            var variable = "inunit_"
+            var id2 = $(this).attr('href')
+            var mult = 0;
+            var total = 0;
+            var value2 = value;
+          
+            $("#inunit_" + id2 + "").keypress(function (event1) {
+                return isNumber1(event1, this);
+            });
+            if (id == variable + id2) {
+
+                $("#inunit_" + id2 + "").keyup(function () {
+                   // alert("hi");
+                    $('#intotal_' + id2 + '').val($('#inqty_' + id2 + '').val() * $('#inunit_' + id2 + '').val());
+                    var add = 0;
+                    $("#grid2 td").find("input[name=intotal]:text").each(function add1() {
+                        add += Number($(this).val());
+                    });
+                    var lineamount= $("#gridpardt tr").find('td:eq(7)').text();
+                  //  alert(lineamount);
+                    if (parseInt(add) > parseInt(lineamount))
+                    {
+                        jAlert("Total Amount exceeds the line Amount", "Error");
+                        $('#intotal_' + id2 + '').val("");
+                        return false;
+                    }
+                    $("#grid2 td").find("input[name=intotalnew]:text").each(function add1() {
+                        add += Number($(this).val());
+
+                    });
+                    $("#para1").text("Grand Total : " + add);
+                    getadd(add);
+                });
+            }
+        });
+    }
+
+
+    function getadd(valu) {
+        $("#obf_amt").val(valu);
+    }
+
+
+
+
+</script>

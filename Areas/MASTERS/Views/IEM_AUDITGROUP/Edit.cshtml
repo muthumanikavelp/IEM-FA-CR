@@ -1,0 +1,361 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_auditgroup
+@using IEM.Areas.MASTERS.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+   
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div class="input-append">
+                    <span> Group Name </span>
+                    <br />
+                    <input type="text"
+                           name="filter_delegate_by"
+                           id="txtEdauditname"
+                           value="@Model.auditgroup_name"
+                           class="textboxStyle valid" 
+                           style="display: block;width:311px;"
+                           maxlength="64"
+                           autocomplete="off" 
+                           @ViewBag.viewmode/>
+                    <input type="text" style="display:none" id="auditgroupgid" value="@Model.auditgroup_gid">
+                </div>
+            </td>
+        </tr>
+        <tr>
+           
+            <td>
+                <div class="input-append">
+                    <span> Doc Type</span>
+                    <br />
+                    @if (ViewBag.viewmode == "disabled")
+                    {
+                        @Html.DropDownListFor(g => g.doctypename, Model.doctype, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdoctype", @onchange = "checkdoctype()", @disabled = "disabled" })
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(g => g.doctypename, Model.doctype, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdoctype", @onchange = "checkdoctype()" })
+                    }
+                </div>
+            </td>
+        </tr>
+        <tr>
+            @*<td style="padding-top:0px;">
+                <div class="input-append">
+                    <span>Doc SubType</span>
+                    <br />
+                    <select name="Delmat" id="EAdocsubtype" class="textboxStyle valid" style="width: 311px;" onchange="checkdocsubtype()">
+                        <option value="">-----Select----</option>
+                        @foreach (var pitem in docsubtype.docsubtype)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.delmatype == pitem.Text)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+                </div>
+            </td>*@
+            <td>
+                <div class="input-append">
+                    <span> Doc Sub Type</span>
+                    <br />
+                    @if (ViewBag.viewmode == "disabled")
+                    {
+                        @Html.DropDownListFor(g1 => g1.docsubtypename, Model.docsubtype, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdocsubtype", @onchange = "checkdocsubtype()", @disabled = "disabled" })
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(g1 => g1.docsubtypename, Model.docsubtype, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdocsubtype", @onchange = "checkdocsubtype()" })
+                    }
+                </div>
+            </td>
+        </tr>
+        <tr>
+            @*<td style="padding-top:0px;">
+                <div class="input-append">
+                    <span>Doc Cat</span>
+                    <br />
+                    <select name="Delmat" id="EAdoccat" class="textboxStyle valid" style="width: 311px;" onchange="checkdoccat()">
+                        <option value="">-----Select----</option>
+                        @foreach (var pitem in doccat.doccat)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.delmatype == pitem.Text)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+                </div>
+            </td>*@
+            <td>
+                <div class="input-append">
+                    <span> Doc Cat</span>
+                    <br />
+                    @if (ViewBag.viewmode == "disabled")
+                    {
+                        @Html.DropDownListFor(g2 => g2.doccatname, Model.doccat, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdoccat", @onchange = "checkdoccat()", @disabled = "disabled" })
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(g2 => g2.doccatname, Model.doccat, "-----Select----", new { @class = "form-control ", @style = "width: 311px;", @id = "EAdoccat", @onchange = "checkdoccat()" })
+                    }
+                </div>
+            </td>
+
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(function () {
+            $("#editLocationcode").focus();
+        });
+
+        $("#editLocationcode").focus();
+        $("#editLocationcode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#editLocationname").focus();
+        $("#editLocationname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+
+    $("#editLocationcode").keyup(function () {
+        var txtSupplierName = $("#editLocationcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#editLocationcode").removeClass('required');
+            $("#editLocationcode").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#editLocationcode").removeClass('valid');
+            $("#editLocationcode").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#editpincode").keyup(function () {
+        var txtSupplierName = $("#editpincode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#editpincode").removeClass('required');
+            $("#editpincode").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#editpincode").removeClass('valid');
+            $("#editpincode").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#editLocationname").keyup(function () {
+        var txtSupplierName = $("#editLocationname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#editLocationname").removeClass('required');
+            $("#editLocationname").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#editLocationname").removeClass('valid');
+            $("#editLocationname").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    function checkdoctype() {
+
+        if ($("#EAdoctype").val() == 0) {
+            CheckFieldsHeader();
+            $("#EAdoctype").removeClass('valid');
+            $("#EAdoctype").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#EAdoctype").removeClass('required');
+            $("#EAdoctype").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+
+    function checkdocsubtype() {
+
+        if ($("#EAdocsubtype").val() == 0) {
+            CheckFieldsHeader();
+            $("#EAdocsubtype").removeClass('valid');
+            $("#EAdocsubtype").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#EAdocsubtype").removeClass('required');
+            $("#EAdocsubtype").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+
+
+    function checkdoccat() {
+
+        if ($("#EAdoccat").val() == 0) {
+            CheckFieldsHeader();
+            $("#EAdoccat").removeClass('valid');
+            $("#EAdoccat").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#EAdoccat").removeClass('required');
+            $("#EAdoccat").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+
+
+    $(".ui-icon-closethick").click(function () {
+        $('#gridauditgroup').find('tr').css('background', 'none');
+    });
+
+
+    function CheckFieldsHeader()
+    {
+        var ErrCount = 0;
+        if ($("#txtEdauditname").val() == "" || $("#txtEdauditname").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#EAdoctype").val() == "-----Select----" || $("#EAdoctype").val() == 0) {
+            ErrCount = 2;
+        }
+        if ($("#EAdocsubtype").val() == "-----Select----" || $("#EAdocsubtype").val() == 0) {
+            ErrCount = 3;
+        }
+        if ($("#EAdoccat").val() == "-----Select----" || $("#EAdoccat").val() == 0) {
+            ErrCount = 4;
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+    function goToIndex()
+    {
+        $('#gridauditgroup').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialViewforauditgroup').dialog('close');
+    }
+    function DeleteType() {
+        var locationgid = $("#auditgroupgid").val();
+        jConfirm("Do you want to delete this Location ? ", "Delete Location", function (j) {
+            if (j == true) {
+                var model = { "auditgroup_gid": locationgid }
+                $.post('../IEM_AUDITGROUP/DeleteAuditgroup', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) {
+                                     location = '../IEM_AUDITGROUP/Index';
+                                 }
+                             });
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    function Update() {
+
+        var auditgroupname = $("#txtEdauditname").val().trim();
+        var doctypegid = $('#EAdoctype').val();
+        var docsubtypegid = $("#EAdocsubtype").val().trim();
+        var doccatgid = $("#EAdoccat").val();
+        var auditgroupgid = $("#auditgroupgid").val();
+
+        var CategoryModel = {
+            "auditgroup_name": auditgroupname, "auditgroup_doccat_gid": doccatgid, "auditgroup_doctype_gid": doctypegid,
+            "auditgroup_docsubtype_gid": docsubtypegid, "auditgroup_gid": auditgroupgid
+        };
+        $.post('../IEM_AUDITGROUP/UpdateLocation', CategoryModel,
+            function (data) {
+
+                if (data != "success") {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+                            location = '../IEM_AUDITGROUP/Index';
+                        }
+                    });
+                }
+            }
+        , 'json');
+    }
+</script>

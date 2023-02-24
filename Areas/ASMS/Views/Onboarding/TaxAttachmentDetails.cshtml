@@ -1,0 +1,115 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+
+@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupplierTaxDetails> lst = new List<SupplierTaxDetails>();
+
+    if (lst == null || lst.Count == 0)
+    {
+        lst = objd.GetTaxAttachment().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<center>
+    <div id="wgTaxAttachment">
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgTaxAttachment", ajaxUpdateCallback: "DummyFunction20()");
+            int rowcount = 0;
+        }
+
+        <div class="table-responsive" style="margin-top:10px; width:100%;">
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridTaxAttachment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_TaxAttachmentID", objCmnFunctions.Sorter("_TaxAttachmentID", "ID", grid), canSort: false, style: "slno"),
+                grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_TaxDocumentGroupName", objCmnFunctions.Sorter("_TaxDocumentGroupName", "Document Group Name", grid), style: "colmediumBreak"),
+                grid.Column("_TaxDocumentName", objCmnFunctions.Sorter("_TaxDocumentName", "Document Name", grid), style: "colmediumBreak"),
+                grid.Column("_TaxAttachmentFileName", objCmnFunctions.Sorter("_TaxAttachmentFileName", "File Name", grid), format: @<text> <a onclick="DownloadSupplierAttachments('@item._TaxAttachmentFileName')" title='click here to download'> @item._TaxAttachmentActualFileName </a></text>, style: "colmediumBreak"),
+                grid.Column("_TaxAttachmentDate", objCmnFunctions.Sorter("_TaxAttachmentDate", "Attachment Date", grid), style: "colmediumBreak"),
+                grid.Column("_TaxAttachmentDescription", objCmnFunctions.Sorter("_TaxAttachmentDescription", "Description", grid), style: "colmediumBreak"),
+                grid.Column(header: "Action", canSort: false, style: "slno",
+                format: @<text>
+                            @*@Html.Raw("<a title='view' onclick='ViewSupAttachment(" + item._SupAttachmentID + ")' > <span class='glyphicon glyphicon-search'> </span> </a>")*@
+                            @*@Html.Raw("<a title='Edit' onclick='EditTaxAttachment(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")*@
+                            @Html.Raw("<a title='Delete' style='text-decoration:none;' onclick='DeletetaxAttachment(" + item._TaxAttachmentID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)))
+
+        </div>
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+        @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>*@
+    </div>
+
+</center>
+<script type="text/javascript">
+    
+    function EditTaxAttachment(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_TaxAttachmentID").val(ids);
+        var documentname = tds.eq(1).text();
+        var filename = tds.eq(2).text();
+        var description = tds.eq(4).text();
+        var attacheddate = tds.eq(3).text();
+
+        $("#selectedTaxDocumentNameID option").each(function () {
+            if ($(this).text() == documentname) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+
+        $("#_TaxAttachmentDate").val(attacheddate);
+        $("#_TaxAttachmentFileName").val(filename);
+        $("#_TaxAttachmentDescription").val(description);
+
+    }
+    function DeletetaxAttachment(id) {
+        jConfirm("Do you want to delete Attachment : ", Title_3, function (e) {
+            if (e == true) {
+                var objTaxAttachment = { "_TaxAttachmentID": id }
+                $.post('../Onboarding/DeleteTaxAttachment', objTaxAttachment,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                             $("#wgTaxAttachment").load("../Onboarding/TaxAttachmentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    $(document).ready(function () {
+        $("#wgridTaxAttachment td:nth-child(1),#wgridTaxAttachment th:nth-child(1)").hide();
+        $("#wgridTaxAttachment td:nth-last-child(1)").show();
+    });
+    function DummyFunction20() {
+        $("#wgridTaxAttachment td:nth-child(1),#wgridTaxAttachment th:nth-child(1)").hide();
+        $("#wgridTaxAttachment td:nth-last-child(1)").show();
+    }
+</script>

@@ -1,0 +1,83 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment12", ajaxUpdateCallback: "grid");
+
+}
+<div class="panel panel-default" style="overflow-y:scroll;height:100px" id="gridattachment">
+
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment12" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="button" value="Delete" class="btn btn-link" onclick="attachmentDetele(id)" id="@item.attachGid" title="Delete" />
+                </text>)))
+    <div class="borderStyle btnCenter">
+        @ViewBag.NoRecordsFound
+    </div>
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.attachment.Count</label>
+</div>
+
+
+<script>
+    function DownloadSupAttachment(filename) {
+
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../ParRaiser/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../ParRaiser/Download' }
+        }, 'json');
+
+    }
+    function attachmentDetele(id1) {
+       
+        id = "";
+        var supattachmentmodel =
+                {
+                    "attachment1": id1
+                };
+
+        $.post('../ParRaiser/DeleteAttachment?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+               // location = location.href;
+            }
+            else {
+
+                $('#gridattachment12').load('../ParRaiser/BoqAttachgrid?' + new Date().getTime());
+            }
+        }, 'json');
+
+    }
+</script>

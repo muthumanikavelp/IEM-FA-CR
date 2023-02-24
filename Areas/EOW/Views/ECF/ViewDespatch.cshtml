@@ -1,0 +1,204 @@
+﻿@model IEM.Areas.EOW.Models.ECFDataModel
+@{
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <span>ECF No</span>
+                <br />
+                <input type="text"
+                       id="ECFNo"
+                       name="ECFNo"
+                       value=@Model.ECFNo
+                       disabled="disabled"
+                       class="textboxStyle required"
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>ECF Date</span>
+                <br />
+                <input type="text"
+                       id="txtecfdate"
+                       name="ECFDate"
+                       value="@Model.ECFDate"
+                       class="form-control"
+                       style="width: 200px;margin:4px 0px 0px 0px;height:27px;"
+                       disabled="disabled" />
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <span>Claim Month</span>
+                <br />
+                <input type="text"
+                       name="ClaimMonth"
+                       id="txtdesclaimmonth"
+                      value="@Model.ClaimMonth"
+                       class="form-control"
+                       disabled="disabled"
+                       style="width: 200px;height:27px;" />
+            </td>
+            <td>
+                <span>Ecf Amount</span>
+                <br />
+                <input type="text"
+                       name="EcfAmount"
+                       id="despatchEcfAmount"
+                       style="width: 200px;height:27px;"
+                       class="form-control"
+                       value="@Model.ECFAmount"
+                       disabled="disabled" />
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew tblstyles" align="center">
+        <tr>
+            <td>
+                <span>Raiser</span>
+                <br />
+                <input type="text"
+                       name="Raiser"
+                       id="txtdesraiser"
+                       value="@Model.ECFRaiser"
+                       class="form-control"
+                       style="width: 404px;height:27px;"
+                       disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Supplier</span>
+                <br />
+                <input type="text"
+                       name="Supplier"
+                       id="txtdessuplier"
+                       class="form-control"
+                       style="width: 404px;height:27px;"
+                       disabled="disabled" />
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew tblstyles" align="center">
+        <tr>
+            <td>
+                <span>Despatch Date</span>
+                <br />
+                <input type="text"
+                       name="DespatchDate"
+                       id="txtdesdate"
+                       value="@Model.Despatchdate"
+                       class="textboxStyle required"                      
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>Courier Name</span>
+                <br />
+                @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.Courier, "-----Select-----", new { @class = "form-control ", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "CourierId", @Name = "DocType" })
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>AWB No</span>
+                <br />
+                <input type="text"
+                       id="txtdesawb"
+                       name="AWBNo"                       
+                       class="textboxStyle required"
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>Reason</span>
+                <br />
+                <input type="text"
+                       id="Reason"
+                       name="Reason"                      
+                       class="textboxStyle required"
+                       style="width: 200px;"
+                       maxlength="32" />
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave"  class="btn btn-primary" value="Save" onclick="updateviewdespatch()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+}
+<script type="text/javascript">
+
+    $("#txtdesdate").mouseover(function () {
+        $("#txtdesdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+    });
+
+    function updateviewdespatch() {
+       
+        var Ecfno = $("#ECFNo").val();
+        var Despatchdate = $("#txtdesdate").val();
+        var CourierName = $("#CourierId").val();
+        var AwbNo = $("#txtdesawb").val();
+        var Reason = $("#Reason").val();      
+        var Student = {
+            "Despatchdate": Despatchdate,
+            "CourierName": CourierName,
+            "AWBNo": AwbNo,
+            "Reason": Reason,
+            "ECFNo": Ecfno
+        };
+      
+        $.ajax({
+            url: '../ECF/DispatchUpdate',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                if (result != "Successfully Despatched") {
+                    jAlert("Despatch Unsuccess!", "Information", function (r) {
+                        if (r == true) {
+                            $("#txtdesdate").datepicker("destroy");
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    jAlert(result, "Information", function (r) {
+                        if (r == true) {
+                            $("#txtdesdate").datepicker("destroy");
+                            location.reload();
+                        }
+                    });
+                }
+
+            },
+        })
+    }
+    function GotoIndex()
+    {
+        $("#txtdesdate").datepicker("destroy");
+        window.parent.jQuery('#DespatchView').dialog('close');
+    }
+    </script>

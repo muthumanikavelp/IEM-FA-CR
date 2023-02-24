@@ -1,0 +1,237 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchDelegationgrid", ajaxUpdateCallback: "GetEmployeedelegation();");
+    int rowVal = 0;
+}
+<div id="searchDelegationgrid">
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew" style="margin:-9px 0px 0px 0px;">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> Employee Code </span>
+                            <input name="EmployeeCode"
+                                   id="txtdeleempcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.EmployeeCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Employee Name </span>
+                            <input name="EmployeeName"
+                                   id="txtdelegatempname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.EmployeeName"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+                        @*<td>
+                                <button class="btn btn-primary" type="button" onclick="searchemployee()" style="margin-top: 20px;">Search</button>
+
+                            </td>*@
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-primary" name="command" id="btnsearch" style="margin-left:-23px;margin-top:20px;margin-right:54px" onclick="searchemployee()" type="button" value="search">Search</button>*@
+                                    <button class="btn btn-primary" id="btnsearchforecfser" value="Search" name="command" type="button" onclick="Searchdelpop()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+                       
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btnclearforecfcle" value="Clear" name="command" type="button" onclick="refreshdelegationpop()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="Gottodel()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridEmpfordelegation" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+          mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+              grid.Column("RaiserCode", Sorter("RaiserCode", "Employee Code", grid)),
+                grid.Column("RaiserName", Sorter("RaiserName", "Employee Name", grid)),
+            // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                 grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="EmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />
+                    <input type="hidden" id="RaiserCodeFind_@item.EmployeeId" name="RaiserCode" value="@item.RaiserCode" />
+                    <input type="hidden" id="RaiserNameFind_@item.EmployeeId" name="RaiserName" value="@item.RaiserName" />
+                    <a><span class="btn btn-link btn" id="EmployeeSearch" onclick="Select(@item.EmployeeId)">Select</span></a>
+
+                </text>)
+)))
+            </div>
+            @if (ViewBag.Message != null)
+            {   <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+        $(document).ready(function () {
+
+            $("#txtdeleempcode").keyup(function () {
+                var txtSupplierName = $("#txtdeleempcode").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtdeleempcode").removeClass('required');
+                    $("#txtdeleempcode").addClass('valid');
+
+                }
+                else {
+                    $("#txtdeleempcode").removeClass('valid');
+                    $("#txtdeleempcode").addClass('required');
+
+                }
+            });
+            $("#txtdelegatempname").keyup(function () {
+                var txtSupplierName = $("#txtdelegatempname").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtdelegatempname").removeClass('required');
+                    $("#txtdelegatempname").addClass('valid');
+
+                }
+                else {
+                    $("#txtdelegatempname").removeClass('valid');
+                    $("#txtdelegatempname").addClass('required');
+
+                }
+            });
+
+        });
+
+        $(document).ready(function () {
+            $("#txtdeleempcode").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/ECF/getAutocompleteCode",
+                        type: "POST",
+                        dataType: "json",
+                        data: { RaiserCode: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.RaiserCode, value: item.RaiserCode };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+            $("#txtdelegatempname").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/ECF/getAutocomplete",
+                        type: "POST",
+                        dataType: "json",
+                        data: { RaiserName: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.RaiserName, value: item.RaiserName };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+        });
+        function Searchdelpop() {
+
+            var empcode = $('#txtdeleempcode').val();
+            var empname = $('#txtdelegatempname').val();
+            var objownersearch =
+                {
+                    "RaiserName": empname,
+                    "RaiserCode": empcode
+                };
+
+            $.post('../IEM_MST_DELEGATION/EmployeeSearchdelegation', objownersearch,
+            function (data) {
+                $("#searchDelegationgrid").load('../IEM_MST_DELEGATION/EmployeeSearch?listfor=search&' + new Date().getTime());
+                setTimeout(function () {
+                    $("#txtdelegatempname").val(empname);
+                }, 50);
+
+            }, 'json');
+        }
+        
+    function refreshdelegationpop() {
+        $('#txtdeleempcode').val('');
+        $('#txtdelegatempname').val('');
+        $('#searchDelegationgrid').load('../IEM_MST_DELEGATION/EmployeeSearch?' + new Date().getTime());
+
+        }
+        function Select(id) {
+
+            var Employeeid = $("#EmployeeIdFind_" + id + "").val();
+            var EmployeeCode = $("#RaiserCodeFind_" + id + "").val();
+            var EmployeeName = $("#RaiserNameFind_" + id + "").val();
+            $('#getdelegatioid').val(Employeeid);
+            $('#txtdelegationid').val(EmployeeCode);
+            $('#txtdelegationname').val(EmployeeName);
+            var Student = {
+                "Code": EmployeeCode,
+                "Name": EmployeeName
+            };
+            $.ajax({
+                url: '../IEM_MST_DELEGATION/GetEmployee',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    Gottodel();
+                }
+            });
+        }
+        function Gottodel() {
+            // objDialogyCentral.remove();
+            objDialogdelegation.dialog("close");
+            objDialogdelegation.remove();
+            window.parent.jQuery('#ForPartialViewdelegation').dialog('close');
+
+        }
+        function GetEmployeedelegation() {
+
+            $("#wgridEmpfordelegation td:nth-child(2),#wgridEmpfordelegation th:nth-child(2)").show();
+        }
+</script>

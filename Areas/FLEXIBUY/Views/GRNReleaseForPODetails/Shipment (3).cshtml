@@ -1,0 +1,139 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.shipment
+@using System.Web.Mvc;
+@using IEM.Common;
+@{
+    var grid = new WebGrid(source: Model.shiplist, rowsPerPage: 10, canPage: false, canSort: true, ajaxUpdateContainerId: "shipmentgrid", ajaxUpdateCallback: "dummy()");
+    ViewBag.Title = "Shipment";
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+    var viewfor = (string)Session["viewfor"];
+    if (viewfor == "edit" || viewfor == "amend")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "checkercancel" || viewfor == "checker" || viewfor == "closure" || viewfor == "closurechecker")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+@*<h4>Shipment Details</h4>*@
+
+    <span style="color: rgb(52, 108, 196);">Shipment Details</span>
+<div id="shipmentEdit" class="panel panel-default">
+
+    <div class=" container-fluid overflowx overflowy">
+
+        <br />
+
+        @grid.GetHtml(
+    tableStyle: "tableSmall table-bordered",
+         htmlAttributes: new { id = "shipmentgrid" },
+    columns:
+    grid.Columns(
+
+                          grid.Column("SrNo", obj.Sorter("SrNo", "Sl", grid), canSort: false),
+                //grid.Column("SrNo", obj.Sorter("SrNo", "SlNo", grid)),
+                  grid.Column("shipmenttype", obj.Sorter("shipmenttype", "Shipment Type", grid), canSort: false, format: @<text>
+                    <select name="shipment" id="ddltype" disabled="disabled" class="editshipment">
+                        <option value="0">--Select--</option>
+                        @{
+                            var shipmentgid1 = Model.shipmentlist.Where(m => m.Value == @item.branchedtype);
+                            if (shipmentgid1 != null)
+                            {
+                                foreach (var citem in Model.shipmentlist)
+                                {
+                                    string selectedValue = "";
+                                    if (@item.branchedtype == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+        </text>),
+                                                              grid.Column("branchName", obj.Sorter("branchName", "Branch Name", grid), canSort: false),
+                                                              grid.Column("address", obj.Sorter("address", "Address", grid), canSort: false),
+                                                              grid.Column("location", obj.Sorter("location", "Location", grid), canSort: false),
+                                                              grid.Column("inchargeID", obj.Sorter("inchargeID", "Incharge ID", grid), canSort: false),
+                                                              grid.Column("totalqty", obj.Sorter("totalqty", "Total Qty", grid), canSort: false),
+                                                               grid.Column("releasedqty", obj.Sorter("releasedqty", "Released Qty", grid), canSort: false),
+                                                             grid.Column("balancedqty", obj.Sorter("balancedqty", "Balanced Qty", grid), canSort: false),
+                                            grid.Column(header: "Action", canSort: false, style: "action",
+                                                    format: @<text>
+        <input type="button" value="Select" class="btn btn-link" onclick="shipment12(this,@item.cbfdetGid)" href="@item.shipmentgid"
+                id="inselect_@item.shipmentgid" title="Select" />
+                                                    </text>)))
+
+        @if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle btnCenter">
+                @ViewBag.records
+            </div>
+        }
+    </div>
+
+    <input type="hidden" id="rowid" />
+    <input type="hidden" id="cbfid" />
+</div>
+<script>
+    var tr = $("#shipmentgrid").find('tr');
+    $("#shipmentgrid tr .Color").click(function () {
+        $('#shipmentgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    function shipment12(element,cbfno)
+    {
+        var id1 = $(element).attr('href');
+        var res=""
+        res += id1 + ",";
+       // $('#inselect_' + id1 + '').attr("disabled", true);  
+        @*var objshipment =
+        {
+            "shipmentgid": id,
+            "cbfdetGid": cbfno
+        };
+        $.ajax({
+            url: '@Url.Action("releasedQty", "GRNReleaseForPODEtails")',
+            type: 'GET',
+            data: objshipment,
+            success: function (data) {
+                alert(data);
+                $("#grndetail").load('@Url.Action("GrnInwardTempDetails", "GrnSelectionPo")');
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });*@
+        var tr = $(this).parents('tr:first');
+        var row = $(this).text();
+        var balancedQty = tr.find("td:eq(8)").text();
+
+        var objshipment = {
+            "shipmentgid": id1,
+            "cbfdetGid": cbfno,
+            "balancedqty":balancedQty
+        };
+        $.ajax({
+            url: '@Url.Action("releasedQty", "GRNReleaseForPODEtails")?' + new Date().getTime(),
+            type: 'POST',
+            data: objshipment,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#grnreleasedforpo").load('@Url.Action("GRNReleaseGrid", "GRNReleaseForPODEtails")?' + new Date().getTime());
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+
+    }
+</script>

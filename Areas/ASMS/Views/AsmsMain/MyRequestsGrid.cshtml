@@ -1,0 +1,315 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.DashBoard>
+@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@{
+    SupDataModel dm = new SupDataModel();
+    List<SupplierHeader> lst = new List<SupplierHeader>();
+
+    lst = dm.GetMyRequestsGridDetails().ToList();
+
+    //if (lst.Count == 0)
+    //{
+    //    ViewBag.NoRecordsFound = "No Records Found";
+    //}
+    //CmnFunctions objCmnFunctions = new CmnFunctions();
+    //var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "ForMyRequests", ajaxUpdateCallback: "DummyFunction41()");
+    var grid = new WebGrid(lst, canSort: false, canPage: false);
+    int rowcount = 0;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div id="ForMyRequests">
+    @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridMyRequests" },
+                        tableStyle: "tableSmall table-bordered",
+                        columns:
+                        grid.Columns(
+                                  grid.Column("_CurrentApprovalStage", "Approval satge"),
+                                  grid.Column("_HeaderID", "ID"),
+                                  grid.Column("SlNo", format: item => rowcount = rowcount + 1, style: "slno"),
+                                  grid.Column("_SupplierCode", "Supplier Code"),
+                                  grid.Column("_SupplierName", "Supplier Name"),
+                                  grid.Column("_SupplierCategoryName", "Supplier Category"),
+                                  grid.Column("_SupplierStatus", "Supplier Status"),
+                                  grid.Column("_RequestType", "Request Type"),
+                                  grid.Column("_Requeststatus", "Request Status"),
+                                  grid.Column(header: "Action", style: "action",
+                format: @<text>
+                                    @if (item._RequestType == "ACTIVATION" && item._Requeststatus != "REJECTED")
+                                    {
+                                        @*<a onclick="MyRequestLinks(this,'activation','1')" title="Activate"><span class="btn btn-link">View</span></a>*@
+                                        //  <a id="AViewSub"><span onclick="AViewSub(@item._HeaderID)">View</span></a>
+                                        <a onclick="AViewSub(@item._HeaderID)" title="View"><span class="btn btn-link">View</span></a>
+                                        <a id="AApp_his"><span onclick="AApp_his(@item._HeaderID)">Approval History</span></a>
+                                    }
+                                    else if (item._RequestType == "DEACTIVATION" && item._Requeststatus != "REJECTED")
+                                    {
+                                        //<a onclick="MyRequestLinks(this, 'deactivation','2')" title="Deactivate"><span class="btn btn-link">View</span></a>
+                                           <a onclick="AViewSubde(@item._HeaderID)" title="View"><span class="btn btn-link">View</span></a>
+                                    }
+
+                                    else if (item._RequestType == "GSTMODIFICATION")//Pandiaraj 28/07/17 for GSTMODIFICATION
+                                    {
+                                        if (item._Requeststatus == "DRAFT")                                         
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'draft','4')" title="Submit"><span class="btn btn-link">Proceed</span></a>
+                                            <a onclick="MyRequestLinks(this, 'delete','4')" title="Submit"><span class="btn btn-link">Delete</span></a>
+                                        } 
+                                        else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && item._RequestType != "ACTIVATION" && item._RequestType != "DEACTIVATION")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'rejected','4')" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                                        }
+                                        else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && (item._RequestType == "ACTIVATION"))
+                                        {
+                                            <a id="RSubmit"><span onclick="ReProduct(@item._HeaderID)">Resubmit</span></a>                                            
+                                        }
+                                        else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && (item._RequestType == "DEACTIVATION"))
+                                        {
+                                            <a id="RSubmit"><span onclick="ReProductde(@item._HeaderID)">Resubmit</span></a> 
+                                        }
+                                        else if (item._Requeststatus == "INPROCESS")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'inprocess','4')" title="View"><span class="btn btn-link">View</span></a>
+                                        }
+                                        else if (item._CurrentApprovalStage != 0)
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'inprocess','4')" title="View"><span class="btn btn-link">View</span></a>
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        if (item._Requeststatus == "DRAFT")
+                                        //if (item._Requeststatus == "DRAFT" && item._RequestType == "ONBOARDING" && item._SupplierStatus == "DRAFT")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'draft','3')" title="Submit"><span class="btn btn-link">Proceed</span></a>
+                                            <a onclick="MyRequestLinks(this, 'delete','3')" title="Submit"><span class="btn btn-link">Delete</span></a>
+                                        }
+                                        @*else if (item._Requeststatus == "DRAFT" && item._RequestType != "ONBOARDING")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'draft','3')" title="Submit"><span class="btn btn-link">Proceed</span></a>
+                                        
+                                        }*@
+                                        @*else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0)
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'rejected','3')" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                                        }*@
+                                    
+                                       else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && item._RequestType != "ACTIVATION" && item._RequestType != "DEACTIVATION")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'rejected','3')" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                                        }
+                                        else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && (item._RequestType == "ACTIVATION"))
+                                        {
+                                             <a id="RSubmit"><span onclick="ReProduct(@item._HeaderID)">Resubmit</span></a>
+                                            //<a onclick="EditProduct(@item._HeaderID)" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                                        }
+                                        else if (item._Requeststatus == "REJECTED" && item._CurrentApprovalStage == 0 && (item._RequestType == "DEACTIVATION"))
+                                        {
+                                            <a id="RSubmit"><span onclick="ReProductde(@item._HeaderID)">Resubmit</span></a>
+                                            //<a onclick="EditProduct(@item._HeaderID)" title="Re-Submit"><span class="btn btn-link">Re-Submit</span></a>
+                                        }
+                                        else if (item._Requeststatus == "INPROCESS")
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'inprocess','3')" title="View"><span class="btn btn-link">View</span></a>
+                                        }
+                                        else if (item._CurrentApprovalStage != 0)
+                                        {
+                                            <a onclick="MyRequestLinks(this, 'inprocess','3')" title="View"><span class="btn btn-link">View</span></a>
+                                        }
+                                        
+
+                                    }
+                </text>)))
+</div>
+
+@*<div class="borderStyle">
+        @ViewBag.NoRecordsFound
+    </div>
+    <div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+    </div>*@
+<div id="ForPartialView"></div>
+<div id="ForMyRequestsPopup"></div>
+<script type="text/javascript">
+    $("#wgridMyRequests td:nth-child(1),#wgridMyRequests th:nth-child(1)").hide();
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            cache: false,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 967,
+            height: 750
+        });
+
+    });
+
+    function DummyFunction41() {
+        $("#wgridMyRequests td:nth-child(1),#wgridMyRequests th:nth-child(1)").hide();
+        $("#wgridMyRequests td:nth-last-child(1)").show();
+
+    }
+    var objDialogMyRequests;
+    $(document).ready(function () {
+
+        $("#wgridMyRequests td:nth-child(1),#wgridMyRequests th:nth-child(1)").hide();
+        $("#wgridMyRequests td:nth-child(2),#wgridMyRequests th:nth-child(2)").hide();
+        $("#wgridMyRequests td:nth-last-child(1)").show();
+
+        objDialogMyRequests = $("[id$='ForMyRequestsPopup']");
+        objDialogMyRequests.dialog({
+            autoOpen: false,
+            closeOnEscape: false,
+            modal: true,
+            duration: 300,
+            width: 700,
+            height: 470
+        });
+
+        $('#wgridMyRequests tr th:nth-child(9)').addClass("nosort");
+        $('#wgridMyRequests').dataTable({
+            "iDisplayLength": 5,
+            "bLengthChange": false,
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+
+    function MyRequestLinks(element, requeststatus, code) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(1).text();
+        var supcode = tds.eq(3).text();
+        var reqtype = tds.eq(7).text();
+        var reqstatus = tds.eq(8).text();
+
+        if (code == "3") {
+            if (requeststatus == "draft") {
+                location = '../Onboarding/Index?pagefor=4&supid=' + ids + '&' + new Date().getTime();
+            }
+            else if (requeststatus == "rejected") {
+                location = '../Onboarding/Index?pagefor=4&supid=' + ids + '&' + new Date().getTime();
+            }
+            else if (requeststatus == "inprocess") {
+                location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+            }
+            else if (requeststatus == "delete") {
+                jConfirm("Do you want to delete this Supplier..?", Title_3, function (e) {
+                    if (e == true) {
+                        var objSupHeaderDetails = {
+                            "_SupplierCode": supcode,
+                            "_RequestType": reqtype,
+                            "_Requeststatus": reqstatus
+                        };
+                        $.ajax({
+                            url: '@Url.Action("DeleteSupplier", "Onboarding")?' + new Date().getTime(),
+                            data: JSON.stringify(objSupHeaderDetails),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                if (data == "1") {
+                                    jAlert("Supplier Deleted Successfully", "Error", function () {
+                                        location = "../AsmsMain/Dashboard?" + new Date().getTime();
+                                    });
+                                    return false;
+                                }
+                                else if (data == "0") {
+                                    jAlert("Error While Delete this Supplier", "Error", function () {
+                                        return false;
+                                    });
+                                    return false;
+                                }
+
+                            },
+                            error: function (result) {
+                                jAlert("Error While Deletion", "Error");
+                            }
+                        });
+                    }
+                    else {
+                        return false;
+                    }
+                });
+            }
+        }
+        else {
+            location = '../Onboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+        }
+     if (code == "4") {
+        if (requeststatus == "draft") {
+            location = '../GSTOnboarding/Index?pagefor=2&supid=' + ids + '&' + new Date().getTime();
+        }
+        else if (requeststatus == "rejected") {
+            location = '../GSTOnboarding/Index?pagefor=2&supid=' + ids + '&' + new Date().getTime();
+        }
+        else if (requeststatus == "inprocess") {
+            location = '../GSTOnboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+        }       
+    }
+     else if (code == "4") {
+         location = '../GSTOnboarding/Index?pagefor=5&supid=' + ids + '&' + new Date().getTime();
+    }
+    }
+
+    function RequestHistoryForMyRequests(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(1).text();
+
+        objDialogMyRequests.load('../Modification/RequestHistory?SupHeadGid=' + ids + '&' + new Date().getTime());
+        objDialogMyRequests.dialog({ title: 'Approval History', });
+        objDialogMyRequests.dialog("open");
+
+    }
+
+    function AViewSub(id) {
+        // alert(id);
+        // id.preventDefault();
+        objDialog.load('../SupplierActivationQueue/SupplierActivation?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Approval Activation' });
+        objDialog.dialog("open");
+    }
+
+    function AApp_his(id) {
+        // alert(id);
+        // id.preventDefault();
+        objDialog.load('../SupplierActivationApprovalQueue/SupplierActivationHistory?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Approval Activation' });
+        objDialog.dialog("open");
+    }
+    function ReProduct(id) {
+        // alert(id);
+        //  id.preventDefault();
+        objDialog.load('../SupplierActivationQueue/SupplierActivation?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Approval Activation' });
+        objDialog.dialog("open");
+    }
+    function ReProductde(id) {
+
+        objDialog.load('../SupplierDeActivationQueue/SpplierDeActive?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Deactivation' });
+        objDialog.dialog("open");
+
+    } 
+    function AViewSubde(id) {
+        // alert(id);
+        // id.preventDefault();
+      
+        objDialog.load('../SupplierDeActivationQueue/SpplierDeActive?id=' + id + '&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Deactivation' });
+        objDialog.dialog("open");
+    }
+
+</script>

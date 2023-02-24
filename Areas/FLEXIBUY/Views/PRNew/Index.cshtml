@@ -1,0 +1,2139 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<style>
+    .btnStyleNew{
+        font-weight:bold;
+    }
+    .resizenone{
+        resize:none;
+    }
+</style>
+
+<span class="pageHeading">Raising PR</span>
+
+<div ng-app="PRNewapp">
+
+    <br />
+
+    <div class="well" id="tabs" ng-controller="prnewController" style="padding-bottom:50px;">
+        <ul>
+            <li><a href="#divHeader">PR Header</a></li>
+            <li><a href="#divAttachmentMain">Attachments</a></li>
+            <li ng-hide="@ViewBag.viewtype =='0'"><a href="#divAudit">Audit Trail</a></li>
+        </ul>
+
+        <div style="width:100%;" id="divHeader">
+            <div style="width:100%;">
+                <fieldset style="padding:10px;background-color:white">
+                    <legend><b style="text-align:left;"><span style="color: rgb(52, 108, 196);padding-top:20px;">PR Header</span></b></legend>
+                    <div>
+                        <div>
+                            <input type="hidden" name="txtPRHeaderGid" ng-model="PRGid" />
+                            <table class="myTableStyleTabNew" style="width:100%;" ng-disabled="@ViewBag.viewtype =='1'">
+                                <tr>
+                                    <td>
+                                        <span>PR Ref Number</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{PRRefNumber}}">
+                                    </td>
+                                    <td>
+                                        <span>PR Date</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{::PRDate}}">
+                                    </td>
+                                    <td>
+                                        <span>Raised By</span>
+                                        <br />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{::PRRaiserName}}">
+                                    </td>
+                                    <td>
+                                        <span>FCCC</span>
+                                        <br />
+                                        @*<input type="hidden" name="txtFCCCGid" value="{{PRFCCCGid}}" />
+                                        <input type="text" class="textboxStyle100" disabled="disabled" value="{{PRFCCCCode}}">*@
+                                        <select ng-model="PRFCCCGid" id="ddlFCCCGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                                ng-disabled="@ViewBag.viewtype !='0'" ng-options="FL.PRFCCCGid as FL.PRFCCCCode for FL in FCCCList"></select>
+                                    </td>
+                                    <td>
+                                        <span>Request For</span>
+                                        <br />
+                                        <select ng-model="RequestForValue" id="ddlRequestForGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                                ng-disabled="filteredItemsPR > 0" ng-options="RF.RequestForGid as RF.RequestForName for RF in RequestForList"></select>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span>Expense</span>
+                                        <br />
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PRExpenseFlag" value="C">
+                                        Capex
+                                        &nbsp;
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PRExpenseFlag" value="O">
+                                        Opex
+                                    </td>
+                                    <td style="width:20%;vertical-align:bottom;">
+                                        <span>Product/Service</span>
+                                        <br />
+                                        <input type="radio" ng-disabled="filteredItemsPR > 0" ng-change="CheckDetails()" ng-model="PRProdServiceFlag" value="P">
+                                        Product
+                                        &nbsp;
+                                        <input type="radio" ng-disabled="filteredItemsPR > 0" ng-change="CheckDetails()" ng-model="PRProdServiceFlag" value="S">
+                                        Service
+                                    </td>
+                                    <td style="width:20%;vertical-align:bottom;">
+                                        <span>Branch Type</span>
+                                        <br />
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PRBranchType" value="S">
+                                        Single
+                                        &nbsp;
+                                        <input type="radio" ng-disabled="@ViewBag.viewtype !='0'" ng-model="PRBranchType" value="M">
+                                        Multiple
+                                    </td>
+                                    <td>
+                                        <span>Branch</span>
+                                        <br />
+                                        <input type="hidden" ng-model="PRBranchGid" name="txtBranchGid" />
+                                        <input type="text" ng-model="PRBranchName" class="textboxStyle100" ng-disabled="@ViewBag.viewtype !='0'" id="ddlBranchNameShipment">
+                                    </td>
+                                    <td>
+                                        <span>Description</span>
+                                        <br />
+                                        @*length Fixed by selva*@
+                                        <input type="text" ng-disabled="@ViewBag.viewtype !='0'" class="textboxStyle100" maxlength="256" id="txtPRDescription" ng-model="PRDescription">
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <br />
+            <div style="width:100%;"> 
+                <table>
+                    <tr>
+                        <td>
+                            <label style="font-size:12px;
+                                   padding-left:5px;"
+                                   class="label label-danger">
+                                PR Amount : {{PRAmount}}
+                            </label>
+                            &nbsp;&nbsp;
+                        </td>
+                        <td>
+                            <label style="font-size:12px;
+                                   padding-left:5px;"
+                                   class="label label-danger">
+                                Status : {{Status}}
+                            </label>
+                            &nbsp;
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <div style="width:100%;">
+                <div style="width:80%;float:left;">
+                    Search  :  <input ng-model="searchpr.$" class="textboxStyle" placeholder="Enter Search Criteria..." style="width:80%;margin-bottom:5px;" />
+                </div>
+                <div style="width:20%;float:right;" ng-hide="@ViewBag.viewtype !='0'">
+                    <input type="button" style="float:right;" ng-click="AddPRParentDetails()" class="btn btn-sm btn-primary btnStyleNew" value="Add PR details" />
+                </div>
+            </div>
+
+            <div style="width:100%;">
+                <br />
+                <div style="width:100%;overflow-x:scroll">
+                    <div style="width:118%">
+                        <table class="tableSmall table-bordered table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:3%;">
+                                        S.No
+                                    </th>
+                                    <th style="width:10%;">
+                                        <span ng-hide="PRProdServiceFlag =='S'">Product Code</span> <span ng-hide="PRProdServiceFlag =='P'">Service Code</span>
+                                    </th>
+                                    <th style="width:15%;">
+                                        <span ng-hide="PRProdServiceFlag =='S'">Product Name</span> <span ng-hide="PRProdServiceFlag =='P'">Service Name</span>
+                                    </th>
+                                    <th style="width:20%;">
+                                        <span ng-hide="PRProdServiceFlag =='S'">Product Description</span> <span ng-hide="PRProdServiceFlag =='P'">Service Description</span>
+                                    </th>
+                                    <th style="width:10%;">
+                                        UOM
+                                    </th>
+                                    <th style="width:5%;">
+                                        Qty
+                                    </th>
+                                    <th style="width:12%;">
+                                        Rate
+                                    </th>
+                                    <th style="width:13%;">
+                                        Total Amount
+                                    </th>
+                                    <th style="width:13%;">
+                                        Attach Quotation
+                                    </th>
+                                    <th style="width:20%;min-width:100px;" ng-hide="@ViewBag.viewtype =='1'">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody ng-show="filteredItemsPR > 0" ng-repeat="prparentdetail in prparentdetails | filter:searchpr:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                                <tr>
+                                    <td style="width:3%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{prparentdetail.PRDetailProductCode}}
+                                    </td>
+                                    <td style="width:15%;">
+                                        {{prparentdetail.PRDetailProductName}}
+                                    </td>
+                                    <td style="width:20%;">
+                                        {{prparentdetail.PRDetailDescription}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{prparentdetail.PRDetailUOM}}
+                                    </td>
+                                    <td style="width:5%;">
+                                        {{prparentdetail.PRDetailQty}}
+                                    </td>
+                                    <td style="width:12%;">
+                                        {{prparentdetail.PRDetailUnitAmount}}
+                                    </td>
+                                    <td style="width:13%;">
+                                        {{prparentdetail.PRDetailTotalAmount}}
+                                    </td>
+                                    <td style="width:13%;">
+                                        <a ng-click="PRDetailAttachment(prparentdetail.PRDetailGid)" title="Quotation">
+                                            <span ng-show="@ViewBag.viewtype !='0'" style="color:blue;"> View Quotation</span>
+                                            <span ng-show="@ViewBag.viewtype =='0'" style="color:blue;"> Add Quotation</span>
+                                        </a>
+                                    </td>
+                                    <td style="width:20%;min-width:100px;;" align="center" ng-hide="@ViewBag.viewtype =='1'">
+                                        <a ng-click="EditPRParent(prparentdetail.PRDetailGid)" title="Edit">
+                                            <span class="glyphicon glyphicon-edit"></span>
+                                        </a>
+                                        &nbsp;&nbsp;
+                                        <a ng-hide="@ViewBag.viewtype =='2'" ng-click="DeletePRParent(prparentdetail.PRDetailGid)" title="Delete">
+                                            <span class="glyphicon glyphicon-trash"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot ng-show="filteredItemsPR < 1">
+                                <tr>
+                                    <td colspan="10" style="text-align:left;padding-left:10px;">
+                                        No Records Found
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="width:100%;">
+                    <div ng-show="filteredItemsPR > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                        <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" max-size="maxSize" total-items="filteredItemsPR"
+                                    previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+                    </div>
+                    <div style="float:right;">
+                        Total Records :  {{filteredItemsPR}}
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div style="display:none;" id="divPR">
+                <table class="myTableStyleTabNew" style="width:100%;">
+                    <tr>
+                        <td>
+                            <input type="hidden" ng-model="PRDetailGid" />
+                            <span ng-hide="PRProdServiceFlag =='S'">Product Group</span><span ng-hide="PRProdServiceFlag =='P'">Service Group</span><br />
+                            <select ng-model="ChildProductGroupGid" id="ddlParentProductGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                    ng-change="getChildProduct()" ng-disabled="@ViewBag.PIPInputs =='1'"
+                                    ng-options="prod.ChildProductGroupGid as prod.ChildProductGroup for prod in productlistgroup"></select>
+                        </td>
+                        <td>
+                            <span ng-hide="PRProdServiceFlag =='S'">Product Name</span><span ng-hide="PRProdServiceFlag =='P'">Service Name</span><br />
+                            <select ng-model="ChildProductGid" id="ddlChildProductGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                    ng-change="getProductDescription()" ng-disabled="@ViewBag.PIPInputs =='1'"
+                                    ng-options="prod.ChildProductGid as prod.ChildProductName for prod in productlist"></select>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>UOM</span><br />
+                            <select ng-model="PRDetailUOM" ng-disabled="@ViewBag.PIPInputs =='1'" id="ddlUOMGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                           ng-options="uom.PRDetailUOMGid as uom.PRDetailUOMName for uom in uomlist"></select>
+                        </td>
+
+                        <td>
+                            <span>Qty</span><br />
+                            @*length Fixed by selva*@
+                            <input type="text" ng-model="PRDetailQty" id="txtPRDetailsQty" ng-disabled="@ViewBag.PIPInputs =='1'" maxlength="18"  class="textboxStyle100" />
+                        </td>
+                    </tr>
+                    <tr ng-show="@ViewBag.PIPInputs == '1'">
+                        <td>
+                            <span>Unit Price</span><br />
+                            <input type="text" ng-model="PRDetailUnitAmount" id="txtUnitPrice" class="textboxStyle100" />
+                        </td>
+                        <td>
+                            <span>Total Amount</span><br />
+                            <input type="text" readonly="readonly" id="PRDetailTotalAmount"  class="textboxStyle100" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <span>Description</span><br />
+                            @*length Fixed by selva*@
+                            <textarea cols="2" style="width:100%;" maxlength="256"  ng-disabled="@ViewBag.PIPInputs =='1'" id="txtPRDetailDescription" ng-model="PRDetailDescription" class="resizenone"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align:right;">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="SavePRDetails()">
+                                <span class="glyphicon glyphicon-floppy-save" style="color:white;"></span>
+                                Save
+                            </button>
+                            <button type="button" class="btn btn-sm btn-warning" ng-click="CloseChildDialog()">
+                                <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                                Cancel
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div style="width:100%;" id="divAudit">
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:20%;cursor:pointer;">
+                            Action By
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Action Date
+                        </th>
+                        <th style="width:25%;cursor:pointer">
+                            Approval Stage
+                        </th>
+                        <th style="width:10%;cursor:pointer">
+                            Status
+                        </th>
+                        <th style="width:20%;cursor:pointer">
+                            Remarks
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPRAuditTrail > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="praudittraillist in praudittrail">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:20%;">
+                            {{praudittraillist.employee_code}}
+                        </td>
+                        <td style="width:22%;">
+                            {{praudittraillist.action_date}}
+                        </td>
+                        <td style="width:25%;">
+                            {{praudittraillist.queue_to_type}}
+                        </td>
+                        <td style="width:10%;">
+                            {{praudittraillist.action_status}}
+                        </td>
+                        <td style="width:20%;">
+                            {{praudittraillist.action_remarks}}
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPRAuditTrail < 1">
+                    <tr>
+                        <td colspan="6" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;" id="divAttachmentMain">
+            <div style="width:100%" ng-hide="@ViewBag.viewtype !='0'">
+                <table class="myTableStyleTabpopup">
+                    <tr>
+                        <td style="vertical-align:bottom;max-width:300px;min-width:100px;">
+                            <span>Select File</span><br />
+                            <form id="theuploadform1">
+                                @Html.AntiForgeryToken()
+                                <input type="file" name="UploadFile" id="txtPRAttachmentFile" class="txtPRAttachmentFile" />
+                            </form>
+                        </td>
+                        <td>
+                            <span>File Name</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachedActualFileName" readonly="readonly" ng-model="AttachedActualFileName" />
+                        </td>
+                        <td>
+                            <span>Description</span> <br />
+                            @*length Fixed by selva*@
+                            <input id="attachdesc"  maxlength="255" type="text"  class="textboxStyle100" ng-model="AttachDescription" />
+                        </td>
+                        <td style="text-align:right;padding-right:3%;vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="saveAttachmentPR('PR')">
+                                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                                Save
+                            </button>
+                        </td>       
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:28%;cursor:pointer;">
+                            File Name
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Attachment Date
+                        </th>
+                        <th style="width:27%;cursor:pointer">
+                            Description
+                        </th>
+                        <th style="width:20%;cursor:pointer" ng-hide="@ViewBag.viewtype !='0'">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPRAttachment > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="prattachmentlist in prattachment">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:28%;">
+                            <a style="color:blue;cursor:pointer;" ng-click="ViewDocuments(prattachmentlist.TempFileName)" title="Click Here to Download">
+                                {{prattachmentlist.AttachedActualFileName}}
+                            </a>
+                        </td>
+                        <td style="width:22%;">
+                            {{prattachmentlist.AttachDate}}
+                        </td>
+                        <td style="width:27%;">
+                            {{prattachmentlist.AttachDescription}}
+                        </td>
+                        <td style="width:20%;" ng-hide="@ViewBag.viewtype !='0'">
+                            <a ng-click="DeletePRAttachment(prattachmentlist.AttachmentID,'PR')" title="Delete">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPRAttachment < 1">
+                    <tr>
+                        <td colspan="5" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;display:none" id="divAttachmentDetails">
+            <div style="width:100%" ng-hide="@ViewBag.viewtype !='0'">
+                <table class="myTableStyleTabpopup">
+                    <tr>
+                        <td style="vertical-align:bottom;max-width:300px;min-width:100px;">
+                            <input type="hidden" ng-model="AttachmentRefGid" />
+                            <span>Select File</span><br />
+                            <form id="theuploadform2">
+                                <input type="file" name="UploadFile2" id="txtPRAttachmentFile2" class="txtPRAttachmentFile2" />
+                            </form>
+                        </td>
+                        <td>
+                            <span>File Name</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachedActualFileName2" readonly="readonly" />
+                        </td>
+                        <td>
+                            <span>Description</span> <br />
+                            <input type="text" class="textboxStyle100" id="AttachDescription" />
+                        </td>
+                        <td style="text-align:right;padding-right:3%;vertical-align:bottom;">
+                            <button type="button" class="btn btn-sm btn-primary" ng-click="saveAttachmentPR('PRDET')">
+                                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                                Save
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:28%;cursor:pointer;">
+                            File Name
+                        </th>
+                        <th style="width:22%;cursor:pointer">
+                            Attachment Date
+                        </th>
+                        <th style="width:27%;cursor:pointer">
+                            Description
+                        </th>
+                        <th style="width:20%;cursor:pointer" ng-hide="@ViewBag.viewtype !='0'">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="filteredItemsPRAttachment1 > 0" style="max-height:400px;overflow-y:auto;" ng-repeat="prattachmentlist in prattachment1">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:28%;">
+                            <a style="color:blue;cursor:pointer;" ng-click="ViewDocuments(prattachmentlist.TempFileName)" title="Click Here to Download">
+                                {{prattachmentlist.AttachedActualFileName}}
+                            </a>
+                        </td>
+                        <td style="width:22%;">
+                            {{prattachmentlist.AttachDate}}
+                        </td>
+                        <td style="width:27%;">
+                            {{prattachmentlist.AttachDescription}}
+                        </td>
+                        <td style="width:20%;" ng-hide="@ViewBag.viewtype !='0'">
+                            <a ng-click="DeletePRAttachment(prattachmentlist.AttachmentID,'PRDET')" title="Delete">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="filteredItemsPRAttachment1 < 1">
+                    <tr>
+                        <td colspan="5" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <br />
+        <div style="width:100%;text-align:center;font-size:xx-small;">
+            <button type="button" ng-hide="@ViewBag.viewtype !='0'" class="btn btn-sm btn-primary" ng-click="SaveAsDraft('draft')">
+                <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                Save As Draft
+            </button>
+            <button type="button" ng-hide="@ViewBag.viewtype !='0'" class="btn btn-sm btn-success" ng-click="SaveAsDraft('submit')">
+                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                Submit
+            </button>
+            <button type="button" ng-show="@ViewBag.deleteflag =='1'" class="btn btn-sm btn-danger" ng-click="DeletePR()">
+                <span class="glyphicon glyphicon-trash" style="color:white;"></span>
+                Delete
+            </button>
+            <button type="button" class="btn btn-sm btn-warning" ng-hide="@ViewBag.isapprovalMode =='1'" ng-click="CancelPRDetails()">
+                <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                Cancel
+            </button>
+        </div>
+        <div style="width:100%;text-align:center" ng-show="@ViewBag.isapprovalMode =='1'">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td style="text-align:left">
+                        <span>Remarks</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <textarea id="txtApprovalRemarks"
+                                  ng-model="PRApprovalRemarks"
+                                  name="txtApprovalRemarks"
+                                  style="resize:none ;width: 400px; height: 75px;"
+                                  maxlength="250"
+                                  class="textareaStyle"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:center;font-size:xx-small;">
+                        <button type="button" class="btn btn-sm btn-success" ng-click="ApprovePR()">
+                            <span class="glyphicon glyphicon-thumbs-up" style="color:white;"></span>
+                            Approve
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" ng-click="RejectPR()">
+                            <span class="glyphicon glyphicon-thumbs-down" style="color:white;"></span>
+                            Reject
+                        </button>
+                        <button type="button" class="btn btn-sm btn-warning" ng-click="CancelPRDetailsDashboard()">
+                            <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    var objADDPRParent;
+    $(document).ready(function () {
+        objADDPRParent = $("[id$='divPR']");
+        objADDPRParent.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 350,
+            duration: 300
+            //  resizable:false
+        });
+        objPRAttachments = $("[id$='divAttachmentDetails']");
+        objPRAttachments.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 350,
+            duration: 300
+            //  resizable:false
+        });
+       // $('#txtPRDetailsQty').attr("maxlength", "4");
+        $('#txtUnitPrice').attr("maxlength", "12");
+        $('#txtPRDetailDescription').attr("maxlength", "256");
+        var currentTab = 0;
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+        $("#tabs").css("display", "block");
+
+        $("#AttachDescription").attr("maxlength", "128");
+        $(".txtPRAttachmentFile").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform1');
+            var Attach_list = Attachment_list();
+            var Attachment_fomat = Attached_fileformat();
+            form1.attr("action", "../PRNew/UploadedFiles/?uploadfor=PR&attach=" + Attach_list + '&attaching_format=' + Attachment_fomat);
+            //form1.attr("action", "../PRNew/UploadedFiles/?uploadfor=PR");
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe1");
+            form1.attr("file", $('#txtPRAttachmentFile').val());
+
+            var fname = $('#txtPRAttachmentFile').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#AttachedActualFileName").val(fname);
+            form1.submit();
+            return false;
+        });
+        $(".txtPRAttachmentFile2").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe2" id="postiframe2" style="display: none"></iframe>');
+
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform2');
+            var Attach_list = Attachment_list();
+            var Attachment_fomat = Attached_fileformat();
+            form1.attr("action", "../PRNew/UploadedFiles/?uploadfor=PRDET&attach=" + Attach_list + '&attaching_format=' + Attachment_fomat);
+            //form1.attr("action", "../PRNew/UploadedFiles/?uploadfor=PRDET");
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe2");
+            form1.attr("file", $('#txtPRAttachmentFile2').val());
+
+            var fname = $('#txtPRAttachmentFile2').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#AttachedActualFileName2").val(fname);
+            form1.submit();
+            return false;
+        });
+        $("#ddlBranchNameShipment").keyup(function (e) {
+            if (e.which != 13) {
+                $("[name=txtBranchGid]").val("0");
+            }
+
+            $("#ddlBranchNameShipment").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetBranchAutoComplete", "WONew")?' + new Date().getTime(),
+                        data: "{ 'searchtext' : '" + $("#ddlBranchNameShipment").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0],
+                                    address: item.split('~')[2],
+                                    location: item.split('~')[3],
+                                    incharge: item.split('~')[4],
+                                    empid: item.split('~')[5]
+                                }
+                            }));
+                        },
+                        error: function (response) {
+                        },
+                        failure: function (response) {
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("[name=txtBranchGid]").val(i.item.val);
+                    $("#ddlBranchNameShipment").val(i.item.label);
+                },
+                minLength: 1
+            });
+
+        });
+
+        $("#ddlBranchNameShipment").focusout(function () {
+            var hdfId = $("[name=txtBranchGid]").val();
+            var txtCurName = $("#ddlBranchNameShipment").val();
+            if (txtCurName.trim() != "" && (hdfId.trim() == "" || hdfId.trim() == "0")) {
+                $("#ddlBranchNameShipment").val("");
+            }
+        });
+    });
+
+    var myAppPR = angular.module('PRNewapp', ['ui.bootstrap']);
+    myAppPR.config(['$httpProvider', function ($httpProvider) {
+        
+         
+        $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+        
+        var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+        
+        $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    }]);
+    myAppPR.service("prnewservice", function ($http) {
+        this.GetPRHeaderDetails = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPRHeaderDetails", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetProductGroup = function (prodservflag) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetProductGroup", "WONew")?flag=' + prodservflag + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetProductGroupById = function (prodservflag, prodgroupgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetProductGroupById", "WONew")?flag=' + prodservflag + '&ProdGroupId=' + prodgroupgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetProductDesc = function (prodgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetProductDesc", "WONew")?prodgid=' + prodgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetUOM = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetUOM", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.AddPRParentDetailsList = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("AddPRParentDetailsList", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.AddPRParentDetailsListNew = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("AddPRParentDetailsListNew", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetPRDetailParent = function (prdetgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPRDetailParent", "PRNew")?prdetailgid=' + prdetgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.UpdatePRParentList = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("UpdatePRParentList", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.SaveAsDraft = function (PRParentDetailsInsert) {
+            showProgress();
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("SaveAsDraft", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+            hideProgress();
+        }
+        this.GetPRHeaderDetailsAll = function (prgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetPRHeaderDetailsAll", "PRNew")?prgid=' + prgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.DeletePRParentDetails = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("DeletePRParentDetails", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            }); 
+            return response;
+        }
+        this.SubmitApprover = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("SubmitApprover", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            }); 
+            return response;
+        }
+        this.RejectApprover = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("RejectApprover", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            }); 
+            return response;
+        }
+        this.GetAuditTrail = function (prheadergid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetAuditTrail", "WONew")?wogid=' + prheadergid + '&refname=PR&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetAttachment = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("GetAttachment", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            }); 
+            return response;
+        }
+        this.CreatePRAttachment = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("CreatePRAttachment", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.DeletePRAttachment = function (PRParentDetailsInsert) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(PRParentDetailsInsert),
+                url: '@Url.Action("DeletePRAttachment", "PRNew")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+    });
+    myAppPR.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+    myAppPR.controller('prnewController', function ($scope, prnewservice) {
+
+        $scope.filteredItemsPR = 0;
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 5;
+        $scope.currentPage = 1;
+        GetPRHeaderDetails();
+        function GetPRHeaderDetails() {
+            var prgid = '@ViewBag.prgid';
+            if (prgid != "0")
+                $scope.PRGid = prgid;
+            else if ($scope.PRGid != null && $scope.PRGid != "" && $scope.PRGid != "0")
+                prgid = $scope.PRGid;
+
+            if (prgid == null || prgid == "" || prgid == 0) {
+                var getData = prnewservice.GetPRHeaderDetails();
+                getData.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Raising PR", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    var Data0 = "", Data1 = "", Data2 = "", ErrorMsg = "";
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.prparentdetails = Data1;
+                    $scope.filteredItemsPR = 0;
+                    $scope.PRRaiserName = Data0[0].PRRaiserName;
+                    $scope.PRBranchName = Data0[0].PRBranchName;
+                    $scope.PRBranchGid = Data0[0].PRBranchGid;
+                    $("[name=txtBranchGid]").val(Data0[0].PRBranchGid);
+                    $scope.PRDate = Data0[0].PRDate;
+                 //   $scope.PRFCCCCode = Data0[0].PRFCCCCode;
+                   // $scope.PRFCCCGid = Data0[0].PRFCCCGid;
+                    //Init Values
+                    $scope.PRProdServiceFlag = 'P';
+                    $scope.PRExpenseFlag = 'C';
+                    $scope.PRBranchType = 'S';
+                    $scope.PRAmount = 0;
+                    $scope.Status = "";
+
+                    Data1 = JSON.parse(response.data.data1);
+                    $scope.RequestForList = Data1;
+                    $scope.RequestForValue = 0;
+
+                    Data2 = JSON.parse(response.data.data2);
+                    $scope.FCCCList = Data2;
+                    $scope.PRFCCCGid = Data0[0].PRFCCCGid;
+                }, function () {
+                    alert('Error in adding record');
+                });
+            }
+            else {
+                var getData = prnewservice.GetPRHeaderDetailsAll(prgid);
+                getData.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Fetching PR Details", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    var Data0 = "", Data1 = "", Data2 = "", Data3 = "", ErrorMsg = "";
+                    Data0 = JSON.parse(response.data.data0);
+                    if (response.data.data1 != null && response.data.data1 != "" && response.data.data1 != "0")
+                        Data1 = JSON.parse(response.data.data1);
+                    $scope.prparentdetails = Data1;
+                    $scope.filteredItemsPR = $scope.prparentdetails.length;
+                    $scope.PRRefNumber = Data0[0].PRRefNumber;
+                    $scope.PRAmount = Data0[0].PRAmount;
+                    $scope.PRGid = Data0[0].PRGid;
+                    $scope.PRRaiserName = Data0[0].PRRaiserName;
+                    $scope.PRBranchName = Data0[0].PRBranchName;
+                    $scope.PRBranchGid = Data0[0].PRBranchGid;
+                    $("[name=txtBranchGid]").val(Data0[0].PRBranchGid);
+                    $scope.PRDate = Data0[0].PRDate;
+                 //   $scope.PRFCCCCode = Data0[0].PRFCCCCode;
+                 //   $scope.PRFCCCGid = Data0[0].PRFCCCGid;
+                    $scope.PRProdServiceFlag = Data0[0].PRProdServiceFlag;
+                    $scope.PRExpenseFlag = Data0[0].PRExpenseFlag;
+                    $scope.PRBranchType = Data0[0].PRBranchType;
+                    $scope.PRDescription = Data0[0].PRDescription;
+                    $scope.Status = Data0[0].Status;
+                    Data2 = JSON.parse(response.data.data2);
+                    $scope.RequestForList = Data2;
+                    $scope.RequestForValue = Data0[0].RequestForValue;
+
+                    Data3 = JSON.parse(response.data.data3);
+                    $scope.FCCCList = Data3;
+                    $scope.PRFCCCGid = Data0[0].PRFCCCGid;
+
+                    $scope.filteredItemsPRAuditTrail = 0;
+                    var getData4 = prnewservice.GetAuditTrail($scope.PRGid);
+                    getData4.then(function (response) {
+                        $scope.praudittrail = response.data;
+                        $scope.filteredItemsPRAuditTrail = $scope.praudittrail.length;
+
+                    }, function () {
+                        alert('Error');
+                    });
+                    var PRParentDetailsInsert = {
+                        "AttachmentRefGid": $scope.PRGid,
+                        "AttachmentFor": "PR"
+                    };
+                    var getData = prnewservice.GetAttachment(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        Data0 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Fetching Attachment", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                                Data0 = JSON.parse(response.data.data0);
+                            $scope.prattachment = Data0;
+                            $scope.filteredItemsPRAttachment = $scope.prattachment.length;
+                        }
+                    }, function () {
+                        alert('Error While Fetching Attachment');
+                    });
+                }, function () {
+                    alert('Error in adding record');
+                });
+            }
+        }
+        $scope.getParentProduct = function () {
+            var getdata = prnewservice.GetProductGroup($scope.PRProdServiceFlag);
+            getdata.then(function (response) {
+                $scope.productlistgroup = JSON.parse(response.data.data0);
+            }, function () {
+                alert('Error while binding products');
+            });
+        }
+        $scope.getChildProduct = function () {
+            var getdata = prnewservice.GetProductGroupById($scope.PRProdServiceFlag, $scope.ChildProductGroupGid);
+            getdata.then(function (response) {
+                $scope.productlist = JSON.parse(response.data.data0);
+                $scope.ChildProductGid = 0;
+            }, function () {
+                alert('Error while binding products');
+            });
+        }
+        $scope.getProductDescription = function () {
+            var getdata = prnewservice.GetProductDesc($scope.ChildProductGid);
+            getdata.then(function (response) {
+                var Data0 = "";
+                Data0 = JSON.parse(response.data.data0);
+                $scope.PRDetailDescription = Data0[0].ChildProductDescription;
+            }, function () {
+                alert('Error while binding product description');
+            });
+        }
+        $scope.AddPRParentDetails = function () {
+
+            $scope.PRDetailGid = 0;
+            $scope.ChildProductGroupGid = 0;
+            $scope.ChildProductGid = 0;
+            $scope.PRDetailUOM = 0;
+            $scope.PRDetailQty = 0;
+            $scope.PRDetailDescription = "";
+
+            if ($scope.RequestForValue == 0 || $scope.RequestForValue == null) {
+                jAlert("Ensure Request For", "Error", function () {
+                    $("[id=ddlRequestForGid]").focus();
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRDescription == "" || $scope.PRDescription == null) {
+                jAlert("Ensure Description", "Error", function () {
+                    $("[id=txtPRDescription]").focus();
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRProdServiceFlag != "" && $scope.PRProdServiceFlag != null) {
+
+                var getdata = prnewservice.GetProductGroup($scope.PRProdServiceFlag);
+                getdata.then(function (response) {
+                    $scope.productlistgroup = JSON.parse(response.data.data0);
+                    $scope.ChildProductGroupGid = 0;
+                }, function () {
+                    alert('Error while binding product group');
+                });
+                var getdata1 = prnewservice.GetUOM();
+                getdata1.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Loading UOM", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    $scope.uomlist = JSON.parse(response.data.data0);
+                    $scope.PRDetailUOM = 0;
+                }, function () {
+                    alert('Error while binding UOM');
+                });
+            }
+            if ($scope.PRProdServiceFlag == "S") {
+                $scope.PRDetailQty == 1;
+            }
+            $("#divPR").css("display", "");
+            objADDPRParent.dialog({ title: 'Add PR Details', width: '780', height: '300' });
+            objADDPRParent.dialog("open");
+        }
+        $scope.CloseChildDialog = function () {
+            objADDPRParent.dialog("close");
+            $("#divPR").css("display", "none");
+        }
+        $scope.SavePRDetails = function () {
+            if ($scope.ChildProductGroupGid == 0 || $scope.ChildProductGroupGid == null) {
+                jAlert("Ensure Product Group", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.ChildProductGid == 0 || $scope.ChildProductGid == null) {
+                jAlert("Ensure Product", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+           // if ($scope.PRProdServiceFlag == "P") {
+                if ($scope.PRDetailUOM == 0 || $scope.PRDetailUOM == null) {
+                    jAlert("Ensure UOM", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                if ($scope.PRDetailQty == 0 || $scope.PRDetailQty == null || $scope.PRDetailQty == 0.0 || $scope.PRDetailQty == "") {
+                    jAlert("Ensure Qty", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                if ($scope.PRDetailDescription == "" || $scope.PRDetailDescription == null) {
+                    jAlert("Ensure Description", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+          //  }
+            var totamnt = $("[id=PRDetailTotalAmount]").val();
+            var ispipinputs = '@ViewBag.PIPInputs';
+            if (ispipinputs == '1') {
+                if ($scope.PRDetailUnitAmount == 0 || $scope.PRDetailUnitAmount == null) {
+                    jAlert("Ensure Unit Amount", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                if (totamnt == 0 || totamnt == null || totamnt == "" || totamnt == "0") {
+                    jAlert("Ensure Unit Amount or Qty", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }
+            else {
+                totamnt = 0;
+                $scope.PRDetailUnitAmount = 0;
+            }
+            var reqforname = "";
+            for (var i = 0; i < $scope.RequestForList.length; i++) {
+                if (parseInt($scope.RequestForList[i].RequestForGid) == parseInt($scope.RequestForValue)) {
+                    reqforname = $scope.RequestForList[i].RequestForName;
+                    reqforname = $.trim(reqforname);
+                }
+            }
+            var newbranchgid = $("[name=txtBranchGid]").val();
+
+            var PRParentDetailsInsert = {
+                //for header
+                PRGid: $scope.PRGid,
+                PRProdServiceFlag: $scope.PRProdServiceFlag,
+                PRExpenseFlag: $scope.PRExpenseFlag,
+                PRBranchType: $scope.PRBranchType,
+                PRBranchGid: newbranchgid,
+                PRDate: $scope.PRDate,
+                PRFCCCGid: $scope.PRFCCCGid,
+                RequestForValue: $scope.RequestForValue,
+                RequestForName: reqforname,
+                PRDescription: $scope.PRDescription,
+                //for details
+                PRDetailGid: $scope.PRDetailGid,
+                ChildProductGroupGid: $scope.ChildProductGroupGid,
+                ChildProductGid: $scope.ChildProductGid,
+                PRDetailUOM: $scope.PRDetailUOM,
+                PRDetailQty: $scope.PRDetailQty,
+                PRDetailUnitAmount: $scope.PRDetailUnitAmount,
+                PRDetailTotalAmount: totamnt,
+                PRDetailDescription: $scope.PRDetailDescription
+            };
+
+            // var reqforname = $("[id=ddlRequestForGid]").text();
+            if ($scope.PRGid == null || $scope.PRGid == "" || $scope.PRGid == 0 || $scope.PRGid == "0") {
+                var getData = prnewservice.AddPRParentDetailsList(PRParentDetailsInsert);
+                getData.then(function (response) {
+                    var Data0 = "", Data1 = "", Data2 = "";
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Save Details", "Error", function () {
+                            return false;
+                        });
+                    }
+                    else {
+
+                        Data0 = JSON.parse(response.data.data0);
+                        Data1 = JSON.parse(response.data.data1);
+                        $scope.prparentdetails = Data1;
+                        $scope.PRRefNumber = Data0[0].PRRefNumber;
+                        $scope.PRAmount = Data0[0].PRAmount;
+                        $scope.PRGid = Data0[0].PRGid;
+                        $scope.filteredItemsPR = $scope.prparentdetails.length;
+
+                        Data2 = JSON.parse(response.data.data2);
+                        $scope.RequestForList = Data2;
+                        $scope.RequestForValue = Data0[0].RequestForValue;
+
+                        objADDPRParent.dialog("close");
+                        $("#divPR").css("display", "none");
+
+                        jAlert("PR Detail Added Successfully", "Success", function () {
+                            return false;
+                        });
+                    }
+                }, function () {
+                    alert('Error in adding record');
+                });
+            }
+            else {
+                if ($scope.PRDetailGid == 0 || $scope.PRDetailGid == null || $scope.PRDetailGid == "" || $scope.PRDetailGid == "0") {
+                    var getData = prnewservice.AddPRParentDetailsListNew(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Save Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+                            Data0 = JSON.parse(response.data.data0);
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.prparentdetails = Data1;
+                            $scope.PRRefNumber = Data0[0].PRRefNumber;
+                            $scope.PRAmount = Data0[0].PRAmount;
+                            $scope.PRGid = Data0[0].PRGid;
+                            $scope.filteredItemsPR = $scope.prparentdetails.length;
+
+                            Data2 = JSON.parse(response.data.data2);
+                            $scope.RequestForList = Data2;
+                            $scope.RequestForValue = Data0[0].RequestForValue;
+
+                            objADDPRParent.dialog("close");
+                            $("#divPR").css("display", "none");
+
+                            jAlert("PR Detail Added Successfully", "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+                else {
+                    var getData = prnewservice.UpdatePRParentList(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Update Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+
+                            Data0 = JSON.parse(response.data.data0);
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.prparentdetails = Data1;
+                            $scope.PRRefNumber = Data0[0].PRRefNumber;
+                            $scope.PRAmount = Data0[0].PRAmount;
+                            $scope.PRGid = Data0[0].PRGid;
+                            $scope.filteredItemsPR = $scope.prparentdetails.length;
+
+                            Data2 = JSON.parse(response.data.data2);
+                            $scope.RequestForList = Data2;
+                            $scope.RequestForValue = Data0[0].RequestForValue;
+
+                            objADDPRParent.dialog("close");
+                            $("#divPR").css("display", "none");
+
+                            jAlert("PR Detail Updated Successfully", "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+            }
+
+
+        }
+        $scope.EditPRParent = function (prdetailgid) {
+            $scope.PRDetailGid = prdetailgid;
+            var getData = prnewservice.GetPRDetailParent(prdetailgid);
+            getData.then(function (response) {
+                var Data0 = "", ErrorMsg1 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Fetching Details", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.ChildProductGroupGid = Data0[0].ChildProductGroupGid;
+                    $scope.ChildProductGid = Data0[0].ChildProductGid;
+                    $scope.PRDetailUOM = Data0[0].PRDetailUOM;
+                    $scope.PRDetailQty = Data0[0].PRDetailQty;
+                    $scope.PRDetailUnitAmount = Data0[0].PRDetailUnitAmount;
+                    $scope.PRDetailTotalAmount = Data0[0].PRDetailTotalAmount;
+                    $scope.PRDetailDescription = Data0[0].PRDetailDescription;
+                    $("[id=PRDetailTotalAmount]").val(Data0[0].PRDetailTotalAmount);
+
+                    var getdata1 = prnewservice.GetProductGroup($scope.PRProdServiceFlag);
+                    getdata1.then(function (response) {
+                        $scope.productlistgroup = JSON.parse(response.data.data0);
+                    }, function () {
+                        alert('Error while binding products');
+                    });
+
+                    var getdata2 = prnewservice.GetProductGroupById($scope.PRProdServiceFlag, $scope.ChildProductGroupGid);
+                    getdata2.then(function (response) {
+                        $scope.productlist = JSON.parse(response.data.data0);
+                    }, function () {
+                        alert('Error while binding products');
+                    });
+
+                    var getdata3 = prnewservice.GetUOM();
+                    getdata3.then(function (response) {
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Loading UOM", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        $scope.uomlist = JSON.parse(response.data.data0);
+                    }, function () {
+                        alert('Error while binding UOM');
+                    });
+                    //if ($scope.PRProdServiceFlag == "S")
+                    //    $scope.PRDetailQty = 1;
+                    $("#divPR").css("display", "");
+                    objADDPRParent.dialog({ title: 'Edit PR Details', width: '780', height: '350' });
+                    objADDPRParent.dialog("open");
+                }
+            }, function () {
+                alert('Error in Edit PR');
+            });
+        }
+        $scope.DeletePRParent = function (prdetgid) {
+            jConfirm("Are you sure want to delete this PR detail", "Warning", function (e) {
+                if (e == true) {
+                    var PRParentDetailsInsert = {
+                        PRDetailGid: prdetgid,
+                        RequestForName: "child"
+                    };
+
+                    var getData = prnewservice.DeletePRParentDetails(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Delete Details", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+
+                            Data0 = JSON.parse(response.data.data0);
+                            if (response.data.data1 != null && response.data.data1 != "" && response.data.data1 != "0")
+                                Data1 = JSON.parse(response.data.data1);
+                            $scope.prparentdetails = Data1;
+                            $scope.PRRefNumber = Data0[0].PRRefNumber;
+                            $scope.PRAmount = Data0[0].PRAmount;
+                            $scope.PRGid = Data0[0].PRGid;
+                            $scope.filteredItemsPR = $scope.prparentdetails.length;
+
+                            Data2 = JSON.parse(response.data.data2);
+                            $scope.RequestForList = Data2;
+                            $scope.RequestForValue = Data0[0].RequestForValue;
+
+                            jAlert("PR Detail Deleted Successfully", "Success", function () {
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+        }
+        $scope.SaveAsDraft = function (reqforname) {
+            var prlen = $scope.prparentdetails.length;
+            if (prlen == 0 || prlen == null) {
+                jAlert("Please Add atleast one record in PR Detail", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.RequestForValue == 0 || $scope.RequestForValue == null) {
+                jAlert("Ensure Request For", "Error", function () {
+                    $("[id=ddlRequestForGid]").focus();
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRDescription == "" || $scope.PRDescription == null) {
+                jAlert("Ensure Description", "Error", function () {
+                    $("[id=txtPRDescription]").focus();
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRExpenseFlag == "" || $scope.PRExpenseFlag == null) {
+                jAlert("Ensure Expense Type", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRProdServiceFlag == "" || $scope.PRProdServiceFlag == null) {
+                jAlert("Ensure Product / Service", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.PRBranchType == "" || $scope.PRBranchType == null) {
+                jAlert("Ensure Branch Type", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var newbranchgid = $("[name=txtBranchGid]").val();
+            var PRParentDetailsInsert = {
+                //for header
+                PRGid: $scope.PRGid,
+                PRProdServiceFlag: $scope.PRProdServiceFlag,
+                PRExpenseFlag: $scope.PRExpenseFlag,
+                PRBranchType: $scope.PRBranchType,
+                PRBranchGid: newbranchgid,
+                PRDate: $scope.PRDate,
+                PRFCCCGid: $scope.PRFCCCGid,
+                RequestForValue: $scope.RequestForValue,
+                RequestForName: reqforname,
+                PRDescription: $scope.PRDescription
+            }
+            var getData = prnewservice.SaveAsDraft(PRParentDetailsInsert);
+            getData.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Processing PR", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    if (reqforname == "submit") {
+                        jAlert("PR Submitted Successfully", "Success", function () {
+                            location = '@Url.Action("PrSummary1", "PrSummary")?' + new Date().getTime();
+                        });
+                    }
+                    else {
+                        jAlert("PR Saved Successfully", "Success", function () {
+                            location = '@Url.Action("PrSummary1", "PrSummary")?' + new Date().getTime();
+                        });
+                    }
+                }
+            }, function () {
+                alert('Error');
+            });
+        }
+        $scope.CancelPRDetails = function () {
+            debugger;
+            @*location = '@Url.Action("PrSummary1", "PrSummary")?' + new Date().getTime();*@
+            @*location = '@Url.Action("PrSummary1", "PrSummary")?' + new Date().getTime();*@ 
+          location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+        }
+        $scope.CancelPRDetailsDashboard = function () {
+            debugger;
+          location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+            @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+        }
+        $scope.DeletePR = function () {
+            jConfirm("Are you sure want to delete this PR", "Warning", function (e) {
+                if (e == true) {
+                    var PRParentDetailsInsert = {
+                        PRDetailGid: $scope.PRGid,
+                        RequestForName: "parent"
+                    };
+
+                    var getData = prnewservice.DeletePRParentDetails(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Delete PR", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+                            jAlert("PR Deleted Successfully", "Success", function () {
+                                location = '@Url.Action("PrSummary1", "PrSummary")?' + new Date().getTime();
+                                return false;
+                            });
+                        }
+                    }, function () {
+                        alert('Error in adding record');
+                    });
+                }
+                else {
+                    return false;
+                }
+
+            });
+        }
+        $scope.ApprovePR = function () {
+            debugger;
+           // alert('a');
+      
+            showProgress();
+            var approvedby = '@ViewBag.isapproval';
+            var prgid = $scope.PRGid;
+            var PRParentDetailsInsert = {
+                PRGid: $scope.PRGid,
+                PRApprovedBy: approvedby,
+                PRApprovalRemarks: $scope.PRApprovalRemarks
+            }
+            if (approvedby == "pipinputs") {
+                //alert('b');               
+                $.ajax({
+                    url: '@Url.Action("CheckAmount", "PRNew")?prgid=' + prgid + '&' + new Date().getTime(),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        debugger;
+                        //alert('c');
+                        var Data0 = "";
+                        var ErrorMsg1 = response.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            hideProgress();
+                            jAlert("Error While Validate Amount", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else if (ErrorMsg1 == "404") {
+                            hideProgress();
+                            jAlert("Invalid PR Details", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else if (ErrorMsg1 == "0") {
+                            Data0 = response.data0;
+                            if (Data0 == "-1") {
+                                hideProgress();
+                                jAlert("Invalid PR Details", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else if (parseInt(Data0) > 0) {
+                                hideProgress();
+                                jAlert("Please Enter Unit Price in all rows.[" + Data0 + " Row(s) Remaining]", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else if (parseInt(Data0) == 0) {
+                                var getData3 = prnewservice.SubmitApprover(PRParentDetailsInsert);
+                                getData3.then(function (response) {
+                                    var ErrorMsg1 = response.data.ErrorMsg;
+                                   var data1 = JSON.parse(response.data.Data1);
+                                  // var dd = Object.keys(data1).length;
+				  var dd = data1.length;
+
+				  if (ErrorMsg1 == "0") {
+
+				      //alert('d');
+                                        hideProgress();
+                                        jConfirm("PR Submitted to Supervisor Queue.  <br /> Dou you want to approve next queue...", "Success", function (r) {
+
+                                            if (r == true) {
+
+                                                if (dd == "0" || dd == undefined || dd == '') {
+                                                    debugger;
+                                                    jAlert("No More records to be Approved", "Success", function () {
+                                                         
+                                                        @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+                                                      location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                                     });
+                                                    
+                                                }
+                                                else {
+                                                   
+
+                                                    for (var i = 0; i <= dd; i++) {
+                                                        var id = data1[i].queue_ref_gid;
+                                                        var name = data1[i].doc_status_gid;
+                                                       
+                                                        if (name == 7) {
+                                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=pipinputs&" + new Date().getTime();
+                                                            @*location = ('@Url.Action("pipinputsonpr1", "PIPInputsOnPR")?id=' + id + '&' + new Date().getTime());*@
+                                                            i = dd + 1;
+                                                        }
+                                                        else if (name == 3) {
+                                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=supervisor&" + new Date().getTime();
+                                                            @*location = ('@Url.Action("index", "Prsupervisior")?id=' + id + '&' + new Date().getTime());*@
+                                                            i = dd + 1;
+                                                        }
+                                                        else if (name == 4) {
+                                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=delmat&" + new Date().getTime();
+                                                            @*location = ('@Url.Action("DelmateView", "Delmet")?id=' + id + '&' + new Date().getTime());*@
+                                                            i = dd + 1;
+                                                        }
+                                                    }
+                                                }
+                                              }
+                                else {
+                                                @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+                                              location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                      }
+
+                                            
+                                        });
+                                    }
+                                    else if (ErrorMsg1 == "2") {
+                                        hideProgress();
+                                        jAlert("You are Not Authorized", "Message", function () {
+                                            return false;
+                                        });
+                                    }
+                                    else {
+                                        hideProgress();
+                                        jAlert(ErrorMsg1, "Error", function () {
+                                            return false;
+                                        });
+                                    }
+                                }, function () {
+hideProgress();
+                                    alert('Error');
+                                });
+                            }
+                        }
+                    }
+                }, function () {
+hideProgress();
+                    alert('Error in adding record');
+                    return false;
+                });
+            }
+            else {
+               
+              
+                var getData = prnewservice.SubmitApprover(PRParentDetailsInsert);
+                getData.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+                    var data1 = JSON.parse(response.data.Data1);
+                   // var dd = Object.keys(data1).length;
+ 		    var dd = data1.length;
+                    if (ErrorMsg1 == "0") {
+                        hideProgress();
+                        jConfirm("PR Approved Successfully. <br/> Do You want to approve next claim.", "Success", function (r) {
+                            
+                        if (r == true) {
+
+                            if (dd == "0" || dd == undefined || dd == '') {
+                                debugger;
+                                jAlert("No More records to be Approved", "Success", function () {
+                                    
+                                    location.href = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();
+                                });
+                                   
+                             }
+                                else {
+
+                                    for (var i = 0; i <= dd; i++) {
+                                        var id = data1[i].queue_ref_gid;
+                                        var name = data1[i].doc_status_gid;
+                                        //alert(id);
+                                        //alert(name);
+                                        if (name == 7) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=pipinputs&" + new Date().getTime();
+                                            @*location = ('@Url.Action("pipinputsonpr1", "PIPInputsOnPR")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                        else if (name == 3) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=supervisor&" + new Date().getTime();
+                                            @*location = ('@Url.Action("index", "Prsupervisior")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                        else if (name == 4) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=delmat&" + new Date().getTime();
+                                            @*location = ('@Url.Action("DelmateView", "Delmet")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                hideProgress();
+                            @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+                          location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                            }
+                        });
+                    }
+                    else if (ErrorMsg1 == "2") {
+                        hideProgress();
+                        jAlert("You are Not Authorized", "Message", function () {
+                            return false;
+                        });
+                    }
+                    else {
+                        hideProgress();
+                        jAlert(ErrorMsg1, "Error", function () {
+                            return false;
+                        });
+                    }
+                }, function () {
+hideProgress();
+                    alert('Error');
+                });
+            }
+           
+          
+        }
+        $scope.RejectPR = function () {
+            jConfirm("Are you sure want to Reject this PR", "Warning", function (e) {
+                if (e == true) {
+                    var approvedby = '@ViewBag.isapproval';
+                    if ($scope.PRApprovalRemarks == "" || $scope.PRApprovalRemarks == null) {
+                        jAlert("Ensure Remarks", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    showProgress();
+                    var PRParentDetailsInsert = {
+                        PRGid: $scope.PRGid,
+                        PRApprovedBy: approvedby,
+                        PRApprovalRemarks: $scope.PRApprovalRemarks
+                    }
+                    var getData = prnewservice.RejectApprover(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        var data1 = JSON.parse(response.data.Data1);
+                       // var dd = Object.keys(data1).length;
+			 var dd = data1.length;
+                        if (ErrorMsg1 == "1") {
+                            hideProgress();
+                            jAlert("Error While Rejecting PR", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            hideProgress();
+                            jConfirm("PR Rejected Successfully <br /><br /> Do You want to display the next queue.", "Success", function (r) {
+                                if (r == true) {
+                                  if (dd == "0" || dd == undefined || dd == '') {
+                                    
+                                        jAlert("No Matching Records Found", "Success", function () {
+                                            
+                                            @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+                                          location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                      });
+                                        
+                                    }
+                                else
+                                {
+                                    for (var i = 0; i <= dd; i++) {
+                                        var id = data1[i].queue_ref_gid;
+                                        var name = data1[i].doc_status_gid;
+                                        //alert(id);
+                                        //alert(name);
+                                        if (name == 7) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=pipinputs&" + new Date().getTime();
+                                            @*location = ('@Url.Action("pipinputsonpr1", "PIPInputsOnPR")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                        else if (name == 3) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=supervisor&" + new Date().getTime();
+                                            @*location = ('@Url.Action("index", "Prsupervisior")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                        else if (name == 4) {
+                                            location = "@Url.Action("Index", "PRNew")?prgid=" + id + "&viewtype=delmat&" + new Date().getTime();
+                                            @*location = ('@Url.Action("DelmateView", "Delmet")?id=' + id + '&' + new Date().getTime());*@
+                                            i = dd + 1;
+                                        }
+                                    }
+                                }
+                                }
+                                else {
+                                    @*location = '@Url.Action("Index", "FlexiBuyDashBoard")?' + new Date().getTime();*@
+                                  location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                }
+                                 
+                            });
+                        }
+                    }, function () {
+                        hideProgress();
+                        jAlert("Error while prcessing your request", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+        $scope.saveAttachmentPR = function (attachmentfor) {
+            debugger;
+            var PRAttachFileName = "";
+            if (attachmentfor == "PRDET") {
+                $scope.AttachDescription = $("#AttachDescription").val();
+                PRAttachFileName = $("#AttachedActualFileName2").val();
+            }
+            else {
+             PRAttachFileName = $("#AttachedActualFileName").val();
+             $scope.AttachmentRefGid = $scope.PRGid;
+            }
+            //Ramya Added
+            if ($scope.AttachmentRefGid == "" || $scope.AttachmentRefGid ==null) {
+                jAlert("Please Add PR Details and then add attachment!", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($.trim(PRAttachFileName) == "" || $.trim(PRAttachFileName) == null) {
+                jAlert("Please Select Valid File", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            
+            var PRParentDetailsInsert = {
+                "AttachedActualFileName": PRAttachFileName,
+                "AttachDescription": $scope.AttachDescription,
+                "AttachmentRefGid": $scope.AttachmentRefGid,
+                "AttachmentFor" : attachmentfor
+            };
+            var getData = prnewservice.CreatePRAttachment(PRParentDetailsInsert);
+            getData.then(function (response) {
+                var Data0 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Attaching Document", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else if (ErrorMsg1 == "2")
+                {
+                    jAlert("Invalid File Format!", "Warning", function () {
+                        $('#txtPRAttachmentFile2').val("");
+                        $('#AttachedActualFileName2').val("");
+                        $('#AttachDescription').val("");
+                        $('#txtPRAttachmentFile').val("");
+                        $('#AttachedActualFileName').val("");
+                        $('#attachdesc').val("");
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                        Data0 = JSON.parse(response.data.data0);
+                    if (attachmentfor == "PR") {
+                        $scope.prattachment = Data0;
+                        $scope.filteredItemsPRAttachment = $scope.prattachment.length;
+                    }
+                    else {
+                        $scope.prattachment1 = Data0;
+                        $scope.filteredItemsPRAttachment1 = $scope.prattachment1.length;
+                    }
+                    jAlert("Attachment Added Successfully", "Success", function () {
+                        $('#txtPRAttachmentFile2').val("");
+                        $('#AttachedActualFileName2').val("");
+                        $('#AttachDescription').val("");
+                        $('#txtPRAttachmentFile').val("");
+                        $('#AttachedActualFileName').val("");
+                        $('#attachdesc').val("");
+                        return false;
+                    });
+                    return false;
+                }
+            }, function () {
+                alert('Error');
+            });
+        }
+        $scope.PRDetailAttachment = function (prdetgid) {
+            $scope.AttachmentRefGid = prdetgid;
+            var PRParentDetailsInsert = {
+                "AttachmentRefGid": prdetgid,
+                "AttachmentFor": "PRDET"
+            };
+            var getData = prnewservice.GetAttachment(PRParentDetailsInsert);
+            getData.then(function (response) {
+                Data0 = "";
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Fetching Attachment", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                        Data0 = JSON.parse(response.data.data0);
+                    $scope.prattachment1 = Data0;
+                    $scope.filteredItemsPRAttachment1 = $scope.prattachment1.length;
+                }
+            }, function () {
+                alert('Error While Fetching Attachment');
+            });
+
+            $("#divAttachmentDetails").css("display", "");
+            objPRAttachments.dialog({ title: 'Quotation Details', width: '780', height: '300' });
+            objPRAttachments.dialog("open");
+        }
+        $scope.ViewDocuments = function (filename) {
+                $.ajax({
+                    url: '@Url.Action("CheckFileExists", "PRNew")?id=' + filename + '&' + new Date().getTime(),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == "0") {
+                            jAlert("File Not Found", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            location = "../PRNew/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Error WhileFetching File", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                });
+        }
+        $scope.DeletePRAttachment = function (attachmentgid, attachmentfor) {
+            jConfirm("Are you sure want to Delete this Attachment", "Warning", function (e) {
+                if (e == true) {
+                    if (attachmentfor == "PR")
+                        $scope.AttachmentRefGid = $scope.PRGid;
+
+                    var PRParentDetailsInsert = {
+                        "AttachmentRefGid": $scope.AttachmentRefGid,
+                        "AttachmentFor": attachmentfor,
+                        "AttachmentID": attachmentgid
+                    };
+                    var getData = prnewservice.DeletePRAttachment(PRParentDetailsInsert);
+                    getData.then(function (response) {
+                        var Data0 = "";
+                        var ErrorMsg1 = response.data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Deleting Document", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0")
+                                Data0 = JSON.parse(response.data.data0);
+                            if (attachmentfor == "PR") {
+                                $scope.prattachment = Data0;
+                                $scope.filteredItemsPRAttachment = $scope.prattachment.length;
+                            }
+                            else {
+                                $scope.prattachment1 = Data0;
+                                $scope.filteredItemsPRAttachment1 = $scope.prattachment1.length;
+                            }
+                            jAlert("Attachment Deleted Successfully", "Success", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                    }, function () {
+                        alert('Error');
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    });
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    $("#txtUnitPrice,#txtPRDetailsQty").on("keypress", function (evt) {
+        var $txtBox = $(this);
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57) && charCode != 46)
+            return false;
+        else {
+            var len = $txtBox.val().length;
+            var index = $txtBox.val().indexOf('.');
+
+            if (index > 0 && charCode == 46) {
+                return false;
+            }
+            if (index > 0) {
+                var charAfterdot = (len + 1) - index;
+                if (charAfterdot > 3) {
+                    return false;
+                }
+            }
+        }
+        return $txtBox; //for chaining
+    });
+    $("#PRDetailTotalAmount").on("change", function (evt) {
+        var $txtBox = $(this);
+        var value1 = parseFloat($txtBox.val());
+        value1 = value1.toFixed(2);
+        $txtBox.val(value1);
+        return $txtBox; //for chaining
+    });
+    $("#txtUnitPrice").keyup(function (event) {
+            var unitprice = $("#txtUnitPrice").val();
+            var qty = $("#txtPRDetailsQty").val();
+            var up = 0;
+            var qt = 1.0;
+            if(unitprice !=null && unitprice !=""){
+                unitprice = unitprice.replace(",", "");
+                up = parseFloat(unitprice).toFixed(2);
+            }
+            else {
+                unitprice = 0;
+            }
+            if (qty != null && qty != "") {
+                qt = parseFloat(qty);
+            }
+            var tot = parseFloat(up) * parseFloat(qt);
+            if (isNaN(tot) == false) {
+                tot = tot.toFixed(2);
+                //var testDecimal = testDecimals1(tot);
+                //if (testDecimal.length > 1) {
+                //    tot = tot.slice(0, -1);
+                //}
+                //$("#PRDetailTotalAmount").val(replaceCommas1(tot));
+                $("#PRDetailTotalAmount").val(tot);
+            }
+        //IsMandatoryActivityDetails(this);
+    });
+    //for comma
+    //$("#txtUnitPrice").keyup(function (event) {
+    //    if (event.which >= 37 && event.which <= 40) {
+    //        event.preventDefault();
+    //    }
+
+    //    var currentval = $("#txtUnitPrice").val();
+    //    var testDecimal = testDecimals1(currentval);
+    //    if (testDecimal.length > 1) {
+    //        currentval = currentval.slice(0, -1);
+    //    }
+    //    $("#txtUnitPrice").val(replaceCommas1(currentval));
+
+    //    validateamnt();
+    //    //IsMandatoryActivityDetails(this);
+    //});
+    //function testDecimals1(currentval) {
+    //    var count;
+    //    currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+    //    return count;
+    //}
+
+    //function replaceCommas1(yourNumber) {
+    //    var components = yourNumber.toString().split(".");
+    //    if (components.length === 1)
+    //        components[0] = yourNumber;
+    //    components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+    //    if (components.length === 2)
+    //        components[1] = components[1].replace(/\D/g, "");
+    //    return components.join(".");
+    //}
+    //function validateamnt() {
+    //    var unitprice = $("#txtUnitPrice").val();
+    //    var qty = $("#txtPRDetailsQty").val();
+    //    var up = 0;
+    //    var qt = 1;
+    //    if(unitprice !=null && unitprice !=""){
+    //        unitprice = unitprice.replace(",", "");
+    //        up = parseFloat(unitprice).toFixed(2);
+    //    }
+    //    else {
+    //        unitprice = 0;
+    //    }
+    //    if (qty != null && qty != "") {
+    //        qt = parseInt(qty);
+    //    }
+    //    var tot = parseFloat(up) * parseFloat(qt);
+    //    if (isNaN(tot) == false) {
+    //        tot = tot.toFixed(2);
+    //        //var testDecimal = testDecimals1(tot);
+    //        //if (testDecimal.length > 1) {
+    //        //    tot = tot.slice(0, -1);
+    //        //}
+    //        //$("#PRDetailTotalAmount").val(replaceCommas1(tot));
+    //       $("#PRDetailTotalAmount").val(tot);
+    //    }
+    //}
+</script>

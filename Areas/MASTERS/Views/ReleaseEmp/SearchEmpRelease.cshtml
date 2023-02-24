@@ -1,0 +1,93 @@
+﻿@model IEnumerable<IEM.Areas.MASTERS.Models.EmployeeRelease>
+@using IEM.Common
+@using IEM.Areas.MASTERS.Models
+@{
+    EmpReleaseDataModel dm = new EmpReleaseDataModel();
+    List<EmployeeRelease> lst = new List<EmployeeRelease>();
+    CmnFunctions objCmn = new CmnFunctions();
+    if (Session["SearchReleaseEmployee"] !=null)
+    {
+        lst = (List<EmployeeRelease>)Session["SearchReleaseEmployee"];
+    }
+    else
+    {
+        lst = dm.GetEmployeeDetails(objCmn.GetLoginUserGid()).ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.NoRecordsFound = "";
+    }
+  //  var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgEmployeeListRelease", ajaxUpdateCallback: "DummyFunction1001()");
+    var grid = new WebGrid(lst, canSort: false, canPage: false);
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgEmployeeListRelease">
+    <center>
+       
+        <div>
+            <div class="overflowx">
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridEmployeesRelease" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("_EmployeeGid", objCmnFunctions.Sorter("_EmployeeGid", "ID", grid), canSort: false),
+            grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_EmployeeCode", objCmnFunctions.Sorter("_EmployeeCode", "Employee Code", grid)),
+            grid.Column("_EmployeeName", objCmnFunctions.Sorter("_EmployeeName", "Employee Name", grid)),
+            grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a onclick="ReleaseEmployee(this)" ><span class="btn btn-link">Release</span></a>
+                </text>)
+                                           ))
+            </div>
+          
+        </div>
+    </center>
+   
+</div>
+
+<script type="text/javascript">
+    var emp_code;
+    var emp_name;
+    $(document).ready(function () {
+        $("#wgridEmployeesRelease td:nth-child(1),#wgridEmployeesRelease th:nth-child(1)").hide();
+        $("#wgridEmployeesRelease td:nth-last-child(1)").show();
+
+        $('#wgridEmployeesRelease tr th:nth-child(5)').addClass("nosort");
+        $('#wgridEmployeesRelease').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+    function DummyFunction1001() {
+        $("#wgridEmployeesRelease td:nth-child(1),#wgridEmployeesRelease th:nth-child(1)").hide();
+        $("#wgridEmployeesRelease td:nth-last-child(1)").show();
+    }
+    function ReleaseEmployee(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var empcode = tds.eq(2).text();
+        var objEmprelease = {
+            "_EmployeeCode": empcode
+        };
+        $.post('../ReleaseEmp/UpdateEmpRelease', objEmprelease,
+        function (data) {
+            if (data == 1) {
+                jAlert("Employee Released Successfully.", "Success");
+            }
+            else {
+                jAlert("Employee Release Failed", "Error");
+            }
+            $("#wgEmployeeListRelease").load('../ReleaseEmp/SearchEmpRelease?' + new Date().getTime());
+        }, 'json');
+    }
+</script>

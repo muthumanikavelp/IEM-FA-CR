@@ -1,0 +1,173 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+
+@{
+    
+   
+
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.AssetParentList,
+                        canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "searchgrid");
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+}
+     <div id="dvparent">
+    <table class="myTableStyleTabNew" style="margin-left:-03px;" align="center">
+        <tr>
+            <td>
+
+                <div>
+                    <span> Asset ID-To be Retained</span>
+                    <br />
+                    <input type="text"
+                           name="filter"
+                           id="txtFilter"
+                           value="@ViewBag.filter"
+                           class="textboxStyleSearch" maxlength="20" />
+                </div>
+
+            </td>
+            <td>
+
+                <span> </span>
+                <br />
+                <button class="btn btn-primary" type="submit" name="command" id="command" onclick="SearchParent()" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+            </td>
+            <td>
+
+                <div class="input-append ">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnclearforecfcle" value="Clear" name="command" type="button" onclick="refserachParent()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </span>
+                </div>
+            </td>
+           
+
+        </tr>
+
+    </table>
+   
+         <div style="margin-top:17px; height:250px;overflow:scroll;" class="overflowx overflowy">
+
+             @grid.GetHtml(
+                        fillEmptyRows: false,
+                        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        htmlAttributes: new { id = "wgridParentSearch" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns(
+                                 grid.Column(header: "", format: item => rowVal = rowVal + 1),
+                                 grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),
+                                 grid.Column("AssetCode", obj.Sorter("AssetCode", "Asset Code", grid), style: "MidColumns10"),
+                                 grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Description", grid), style: "MidColumns10"),
+                                 grid.Column("AssetValue", obj.Sorter("AssetValue", "Asset Value", grid), style: "MidColumns10")))
+             <div class="borderStyle btnCenter" align="center">
+                 <b> @ViewBag.Message </b>
+             </div>
+             <br />
+             <div class="myTableStyleTabNew">
+                 <span>  Total No Of Records :@Model.AssetParentList.Count </span>
+             </div>
+
+         </div>
+          </div>
+    <script type="text/javascript">
+
+    @*var ChildSearch = '@ViewBag.Childsearch';
+    var command = '@ViewBag.command';*@
+
+    //ViewBag.Childsearch = Model.AssetId;
+    //ViewBag.command = "SEARCH";
+
+    //function Getexfemployeelist() {
+
+    //    $("#wgridParentSearch td:nth-child(2),#wgridParentSearch th:nth-child(2)").show();
+    //}
+
+    function SearchParent() {
+
+
+
+        var AssetId = $('#txtFilter').val();
+        var command = $('#command').val();
+
+        var objownersearch =
+            {
+                "AssetId": AssetId,
+                "command": command
+            };
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("AssetParent", "AssetMerge")',
+            data: objownersearch,
+            success: function (data) {
+
+                $("#dvparent").empty().append(data);
+                $('#txtFilter').val('');
+                //refloadChild();
+
+            },
+            error: function () {
+            }
+        });
+
+       
+    }
+    function refserachParent() {
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("AssetParent", "AssetMerge")',
+            data: {},
+            success: function (data) {
+
+                $("#dvparent").empty().append(data);
+                $('#txtFilter').val('');
+            },
+            error: function () {
+
+            }
+
+
+
+
+        });
+
+    }
+
+
+
+    @*function refloadChild() {
+
+        var objownersearch =
+           {
+               "AssetId": ChildSearch,
+               "command": command
+           };
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("AssetChild", "AssetMerge")',
+            data: {},
+            success: function (data) {
+
+                $("#dvAssetchild").empty().append(data);
+                $('#txtFilter').val('');
+            },
+            error: function () {
+
+            }
+
+
+
+
+        });
+
+    }*@
+
+
+    </script>

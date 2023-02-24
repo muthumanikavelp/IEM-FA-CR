@@ -1,0 +1,229 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsCommon.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<script type="text/javascript">
+    var _currDTTab = 0;
+    $(function () {
+        $("#DTtabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Provision Mapping</span>
+    </div>
+    <div class="well">
+        <div id="DTtabs" style="min-height:300px; font-size:12px;">
+            <ul>
+                <li><a href="#tabs-1">Upload File</a></li>
+                <li><a href="#tabs-2">Search</a></li>
+            </ul>
+            <div>
+                <div id="tabs-1">
+                    <table class="myTableStyleTabNew" style="width:100%;">
+                        <tr>
+                            <td style="width:25%; padding:0px 5px;">
+                                <span>FileName</span>
+                                <br />
+                                <form id="uploaderForm">
+                                    <input type="file" style="width: 95%;padding-top: 5px;" id="attUploader" class="attUploader" name="UploadFile" />
+                                </form>
+                            </td>
+                            <td style="width:30%; padding:0px 5px; text-align:center;">
+                                <br />
+                                <button type="button" class="btn btn-primary" data-bind="click: $root.upload">
+                                    <span class="glyphicon glyphicon-save" style="color:white;"></span>
+                                    Upload
+                                </button>
+                                <button type="button" class="btn btn-primary" data-bind="click: $root.Clear" value="Cancel">
+                                    <span class="glyphicon glyphicon-refresh" style="color:white;"></span>
+                                    Clear
+                                </button>
+                                <button type="button" class="btn btn-warning" value="Download" data-bind="click: $root.Download">
+                                    <span class="glyphicon glyphicon-download-alt" style="color:white;"></span>
+                                    Download
+                                </button>
+                            </td>
+                            <td style="width:45%; padding:0px 5px; text-align:center;"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="tabs-2">
+                    <table width="100%" class="myTableStyleTabNew">
+                        <tr>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Provision From</span>
+                                <br />
+                                <input type="text"
+                                       id="txtProvisionFrom"
+                                       onkeypress="return isEvent(event)"
+                                       class="fstextbox fsDatepicker" />
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Provision To</span>
+                                <br />
+                                <input type="text"
+                                       id="txtProvisionTo"
+                                       onkeypress="return isEvent(event)"
+                                       class="fstextbox fsDatepicker" />
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Provision Amount</span>
+                                <br />
+                                <input type="text"
+                                       id="txtProvisionAmount"
+                                       @*onkeypress="return isNumberKey(event)"*@
+                                       class="fstextbox" />
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Provision By</span>
+                                <br />
+                                <input type="text"
+                                       id="txtProvisionBy"
+                                       class="fstextbox" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Unit</span>
+                                <br />
+                                <input type="hidden" id="hdfUnit" value="0" />
+                                <input type="text"
+                                       id="txtUnit"
+                                       class="fstextbox" />
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>Business</span>
+                                <br />
+                                <input type="hidden" id="hdfBusiness" value="0" />
+                                <input type="text"
+                                       id="txtBusiness"
+                                       class="fstextbox" />
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>FC</span>
+                                <br />
+                                @*<select id="ddlFC" class="fstextbox" data-bind="foreach: {data: BusinessSegmentArray}">
+                                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                    </select>*@
+                                <select name="ddlFC" id="ddlFC" class="fstextbox"
+                                        data-bind="options: BusinessSegmentArray, optionsText: 'Combo', optionsValue:'Id', value:0, optionsCaption:'- Select All -'"></select>
+                            </td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;">
+                                <span>CC</span>
+                                <br />
+                                <select name="ddlCC" id="ddlCC" class="fstextbox"
+                                        data-bind="options: CostCenterArray, optionsText: 'Combo', optionsValue:'Id', value:0, optionsCaption:'- Select All -'"></select>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:25%; padding:0px 10px 0px 3px;"></td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;"></td>
+                            <td style="width:25%; padding:0px 10px 0px 3px;"></td>
+                            <td style="width:25%; padding:10px 10px 0px 3px; text-align:right;">
+                                <button type="button" class="btn btn-primary" data-bind="click: $root.Search">
+                                    <span class="glyphicon glyphicon-search" style="color:white;"></span>
+                                    Search
+                                </button>
+                                <button type="button" class="btn btn-warning" data-bind="click: $root.ClearFilter">
+                                    <span class="glyphicon glyphicon-refresh" style="color:white;"></span>
+                                    Clear
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="table-responsive">
+                        <table id="gvMapping" class="tableSmall table-bordered table-hover" data-bind="visible: ProvisionMappingArray().length > 0">
+                            <thead>
+                                <tr>
+                                    <th style="width:6%; min-width:50px;">
+                                        SLNo
+                                    </th>
+                                    <th style="width:8%; min-width:100px;">
+                                        Provision Month
+                                    </th>
+                                    <th style="width:10%; min-width:100px;" class="colDate">
+                                        Provision Date
+                                    </th>
+                                    <th style="width:10%; min-width:130px;">
+                                        Business
+                                    </th>
+                                    <th style="width:10%; min-width:130px;">
+                                        Unit
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        FC
+                                    </th>
+                                    <th style="width:8%; min-width:100px;">
+                                        CC
+                                    </th>
+                                    <th style="width:20%; min-width:100px;">
+                                        Provision Amount
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Mapped Amount
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Provision By
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: { data: ProvisionMappingArray, afterRender: DatatableCall }, visible: ProvisionMappingArray().length > 0">
+                                <tr>
+                                    <td align="center">
+                                        <span data-bind="text: Slno"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: PMonth"></span>
+                                    </td>
+                                    <td align="center">
+                                        <span data-bind="text: PDate"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: FCName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: CCName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: FCCode"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: CCCode"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: $root.formatNumber(PAmount)"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: $root.formatNumber(MappedAmount)"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: ProvisionBy"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    var UrlDet = "@Url.Action("SetProvisionUpload", "Provision")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsProvisionMapping.js")" type="text/javascript"></script>
+

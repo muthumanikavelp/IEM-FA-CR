@@ -1,0 +1,168 @@
+﻿@using IEM.Areas.MASTERS.Models
+@model IEM.Areas.MASTERS.Models.iem_mst_auditsubgroup
+@{
+    iem_mst_auditsubgroup auditgroupname = (iem_mst_auditsubgroup)ViewBag.SelectGroup;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Audit SubGroup Name</span>
+                    <br />
+                    <input name="CategoryName" id="txtauditsubgroupname" maxlength="64" type="text" class="textboxStyle required"  style="width:249px;" data-val="true" value="" />
+                   
+                </div>
+            </td>
+            </tr>
+        <tr>
+            <td>
+                <div class="input-append">
+                    <span>Group Name</span>
+                    <br />
+                    <select name="auditgroup" id="auditgroupgid" class="form-control" style="width: 250px;height:30px;" onchange="checkauditgroup()">
+                        <option value="">-----Select----</option>
+                        @foreach (var pitem in auditgroupname.selctgroupname)
+                        {
+                            string selectedValue = "";
+                            if (ViewBag.selctgroupname == pitem.Text)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+                            <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                        }
+                    </select>
+                </div>
+            </td>
+           
+        </tr>
+    </table>
+    
+    <br />
+    <div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <button type="button" id="_save" disabled="disabled" value="Save" class="btn btn-primary" onclick="SaveCategoryName()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+<script type="text/javascript">   
+
+    $(document).ready(function () {
+        $(function () {
+            $("#txtauditsubgroupname").focus();
+        });
+
+        $("#txtauditsubgroupname").focus();
+        $("#txtauditsubgroupname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });      
+    });
+
+    $("#txtauditsubgroupname").keypress(function () {
+        var txtSupplierName = $("#txtauditsubgroupname").val();
+            if (txtSupplierName.trim() != "")
+            {
+                $("#txtauditsubgroupname").removeClass('required');
+                $("#txtauditsubgroupname").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#txtauditsubgroupname").removeClass('valid');
+                $("#txtauditsubgroupname").addClass('required');
+                CheckFieldsHeader();
+            }
+        });  
+
+    function checkauditgroup()
+    {
+        var sdfsdf = $("#auditgroupgid").val();
+       
+        if (sdfsdf == ""|| sdfsdf==null) {
+            CheckFieldsHeader();
+            $("#auditgroupgid").removeClass('valid');
+            $("#auditgroupgid").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#auditgroupgid").removeClass('required');
+            $("#auditgroupgid").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+</script>
+<script type="text/javascript">
+    function SaveCategoryName() {
+        var auditsubgroupname = $("#txtauditsubgroupname").val().trim();
+        var auditgroupgid = $("#auditgroupgid").val().trim();
+
+        var CategoryModel = {
+            "auditsubgroup_auditgroup_gid": auditgroupgid, "auditsubgroup_name": auditsubgroupname
+        };
+        $.post('../IEM_AUDITSUBGROUP/Insertauditsubgroup', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r = true) { return false; }
+                        });
+                    }
+                    else {
+                        jAlert("Record Inserted Successfully!!!", "Information", function (r) {
+                            if (r = true) { location = '../IEM_AUDITSUBGROUP/Index'; }
+                        });
+
+                    }
+                }
+            , 'json');
+
+    }
+
+    function GotoIndex()
+    {
+        window.parent.jQuery('#forauditsub').dialog('close');
+    }
+
+        function CheckFieldsHeader() {
+
+            var ErrCount = 0;          
+
+            if ($("#txtauditsubgroupname").val() == "" || $("#txtauditsubgroupname").val() == null) {
+                ErrCount = 1;
+            }
+            if ($("#auditgroupgid").val() == ""|| $("#auditgroupgid").val() == null) {
+                ErrCount = 2;
+            }           
+           
+            if (ErrCount == 0) {
+                $("#_save").removeAttr('disabled');
+            }
+            else {
+                $("#_save").attr('disabled', 'disabled');
+            }
+        }
+
+
+</script>
+
+
+
+
+
+
+

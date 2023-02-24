@@ -1,0 +1,89 @@
+﻿@model IEM.Areas.EOW.Models.CentraldataModel
+@{
+
+}
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew tblstyles" align="left">
+        <tr>
+            <td>
+                <span>Remarks</span>
+                <br />
+                <textarea 
+                       id="HoldRemarks"
+                       name="HoldRemarks"
+                       class="textboxStyleBig"
+                       maxlength="255"
+                       style="width: 400px;height:100px" />
+            </td>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button class="btn btn-primary" type="button" onclick="Return()" id="btn"><span style="color:white;" class="glyphicon glyphicon-share-alt"></span>&nbsp;Return Back</button>
+
+                    @*<button type="button" class="glyphicon glyphicon-share-alt" style="margin-top: 135px; margin-left: -319px;" value="Cancel" onclick="Return()"><span style="color:white;" class="glyphicon glyphicon-trash"></span>Return Back</button>*@
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="close" onclick="Close()"> <span style="color:white;" class="glyphicon glyphicon-remove"></span>Close</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<div id="ForPartialViewSearch"></div>
+<script type="text/javascript">
+
+    $("#HoldRemarks").keypress(function () {
+        var maxlen = 254;
+        if ($(this).val().length > maxlen) {
+            return false;
+        }
+    })
+
+    function Close() {
+        window.parent.jQuery('#ForPartialViewcentralHoldRelease').dialog('close');
+        //objDialogyCentralMaker.remove();
+    }
+    function Return() {
+        CheckListVal = [];
+        $('input:checkbox:checked').each(function () {
+            CheckListVal.push($(this).attr('value'));
+        });
+        var reason = $("#HoldRemarks").val()
+        if (reason == null || reason == "") {
+            jAlert("Please Enter Reason", "Information");
+            return false;
+        }
+        var Student = {
+            "SelectedValues": CheckListVal,
+            "Remarks": reason
+        };
+        $.ajax({
+            //url: '/CentralMaker/ReturnBack/',
+            url:'@Url.Action("ReturnBack", "CentralMaker")',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = "CentralHoldIndex";
+                    }
+                });
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+        })
+        .done(function () {
+            if (isSuccess == "Successfully Returned") {
+
+            }
+        });
+    }
+</script>

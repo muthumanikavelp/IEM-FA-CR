@@ -1,0 +1,112 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<b>
+    <span style="color: rgb(52,108,196);">
+        Report
+    </span>
+</b>
+
+<br /><br />
+@using (Html.BeginForm())
+{
+
+    <div class="well">
+
+        <div class="row">
+
+            <div class="col-sm-12">
+
+                <table class="myTableStyleTabNew" style="width:100%;">
+
+                    <tr>
+                        <td width="25%" style="padding: 0px 10px">
+                            <span>Date From</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDateFrom"
+                                   value="@ViewBag.fdate"
+                                   class="fstextbox required" />
+                        </td>
+                        <td width="25%" style="padding: 0px 10px">
+                            <span>Date To</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDateTo"
+                                   value="@ViewBag.tdate"
+                                   class="fstextbox required" />
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" onclick="Export()" type="button" style="margin-top:10px;  color:white;">
+                                <span style="color:white;" class="glyphicon glyphicon-download-alt"></span>
+                                Export Excel
+                            </button>
+                            <button class="btn btn-primary" onclick="clear()" style="color:white;margin-top:10px;">
+                                <span style="color:white; " class="glyphicon glyphicon-refresh"></span>
+                                Clear
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+<script>
+    $(document).ready(function () {
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd',
+            numberOfMonths: 1,
+            maxDate: new Date()
+        };
+        $("#txtDateFrom").datepicker(pickerOpts);
+        $("#txtDateTo").datepicker(pickerOpts);
+
+        $("#txtDateTo").change(function () {
+            var startDate = document.getElementById("txtDateFrom").value;
+            var endDate = document.getElementById("txtDateTo").value;
+            if (Date.parse(startDate) > Date.parse(endDate)) {
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                today = yyyy + '-' + mm + '-' + dd;
+                document.getElementById("txtDateFrom").value = "";
+                document.getElementById("txtDateTo").value = "";
+                jAlert("To Date should  be greater than From Date");
+            }
+        });
+        
+    });
+
+
+</script>
+<script>
+    function Export() {
+
+        var datefrom = "";
+        var dateto = "";
+        datefrom = $("#txtDateFrom").val();
+        dateto = $("#txtDateTo").val();
+        location = '@Url.Action("GetControllReport", "Report")?DateFrom=' + datefrom + '&todate=' + dateto + '&' +new Date().getTime();
+    }
+    function clear() {
+        $("#txtDateFrom").val("");
+        $("#txtDateTo").val("");
+    }
+</script>

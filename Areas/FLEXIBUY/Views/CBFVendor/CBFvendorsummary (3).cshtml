@@ -1,0 +1,147 @@
+﻿ @model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var grid = new WebGrid(source: Model.cbfCheckersumamry, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid()", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.Numeric);
+    ViewBag.Title = "CBFCancellationSummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowNum = 0;
+}
+<div class="well">
+    @*<h3>Vendor Selection-Capex Summary</h3>*@
+     <span style="color:rgb(52,108,196);"> Vendor Selection-Capex Summary</span>
+   
+    @using (Html.BeginForm())
+    {<br/>
+        <div class="panel panel-default">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>Enter CBF No</span>
+                            <input type="text"
+                                   name="txtcbfnochecker"
+                                   value="@ViewBag.txtcbfno"
+                                   class="textboxStyle"
+                                   style="display:block"
+                                   @*placeholder="Enter CBF No"*@ />
+                        </div>
+                    </td>
+
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>Enter CBF Date</span>
+
+                            <input type="text"
+                                   id="dtecbfdatechecker"
+                                   value="@ViewBag.txtcbfdate"
+                                   class="textboxStyle"
+                                   style="display:block"
+                                   @*placeholder="Enter CBF Date"*@ />
+                        </div>
+                    </td>
+
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>Select Cbf Mode</span>
+                            <select id="txtcbfmodechechker"
+                                    class="textboxStyle"
+                                    name="txtcbfmode"
+                                    style="display:block;width:200px;">
+                                <option value="0">--Select Cbf Mode--</option>
+                                <option value="PR">PR</option>
+                                <option value="PAR">PAR</option>
+                            </select>
+
+                        </div>
+                        
+                    </td>
+                    <td  style="padding-top:25px;">
+                        <div>
+                            @*<div style="padding:35px;">*@
+                            <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                    type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                            </button>
+                            @* <button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(255, 255, 255);" type="submit" name="command" title="Search" value="SEARCH"></button>*@
+                            @*</div>*@
+                        </div>
+                    </td>
+                    <td  style="padding-top:25px;">
+                        <div >
+    @*<div style=" padding:35px;margin-right:70px;">*@
+    <button type="button" id="btncancel" class="btn btn-primary" value="Cancel" onclick="refresh()">
+        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+    </button>
+    @* <button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(255, 255, 255);" type="submit" name="command" title="Search" value="SEARCH"></button>*@
+    @*</div>*@
+</div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        if (ViewBag.Message != null)
+        {
+            <div align="center">
+                <label class="control-label">@ViewBag.Message</label>
+            </div>
+        }
+        if (@ViewBag.Error != null)
+        {
+            <div align="center">
+                <label>@ViewBag.Error</label>
+            </div>
+        }
+
+        <div>
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered ",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+                 grid.Column("Sl", format: a => rowNum = rowNum + 1, canSort: false),
+                  grid.Column("cbfModeChecker", Sorter("cbfmode", "CBF Mode", grid), canSort: false),
+                  grid.Column("cbfNoChecker", Sorter("cbfno", "CBF No", grid), canSort: false),
+                   grid.Column("cbfDateChecker", Sorter("cbfdate", "CBF Date", grid), style: "col-sm-2", canSort: false),
+                   grid.Column("cbfEndDateChecker", Sorter("cbfenddate", "CBF End Date", grid), style: "col-sm-2", canSort: false),
+                  grid.Column("cbfrequestForChecker", Sorter("cbfrequestfor", "Department", grid), canSort: false),
+                  grid.Column("fincon_Bugchecker", Sorter("fincon_bug", "Fincon Budgeted", grid), canSort: false),
+                  grid.Column("cbfAmoChecker", Sorter("cbfamo", "CBF Amount", grid), style: "amountright", canSort: false),
+                   grid.Column("cbfProjectOwnerChecker", Sorter("cbfprojectowner", "CBF Project Owner", grid), style: "col-sm-3", canSort: false),
+                   grid.Column("cbfDevi_AmoChecker", Sorter("cbfdevi_amo", "Deviation Amount", grid), style: "amountright", canSort: false),
+                   grid.Column("cbfDescriptionChecker", Sorter("cbfdescription", "Description", grid), style: "MidColumn50", canSort: false),
+                 grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input class="btn btn-link" name="command" onclick="cbfvendor(id)" id="@item.cbFGidChecker" value="Vendor Selection" title="Vendor Selection" type="button" />
+                </text>)))
+            <div class="borderStyle">
+                @ViewBag.NoRecordsFound
+            </div>
+        </div>
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+    }
+</div>
+<script>
+    function cbfvendor(id) {
+        location = '../CBFVendorSelection/CBFVendorselection?lnid=' + id;
+    }
+  
+    $(document).ready(function () {
+       // $("#statusgid").removeClass('required');
+       //$("#statusgid").removeClass('valid');
+        $("#dtecbfdatechecker").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+</script>

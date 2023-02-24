@@ -1,0 +1,89 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common;
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.Getgstdetls(Session["EcfGid"].ToString(), Convert.ToString(Session["invoiceGid"]), "E").ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordse = "no";
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+}
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var GridGstDtl = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "GstDtl", ajaxUpdateCallback: "DummyFunction()");
+    int rowValExpense = 0;
+}
+<style>
+    .tableSmall thead td {
+        font-size: 12px;
+    }
+
+    .tableSmall tbody td {
+        font-size: 12px;
+        padding: 0px;
+    }
+
+    .ce {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 30px;
+        word-wrap: break-word;
+    }
+
+    .ae {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 350px;
+        word-wrap: break-word;
+    }
+
+    .de {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 75px;
+        word-wrap: break-word;
+    }
+
+    .ee {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 100px;
+        word-wrap: break-word;
+    }
+</style>
+<div style="width:100%; overflow:auto;" id="GstDtl" class="viewForIvoice">
+    
+    <div class="table-responsive" style="max-height: 350px;">
+        @GridGstDtl.GetHtml(
+        htmlAttributes: new { id = "Grdgstdetls" },
+                 tableStyle: "tableSmall table-bordered",
+        mode: WebGridPagerModes.All,
+        columns:
+        GridGstDtl.Columns(
+                           GridGstDtl.Column("#", canSort: false, style: "ce", format: item => rowValExpense = rowValExpense + 1),
+                                    GridGstDtl.Column("GstApplicable", objCmnFunctions.Sorter("GstApplicable", "GSNApplicable", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("Hsncode", objCmnFunctions.Sorter("Hsncode", "HSN Code", GridGstDtl), canSort: false, style: "de"),
+                           GridGstDtl.Column("HsnDesc", objCmnFunctions.Sorter("HsnDesc", "HSN Description", GridGstDtl), canSort: false, style: "ae"),
+                           GridGstDtl.Column("Subtax", objCmnFunctions.Sorter("Subtax", "Sub Tax", GridGstDtl), canSort: false, style: "ae"),
+                                    GridGstDtl.Column("TaxableAmt", objCmnFunctions.Sorter("TaxableAmt", "Taxable Amount", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("GstRate", objCmnFunctions.Sorter("GstRate", "Rate(%)", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column("TaxAmt", objCmnFunctions.Sorter("TaxAmt", "Tax Amount", GridGstDtl), canSort: false, style: "de"),
+                                    GridGstDtl.Column(header: "Action", canSort: false, style: "ee",
+            format: @<text>
+        @Html.Raw("<a title='Edit' onclick='EditTaxDetails(" + item.InvoiceTaxGid + ");' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+
+            </text>)))
+    </div>
+   
+  
+</div>
+

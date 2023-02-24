@@ -1,0 +1,327 @@
+﻿@using IEM.Areas.IFAMS.Models
+@model IEM.Areas.IFAMS.Models.servicetareport
+@{
+    ViewBag.Title = "FAreport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //var Session["saexcel"] = "";
+    var grid = new WebGrid(source: Model.stax, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "salrepgridid", ajaxUpdateCallback: "salrepgridid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+    int rowval = 0;
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"> </script>
+<b>
+    <span style="color: rgb(52,108,196);">
+        Service Tax Report
+    </span>
+</b>
+@using (Html.BeginForm())
+{
+    <div id="_gridfullre">
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                        <tr>
+
+                            <td>
+                                <div>
+                                    <span>From Date </span>
+                                    <br />
+                                    @*<select name="depfd" class="textboxStyleSearch" id="FinancialYear">
+
+                                            <option value="0">--Select--</option>
+                                        </select>*@
+                                    <input type="text" name="depfd" id="txtdepfd" maxlength="25" onchange="Fromdatechange(), checkRequiredfields()" value="@ViewBag.depfd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span>To Date </span>
+                                    <br />
+                                    <input type="text" name="deptd" id="txtdeptd" maxlength="25" onchange="Todatechange(), checkRequiredfields()" value="@ViewBag.deptd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearchreport" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="submit" id="btnclear" value="Clear" name="command" onclick="STclear()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                @if (ViewBag.Message == null)
+                                {
+                                    <button class="btn btn-primary" type="button" id="btnexport" value="Export" name="command" onclick="STaxExport()"><span style="color:white;" class="glyphicon glyphicon-export"></span> Export</button>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="fagridid" style="overflow-x:scroll;  margin-top:17px; " class=" ">
+                @grid.GetHtml(htmlAttributes: new { id = "salrepgridid" },
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered ",
+                mode: WebGridPagerModes.All,
+               columns: grid.Columns(
+                    grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+                    grid.Column("ECF NO", "ECF NO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfno</label>
+                    </span>
+                    </text>),
+                    grid.Column("PAN NO", "PAN NO", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.panno</label>
+                    </span>
+                    </text>),
+                    grid.Column("Vendor Code", "Vendor Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vendorcode</label>
+                    </span>
+                    </text>),
+                    grid.Column("Vendor Name", "Vendor Name", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vendorname</label>
+                    </span>
+                    </text>),
+                    grid.Column("EMP CODE", "EMP CODE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.empcode</label>
+                    </span>
+                    </text>),
+                    grid.Column("RAISER", "RAISER", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.raiser</label>
+                    </span>
+                    </text>),
+                    grid.Column("Invoice_No", "Invoice_No", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.invoiceno</label>
+                    </span>
+                    </text>),
+                    grid.Column("Invoice Date", "Invoice Date", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.invoicedate</label>
+                    </span>
+                    </text>),
+                    grid.Column("Bill Amount", "Bill Amount", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.billamount</label>
+                    </span>
+                    </text>),
+                    grid.Column("CBS Amount", "CBS Amount", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.cbsamount</label>
+                    </span>
+                    </text>),
+                    grid.Column("BSCC", "BSCC", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.bscc</label>
+                    </span>
+                    </text>), grid.Column("Branch", "Branch", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.branchname</label>
+                    </span>
+                    </text>), grid.Column("Exp Code", "Exp Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.expcode</label>
+                    </span>
+                    </text>), grid.Column("Sub Code", "Sub Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.subcode</label>
+                    </span>
+                    </text>), grid.Column("Narration", "Narration", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.narration</label>
+                    </span>
+                    </text>), grid.Column("Exp Month", "Exp Month", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.expmonth</label>
+                    </span>
+                    </text>), grid.Column("Bill Start Date", "Bill Start Date", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.billstartdate</label>
+                    </span>
+                    </text>), grid.Column("Bill End Date", "Bill End Date", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.billenddate</label>
+                    </span>
+                    </text>), grid.Column("Product Code", "Product Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.productcode</label>
+                    </span>
+                    </text>), grid.Column("Stax Amount", "Stax Amount", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.staxamount</label>
+                    </span>
+                    </text>), grid.Column("Service Tax", "Service Tax", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.servicetax</label>
+                    </span>
+                    </text>), grid.Column("Service Taxable Amt", "Service Taxable Amt", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.taxableamount</label>
+                    </span>
+                    </text>)
+                 ))
+                @if (ViewBag.Message != null)
+                {
+                    <div class="borderStyle" style="width:1155px" align="left">
+                        <b> @ViewBag.Message</b>
+                    </div>
+                }
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records: @grid.TotalRowCount</span>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    function checkRequiredfields() {
+
+        var frmdat = $("#txtdepfd").val();
+        var tdat = $("#txtdeptd").val();
+        if (frmdat != "" ) {
+            $("#txtdepfd").removeClass('required');
+            $("#txtdepfd").addClass('valid');
+           // CheckFieldcount();
+        }
+        else {
+            $("#txtdepfd").removeClass('valid');
+            $("#txtdepfd").addClass('required');
+            //CheckFieldcount();
+        }
+
+
+        if (tdat != "") {
+            $("#txtdeptd").removeClass('required');
+            $("#txtdeptd").addClass('valid');
+            // CheckFieldcount();
+        }
+        else {
+            $("#txtdeptd").removeClass('valid');
+            $("#txtdeptd").addClass('required');
+            //CheckFieldcount();
+        }
+    }
+    $(document).ready(function () {
+
+        checkRequiredfields();
+       // $('#btnsearchreport').click(function () {
+       //     showProgress();
+       //});
+
+        $("#btnexport").show();
+
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+        @*if ('@Model.ReportModel.Count' != 0)
+        { hideProgress(); }*@
+    });
+    function STclear() {
+        $("#txtdepfd").val("");
+        $("#txtdeptd").val("");
+       }
+
+    function STaxExport() {
+
+        location = '@Url.Action("STaxExport", "WCTReport")?' + new Date().getTime();
+    }
+
+    function Todatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+    function Fromdatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (fromdate != "") { $("#txtdepfd") }
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+
+    $("#txtinwfd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwtd").datepicker("option", "minDate", selected)
+        }
+    });
+    $("#txtinwtd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwfd").datepicker("option", "maxDate", selected)
+        }
+    });
+
+  
+    var tdate = new Date();
+        $("#txtdepfd, #txtdeptd").datepicker ({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: false,
+        dateFormat: 'dd-mm-yy ',
+        minDate: '',
+        maxDate: new Date(),
+        onClose: function (dateText, inst) {
+            var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+            var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+           },
+        beforeShow: function (input, inst) {
+            if ((datestr = $(this).val()).length > 0) {
+                year = datestr.substring(datestr.length - 4, datestr.length);
+                month = jQuery.inArray(datestr.substring(0, datestr.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker('option', 'defaultDate', 'maxDate', new Date(year, month, Date));
+               // $(this).datepicker('setDate', new Date(year, month, 1));
+            }
+            var other = this.id == "from" ? "#txtdeptd" : "#txtdepfd";
+            var option = this.id == "from" ? "maxDate" : "minDate";
+
+            if ((selectedDate = $(other).val()).length > 0) {
+                year = selectedDate.substring(selectedDate.length - 4, selectedDate.length);
+                month = jQuery.inArray(selectedDate.substring(0, selectedDate.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker("option", option,  new Date(year, month, Date));
+            }
+        }
+    });
+</script>
+

@@ -1,0 +1,159 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<div ng-app="GRNInward">
+    <div class="well">
+        <fieldset>
+            <legend><b><span style="color: rgb(52, 108, 196);">GRN Inward</span></b></legend>
+            <br />
+            <div ng-controller="GRNInwardController">
+                <div class="table-responsive">
+                    <div style="width:100%">
+                            Search &nbsp;  <input type="text" ng-model="search.$" class="textboxStyle100" style="width:30%;" placeholder="Enter Search Criteria..." />
+                    </div>
+                    <div style="width:100%;overflow-x:scroll;" id="divData">
+                        <table class="tableSmall table-bordered table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:3%;">
+                                        S.No
+                                    </th>
+                                    <th style="width:10%;">
+                                        PO Ref Number
+                                    </th>
+                                    <th style="width:40%;">
+                                        Vendor Name
+                                    </th>
+                                    <th style="width:10%;">
+                                        Amount
+                                    </th>
+                                    <th style="width:27%;">
+                                        Description
+                                    </th>
+                                    <th style="width:10%;">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody ng-show="filtered.length>0" ng-repeat="GRNInward in (filtered = (items| filter:search)) | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+                                <tr>
+                                    <td style="width:3%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{GRNInward.WORefNumber}}
+                                    </td>
+                                    <td style="width:40%;">
+                                        {{GRNInward.SCNVendorName}}
+                                    </td>
+                                    <td style="width:10%;">
+                                        {{GRNInward.TotalAmount}}
+                                    </td>
+                                    <td style="width:27%;">
+                                        {{GRNInward.WODescription}}
+                                    </td>
+                                    <td style="width:10%;" align="center">
+                                        <a ng-click="Inward(GRNInward.WOGid)" title="Inward">
+                                            <span class="glyphicon glyphicon-pushpin"></span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                    <div style="width:100%;">
+                        <div ng-show="filtered.length>0">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="color:#337ab7;font-weight:bold; padding-left:10px" align="left"> Total Records : <span>{{filtered.length}} </span> of <span>{{totalItems}} </span>  </td>
+                                    <td align="right">
+                                        <pagination total-items="filtered.length"
+                                                    ng-model="currentPage"
+                                                    page="currentPage"
+                                                    max-size="noofsetpages"
+                                                    boundary-links="true"
+                                                    items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                                        </pagination>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div style="text-align:center;width:100%;">
+                    <button type="button" class="btn btn-sm btn-warning" ng-click="CancelGRNInward()">
+                        <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var myApp = angular.module('GRNInward', ['ui.bootstrap']);
+    myApp.controller('GRNInwardController',['$scope', '$http', '$filter', function ($scope, $http, $filter) {
+        $scope.items = [];
+        $scope.currentPage = 1;
+        $scope.totalItems = $scope.items.length;
+        $scope.entryLimit = 10;
+        $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+        $scope.noofsetpages = 5;
+        showProgress();
+        $http.get('../GRNInwardNew/SummaryForGRNInwardData?' + new Date().getTime())
+         .then(function (response) {
+             $scope.items = JSON.parse(response.data.data0);
+             $scope.search = {};
+             $scope.resetFilters = function () {
+                 $scope.search = {};
+             };
+             $scope.currentPage = 1;
+             $scope.totalItems = $scope.items.length;
+             $scope.entryLimit = 10;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.noofsetpages = 5;
+             $scope.$watch('search', function (newVal, oldVal) {
+                 $scope.filtered = $filter('filter')($scope.items, newVal);
+                 $scope.totalItems = $scope.filtered.length;
+                 $scope.noOfPages = Math.ceil($scope.filtered.length / $scope.entryLimit);
+                 $scope.currentPage = 1;
+                 $scope.noofsetpages = 5;
+             }, true);
+             hideProgress();
+         })
+            .catch(function (response) {
+                hideProgress();
+                jAlert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText, "Information");
+                return false;
+                //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+                console.error('Gists error', response.status, response.data);
+            })
+        .finally(function () {
+            hideProgress();
+            console.log("finally finished");
+        });
+        $scope.Inward = function (wogid) {
+            location = '@Url.Action("Index", "GRNInwardNew")?WOGid=' + wogid + '&' + new Date().getTime();
+        }
+        $scope.CancelGRNInward = function () {
+            location = '@Url.Action("GRNInwardSummaryIndex", "GRNInwardSummary")?' + new Date().getTime();
+        }
+
+    }]);
+    myApp.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

@@ -1,0 +1,98 @@
+﻿@model IEM.Areas.MASTERS.Models.OrgTypeModel
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:100%;">
+                <span> Organization Type Name </span><br />
+                <input name="typeName" id="txtTypeName" type="text" maxlength="128" data-val="true" value="" class="textboxStyle required" style="display: block;" />
+
+            </td>
+        </tr>
+    </table>
+
+    <table class="myTableStyleTabNew" width="100%" style="margin-top:10px;">
+        <tr>
+            <td style="text-align:right; width:100%;">
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveTypeNameS()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnsave").removeAttr('disabled');
+        $("#btnsave").attr('disabled', 'disabled');
+
+        $("#txtTypeName").focus();
+        $("#txtTypeName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+    $("#txtTypeName").keyup(function () {
+        var txtSupplierName = $("#txtTypeName").val();
+        if (txtSupplierName.trim() != "") {
+            CheckFields();
+            $("#txtTypeName").removeClass('required');
+            $("#txtTypeName").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtTypeName").removeClass('valid');
+            $("#txtTypeName").addClass('required');
+            CheckFields();
+        }
+    });
+
+
+    function SaveTypeNameS() {
+        var typeName = $("#txtTypeName").val();
+        var typeModel =
+            {
+                "typeName": typeName.trim()
+            };
+        $.post('../AsmsSupplierOrgType/create', typeModel,
+        function (data) {
+            if (data != null) {
+                jAlert("Duplicate Record!", "Information", function (r) {
+                    if (r == true) {
+                        return false;
+                    }
+                });
+                return false;
+            }
+            else {
+
+
+                jAlert("Record Inserted Successfully!", "Information", function (r) {
+                    if (r == true) {
+                        location = '../AsmsSupplierOrgType/Index';
+                    }
+                });
+            }
+        }, 'json');
+    }
+
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+    function CheckFields() {
+        var ErrCount = 0;
+        if ($("#txtTypeName").val().trim() == "" || $("#txtTypeName").val() == null) {
+            ErrCount = 1;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>

@@ -1,0 +1,225 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.Eow_RetentionForfeiture>
+@{
+    ViewBag.Title = "Retention Forfeiture Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+    int rowVal = 0;
+}
+
+<b>
+    <span style="color: rgb(52, 108, 196);">Retention  Forfeiture</span>
+</b>
+<br /><br />
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div class="well">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <table class="myTableStyleTabNew">
+            <tr>
+                @*<td>
+                    <span>Release Date</span>
+                    <div class="input-append">
+                        <input type="date"
+                               name="filter_name"
+                               id="txtDate"
+                               value="@ViewBag.filter_name"
+                               class="textboxStyle"
+                               style=" width:162px; " maxlength="10" />
+                    </div>
+                </td>*@
+                <td>
+                    <span>ECF Date</span>
+                    <div class="input-append">
+                        <input type="text"
+                               name="filter_name1"
+                               id="txtFilterName1"
+                               value="@ViewBag.filter_name1"
+                               class="textboxStyle"
+                               style="display: block; width:120px; "
+                               autocomplete="off"
+                               maxlength="10" />
+                    </div>
+                </td>
+                <td>
+                    <span>ECF No</span>
+                    <input type="text"
+                           name="ECFNo"
+                           id="txtECFNoId"
+                           value="@ViewBag.ECFNo" maxlength="16"
+                           class="textboxStyle"
+                           autocomplete="off"
+                           style="display: block;width:162px; " />
+                </td>
+                <td>
+                    <span>Invoice No</span>
+                    <input type="text"
+                           name="InvoiceNo"
+                           id="txtInvoiceNoId"
+                           value="@ViewBag.InvoiceNo" maxlength="32"
+                           class="textboxStyle"
+                           autocomplete="off"
+                           style="display: block;width:162px; " />
+                </td>
+                <td>
+                    <span>Supplier Code</span>
+                    <input type="text"
+                           name="Suppliercode"
+                           id="txtSuppliercode"
+                           value="@ViewBag.Suppliercode" maxlength="32"
+                           class="textboxStyle"
+                           autocomplete="off"
+                           style="display: block;width:162px; " />
+                </td>
+                <td>
+                    <span>Supplier Name</span>
+                    <input type="text"
+                           name="Suppliername"
+                           id="txtSuppliername"
+                           value="@ViewBag.Suppliername" maxlength="32"
+                           class="textboxStyle"
+                           autocomplete="off"
+                           style="display: block;width:162px; " />
+                </td>
+                <td>
+                    <span>Maturity Date</span>
+                    <div class="input-append">
+                        <input type="text"
+                               name="extendeddate"
+                               id="txtextendeddate"
+                               value="@ViewBag.extendeddate"
+                               class="textboxStyle"
+                               autocomplete="off"
+                               style="display: block; width:120px; "
+                               maxlength="10" />
+                    </div>
+                </td>
+            </tr>
+           
+
+        </table>
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:-56px;color:white;margin-left:939px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                    <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:-56px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+
+                    <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="refresh()" style="margin-top:-56px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top:-30px;" id="mainll">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered table-hover table-responsive ",
+                columns: grid.Columns
+                (
+       grid.Column("ecf_date", Sorter("ecf_date", "ECF Date", grid)),
+       grid.Column("ecf_no", Sorter("ecf_no", "ECF No", grid)),
+       grid.Column("ecf_suppliercode", Sorter("ecf_suppliercode", "Supplier Code", grid)),
+       grid.Column("ecf_suppliername", Sorter("ecf_suppliername", "Supplier Name", grid)),
+       //grid.Column("invoice_retention_amount", Sorter("invoice_retention_amount", "Retention Amount", grid)),
+       //grid.Column("release_amount", Sorter("release_amount", "Released Amount", grid)),
+      // grid.Column("invoice_retention_exception", Sorter("invoice_retention_exception", "Balance Amount", grid)),
+       grid.Column("invoice_no", Sorter("invoice_no", "Invoice No", grid)),
+       grid.Column("invoice_amount", Sorter("invoice_amount", "Invoice Amount", grid)),
+       grid.Column("invoice_retention_releaseon", Sorter("invoice_retention_releaseon", "Extented Date", grid)),
+       //grid.Column("extended_date", Sorter("extended_date", "Extended Date", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='Forfuture' onclick='tag(" + item.invoice_gid + ")'> <span >Forfeiture</span> </a>")
+                </text>)))
+            @if (ViewBag.records != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.records
+                </h6>
+            </div>
+            }
+        </div>
+        <div>
+            <br/>
+           @if (ViewBag.records == null)
+            {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+            }  
+        </div>
+    }
+</div>
+<div id="ForPartialViewretentionfuture"></div>
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+
+        $("#txtECFNoId").focus();
+        $("#txtECFNoId").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtInvoiceNoId").focus();
+        $("#txtInvoiceNoId").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtSuppliercode").focus();
+        $("#txtSuppliercode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtSuppliername").focus();
+        $("#txtSuppliername").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+    });
+    $(document).ready(function () {
+
+        objDialog = $("[id$='ForPartialViewretentionfuture']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 750,
+                height:550,
+                resizable: false
+            });
+
+    });
+    function tag(id)
+    {
+        objDialog.load('../RetentionForfeiture/RetentionFutureDoc?id=' + id);
+        objDialog.dialog({ title: 'Retention Forfeiture' });
+        objDialog.dialog("open");
+    }
+    function refresh()
+    {
+        location = '../RetentionForfeiture/Index';
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtFilterName1").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy'
+        });
+        $("#txtextendeddate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+</script>

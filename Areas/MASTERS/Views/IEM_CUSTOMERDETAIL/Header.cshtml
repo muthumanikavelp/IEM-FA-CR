@@ -1,0 +1,514 @@
+﻿@model IEM.Areas.MASTERS.Models.CustomerDetailHeader
+@using IEM.Areas.MASTERS.Models
+@{
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageModeIndex = (string)Session["PageMode"];
+    }
+    if (Session["CustCode"] != null)
+    {
+        ViewBag.CustCode1 = (string)Session["CustCode"];
+      
+    }
+
+    var viewfor = ViewBag.viewfor;
+  CustomerDetailHeader sh = (CustomerDetailHeader)ViewBag.customerheader;
+
+  ViewBag.CustomerHeaderGid = Convert.ToInt64(System.Web.HttpContext.Current.Session["CustomerHeaderGid"]);
+
+  if (viewfor == "edit")
+  {
+      if (@sh._IsActiveContract == "Y")
+      {
+          ViewBag.yes = "checked";
+      }
+      else
+      {
+          ViewBag.no = "checked";
+      }
+  }
+  if (viewfor == "view")
+  {
+
+      if (@sh._IsActiveContract == "Y")
+      {
+          ViewBag.yes = "checked";
+      }
+      else
+      {
+          ViewBag.no = "checked";
+      }
+  }
+     
+
+
+<div id="tabs" style="display:block; font-size:14px;">
+    <ul>
+        <li><a href="#tabs-1">Header</a></li>
+        <li><a href="#tabs-2">Contact Details</a></li>
+        <li><a href="#tabs-3">GST</a></li>
+    </ul>
+
+
+    <div id="tabs-2">
+        @Html.Partial("ContactDetails")
+    </div>
+
+    @*/************** GST Work *********************************/*@
+    <div id="tabs-3">
+        @Html.Partial("GST")
+    </div>
+    @*/************** GST Work *********************************/*@
+
+
+    <br />
+
+    <div id="tabs-1">
+
+        <div class="borderStyle" id="divHeaderContent">
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="width:32%">
+                        <input type="hidden" id="SessionCustomerGid" name="SessionCustomerGid" />
+                        <span>Customer Code</span><br />
+                        <input type="text" class="textboxStyle" disabled name="txtCustomerCode" id="txtCustomerCode" value="@sh._CustomerCode"  />
+                    </td>
+                    <td style="width:32%">
+                        <span>Customer Name</span><br />
+                        <input type="text" class="textboxStyle required" name="txtCustomerName" id="txtCustomerName" value="@sh._CustomerName"  />
+                        @*<a onclick="GetSupplierNames()" id="btnSupplierNameSearchHeader"><span class="glyphicon glyphicon-search"></span></a>*@
+                    </td>
+                    <td style="width:34%">
+                        <span>Pan Number</span><br />
+                        <input type="text" class="textboxStyle required" name="txtCustomerPanNo" id="txtCustomerPanNo" value="@sh._PanNo"  />
+                        @*<a onclick="GetSupplierPanNo()" id="btnSupplierPanNoSearchHeader"><span class="glyphicon glyphicon-search"></span></a>*@
+                    </td>
+
+                </tr>
+                <tr>
+                    <td style="width:32%">
+                        <span>Website</span><br />
+                        <input type="text" class="textboxStyle" placeholder="www.example.com" name="txtWebsite" id="txtWebsite" value="@sh._website" />
+                    </td>
+                    <td style="width:32%">
+                        <span>Email ID</span><br />
+                        <input type="text" class="textboxStyle" placeholder="example@domain.com" name="txtEmailID" id="txtEmailID" value="@sh._EmailID"   />
+                    </td>
+                    <td style="width:34%">
+                        <span> Active </span><br />
+                        <div style="height:27px;font-weight:normal;">
+                            <input type="radio" id="rbYes" name="rblActiveContract" value="Y" checked="checked" /> Yes
+                            &nbsp;<input type="radio" id="rbNo" name="rblActiveContract" value="N"   /> No
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1" style="width:32%">
+                        <span>Reason For DeActivate </span><br />
+                        @*@Html.TextAreaFor(model => model._ReasonForNoContract,
+                        new { style = "width: 200px; height: 15px;" }*@
+
+                        <textarea class="textboxStyle" name="txtReasonForNoContract" id="txtReasonForNoContract" >@sh._ReasonForNoContract</textarea>
+                    </td>
+                </tr>
+
+            </table>
+
+
+            <div style="text-align:right; padding-right:30px; margin-top:10px;" class="divforbutton">                 
+                <button id="btnNextHeader" class="btn btn-primary" value="Save"> Save <span style="color:white;" class="glyphicon glyphicon-sha"></span></button>
+                <button id="btnClearHeader" onclick="ClearHeaderFields()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+            </div>
+        </div>
+    </div>
+    <br /> 
+    <div class="divforbutton" style="text-align:right;">
+            <button id="btnNext" style="display:none;text-align:right" class="btn btn-primary">Next <span style="color:white;" class="glyphicon glyphicon-forward"></span></button>      
+    </div>
+
+    <div id="divSubmitButton1" style="display:none;">
+        <div style="text-align:right;padding-right:20px;" class="divforbutton">
+            @*<a name="btnSaveAsDraft" id="btnSaveAsDraft" class="btn btn-primary" onclick="SaveAsDraft('save')"><span style="color:white;" class="glyphicon glyphicon-briefcase"></span> Save As Draft</a>*@
+            <a name="btnSubmitFinal" id="btnSubmitFinal" class="btn btn-success" onclick="FinalApprove()"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</a>
+           
+        </div>
+    </div>
+</div>
+}
+<script type="text/javascript">
+
+    $("#btnNext").click(function () {
+        $('#tabs').tabs('select',1);
+    });
+    
+    var pagemodeindex = parseInt(@ViewBag.PageModeIndex);
+    var viewfor = '@ViewBag.viewfor';
+
+    $(document).ready(function () {
+        $(function () {
+            var currentTab = 0;
+            $("#tabs").tabs({
+                select: function (e, i) {
+                    currentTab = i.index;
+                }
+            });
+            //$("#tabs").css("display", "block");
+
+        });
+
+        if (pagemodeindex == 1) {
+            $("#divForStatus").css("display", "block");
+            $("#divForApproval").css("display", "none");
+            //$("#divSubmitButton1").css("display", "none");
+            if (viewfor == "create") {
+                $("#tabs").tabs({ disabled: [1, 2] });
+                $("#btnNextHeader").val("Save");
+                $("#btnNextHeader").text("Save");
+                $("#btnNextHeader").show();
+                $("#btnClearHeader").show();
+               
+                $("#txtCustomerName").removeAttr("readonly", "readonly");
+                $("#txtCustomerPanNo").removeAttr("readonly", "readonly");
+                $("#txtWebsite").removeAttr("readonly", "readonly");
+                $("#txtEmailID").removeAttr("readonly", "readonly");
+                $("#txtReasonForNoContract").removeAttr("readonly", "readonly");
+            }
+            else if (viewfor == "edit") {
+                $("#tabs").tabs({ enabled: [1, 2] });
+                $("#btnNextHeader").val("Update");
+                $("#btnNextHeader").text("Upadate");
+                $("#btnNextHeader").show();
+                $("#btnClearHeader").show();
+                $("#btnNext").css("display","block");
+
+                $("#txtCustomerName").removeAttr("readonly", "readonly");
+                $("#txtCustomerPanNo").removeAttr("readonly", "readonly");
+                $("#txtWebsite").removeAttr("readonly", "readonly");
+                $("#txtEmailID").removeAttr("readonly", "readonly");
+                $("#txtReasonForNoContract").removeAttr("readonly", "readonly");
+            }
+            else if (viewfor == "view") {
+                $("#tabs").tabs({ enabled: [1, 2] });
+                $("#btnNextHeader").hide();
+                $("#btnClearHeader").hide();
+                $("#txtCustomerName").attr("readonly", "readonly");
+                $("#txtCustomerPanNo").attr("readonly", "readonly");
+                $("#txtWebsite").attr("readonly", "readonly");
+                $("#txtEmailID").attr("readonly", "readonly");
+                $("#txtReasonForNoContract").attr("readonly", "readonly");
+                 
+            }
+           
+        }
+
+    });
+
+   
+
+    $("#btnNextHeader").click( function ()   {
+        debugger;
+        
+        var custcode = '@ViewBag.CustCode1';
+
+        var savemode = $("#btnNextHeader").val();
+        if (custcode != "" && custcode != null) {
+            $("#txtCustomerCode").val(custcode);
+        }
+        var custheadermodel;
+
+        var CustHeaderGid = $("#SessionCustomerGid").val();
+
+        //if (CustHeaderGid == "" || CustHeaderGid == "0" || CustHeaderGid == null) {
+
+            var custIsActiveContract;
+            custIsActiveContract = $('input:radio[name=rblActiveContract]:checked').val(); 
+
+            var custCode = $("#txtCustomerCode").val();
+            var custName = $("#txtCustomerName").val();
+            var custWebsite = $("#txtWebsite").val();
+            var custEmailID = $("#txtEmailID").val();
+            var custReasonForNoContract = $("#txtReasonForNoContract").val();
+            var custPanNo = $("#txtCustomerPanNo").val();
+           
+
+            if ($("#txtCustomerName").val().trim() == "" || $("#txtCustomerName").val() == null) {
+                jAlert("Please Enter Supplier Name", "Error", function () {
+                    $("#txtCustomerName").focus();
+                });
+                return false;
+            }
+
+            if ($("#txtCustomerPanNo").val().trim() == "" || $("#txtCustomerPanNo").val() == null) {
+                //jAlert("Please Enter Supplier Pan Number", "Error", function () {
+                //    $("#txtSupplierName").focus();
+                //});
+                //return false;
+            }
+            else {
+
+                var txtPanNum = $("#txtCustomerPanNo").val();
+                var panval = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+                var code1 = /([C,P,H,F,A,T,B,L,J,G])/;
+                var code_chk = txtPanNum.substring(3, 4);
+                if (txtPanNum.search(panval) == -1) {
+                    jAlert("Invalid Pan Number", "Error", function () {
+                        $("#txtCustomerPanNo").focus();
+                    });
+                    return false;
+                }                
+            }
+            
+            var custnameCount = 0;
+            var custpannoCount = 0;
+            var objcustHeader1 =
+              {
+                  "_CustomerName": custName,
+                  "_PanNo": custPanNo,
+                  "_CustomerCode":custCode,
+                  "_Savemode": savemode
+              };
+             
+            $.ajax({
+                url: '@Url.Action("CheckCustomerName", "IEM_CUSTOMERDETAIL")',
+                data: JSON.stringify(objcustHeader1),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (parseInt(data) > 0) {
+                        custnameCount = data;
+                        jAlert("Customer Name Already Exists with the Same PAN Number.", "Error", function () {
+                            $("#txtCustomerName").focus();
+                        });
+                        return false;
+                    }
+                    else {
+                        var objCustHeader1 =
+                           {
+                               "_PanNo": custPanNo,
+                               "_CustomerCode": custCode,
+                               "_Savemode": savemode
+                           };
+                        $.ajax({
+                            url: '@Url.Action("CheckCustomerPanNo", "IEM_CUSTOMERDETAIL")',
+                            data: JSON.stringify(objCustHeader1),
+                            type: 'POST',
+                            async: false,
+                            cache: false,
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (data) {
+                                if (data > 0) {
+                                    suppannoCount = data;
+                                    jAlert("Customer Pan Number Already Exists.", "Error", function () {
+                                        $("#txtCustomerPanNo").focus();
+                                    });
+                                    return false;
+                                }
+                                else {
+                                    
+                                    custPanNo = custPanNo.toUpperCase();
+                                    
+
+                                    custheadermodel = {
+                                        
+                                        "_CustomerCode": custCode,
+                                        "_CustomerName": custName,
+                                        "_website": custWebsite,
+                                        "_IsActiveContract": custIsActiveContract,
+                                        "_ReasonForNoContract": custReasonForNoContract,
+                                        "_EmailID": custEmailID,
+                                        "_PanNo": custPanNo,
+                                        "_Savemode":savemode
+                                        //"_SupplierTypeRemarks": supTypeRemarks
+                                        
+                                    };
+
+                                    $.post('../IEM_CUSTOMERDETAIL/InsertCustomerHeader', custheadermodel,
+                                   function (data) {
+                                       //setActivityName(supServiceTypeID);
+                                       if (data.length > 0) {
+                                           var custgid = data[0]._HeaderID;
+                                           var custcode = data[0]._CustomerCode;
+                                           var custstatus = data[0]._CustomerStatus;
+                                           $("#SessionCustomerGid").val(custgid);
+                                           $("#txtCustomerCode").val(custcode);
+                                           $("#tabs").tabs({ disabled: [2] });                                           
+                                           $('#tabs').tabs('select', 1);
+                                           $("#btnClearHeader").prop("disabled", true);
+                                           if (custstatus == "true") {
+                                               jAlert("Updated Successfully", "success");
+                                               $("#btnNext").css("display", "block");
+                                               //return false;
+                                           }
+                                           else {
+                                               jAlert("Saved Successfully", "success");
+                                               $("#btnNext").css("display", "block");
+                                               $("#btnNextHeader").val("Update");
+                                               $("#btnNextHeader").text("Upadate");
+                                               $("#tabs").tabs({ enabled: [2] });
+                                               $('#tabs').tabs('select', 1);
+                                               //return false;
+                                           }
+                                           @*$.ajax({
+                                               type: 'post',
+                                               url: '@Url.Action("Header", "IEM_CUSTOMERDETAIL")?viewfor=view&id=' + custgid + '&' + new Date().getTime(),
+                                               data: {},
+                                               success: function (data) {
+                                                   $("#txtCustomerCode").val(custcode);
+                                                   //$("#divSubmitButton1").css("display", "block");
+                                                   //$("#tabs").tabs({ disabled: [2] });
+                                                   //$('#tabs').tabs('select', 1);
+                                               },
+                                               error: function () {
+                                                  
+                                               }
+                                           });*@
+
+
+
+
+                                           
+                                       }
+                                       else if (data.length == 0) {
+                                           jAlert(ErrMsg_1, Title_1);
+                                       }
+                                       //if (data == 0) {
+                                       //    jAlert(ErrMsg_1, Title_1);
+                                       //    return false;
+                                       //}
+                                       //else {
+                                       //    $("#SessionSupplierGid").val(data);
+                                       //    //location.reload();
+                                       //    $("#divSubmitButton1").css("display", "block");
+                                       //    $("#tabs").tabs({ disabled: [9] });
+                                       //    $('#tabs').tabs('select', 1);
+                                       //}
+                                   }, 'json');
+
+
+                                }
+                            },
+                            error: function (result) {
+                                jAlert("Something went wrong", "Error");
+                            }
+                        });
+
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+           
+
+        //}
+        //else {
+        //    $("#tabs").tabs({ disabled: [3] });
+        //    $('#tabs').tabs('select', 1);
+        //}
+
+    });
+
+
+    $("#txtCustomerName").keyup(function () {
+        IsMandatory(this);
+        CheckFieldsHeader();
+    });
+
+    $("#txtCustomerPanNo").keyup(function () {
+        IsMandatory(this);
+        CheckFieldsHeader();
+    });
+
+
+    function IsMandatory(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+
+    function CheckFieldsHeader() {
+        var ErrCount = 0;
+        if ($("#txtCustomerName").val().trim() == "" || $("#txtCustomerName").val() == null) {
+            ErrCount = 1;
+        }
+        
+        if ($("#txtCustomerPanNo").val().trim() == "" || $("#txtCustomerPanNo").val() == null) {
+            ErrCount = 2;
+        }
+         
+        if (ErrCount == 0) {
+            $("#btnNextHeader").removeAttr('disabled');
+        }
+        else {
+            $("#btnNextHeader").attr('disabled', 'disabled');
+        }
+    }
+
+    function ClearHeaderFields() {
+         
+        $("#rbYes").prop('checked', true);
+        $("#rbNo").prop('checked', false);   
+        $("#txtCustomerCode").val("");
+        $("#txtCustomerName").val("");
+        $("#txtCustomerPanNo").val("");
+        $("#txtWebsite").val("");      
+        $("#txtEmailID").val("");
+        $("#txtReasonForNoContract").val("");        
+        
+        $("#txtCustomerName").addClass('required');
+        $("#txtCustomerPanNo").addClass('required');
+       
+    }
+
+
+    function FinalApprove() {
+        debugger;
+        //var id = $("#hdncustomerheadergid").val();
+        var id = '@Session["CustomerHeaderGid"]' 
+        var check_value = $('.radiochecked:checked').val();
+        if (check_value == "Y")
+        {
+            var customergst_app = 'Y';
+        }
+        else
+        {
+            var customergst_app = 'N';
+        }
+        jConfirm("Do you want to save this record ? ", "save Location", function (j) {
+            if (j == true) {
+                var model = { "customerheader_gid": id, "customergst_app": customergst_app }
+                $.post('../IEM_CUSTOMERDETAIL/ApproveCustomerMasterDetail', model,
+                   function (data) {
+                       if (data == "success") {
+                           jAlert("Record saved Successfully!!!", "Information", function (r) {
+                               if (r = true) {
+                                   location = '../IEM_CUSTOMERDETAIL/Index';
+                               }
+                           });
+                       }
+
+                   }, 'json');
+            }
+        });
+
+    }
+
+
+    //$('.ui-dialog-titlebar-close').click(function () {
+    //    debugger;
+    //    $('#ForPartialView').dialog('destroy');
+    //    $('#ForCustPartialView').dialog('destroy');
+
+    //    //location = '../IEM_CUSTOMERDETAIL/Index';
+    //});
+
+
+</script>

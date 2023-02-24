@@ -1,0 +1,209 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchgrid", ajaxUpdateCallback: "dummyforposearch()");
+    int rowVal = 0;
+}
+<div id="searchgrid">
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew tblstyles" align="center">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> PO Number </span>
+                            <input name="EmployeeCode"
+                                   id="txtponumbersear"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.EmployeeCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> PO Amount </span>
+                            <input name="EmployeeName"
+                                   id="txtponumberseartot"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.pototal"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                       
+                        </td>                        
+                        @*<td>
+                                <button class="btn btn-primary" type="button" style="margin-top: 20px;" onclick="searchemployee()">Search</button>
+                            </td>*@
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btnbosearch" value="Search" name="command" type="button" onclick="Searchpodetails11()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btnpoclear" value="Clear" name="command" type="button" onclick="refrespodettails123()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="Gotorpo()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+            htmlAttributes: new { id = "webgridposearch" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+             grid.Column("PONo", Sorter("PONo", "Po Number", grid)),
+          grid.Column("pototal", Sorter("pototal", "Po TotalAmount", grid)),
+            // grid.Column("RaiserCode", Sorter("RaiserCode", "Raiser Code", grid)),
+            // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @*<input type="hidden" id="EmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />*@
+                    <input type="hidden" id="raisercodefind_@item.poid" name="raisercode" value="@item.PONo" />
+                    @*<input type="hidden" id="raisernamefind_@item.poid" name="raisername" value="@item.pototal" />*@
+                    <a><span class="btn btn-link btnsearch" id="EmployeeSearch" onclick="Selectpodetails(@item.POid)">Select</span></a>
+                </text>)
+)))
+            </div>
+            @if (ViewBag.Message != null)
+            {   <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+        
+        $(document).ready(function () {
+
+            $("#txtponumbersear").keyup(function () {
+                var txtSupplierName = $("#txtponumbersear").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtponumbersear").removeClass('required');
+                    $("#txtponumbersear").addClass('valid');
+
+                }
+                else {
+                    $("#txtponumbersear").removeClass('valid');
+                    $("#txtponumbersear").addClass('required');
+
+                }
+            });
+            $("#txtponumberseartot").keyup(function () {
+                var txtSupplierName = $("#txtponumberseartot").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#txtponumberseartot").removeClass('required');
+                    $("#txtponumberseartot").addClass('valid');
+
+                }
+                else {
+                    $("#txtponumberseartot").removeClass('valid');
+                    $("#txtponumberseartot").addClass('required');
+
+                }
+            });
+
+        });
+        function refrespodettails123() {
+            $('#txtponumberseartot').val('');
+            $('#txtponumbersear').val('');
+            var empcode = $('#txtponumbersear').val();
+            var empname = $('#txtponumberseartot').val();
+
+            var objownersearch =
+               {
+                   "pototal": empname,
+                   "PONo": empcode,
+               };
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SupplierSearchPO11", "Central")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgrid").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+
+        }
+    function Searchpodetails11() {
+
+        var empname = $('#txtponumberseartot').val();
+        var empcode = $('#txtponumbersear').val();
+        var gid = $('#gidvalueforsear').val();
+      
+            var objownersearch =
+                {
+                    "pototal": empname,
+                    "PONo": empcode,
+                    
+                };
+                $.ajax({
+                type: 'POST',
+                url: '@Url.Action("SupplierSearchPO11", "Central")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgrid").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+        }
+    function Selectpodetails(id) {
+        
+              
+        var pocode = $("#raisercodefind_" + id + "").val();       
+        $('#txtponumber').val(pocode);
+        $('#txtponumber1').val(pocode);
+        $("#txtponumber").removeClass('required');
+        $("#txtponumber").addClass('valid');
+        $("#txtponumber1").removeClass('required');
+        $("#txtponumber1").addClass('valid');
+            Gotorpo();
+        }
+
+    function Gotorpo() {
+            //objDialogySearch.remove();
+            posearchdetails.dialog("close");
+            posearchdetails.remove();
+            window.parent.jQuery('#forpartialviewforposearch').dialog('close');
+            
+        }
+    function dummyforposearch() {
+            $("#webgridposearch td:nth-child(2),#webgridposearch th:nth-child(2)").show();
+        }
+</script>

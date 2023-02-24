@@ -1,0 +1,185 @@
+﻿@model  IEM.Areas.EOW.Models.ApproverAction
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (Session["RejectProcess"] != "")
+    {
+        //var fd = Session["RejectProcess"].ToString();
+        ViewBag.viewmode = "disabled";
+        viewfor = "disabled";
+    }
+    if (Session["Ecfdeclaratonnote"] != null)
+    {
+        ViewBag.decnote = Session["Ecfdeclaratonnote"].ToString();
+    }
+}
+<div class="container">
+    <table class="myTableStyleTab" style="width :100%;">
+        <tr>
+            <td>Status Updation</td>
+            <td>
+                <input type="radio" name="rblstatusc" id="rblApprove" value="Approve" />&nbsp;<span style="color: green;font-size: 15px;" class="glyphicon glyphicon-thumbs-up"></span>&nbsp;Approve
+                &nbsp;&nbsp; <input type="radio" name="rblstatusc" id="rblReject" value="Reject">&nbsp;<span style="color: red;font-size: 15px;" class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Reject
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span><b>Remarks</b></span><br />
+                <textarea id="txtReject" style="width: 100%; height: 30px; " maxlength="255" class="textboxStyle"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <table class="myTableStyleTab" style="margin-top:-2%;width: 100%;">
+                    <tr>
+                        <td colspan="2">
+                            <span><b>Declaration Note</b></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 1%;">&nbsp;&nbsp;<input type="checkbox" checked="checked" id="comfirm" /></td>
+                        <td style="width: 99%;" align="left">  &nbsp;&nbsp;<label id="lbldecnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <table style=" width: 100%; padding-top: 25px;">
+        <tr>
+            @if (viewfor != "disabled")
+            {
+                <td style="padding-top: 11px;" align="right">
+                    <button type="button" id="btnSubmitfinalc" class="btn btn-success" value="Submit" onclick="ASaveSubmitfinalc()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                    &nbsp;&nbsp; <button type="button" id="btnCancelfinalc" value="Cancel" class="btn btn-warning" onclick="SaveCanceldashc()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </td>
+            }
+            else
+            {
+                <td style="padding-top: 11px;" align="right">
+                    <button type="button" id="btnSubmitfinalcreject" class="btn btn-success" value="Submit" onclick="ASaveSubmitfinalc()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                    &nbsp;&nbsp; <button type="button" id="btnCancelfinalcreject" value="Cancel" class="btn btn-warning" onclick="SaveCanceldashcreject()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </td>
+            }
+        </tr>
+    </table>
+</div>
+<div style="height:20px">
+    &nbsp;
+</div>
+<script>
+    function SaveCanceldashcreject() {
+        location = '../CentralMaker/CentralMakerDetails';
+
+    }
+    function SaveCanceldashc() {
+        location = '../CentralMaker/CentralMakerDetails';
+        @*window.location.href = '@Url.Action("index", "DashBoard")';*@
+    }
+    $(document).ready(function () {
+
+        $('input[type=radio][name=rblstatusc]').change(function () {
+            $('#txtReject').val('');
+        });
+    });
+
+    function ASaveSubmitfinalc() {
+
+        var empRemarks = $("#txtReject").val();
+        var status = $('#comfirm').is(':checked');
+        var rodio = $("input[name=rblstatusc]:checked").val()
+        if (rodio == 'undefined' || rodio == null) {
+            $('#btnSubmitfinalcreject').attr('disabled', false);
+            jAlert("Please Select Status", "Message");
+            //$("#rblstatusc").focus();
+            return false;
+        }
+        else if (rodio == "Reject") {
+            if (empRemarks.length < 1) {
+                $('#btnSubmitfinalcreject').attr('disabled', false);
+                jAlert("Reject Reason cant be empty.", "Message");
+                $("#txtReject").focus();
+                return false;
+            }
+        }
+        if (status == false) {
+            $('#btnSubmitfinalcreject').attr('disabled', false);
+            jAlert("Please Check Declaration Note.", "Message");
+            return false;
+        }
+        else {
+            jConfirm("Do you want to Submit ...? ", "Message", function (u) {
+                if (u == true) {
+                    showProgress();
+                    var NewAttmodel = {
+                        "status": rodio,
+                        "Rejecthold": empRemarks
+                    };
+                    $.ajax({
+                        url: "../CentralMaker/_Viewsubmitcon",
+                        dataType: 'json',
+                        data: NewAttmodel,
+                        async: false,
+                        cache: false,
+                        success: function (msg) {
+                            if (msg != "Success") {
+                                hideProgress();
+                                jAlert(msg, "Message", function (u) {
+                                    if (u == true) {
+                                        $('#btnSubmitfinalcreject').attr('disabled', false);
+                                        return false;
+                                    }
+                                });
+                            }
+                            else {
+                                if (rodio == "Approve") {
+                                    rodio = "Approved";
+                                }
+                                hideProgress();
+                                //
+                                //jAlert(rodio + " Successfully", "Message", function (u) {
+                                jConfirm(rodio + " Successfully! Do you want to Approve next item? ", "Message", function (u) {
+                                    if (u == true) {
+                                        showProgress();
+                                        $.ajax({
+                                            url: '../CentralMaker/GetAutodisplayofNextItem/',
+                                            data: '',
+                                            type: 'POST',
+                                            contentType: 'application/json; charset=utf-8',
+                                            success: function (data, resultstatus) {
+                                                //if (resultstatus == "No Record") {
+                                                if (data == 0) {
+                                                    hideProgress();
+                                                    jAlert("No further Item's to Approve!", "Message");
+                                                    location.href = '@Url.Action("CentralMakerDetails", "CentralMaker")?' + new Date().getTime();
+                                                }
+                                                else if (resultstatus == "success") {
+                                                    location.href = '@Url.Action("Viewdata", "CentralMaker")?id=' + data;
+                                                }
+                                                else {
+                                                    jAlert("Error.", resultstatus);
+                                                    return false;
+                                                }
+                                            },
+                                            error: function (result) {
+                                                jAlert("Error.", result);
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        hideProgress();
+                                        location.href = '@Url.Action("CentralMakerDetails", "CentralMaker")?' + new Date().getTime();
+                                    }
+                                });
+                            }
+                        },
+                        error: function () { hideProgress(); }
+                    });
+                }
+                else {
+                    hideProgress();
+                    $('#btnSubmitfinalcreject').attr('disabled', false);
+                }
+            });
+        }
+    }
+</script>

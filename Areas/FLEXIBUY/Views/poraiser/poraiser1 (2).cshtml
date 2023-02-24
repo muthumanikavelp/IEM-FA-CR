@@ -1,0 +1,823 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poraiser
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "poraiser";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<input type="hidden" id="hid_uomgid" value="@Model.uomgid" />
+<input type="hidden" id="hid_prodservgid" value="@Model.prodservicegid" />
+<input type="hidden" id="hid_requestfor" value="@Model.requestforgid" />
+@*<input type="hidden" id="hid_vendorgid" value="@Model.vendorgid" />*@
+<b>
+    <span style="color: rgb(52, 108, 196);"> Raise PO</span>
+</b>
+<br /><br />
+<input type="hidden" id="dev_amount" value="@Model.devamount" />
+<input type="hidden" id="cbf_headamount" value="@Model.cbfheadAmount" />
+<input type="hidden" id="hid_dept" value="@Model.department" />
+<input type="hidden" id="hid_reqpogroup" value="@Model.result" />
+<input type="hidden" id="hid_vendorgid" value="@Model.vendorgid" />
+@*<input type="hidden" id="hid_pocount" value="@Model.count" />*@
+
+<div class="well">
+
+    <span style="color: rgb(52, 108, 196);">PO Header</span>
+
+    <br /><br />
+    @using (Html.BeginForm())
+    {
+        <div class="borderStyle panel panel-default ">
+            <table class="myTableStyleTabNew" align="center" width="100%">
+                <tr>
+                    <td style="padding:10px;">
+                        <span>PO Ref No</span>
+                        <br />
+                        <input type="text"
+                               name="txtporefno"
+                               id="txtporefno"
+                               class="textboxStyle required" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>PO Date </span>
+                        <br />
+                        <input type="text"
+                               id="txtpodate"
+                               maxlength="10"
+                               value="@string.Format("{0:yyyy-MM-dd}", Model.podate)"
+                               disabled="disabled"
+                               class="textboxStyle" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>PO End Date </span>
+                        <br />
+                        <input type="text"
+                               id="txtpoendDate"
+                               maxlength="10"
+                               class="textboxStyle required" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>Raised By</span>
+                        <br />
+                        <input type="text"
+                               name="txtraisedby"
+                               id="txtraisedby"
+                               value="@Model.raisedby"
+                               class="textboxStyle valid" />
+                    </td>
+
+                    <td style="padding:10px;">
+                        <span>Project Owner </span>
+                        <br />
+                        @Html.DropDownList("projmanagergid", Model.projmanagerList, "--Select--", new { @class = "textboxStyle required" })
+                    </td>
+                </tr>
+            @*<tr>
+                    <td></td>
+                </tr>*@
+            @*<table class="myTableStyleTabNew" align="center" style="margin-left:-57px;">*@
+                <tr>
+                    <td style="padding:10px;">
+                        <span>Department</span>
+                        <br />
+                        <input type="text"
+                               name="txtdepartment"
+                               id="txtdepartment"
+                               disabled="disabled"
+                               value="@Model.department"
+                               class="textboxStyle valid" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span>Vendor Name</span>
+                        <br />
+                        <input type="text"
+                               name="txtvendorname"
+                               id="txtvendorname"
+                               disabled="disabled"
+                               value="@Model.vendorName"
+                               class="textboxStyleMedium80 valid" />
+                        <button class="glyphicon glyphicon-search" id="search1nm" style="border:none; margin-left:10px;  box-shadow : none;font-size: 1.5em;background-color: rgb(245, 245, 245);" name="command1" type="button" onclick="NewSearch()"></button>
+                    </td>
+                    @*<td>
+                        <button class="glyphicon glyphicon-search" id="search1nm" style="border:none; margin-left:10px; margin-top:10px; box-shadow : none;font-size: 1.5em;background-color: rgb(245, 245, 245);" name="command1" type="button" onclick="NewSearch()"></button>
+                    </td>*@
+                    <td style="padding:10px;">
+                        <span>Type</span>
+                        <br />
+                        <div style="margin-top:5px;">
+                            <input type="radio" id="id_rdapp" name="it" value="Application" checked="checked" />
+                            Application
+                            <input type="radio" id="id_rdinfar" name="it" value="Infrastructure" />
+                            Infrastructure
+                        </div>
+                    </td>
+
+                    <td nowrap="nowrap" colspan="2" style="padding:10px;">
+                        <span>Vendor Note</span>
+                        <br />
+                        <input type="text"
+                               name="txt_vendornote"
+                               class="textboxStyleBig required"
+                               id="txtvendornote" />
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+        <span style="color: rgb(52, 108, 196);">PO Details</span>
+
+        <br /><br />
+        <div id="podetailsgrid">
+            @if (@ViewBag.podetails != "Second")
+            {
+                <div>
+
+                    @Html.Partial("podetails")
+                </div>
+            }
+            else
+            {
+                <div id="pogrid">
+
+                </div>
+            }
+        </div>
+    }
+
+    <span style="color: rgb(52, 108, 196);">PO Template</span>
+
+    <br /><br />
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span>Select Template</span>
+                <br />
+                <div style="width:225px;">
+                    @Html.DropDownList("templateGid", Model.templateList, new { @class = "textboxStyle required" })
+                </div>
+            </td>
+            <td>
+                <div style="margin-top: 22px;margin-left: -970px;">
+                    <span class="btn btn-link" onclick="CreatePoTemplate()">Create Template</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Terms and Condtions</span>
+                <br />
+                <div>
+                    <textarea style="width:1193px;height:344px;resize:none" draggable="false" id="txtTemplateArea" class="textareaStyle"></textarea>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Additional Terms and Conditions</span>
+                <div>
+                    <textarea style="width:1193px;height:200px;resize:none" draggable="false" id="txtTemplateArea1" class="textareaStyle"></textarea>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="margin-left:460px;">
+                    <button type="button" id="btnsave" name="command" class="btn btn-primary" onclick="SavePodetails()" value="Save">
+                        <span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save
+                    </button>
+                    &nbsp;
+                    @*<input type="button" value="Save" class="btn btn-success" id="btn_save" onclick="SavePodetails()" />*@
+                    <button type="button" id="btn_submit" name="command" class="btn btn-success" onclick="SavePo()" value="Submit">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Submit
+                    </button>
+                    &nbsp;
+                    @*// <input type="button" value="Submit" class="btn btn-success" id="btn_submit" onclick="SavePo()" />*@
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Cancel" onclick="BackToSelection()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button>
+                </div>
+                @*<input type="button" value="Save" class="btn btn-success" id="btn_save" onclick="SavePodetails()" />
+                    <input type="button" value="Submit" class="btn btn-success" id="btn_submit" onclick="SavePo()" />
+                    <input type="button" class="btn btn-warning " value="Back" onclick= "BackToSelection()" />*@
+            </td>
+        </tr>
+    </table>
+
+    <input hidden="hidden" id="ss" value="" />
+    <input hidden="hidden" id="potemplate" value="" />
+    <input hidden="hidden" id="dd" value="" />
+    <input hidden="hidden" id="bulk" value="" />
+    <input hidden="hidden" id="hid_excel" value="" />
+    <input hidden="hidden" id="hid_vendor" value="" />
+    <input type="hidden" id="emp_id" value="" />
+
+    <div id="Forshipment"></div>
+    <div id="ForExcelValidation"></div>
+    <div id="ForPOTemplate"></div>
+    <div id="empsearch"></div>
+</div>
+<div id="forficcnewven"></div>
+<script type="text/javascript">
+    function NewSearch() {
+
+        if ($("#hid_vendor").val() == "") {
+            $("#hid_vendor").val("vendor");
+            objDialogforficc = $("[id$='forficcnewven']");
+            objDialogforficc.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1000,
+                height: 500
+            });
+        }
+        objDialogforficc.load('@Url.Action("VendorSelection", "poraiser")?' + new Date().getTime());
+        objDialogforficc.dialog({ title: 'Select Vendor' });
+        objDialogforficc.dialog("open");
+    }
+    $(document).ready(function () {
+
+        $("#idpodate", "#idpoendDate").attr("maxlength", "10");
+        $("#txtvendornote").attr("maxlength", "256");
+        $("#txtporefno").attr('disabled', 'disabled');
+        $("#txtpodate", "#txtpoendDate").keypress(function (event) {
+            return isDate(event);
+        });
+        var department = $("#hid_dept").val();
+        if (department == "PIP") {
+            $("#id_rdapp").attr("checked", false);
+            $('[name="it"]').attr("disabled", true);
+            //$("#id_dept").attr("disabled", true);
+        }
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+
+        $("#txtpodate").datepicker({
+
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy",
+            maxDate: new Date()
+
+        });
+        $("#projmanagergid").change(function () {
+            var projmanager = $("#projmanagergid").val();
+            // var selectedValue = $("#projmanagergid option:selected").text();
+            if (projmanager.trim() != "") {
+                $("#projmanagergid").removeClass('required');
+                $("#projmanagergid").addClass('valid');
+            }
+            else {
+                $("#projmanagergid").removeClass('valid');
+                $("#projmanagergid").addClass('required');
+            }
+        });
+        $("#txtvendornote").keyup(function () {
+            var vendorNote = $("#txtvendornote").val();
+            if (vendorNote.trim() != "") {
+                $("#txtvendornote").removeClass('required');
+                $("#txtvendornote").addClass('valid');
+            }
+            else {
+                $("#txtvendornote").removeClass('valid');
+                $("#txtvendornote").addClass('required');
+            }
+        });
+        //$("txtpodate").datepicker(pickerOpts);
+        $("#txtpoendDate").change(function () {
+
+            var dt = $('#txtpodate').val();
+            var dt2 = $('#txtpoendDate').val();
+            if (dt2.trim() != "") {
+                $("#txtpoendDate").removeClass('required');
+                $("#txtpoendDate").addClass('valid');
+            }
+            else {
+                $("#txtpoendDate").removeClass('valid');
+                $("#txtpoendDate").addClass('required');
+            }
+            var start_date = dt.split('-');
+            var startDate = new Date(start_date[2], start_date[1], start_date[0]);
+            var end_date = dt2.split('-');
+            var endDate = new Date(end_date[2], end_date[1], end_date[0]);
+            if (startDate > endDate) {
+                jAlert('PO Enddate Should Not be Lesser than PO date', "Error");
+                $("#txtpoendDate").val(dt);
+            }
+        });
+
+        $("#txtpodate").change(function () {
+            var dt = $('#txtpodate').val();
+            var dt2 = $('#txtpoendDate').val();
+            var start_date = dt.split('-');
+            var startDate = new Date(start_date[2], start_date[1], start_date[0]);
+            var end_date = dt2.split('-');
+            var endDate = new Date(end_date[2], end_date[1], end_date[0]);
+            if (startDate > endDate) {
+                jAlert('PO Enddate Should Not be Lesser than PO date', "Error");
+                $("#txtpoendDate").val(dt);
+            }
+        });
+
+        $("#txtpoendDate").datepicker(pickerOpts)
+
+        $("#ss").val("");
+        $("#dd").val("");
+        $("#bulk").val("");
+        $("#potemplate").val("");
+        $("#hid_excel").val("");
+        $("#emp_id").val("");
+
+        var reqgroup = $("#hid_reqpogroup").val();
+        $("#Request option").each(function () {
+            if ($(this).text() == reqgroup) {
+                $(this).attr('selected', 'selected');
+                $("#Request").attr("disabled", "disabled");
+            }
+        });
+
+        if ($("#templateGid").val() != "--Select--") {
+            var tempGid = $("#templateGid").val();
+            $("#templateGid").removeClass('required');
+            $("#templateGid").addClass('valid');
+            $.ajax({
+                url: '@Url.Action("TemplateDetails", "poraiser")?' + new Date().getTime(),
+                dataType: 'json',
+                data: { id:tempGid },
+                success: function (msg) {
+                    $("#txtTemplateArea").attr("value", msg);
+                    $("#txtTemplateArea").attr("readonly", true);
+                    //if ($("#txtTemplateArea").val() != null || $("#txtTemplateArea").val() != "") {
+                    //    $("#txtTemplateArea").addClass("valid");
+                    //}
+                },
+                error: function () { }
+            });
+        }
+    });
+    var objTemplate;
+    function CreatePoTemplate() {
+        if ($('#potemplate').val() == "") {
+            $("#potemplate").val("asd");
+            objTemplate = $("[id$='ForPOTemplate']");
+            objTemplate.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                show: 'fade-in',
+                close: 'fade-out',
+            });
+        }
+        objTemplate.load('../../poraiser/CreatePoTemplate?' + new Date().getTime());
+        objTemplate.dialog({ title: 'Create Template', width: '892', height: '575' });
+        objTemplate.dialog("open");
+    }
+    $("#templateGid").change(function () {
+        var templategid = $("#templateGid option:selected").text();
+        if (templategid == "--Select--") {
+            $("#txtTemplateArea").val("");
+        }
+        if ($("#templateGid").val() != "--Select--") {
+            var tempGid = $("#templateGid").val();
+            if (tempGid.trim() != "") {
+                $("#templateGid").removeClass('required');
+                $("#templateGid").addClass('valid');
+            }
+            else {
+                $("#templateGid").removeClass('valid');
+                $("#templateGid").addClass('required');
+            }
+            $.ajax({
+                url: '@Url.Action("TemplateDetails", "poraiser")?' + new Date().getTime(),
+                dataType: 'json',
+                data: { id: $(this).val() },
+                success: function (msg) {
+                    $("#txtTemplateArea").attr("value", msg);
+                    $("#txtTemplateArea").attr("readonly", true);
+                    //if ($("#txtTemplateArea").val() != null || $("#txtTemplateArea").val() != "") {
+                    //    $("#txtTemplateArea").addClass("valid");
+                    //}
+                },
+                error: function () { }
+            });
+        }
+    });
+    function SavePodetails() {
+        var rowcnt = 0;
+        var errmsg = "";
+        var apperror = "";
+        $("#podetailgrid tbody tr").each(function () {
+            rowcnt = rowcnt + 1;
+            var qty1 = $(this).find('[name=hidquantityvalidationraiser]').val();
+            var cbfdetgid2 = $(this).find('[name=hidpodetgidvalidationraiser]').val();
+
+            $.ajax({
+                url: '@Url.Action("CheckShipmentQty", "PoRaiser")?cbfdetgid=' + cbfdetgid2,
+                type: 'POST',
+                cache: false,
+                async: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                   
+                    if (data == -1) {
+                        if (apperror.toString().trim() != "") {
+                            apperror += "\nError Occured";
+                        }
+                        else {
+                            apperror += "Error Occured";
+                        }
+                        
+                    }
+                    else {
+                        if (parseInt(qty1) != parseInt(data)) {
+                            if (errmsg.toString().trim() != "") {
+                                errmsg += "\nShipment Qty Not Matched with Raiser Qty (Row Number : " + rowcnt.toString() + ")";
+                            }
+                            else {
+                                errmsg += "Shipment Qty Not Matched with Raiser Qty (Row Number : " + rowcnt.toString() + ")";
+                            }
+
+                           
+                        }
+                    }
+                },
+                error: function (result) {
+                    if (apperror.toString().trim() != "") {
+                        apperror += "\nError Occured";
+                    }
+                    else {
+                        apperror += "Error Occured";
+                    }
+                  
+                }
+            });
+        });
+
+        var podate = $('#txtpodate').val();
+        var poendDate = $('#txtpoendDate').val();
+        //var txtraisedby = $('#dropbranch').val();
+        var projmanagergid = $("#projmanagergid").val();
+        var e = document.getElementById("projmanagergid");
+        var selectedmanager = e.options[e.selectedIndex].text;
+        var department = $("#txtdepartment").val();
+        var vendorName = $("#txtvendorname").val();
+        var itType = $("input[name='it']:checked").val();
+        var vendorNote = $('#txtvendornote').val();
+        var tempgid = $('#templateGid').val();
+        //var e = document.getElementById("templateGid");
+        //var selectedtemplate = e.options[e.selectedIndex].text;
+        var templategid = $("#templateGid option:selected").text();
+        var additionTemplate = $("#txtTemplateArea1").val();
+        var overTotal = $("#grandtotal").text();
+        var uomgid = $("#hid_uomgid").val();
+        var prodservgid = $("#hid_prodservgid").val();
+        var requestfor = $("#hid_requestfor").val();
+        var vendorgid = $("#hid_vendorgid").val();
+        var cbfamount = $("#cbf_headamount").val();
+        var devamount = $("#dev_amount").val();
+        var cbftotamount = parseFloat(cbfamount);
+        //var podetCount = $("#hid_podetailcount").val();
+
+        //if (parseInt(podetCount) == 0) {
+        //    jAlert("There is no line item to Save!", "Error");
+        //    return false;
+        //}
+        //var qty = 0;
+        //$("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+        //    qty += Number($(this).val());
+        //});
+        //var actQty = $("#shippedqty").val();
+        //if (parseInt(qty) != parseInt(actQty)) {
+        //    jAlert("Shipped Qty Should Match with Raised Qty " + actQty + " ", "Error");
+        //    return false;
+        //}
+
+        if (errmsg.toString().trim() != "") {
+            jAlert(errmsg, "Error", function (u) {
+                return false;
+            });
+            return false;
+        }
+        if (apperror.toString().trim() != "") {
+            jAlert(apperror, "Error", function (u) {
+                return false;
+            });
+            return false;
+        }
+               
+        if (parseFloat(overTotal) == parseFloat(0) || parseFloat(overTotal) == "" || parseFloat(overTotal) == null)
+        {
+            jAlert("Total Amount Cannot be Empty or Zero", "Error");
+            return false;
+        }
+        if (parseFloat(overTotal) > parseFloat(cbftotamount)) {
+            jAlert("Po Amount Exceeds the Actual Amount " + cbftotamount + "", "Error");
+            return false;
+        }
+         if (podate == null || podate == "") {
+
+            jAlert("Please Select PO Date.", "Error");
+            return false;
+        }
+         if (poendDate == null || poendDate == "") {
+
+            jAlert("Please Select PO End Date.", "Error");
+            return false;
+         }
+         if(vendorName=="" || vendorName==null)
+         {
+             jAlert("Please Select Vendor Name","Error");
+             return false;
+         }
+         if (selectedmanager == "--Select--") {
+
+            jAlert("Please Select Project Manager", "Error");
+            return false;
+        }
+         if (department != "PIP") {
+            if (itType == null || itType == "") {
+
+                jAlert("Please Select IT Type", "Error");
+                return false;
+            }
+        }
+         if (vendorNote == null || vendorNote == "") {
+
+            jAlert("Please Enter Vendor Note", "Error");
+            return false;
+        }
+         if (vendorNote == null || vendorNote == "") {
+
+            jAlert("Please Enter Vendor Note", "Error");
+            return false;
+        }
+        else if (templategid == "--Select--") {
+            jAlert("Please Select PO Template");
+            return false;
+        }
+            var objpoheader =
+            {
+                "podate": podate,
+                "poenddate": poendDate,
+                "projmanagergid": projmanagergid,
+                "department": department,
+                "vendorName": vendorName,
+                "itType": itType,
+                "vendorNote": vendorNote,
+                "templateGid": tempgid,
+                "additionTemplate": additionTemplate,
+                "overTotal": overTotal,
+                "uomgid": uomgid,
+                "prodservgid": prodservgid,
+                "requestforgid": requestfor,
+                "vendorgid": vendorgid
+            };
+            showProgress();
+            $.post('../../poraiser/SavePoDetails', objpoheader,
+               function (data) {
+                   hideProgress();
+                   if (data == 0) {
+                       jAlert("Error Occured", "Error");
+                       return false;
+                   }
+                   else {
+                       if (data == "Inserted Successfully") {
+                           jAlert("Inserted Successfully", "Success", function (e) {
+                               if (e == true) {
+                                   var viewfor = "refresh";
+                                   location = '@Url.Action("Index", "poheader")?viewfor=' + viewfor;
+                               }
+                           });
+                       }
+                       else {
+                           jAlert(data, "Error");
+                           return false;
+                       }
+                   }
+               }, 'json');
+    }
+    function SavePo() {
+        var rowcnt = 0;
+        var errmsg = "";
+        var apperror = "";
+        $("#podetailgrid tbody tr").each(function () {
+            rowcnt = rowcnt + 1;
+            var qty1 = $(this).find('[name=hidquantityvalidationraiser]').val();
+            var cbfdetgid2 = $(this).find('[name=hidpodetgidvalidationraiser]').val();
+            
+            $.ajax({
+                url: '@Url.Action("CheckShipmentQty", "PoRaiser")?cbfdetgid=' + cbfdetgid2,
+                type: 'POST',
+                cache: false,
+                async: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                  
+                    if (data == -1) {
+                        if (apperror.toString().trim() != "") {
+                            apperror += "\nError Occured";
+                        }
+                        else {
+                            apperror += "Error Occured";
+                        }
+
+                    }
+                    else {                       
+                        if (parseInt(qty1) != parseInt(data)) { 
+                            if (errmsg.toString().trim() != "") {
+
+                                errmsg += "\nShipment Qty Not Matched with Raiser Qty (Row Number : " + rowcnt.toString() + ")";
+                            }
+                            else {
+                                errmsg += "Shipment Qty Not Matched with Raiser Qty (Row Number : " + rowcnt.toString() + ")";
+                            }
+                           
+                        }
+                    }
+                },
+                error: function (result) {
+                    if (apperror.toString().trim() != "") {
+                        apperror += "\nError Occured";
+                    }
+                    else {
+                        apperror += "Error Occured";
+                    }
+
+                }
+            });
+        });
+        var podate = $('#txtpodate').val();
+        var poendDate = $('#txtpoendDate').val();
+        //var txtraisedby = $('#dropbranch').val();
+        var projmanagergid = $("#projmanagergid").val();
+        var e = document.getElementById("projmanagergid");
+        var selectedmanager = e.options[e.selectedIndex].text;
+        var department = $("#txtdepartment").val();
+        var vendorName = $("#txtvendorname").val();
+        var itType = $("input[name='it']:checked").val();
+        var vendorNote = $('#txtvendornote').val();
+        var tempgid = $('#templateGid').val();
+        //var e = document.getElementById("templateGid");
+        //var selectedtemplate = e.options[e.selectedIndex].text;
+        var templategid = $("#templateGid option:selected").text();
+        var additionTemplate = $("#txtTemplateArea1").val();
+        var overTotal = $("#grandtotal").text();
+        var uomgid = $("#hid_uomgid").val();
+        var prodservgid = $("#hid_prodservgid").val();
+        var requestfor = $("#hid_requestfor").val();
+        var vendorgid = $("#hid_vendorgid").val();
+        var action = $("#btn_submit").val();
+        var cbfamount = $("#cbf_headamount").val();
+        var devamount = $("#dev_amount").val();
+        var cbftotamount = parseFloat(cbfamount);
+        //var podetCount = $("#hid_pocount").val();
+
+        //if (parseInt(podetCount) == 0) {
+        //    jAlert("There is no line item to Submit!", "Error");
+        //    return false;
+        //}
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        //var actQty = $("#shippedqty").val();
+        //if (parseInt(qty) != parseInt(actQty)) {
+        //    jAlert("Shipped Qty Should Match with Raised Qty " + actQty + " ", "Error");
+        //    return false;
+        //}
+        if (errmsg.toString().trim() != "") {
+            jAlert(errmsg, "Error", function (u) {
+                return false;
+            });
+            return false;
+        }
+        if (apperror.toString().trim() != "") {
+            jAlert(apperror, "Error", function (u) {
+                return false;
+            });
+            return false;
+        }
+        
+        if (parseFloat(overTotal) == parseFloat(0) || parseFloat(overTotal) == "" || parseFloat(overTotal) == null) {
+            jAlert("Total Amount Cannot be Empty or Zero", "Error");
+            return false;
+        }
+        if (parseFloat(overTotal) > parseFloat(cbftotamount)) {
+            jAlert("Po Amount Exceeds the Actual Amount " + cbftotamount + "", "Error");
+            return false;
+        }
+         if (podate == null || podate == "") {
+
+            jAlert("Please Select PO Date.", "Error");
+            return false;
+        }
+         if (poendDate == null || poendDate == "") {
+
+            jAlert("Please Select PO End Date.", "Error");
+            return false;
+        }
+         if (selectedmanager == "--Select--") {
+
+            jAlert("Please Select Project Manager", "Error");
+            return false;
+        }
+         if (department != "PIP") {
+            if (itType == null || itType == "") {
+
+                jAlert("Please Select IT Type", "Error");
+                return false;
+            }
+         }
+         if(vendorName=="" || vendorName==null)
+         {
+             jAlert("Please Select Vendor Name","Error");
+             return false;
+         }
+         if (vendorNote == null || vendorNote == "") {
+
+            jAlert("Please Enter Vendor Note", "Error");
+            return false;
+        }
+        // if (vendorNote == null || vendorNote == "") {
+        //    jAlert("Please Enter Vendor Note", "Error");
+        //    return false;
+        //}
+         if (templategid == "--Select--") {
+            jAlert("Please Select PO Template");
+            return false;
+        }
+
+            var objpoheader =
+            {
+                "podate": podate,
+                "poenddate": poendDate,
+                "projmanagergid": projmanagergid,
+                "department": department,
+                "vendorName": vendorName,
+                "itType": itType,
+                "vendorNote": vendorNote,
+                "templateGid": tempgid,
+                "additionTemplate": additionTemplate,
+                "overTotal": overTotal,
+                "uomgid": uomgid,
+                "prodservgid": prodservgid,
+                "requestforgid": requestfor,
+                "vendorgid": vendorgid,
+                "actionName": action
+            };
+            showProgress();
+            $.post('@Url.Action("SavePoDetails","poraiser")', objpoheader,
+               function (data) {
+                   hideProgress();
+                   if (data == 0) {
+                       jAlert("Error Occured", "Error");
+                       return false;
+                   }
+                   else {
+                       if (data == "Inserted Successfully") {
+                           jAlert("Submitted Successfully", "Success", function (e) {
+                               if (e == true) {
+                                   var viewfor = "refresh";
+                                   location = '@Url.Action("Index", "poheader")?viewfor=' + viewfor;
+                               }
+                           });
+                       }
+                       else {
+                           jAlert(data, "Error");
+                           return false;
+                       }
+                   }
+               }, 'json');
+        }
+    function BackToSelection() {
+
+        location = '@Url.Action("cbfselection", "cbfselection")?' + new Date().getTime();
+    }
+</script>

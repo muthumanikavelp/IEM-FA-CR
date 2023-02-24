@@ -1,0 +1,178 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var grid = new WebGrid();
+    grid = new WebGrid(source: Model.lstprDet, canSort: true, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "griddiv", ajaxUpdateCallback: "D()", selectionFieldName: "SelectedRow");
+    //grid.Pager(WebGridPagerModes.All);
+    int rowNum = 0;
+}
+<div style="width:100%; overflow-y:scroll;height:380px;">
+    @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+            grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "pipsl"),
+            grid.Column(header: "Product Group", style: "pipProductGroup", format: @<text><label id="lblProductGroup_@rowNum" href="@rowNum">@item.prDet_Product_Group</label></text>, canSort: false ),
+            grid.Column(header: "Product Code", style: "pipProductCode", format: @<text><label id="lblProductCode_@rowNum" href="@rowNum">@item.prDet_Product_Code</label></text>,canSort: false),
+            grid.Column(header: "Product Name", style: "pipProductName",format: @<text><label id="lblProductName_@rowNum" href="@rowNum">@item.prDet_Product_Name</label> </text>,canSort: false),
+            grid.Column(header: "Product Description", style: "pipProductDescription",format: @<text><label id="lblProductDesc_@rowNum" href="@rowNum">@item.prDet_Product_Description</label> </text>,canSort: false),
+            grid.Column(header: "Unit", style: "pipUnit", format: @<text><label id="lblProductUnit_@rowNum" href="@rowNum">@item.prDet_Unit</label> </text>,canSort: false),
+            grid.Column(header: "Quantity", style: "pipQuantity", format: @<text><span class='display'><label id="lblProductQuantity" href="@rowNum">@item.prDet_Qty</label></span><input type="text" id="txtProductQuantity_@rowNum" class='edit textboxStyleBig' name="txtProductQuantity_" href="@rowNum" value="@item.prDet_Qty" /></text>, canSort: false),
+            grid.Column(header: "Rate", style: "pipRate", format: @<text>
+        <span class='display' style="float:right"> <label id="lblProductRate" href="@rowNum">@item.prDet_Rate</label></span>
+        <input type="text" id="txtProductRate_@rowNum" class='edit textboxStyleBig' name="txtProductRate_" href="@rowNum" value="@item.prDet_Rate" onkeyup="multInputs(id,value)" /> </text>, canSort: false),
+            grid.Column(header: "estimation", style: "pipestimation", format: @<text>
+        <span class='display' style="float:right"><label id="lblProductCostestimation" href="@rowNum">@item.prDet_CostEstimation</label></span>
+        <input type="text" id="txtProductCostestimation_@rowNum" class='edit textboxStyleBig' name="txtProductCostestimation" href="@rowNum" value="@item.prDet_CostEstimation" readonly="readonly" />
+            </text>, canSort: false),
+            grid.Column(header: "Attach", style: "pipAttach", format: @<text><input type="button" id="@item.PrDet_Gid" style="padding: 3px;" class="btn btn-link" title="Attach Quotation" value=" Attach quotation" onclick="attach(id)" /></text>),
+            grid.Column(header: "Action", style: "pipAction", format: @<text>
+        <span class='glyphicon glyphicon-edit display edit-btn' style="margin-top:3px;"><label id="sdf67" hidden="hidden"> @rowNum</label> </span>
+        <span class='glyphicon glyphicon-floppy-save edit save-btn ' style="margin-top:3px;"><label id="sdf34" hidden="hidden"> @rowNum</label></span>
+        <span class='glyphicon glyphicon-remove edit cancel-btn' style="margin-top:3px;"> <label id="sdf000-" hidden="hidden"> @rowNum</label></span>
+            </text>, canSort: false)))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+</div>
+<div id="ForPartialViewnew4hh"></div>
+
+<script>
+
+
+    var objDialog4;
+    function attach(id) {
+
+        if ($("#nn").val() == "") {
+
+            $('#nn').val('anu');
+
+            objDialog4 = $("[id$='ForPartialViewnew4hh']");
+            objDialog4.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                cache: false,
+                width: 700,
+                height: 500
+            });
+        }
+
+        var row = id;
+
+        //alert(row);
+        objDialog4.load('@Url.Action("PIPattach", "PIPInputsOnPRQuotation")?row=' + id + '&' + new Date().getTime());
+        objDialog4.dialog({ title: 'PIP Inputs on PR Quotations' });
+        objDialog4.dialog("open");
+
+    }
+
+    $(function () {
+        $('.edit').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+
+        $('.save-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+
+            var srno = tr.find("#lblSrno_" + row.trim() + "").text();
+            var group = tr.find("#lblProductGroup_" + row.trim() + "").text();
+            var prodcode = tr.find("#lblProductCode_" + row.trim() + "").text();
+            var prodname = tr.find("#lblProductName_" + row.trim() + "").text();
+            var prodedesc = tr.find("#lblProductDesc_" + row.trim() + "").text();
+            var department = tr.find("#lblDepartment_" + row.trim() + "").text();
+            var unit = tr.find("#lblProductUnit_" + row.trim() + "").text();
+            var qty = tr.find("#txtProductQuantity_" + row.trim() + "").val();
+            var rate = tr.find("#txtProductRate_" + row.trim() + "").val();
+            var costest = tr.find("#txtProductCostestimation_" + row.trim() + "").val();
+
+            if (isNaN(rate)) {
+                jAlert("Please Input Number!", Error);
+                return false;
+
+            }
+           
+            if (rate == "" || rate == 0 && costest == "" || costest == 0) {
+                jAlert("Please Add Rate!", "Error");
+                return false;
+            }
+            $('.edit').hide();
+
+            var PrDetailModel =
+      {
+          "srno": row,
+          "prdet_product_group": group,
+          "prdet_product_code": prodcode,
+          "prdet_product_name": prodname,
+          "prdet_product_description": prodedesc,
+          "prdet_department": department,
+          "prdet_unit": unit,
+          "prdet_qty": qty,
+          "prdet_rate": rate,
+          "prdet_costestimation": costest,
+
+      }
+            $.ajax({
+
+                url: '@Url.Action("getprdetailsforpip", "PIPInputsOnPR")?' + new Date().getTime(),
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(PrDetailModel),
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#griddiv").load('@Url.Action("getprdetailsforpip", "PIPInputsOnPR")?' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    alert("something seems wrong");
+                }
+
+            });
+
+        });
+    });
+
+
+    function multInputs(id, value) {
+        $("#grid td").find("input[name=txtProductRate_]:text").each(function () {
+            var variable = "txtProductRate_";
+
+
+            var id2 = $(this).attr('href')
+
+            //$("#txtProductRate_" + id2 + "").keypress(function (event1) {
+
+            //    return isNumber1(event1, this);
+
+            //});
+            if (id == variable + id2) {
+
+                $("#txtProductRate_" + id2 + "").keyup(function () {
+                    if (isNaN($("#txtProductRate_" + id2 + "").val())) {
+                        jAlert("Please Input Number!", Error);
+                        return false;
+
+                    }
+
+                    $('#txtProductCostestimation_' + id2 + '').val($('#txtProductQuantity_' + id2 + '').val() * $('#txtProductRate_' + id2 + '').val());
+
+                });
+            }
+
+        });
+
+    }
+</script>

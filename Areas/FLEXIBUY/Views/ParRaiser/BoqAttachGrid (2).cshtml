@@ -1,0 +1,91 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+@{
+    ViewBag.Title = "Index";
+    CbfSumEntity objMAttachment = new CbfSumEntity();
+    CbfSumModel objRep = new CbfSumModel();
+    Session["cbfdetails"] = objMAttachment.amoun;
+    objMAttachment = objRep.Attachmentname(objMAttachment);
+    Session["cbfdetails"] = objMAttachment;
+    Model.attachment = objMAttachment.attachment;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment12", ajaxUpdateCallback: "grid");
+    int rowcount=0;
+}
+<div class="panel panel-default"  >
+    <div id="gridattachment">
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment12" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadSupAttachment("@item.filename")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+
+                    <input type="button" value="Delete" class="btn btn-link" onclick="attachmentDetele(id)" id="@item.attachGid" title="Delete" />
+                </text>)))
+        <div class="borderStyle btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.attachment.Count</label>
+    </div>
+</div>
+
+<script>
+    function DownloadSupAttachment(filename) {
+      
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../CbfRaiser/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../CbfRaiser/Download' }
+        }, 'json');
+
+    }
+    function attachmentDetele(id1) {
+       
+        id = "";
+        var supattachmentmodel =
+                {
+                    "attachment1": id1
+                };
+
+        $.post('../CbfRaiser/DeleteAttachment?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+             //   location = location.href;
+            }
+            else {
+           
+                $('#gridattachment').load('../CbfRaiser/BoqAttachgrid?' + new Date().getTime());
+            }
+        }, 'json');
+
+    }
+</script>

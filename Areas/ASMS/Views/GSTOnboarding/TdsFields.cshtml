@@ -1,0 +1,561 @@
+﻿@using IEM.Areas.ASMS.Models
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+@{
+    SupDataModel dm = new SupDataModel();
+    SupplierTaxDetails td = new SupplierTaxDetails();
+    var taxsubtype ="";
+    if (TempData["ReceiveFlag"] != null)
+    {
+        ViewBag.ReceiveFlag = (string)TempData["ReceiveFlag"];
+    }
+    if (Session["TaxSubType"] != null)
+    {
+        taxsubtype = (string)Session["TaxSubType"];
+    }
+
+    td.lstTdsServiceType = new SelectList(dm.GetTaxSubType(Convert.ToInt32(taxsubtype)), "_TdsServiceTypeID", "_TdsServiceTypeName");
+}
+<div style="padding:0;margin:0;">
+    <table class="myTableStyleTabpopup">
+
+        <tr>
+            <td>
+                <input type="hidden" id="SessionTDSGid" name="SessionTDSGid" />
+                <input type="hidden" id="txtreceiveflag" name="txtreceiveflag" />
+                <span>Service Type</span><br />
+                @Html.DropDownListFor(j => j.selectedTdsServiceTypeID, td.lstTdsServiceType, "--select--", new { @class = "form-control", @id = "selectedTdsServiceTypeID" })
+            </td>
+            <td>
+                <span>Section</span><br />
+                <input type="text" name="_TdsServiceTypeSection" id="_TdsServiceTypeSection" class="textboxStyle"  tabindex="3" />
+            </td>
+            <td>
+                <span>Exemption?</span><br />
+                <div style="height:27px;padding-top:5px;font-weight:normal;">
+                    <input type="radio" id="rbExemptionYes" name="IsExemption" value="Y"  tabindex="4" /> Yes
+                    &nbsp;<input type="radio" id="rbExemptionNo" name="IsExemption" value="N" checked="checked" tabindex="5" /> No
+                </div>
+            </td>
+            <td>
+                <span>Rate</span><br />
+                <input type="text" disabled name="_TDSRate" id="_TDSRate" class="textboxStyle" tabindex="3" />
+            </td>
+           
+        </tr>
+        <tr>
+            <td>
+                <span>Exempted Rate</span><br />
+                <input type="text" name="_ExemptedRate" id="_ExemptedRate" class="textboxStyle" tabindex="3" />
+            </td>
+            <td>
+                <span>Period From</span><br />
+                <input type="text" name="_ExemptionPeriodFrom" placeholder="dd-mm-yyyy" id="_ExemptionPeriodFrom" class="textboxStyle" tabindex="3" />
+            </td>
+            <td>
+                <span>Period To</span><br />
+                <input type="text" name="_ExemptionPeriodTo" placeholder="dd-mm-yyyy" id="_ExemptionPeriodTo" class="textboxStyle" tabindex="3" />
+            </td>
+            <td>
+                <span>Threshold value</span><br />
+                <input type="text" name="_ExemptionThresholdValue" id="_ExemptionThresholdValue" class="textboxStyle" tabindex="3" />
+            </td>
+            
+        </tr>
+        <tr>
+            <td>
+                <span>Exemption Certificate No</span><br />
+                <input type="text" name="_ExemptionCertificateNo" id="_ExemptionCertificateNo" class="textboxStyle" tabindex="3" />
+            </td>
+            @*<td>
+                <span>File Name</span><br />
+                <input type="text" name="_ExemptionAttachedFileName" id="_ExemptionAttachedFileName" class="textboxStyle" tabindex="3" />
+            </td>*@
+            <td colspan="2">
+                <span>Description</span><br />
+                <textarea  name="_ExemptionDescription" id="_ExemptionDescription" class="textareaStyle"></textarea>
+            </td>
+            <td style="vertical-align:bottom">
+                <a onclick="SaveTdsDetails()" id="btnSaveTdsDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnClearTdsDetails" onclick="ClearTdsDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</a>
+            </td>
+        </tr>
+    </table>
+</div>
+<script type="text/javascript">
+
+    $('#txtUploadExemptionDoc').on('change', function (e) {
+        var files = e.target.files;
+        if (files.length > 0) {
+            
+            if (window.FormData !== undefined) {
+                var data = new FormData();
+                for (var x = 0; x < files.length; x++) {
+                   
+                    data.append("temp_" + x, files[x]);
+                }
+                var fname = $("#_ExemptionAttachedFileName").val();
+                $.ajax({
+                    type: "POST",
+                    async: false,
+                    cache: false,
+                    url: '../Onboarding/UploadedFiles/?fname=' + fname + '&uploadfor=EA',
+                    contentType: false,
+                    processData: false,
+                    data: data,
+                    success: function (result) {
+                     
+                        $("#_ExemptionAttachedFileName").val(result);
+                    },
+                    error: function (xhr, status, p3, p4) {
+                        var err = "Error " + " " + status + " " + p3 + " " + p4;
+                        if (xhr.responseText && xhr.responseText[0] == "{")
+                            err = JSON.parse(xhr.responseText).Message;
+                        console.log(err);
+                    }
+                });
+            } else {
+                jAlert("This browser doesn't support HTML5 file uploads!","Warning");
+            }
+        }
+    });
+    var viewmode;
+    $(document).ready(function () {
+        viewmode = '@ViewBag.ReceiveFlag';
+        $("#txtreceiveflag").val(viewmode);
+        $("#SessionTDSGid").val("0");
+        var pickerOpts1 = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+        };
+        $("#_ExemptionPeriodFrom").datepicker(pickerOpts1);
+        $("#_ExemptionPeriodTo").datepicker(pickerOpts1);
+
+      //  $('#_TDSRate').attr("maxlength", "19");
+        $('#_ExemptedRate').attr("maxlength", "19");
+        $('#_ExemptionThresholdValue').attr("maxlength", "19");
+        $('#_ExemptionDescription').attr("maxlength", "256");
+        $('#_ExemptionCertificateNo').attr("maxlength", "32");
+        $("#_ExemptedRate,#_ExemptionThresholdValue").keypress(function (event) {
+            return isAmount(event, this);
+        });
+        $("#_ExemptionDescription").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#_ExemptionCertificateNo").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+       // $('#txtUploadExemptionDoc').attr("disabled", "disabled");
+        $('#_ExemptionCertificateNo').attr("disabled", "disabled");
+        $('#_ExemptionThresholdValue').attr("disabled", "disabled");
+        $('#_ExemptionPeriodTo').attr("disabled", "disabled");
+        $('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+        $('#_ExemptedRate').attr("disabled", "disabled");
+       // $("#_ExemptionAttachedFileName").attr('disabled', 'disabled');
+        $("#_ExemptionDescription").attr('disabled', 'disabled');
+        $("#_TdsServiceTypeSection").attr('disabled', 'disabled');
+
+      //  $('#_TDSRate').addClass("required");
+        $("#selectedTdsServiceTypeID").addClass('required');
+        $("#rbExemptionNo").prop('checked', true);
+        if (viewmode == 'Y') {
+            $("#rbExemptionYes").attr("disabled", "disabled");
+            $("#rbExemptionNo").attr("disabled", "disabled");
+        }
+        else if (viewmode == 'N') {
+            $("#rbExemptionYes").removeAttr("disabled");
+            $("#rbExemptionNo").removeAttr("disabled");
+        }
+        $('#_TDSRate').val("");
+      //  $('#_TDSRate').removeAttr("disabled");
+      //  $('#txtUploadExemptionDoc').val("");
+        $('#_ExemptionCertificateNo').val("");
+        $('#_ExemptionThresholdValue').val("");
+        $('#_ExemptionPeriodTo').val("");
+        $('#_ExemptionPeriodFrom').val("");
+        $('#_ExemptedRate').val("");
+        $("#_ExemptionDescription").val("");
+       // $('#_ExemptionCertificateNo').attr("disabled", "disabled");
+        //$('#_ExemptionThresholdValue').attr("disabled", "disabled");
+        //$('#_ExemptionPeriodTo').attr("disabled", "disabled");
+        //$('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+        //$('#_ExemptedRate').attr("disabled", "disabled");
+        //$("#_ExemptionDescription").attr('disabled', 'disabled');
+
+       // $('#_TDSRate').removeClass("valid");
+      //  $('#_TDSRate').addClass("required");
+
+        $('#_ExemptionCertificateNo').removeClass("valid");
+        $('#_ExemptionThresholdValue').removeClass("valid");
+        $('#_ExemptionPeriodTo').removeClass("valid");
+        $('#_ExemptionPeriodFrom').removeClass("valid");
+        $('#_ExemptedRate').removeClass("valid");
+        $("#_ExemptionDescription").removeClass("valid");
+        $('#_ExemptionCertificateNo').removeClass("required");
+        $('#_ExemptionThresholdValue').removeClass("required");
+        $('#_ExemptionPeriodTo').removeClass("required");
+        $('#_ExemptionPeriodFrom').removeClass("required");
+        $('#_ExemptedRate').removeClass("required");
+        $("#_ExemptionDescription").removeClass("required");
+        $('input:radio[name=IsExemption]').change(function () {
+           
+            if ($(this).val() == "N") {
+             //   $('#_TDSRate').val("");
+             //   $('#_TDSRate').removeAttr("disabled");
+              //  $('#txtUploadExemptionDoc').val("");
+                $('#_ExemptionCertificateNo').val("");
+                $('#_ExemptionThresholdValue').val("");
+                $('#_ExemptionPeriodTo').val("");
+                $('#_ExemptionPeriodFrom').val("");
+                $('#_ExemptedRate').val("");
+                $("#_ExemptionDescription").val("");
+                $('#_ExemptionCertificateNo').attr("disabled", "disabled");
+                $('#_ExemptionThresholdValue').attr("disabled", "disabled");
+                $('#_ExemptionPeriodTo').attr("disabled", "disabled");
+                $('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+                $('#_ExemptedRate').attr("disabled", "disabled");
+                $("#_ExemptionDescription").attr('disabled', 'disabled');
+
+              //  $('#_TDSRate').removeClass("valid");
+              //  $('#_TDSRate').addClass("required");
+
+                $('#_ExemptionCertificateNo').removeClass("valid");
+                $('#_ExemptionThresholdValue').removeClass("valid");
+                $('#_ExemptionPeriodTo').removeClass("valid");
+                $('#_ExemptionPeriodFrom').removeClass("valid");
+                $('#_ExemptedRate').removeClass("valid");
+                $("#_ExemptionDescription").removeClass("valid");
+                $('#_ExemptionCertificateNo').removeClass("required");
+                $('#_ExemptionThresholdValue').removeClass("required");
+                $('#_ExemptionPeriodTo').removeClass("required");
+                $('#_ExemptionPeriodFrom').removeClass("required");
+                $('#_ExemptedRate').removeClass("required");
+                $("#_ExemptionDescription").removeClass("required");
+              
+            }
+            else {
+              
+                $('#_TDSRate').val("");
+             //   $('#_TDSRate').attr("disabled", "disabled");
+              //  $('#txtUploadExemptionDoc').val("");
+                $('#_ExemptionCertificateNo').val("");
+                $('#_ExemptionThresholdValue').val("");
+                $('#_ExemptionPeriodTo').val("");
+                $('#_ExemptionPeriodFrom').val("");
+                $('#_ExemptedRate').val("");
+                $("#_ExemptionDescription").val("");
+                $('#_ExemptionCertificateNo').removeAttr("disabled");
+                $('#_ExemptionThresholdValue').removeAttr("disabled");
+                $('#_ExemptionPeriodTo').removeAttr("disabled");
+                $('#_ExemptionPeriodFrom').removeAttr("disabled");
+                $('#_ExemptedRate').removeAttr("disabled");
+                $("#_ExemptionDescription").removeAttr("disabled");
+
+             //   $('#_TDSRate').removeClass("valid");
+              //  $('#_TDSRate').removeClass("required");
+                $('#_ExemptionCertificateNo').removeClass("valid");
+                $('#_ExemptionThresholdValue').removeClass("valid");
+                $('#_ExemptionPeriodTo').removeClass("valid");
+                $('#_ExemptionPeriodFrom').removeClass("valid");
+                $('#_ExemptedRate').removeClass("valid");
+                $("#_ExemptionDescription").removeClass("valid");
+                $('#_ExemptionCertificateNo').addClass("required");
+                $('#_ExemptionThresholdValue').addClass("required");
+                $('#_ExemptionPeriodTo').addClass("required");
+                $('#_ExemptionPeriodFrom').addClass("required");
+                $('#_ExemptedRate').addClass("required");
+                $("#_ExemptionDescription").addClass("required");
+            }
+        });
+            if ($("#selectedTdsServiceTypeID").val() != "0" && $("#selectedTdsServiceTypeID").val() != "") {
+                $("#selectedTdsServiceTypeID").addClass('valid');
+                $("#selectedTdsServiceTypeID").removeClass('required');
+            }
+            else {
+                $("#selectedTdsServiceTypeID").addClass('required');
+                $("#selectedTdsServiceTypeID").removeClass('valid');
+            }
+            if ($("#_ExemptionCertificateNo").val() != "" && $("#_TDSRate").val() != null) {
+                $("#_ExemptionCertificateNo").addClass('valid');
+                $("#_ExemptionCertificateNo").removeClass('required');
+            }
+            else {
+                $("#_ExemptionCertificateNo").addClass('required');
+                $("#_ExemptionCertificateNo").removeClass('valid');
+            }
+            if ($("#_ExemptedRate").val() != "" && $("#_ExemptedRate").val() != null) {
+                $("#_ExemptedRate").addClass('valid');
+                $("#_ExemptedRate").removeClass('required');
+            }
+            else {
+                $("#_ExemptedRate").addClass('required');
+                $("#_ExemptedRate").removeClass('valid');
+            }
+            if ($("#_ExemptionPeriodFrom").val() != "" && $("#_ExemptionPeriodFrom").val() != null) {
+                $("#_ExemptionPeriodFrom").addClass('valid');
+                $("#_ExemptionPeriodFrom").removeClass('required');
+            }
+            else {
+                $("#_ExemptionPeriodFrom").addClass('required');
+                $("#_ExemptionPeriodFrom").removeClass('valid');
+            }
+            if ($("#_ExemptionPeriodTo").val() != "" && $("#_ExemptionPeriodTo").val() != null) {
+                $("#_ExemptionPeriodTo").addClass('valid');
+                $("#_ExemptionPeriodTo").removeClass('required');
+            }
+            else {
+                $("#_ExemptionPeriodTo").addClass('required');
+                $("#_ExemptionPeriodTo").removeClass('valid');
+            }
+            if ($("#_ExemptionThresholdValue").val() != "" && $("#_ExemptionThresholdValue").val() != null) {
+                $("#_ExemptionThresholdValue").addClass('valid');
+                $("#_ExemptionThresholdValue").removeClass('required');
+            }
+            else {
+                $("#_ExemptionThresholdValue").addClass('required');
+                $("#_ExemptionThresholdValue").removeClass('valid');
+            }
+        });
+
+        $("#selectedTdsServiceTypeID").change(function () {
+           
+            var TdsServiceTypeID = $(this).val();
+            if (TdsServiceTypeID != 0) {
+                $("#selectedTdsServiceTypeID").addClass('valid');
+                $("#selectedTdsServiceTypeID").removeClass('required');
+           var objSupplierTaxDetails =
+                {
+             "selectedTdsServiceTypeID": TdsServiceTypeID
+                };
+                $.ajax({
+                    url: '@Url.Action("GetTDSSection", "Onboarding")',
+                    data: JSON.stringify(objSupplierTaxDetails),
+                    type: 'POST',
+                    async: false,
+                    cache: false,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $('#_TDSRate').val("");
+                        $('#_TDSRate').attr("disabled", "disabled");
+                        if (data.length > 0) {
+                            var tdssection = data[0]._TdsServiceTypeSection;
+                            var tdsrate = data[0]._TDSRate;
+                            $('#_TdsServiceTypeSection').val(tdssection);
+                            if (tdsrate != "" && tdsrate != null) {
+                                $('#_TDSRate').val(tdsrate);
+                            }
+                            else {
+                                $('#_TDSRate').removeAttr("disabled");
+                            }
+                          
+                        }
+                        if (data.length == 0) {
+                            $("#selectedTdsServiceTypeID").addClass('required');
+                            $("#selectedTdsServiceTypeID").removeClass('valid');
+                            jAlert("Please Select Valid TDS Service Type.", "Error", function () {
+                                $("#selectedTdsServiceTypeID").focus();
+                            });
+                           
+                        }
+                       
+                    },
+                    error: function (result) {
+                        jAlert("Something went wrong","Error");
+                    }
+                });
+            }
+            else {
+                $('#_TDSRate').val("");
+                $('#_TDSRate').attr("disabled", "disabled");
+                $('#_TdsServiceTypeSection').val("");
+                $("#selectedTdsServiceTypeID").addClass('required');
+                $("#selectedTdsServiceTypeID").removeClass('valid');
+                jAlert("Please Select Valid TDS Service Type.", "Error", function () {
+                    $("#selectedTdsServiceTypeID").focus();
+                });
+            }
+          
+        });
+    //$("#_TDSRate").keyup(function () {
+    //    IsMandatoryTdsDetails(this);
+    //});
+    $("#_ExemptedRate").keyup(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    $("#_ExemptionPeriodFrom").change(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    $("#_ExemptionPeriodTo").change(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    $("#_ExemptionThresholdValue").keyup(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    $("#_ExemptionCertificateNo").keyup(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    $("#_ExemptionDescription").keyup(function () {
+        IsMandatoryTdsDetails(this);
+    });
+    function IsMandatoryTdsDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function ClearTdsDetails() {
+        $("#SessionTDSGid").val("0");
+        $("#selectedTdsServiceTypeID").val("0");
+        $('#_TdsServiceTypeSection').val("");
+
+        $("#rbExemptionNo").prop('checked', true);
+        $('#_TDSRate').val("");
+       // $('#_TDSRate').removeAttr("disabled");
+      //  $('#txtUploadExemptionDoc').val("");
+        $('#_ExemptionCertificateNo').val("");
+        $('#_ExemptionThresholdValue').val("");
+        $('#_ExemptionPeriodTo').val("");
+        $('#_ExemptionPeriodFrom').val("");
+        $('#_ExemptedRate').val("");
+        $("#_ExemptionDescription").val("");
+        $('#_ExemptionCertificateNo').attr("disabled", "disabled");
+        $('#_ExemptionThresholdValue').attr("disabled", "disabled");
+        $('#_ExemptionPeriodTo').attr("disabled", "disabled");
+        $('#_ExemptionPeriodFrom').attr("disabled", "disabled");
+        $('#_ExemptedRate').attr("disabled", "disabled");
+        $("#_ExemptionDescription").attr('disabled', 'disabled');
+
+        //$('#_TDSRate').removeClass("valid");
+       // $('#_TDSRate').addClass("required");
+        $("#selectedTdsServiceTypeID").removeClass('valid');
+        $("#selectedTdsServiceTypeID").addClass('required');
+
+        $('#_ExemptionCertificateNo').removeClass("valid");
+        $('#_ExemptionThresholdValue').removeClass("valid");
+        $('#_ExemptionPeriodTo').removeClass("valid");
+        $('#_ExemptionPeriodFrom').removeClass("valid");
+        $('#_ExemptedRate').removeClass("valid");
+        $("#_ExemptionDescription").removeClass("valid");
+        $('#_ExemptionCertificateNo').removeClass("required");
+        $('#_ExemptionThresholdValue').removeClass("required");
+        $('#_ExemptionPeriodTo').removeClass("required");
+        $('#_ExemptionPeriodFrom').removeClass("required");
+        $('#_ExemptedRate').removeClass("required");
+        $("#_ExemptionDescription").removeClass("required");
+        $("#selectedTdsServiceTypeID").focus();
+    }
+    function SaveTdsDetails() {
+       var taxsubtype = $("#selectedTdsServiceTypeID").val();
+       var section = $('#_TdsServiceTypeSection').val();
+       var tdsrate = $('#_TDSRate').val();
+       var exemptedrate = $('#_ExemptedRate').val();
+       var exemptionperiodfrom = $('#_ExemptionPeriodFrom').val();
+       var exemptionperiodto = $('#_ExemptionPeriodTo').val();
+       var exemptionthresholdvalue = $('#_ExemptionThresholdValue').val();
+       var exemptioncertificateno = $('#_ExemptionCertificateNo').val();
+       var exemptiondesc = $('#_ExemptionDescription').val();
+        
+
+       var ids = parseInt($("#SessionTDSGid").val());
+
+       if ($("#selectedTdsServiceTypeID").val() == "0" || $("#selectedTdsServiceTypeID").val() == null) {
+           jAlert("Please Select Tax Subtype", "Error", function () {
+               $("#selectedTdsServiceTypeID").focus();
+           });
+           return false;
+       }
+
+       //if (viewmode == 'Y') {
+       //    if ($("#_TDSRate").val() == "" || $("#_TDSRate").val() == null) {
+       //        jAlert("Please Enter TDS Rate", "Error", function () {
+       //            $("#_TDSRate").focus();
+       //        });
+       //        return false;
+       //    }
+        //}
+       if ($('input:radio[name=IsExemption]:checked').val() == "Y") {
+  
+           if ($("#_ExemptedRate").val() == "" || $("#_ExemptedRate").val() == null) {
+               jAlert("Please Enter Exemption Rate", "Error", function () {
+                   $("#_ExemptedRate").focus();
+               });
+               return false;
+           }
+
+           if ($("#_ExemptionPeriodFrom").val() == "" || $("#_ExemptionPeriodFrom").val() == null) {
+               jAlert("Please Enter Exemption Period From", "Error", function () {
+                   $("#_ExemptionPeriodFrom").focus();
+               });
+               return false;
+           }
+
+           if ($("#_ExemptionPeriodTo").val() == "" || $("#_ExemptionPeriodTo").val() == null) {
+               jAlert("Please Enter Exemption Period To", "Error", function () {
+                   $("#_ExemptionPeriodTo").focus();
+               });
+               return false;
+           }
+
+           if ($("#_ExemptionThresholdValue").val() == "" || $("#_ExemptionThresholdValue").val() == null) {
+               jAlert("Please Enter Exemption Threshold Value", "Error", function () {
+                   $("#_ExemptionThresholdValue").focus();
+               });
+               return false;
+           }
+           if ($("#_ExemptionCertificateNo").val() == "" || $("#_ExemptionCertificateNo").val() == null) {
+               jAlert("Please Enter Exemption Certificate Number", "Error", function () {
+                   $("#_ExemptionCertificateNo").focus();
+               });
+               return false;
+           }
+           if ($("#_ExemptionDescription").val() == "" || $("#_ExemptionDescription").val() == null) {
+               jAlert("Please Enter Exemption Description", "Error", function () {
+                   $("#_ExemptionDescription").focus();
+               });
+               return false;
+           }
+
+       }
+      
+        var objSupplierTaxDetails = {
+            "_TdsID": ids,
+            "selectedTdsServiceTypeID": taxsubtype,
+            "_TDSRate": tdsrate,
+            "_ExemptedRate": exemptedrate,
+            "_ExemptionPeriodFrom": exemptionperiodfrom,
+            "_ExemptionPeriodTo": exemptionperiodto,
+            "_ExemptionThresholdValue": exemptionthresholdvalue,
+            "_ExemptionCertificateNo": exemptioncertificateno,
+            "_ExemptionDescription": exemptiondesc
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateTdsDetails", objSupplierTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted","success");
+                    ClearTdsDetails();
+                    $("#wgTDS").load("../onboarding/TdsDetails?" + new Date().getTime());
+                }
+            }, 'json');
+
+        }
+        else {
+            $.post("../Onboarding/EditTdsDetailsSave", objSupplierTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Updated", "success");
+                    ClearTdsDetails();
+                    $("#wgTDS").load("../onboarding/TdsDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+</script>

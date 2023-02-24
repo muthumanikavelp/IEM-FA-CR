@@ -1,0 +1,60 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+
+    DataTable getadvancetype = new DataTable();
+    List<EOW_arfraising> list = new List<EOW_arfraising>();
+    ArfRaising rais = new ArfRaising();
+    getadvancetype = rais.Selectpayment(Session["EcfGid"].ToString());
+    foreach (DataRow row in getadvancetype.Rows)
+    {
+        list.Add(
+        new EOW_arfraising
+        {
+            creditline_gid = Convert.ToInt16(row["creditline_gid"].ToString()),
+            ecfarf_ecf_gid = Convert.ToInt16(row["creditline_ecf_gid"].ToString()),
+            creditline_pay_mode = Convert.ToString(row["creditline_pay_mode"]),
+            creditline_ref_no = Convert.ToString(row["creditline_ref_no"]),
+            creditline_beneficiary = Convert.ToString(row["creditline_beneficiary"].ToString()),
+            creditline_desc = Convert.ToString(row["creditline_desc"].ToString()),
+            creditline_amount = Convert.ToDecimal(row["creditline_amount"].ToString())
+        });
+    };
+
+    WebGrid grid = new WebGrid(source: list, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div class="panel panel-default" id="gridPayment">
+    <div>
+        @using (Html.BeginForm())
+        {
+            <div class="well">
+                <div style="margin-top:17px;max-height: 350px;" id="paygrid" class="overflowy">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+                    @grid.GetHtml(
+        tableStyle: "table table-bordered table-hover table-responsive",
+        columns: grid.Columns
+            (
+
+grid.Column("creditline_pay_mode", Sorter("creditline_pay_mode", "PayMode", grid)),
+grid.Column("creditline_ref_no", Sorter("ecfarf_desc", "RefNo", grid)),
+grid.Column("creditline_beneficiary", Sorter("creditline_beneficiary", "Beneficiary", grid)),
+grid.Column("creditline_desc", Sorter("creditline_desc", "Description", grid)),
+grid.Column("creditline_amount", Sorter("creditline_amount", "Amount", grid))))
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>

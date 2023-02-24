@@ -1,0 +1,250 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.EOW_arfraising>
+@{
+
+    Layout = null;
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchgrid", ajaxUpdateCallback: "DummyFunsearchsup()");
+    int rowVal = 0;
+}
+<div id="searchgrid">
+
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew tblstyles" align="center">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> Supplier Code </span>
+                            <input name="EmployeeCode"
+                                   id="txteditinwardcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.SupplierCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Supplier Name </span>
+                            <input name="EmployeeName"
+                                   id="txteditsuppname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   data-val="true"
+                                   value="@ViewBag.SupplierName"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="button" onclick="Searsupinward11()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="refreshforsup11()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    @*<button class="btn btn-warning" name="commandcan" id="btnCancel1" style="margin-left:-43px;margin-top:20px;" type="button" value="Cancel" onclick="GotoIndex()">Cancel</button>*@
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="Gotorinwardsup11()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridSupplierAddSearch" },
+                  tableStyle: "table table-bordered table-hover table-responsive ",
+                  mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+            grid.Column("supplierheader_suppliercode", Sorter("supplierheader_suppliercode", "Supplier Code", grid)),
+          grid.Column("supplierheader_name", Sorter("supplierheader_name", "Supplier Name", grid)),
+            // grid.Column("SupplierId", Sorter("SupplierId", "Supplier Id", grid)),
+                 grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input type="hidden" id="SupplierIdFind_@item.ecf_supplier_gid" name="RollEmployee" value="@item.ecf_supplier_gid" />
+                    <input type="hidden" id="SupplierCodeFind_@item.ecf_supplier_gid" name="RollEmployee" value="@item.supplierheader_suppliercode" />
+                    <input type="hidden" id="SupplierNameFind_@item.ecf_supplier_gid" name="RollEmployee" value="@item.supplierheader_name" />
+                    <a><span class="btn btn-link btnselect" onclick="Select(@item.ecf_supplier_gid)">Select</span></a>
+
+                </text>)
+)))
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#txteditinwardcode").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNew/AutoCompletecodes",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.SupplierCode, value: item.SupplierCode };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#txteditsuppname").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNew/AutoCompletenames",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.SupplierName, value: item.SupplierName };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    $(document).ready(function () {
+
+        $("#txteditinwardcode").keyup(function () {
+            var txtSupplierName = $("#txteditinwardcode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txteditinwardcode").removeClass('required');
+                $("#txteditinwardcode").addClass('valid');
+
+            }
+            else {
+                $("#txteditinwardcode").removeClass('valid');
+                $("#txteditinwardcode").addClass('required');
+
+            }
+        });
+        $("#txteditsuppname").keyup(function () {
+            var txtSupplierName = $("#txteditsuppname").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txteditsuppname").removeClass('required');
+                $("#txteditsuppname").addClass('valid');
+
+            }
+            else {
+                $("#txteditsuppname").removeClass('valid');
+                $("#txteditsuppname").addClass('required');
+
+            }
+        });
+
+    });
+    function refreshforsup11() {
+        $('#txteditinwardcode').val('');
+        $('#txteditsuppname').val('');
+        var empcode = $('#txteditinwardcode').val();
+        var empname = $('#txteditsuppname').val();
+
+        var objownersearch =
+           {
+               "SupplierName": empname,
+               "SupplierCode": empcode
+           };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SupplierSearchECF11", "Central")',
+            data: objownersearch,
+            success: function (data) {
+                $("#searchgrid").empty().append(data);
+                //$('#emplgrid').load(url, data);
+            },
+            error: function () {
+            }
+        });
+
+    }
+    function Searsupinward11() {
+
+        var empname = $('#txteditsuppname').val();
+        var empcode = $('#txteditinwardcode').val();
+        var objownersearch =
+            {
+                "SupplierName": empname,
+                "SupplierCode": empcode
+            };
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SupplierSearchECF11", "RaisingArf")',
+            data: objownersearch,
+            success: function (data) {
+                $("#searchgrid").empty().append(data);
+                //$('#emplgrid').load(url, data);
+            },
+            error: function () {
+            }
+        });
+    }
+    function Select(id) {
+        var SupplierId = $("#SupplierIdFind_" + id + "").val();
+        var SupplierCode = $("#SupplierCodeFind_" + id + "").val();
+        var SupplierName = $("#SupplierNameFind_" + id + "").val();
+
+
+        var objownersearchnew = {
+            "employeeGid": SupplierId,
+            "empCode": SupplierCode,
+            "empName": SupplierName
+        };
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("Getsupplier", "RaisingArf")',
+            data: objownersearchnew,
+            success: function (data) {
+                $('#_txtsupempcode').val(SupplierCode);
+                $('#_txtsupempname').val(SupplierName);
+                $("#_txtsupempcode").addClass('valid');
+                $("#_txtsupempname").addClass('valid');
+                $("#_txtsupempgid").addClass('valid');
+                $('#_txtsupempgid').val(SupplierId);
+                Gotorinwardsup11();
+            },
+            error: function () {
+            }
+        });
+    }
+    function Gotorinwardsup11() {
+        //objDialogySearch.remove();
+        //objDialogyinwardsupse.dialog("close");
+        // objDialogyinwardsupse.remove();
+        window.parent.jQuery('#ForPartialViewforsupplier').dialog('close');
+    }
+    function DummyFunsearchsup() {
+        $("#wgridSupplierAddSearch td:nth-child(2),#wgridSupplierAddSearch th:nth-child(2)").show();
+    }
+</script>

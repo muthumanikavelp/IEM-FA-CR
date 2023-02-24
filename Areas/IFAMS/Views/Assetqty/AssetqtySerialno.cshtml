@@ -1,0 +1,282 @@
+﻿@model IEM.Areas.IFAMS.Models.AssetqtyModel
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<div id="headerAttachment">
+    <div class="well" style="background-color:white">
+        <div>
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <div>
+                            <span> Update for </span>
+                            <br />
+                            <select id="txtstatus" class="textboxStyleSearch" name="status">
+                                <option value="Quantity">Quantity</option>
+                                <option value="Serinal No">Serinal No</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        <span>Select file</span><br />
+                        <form id="theuploadformtrfma">
+                            @Html.AntiForgeryToken()
+                            <input class="textboxStyleSearch" id="fileUploadTrfMaker" name="fileUploadTrfMaker" type="file" onchange="checkfile(this)" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                        </form>
+                    </td>
+                    <td>
+                        <span>Select Sheet</span>
+                        <br />
+                        @Html.DropDownListFor(model => model.aqtySheetname, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectsheet2", @name = "ddlSelectsheet2" })
+                    </td>
+
+                    <td id="idQty" hidden="hidden">
+                        <span>&nbsp;</span><br />
+                        <div style="font-weight:bold">
+                            <a class="btn" data-modal="" href="../Assetqty/Assetqtydownloadexcel" id="DownloadTemplate">
+                                Download Template
+                            </a>
+                        </div>
+                    </td>
+
+                    <td id="idSer" hidden="hidden">
+                        <span>&nbsp;</span><br />
+                        <div style="font-weight:bold">
+                            <a class="btn" data-modal="" href="../Assetqty/AssetSerdownloadexcel" id="DownloadTemplate">
+                                Download Template
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>&nbsp;</span><br />
+                    <button id="btnfrstsubmit" class="btn btn-primary" value="Upload" onclick="UpdateQtynSerNo()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>&nbsp;
+
+                    &nbsp;<button id="btncanpayclear" onclick="txtClear()" class="btn btn-primary" value="cancel"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>&nbsp;
+                    &nbsp;<button id="btncanpayclear" onclick="backtotmsummary()" class="btn btn-warning" value="cancel"><span style="color:white;" class="glyphicon glyphicon-circle-arrow-left"></span> Cancel</button>
+
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+<div id="dividuploadstatus"></div>
+
+<script>
+    var objforAttachment = $("[id$='dividuploadstatus']");
+    $(document).ready(function () {
+
+        if ($("#txtstatus").val() == "Quantity") {
+          
+            $("#idQty").attr("hidden", false);
+            $("#idSer").attr("hidden", true);
+          
+        }
+        else {
+          
+            $("#idSer").attr("hidden", false);
+            $("#idQty").attr("hidden", true);
+        }
+    });
+
+    $("#txtstatus").live('change', function () {
+      
+        if ($("#txtstatus").val() == "Quantity") {
+
+            $("#idQty").attr("hidden", false);
+            $("#idSer").attr("hidden", true);
+        }
+        else {
+         
+            $("#idSer").attr("hidden", false);
+            $("#idQty").attr("hidden", true);
+        }
+    });
+
+    function UpdateQtynSerNo() {
+        if ($("#fileUploadTrfMaker").val() == null || $("#fileUploadTrfMaker").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+        }
+        var sheet = $("#ddlSelectsheet2 option:selected").text();
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please select a sheet", "Message");
+            $("#ddlSelectsheet2").focus();
+            return false;
+        }
+        else {
+            var objsheet =
+                 {
+                     "aqtySheetname": sheet
+                 };
+
+            if ($("#txtstatus").val() == "Quantity") {
+                $.ajax({
+                    url: "@Url.Action("AqtyUpdate", "Assetqty")?" + +new Date().getTime(),
+                    type: 'POST',
+                    cache: false,
+                    data: objsheet,
+                    success: function (data) {
+                        if (data == "Success") {
+                            $("#fileUploadTrfMaker").val("");
+                            $("#theuploadformtrfma").val('');
+                            objforAttachment.dialog({
+                                autoOpen: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+                                width: 400,
+                                height: 300,
+                                resizable: false
+                            });
+                            objforAttachment.load("@Url.Action("AqtyUploadstatus", "Assetqty")?ddlSelectsheet2=" + sheet + '&' + new Date().getTime());
+                            objforAttachment.dialog({ title: 'Upload Summary' });
+                            objforAttachment.dialog("open");
+                        }
+                        else {
+                            jAlert(" \tInvalid template." + "\n\t\t" + "   Please refer template.", "Message");
+                            $("#fileUploadTrfMaker").val("")
+                            txtClear();
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        jAlert("Please refer template.", "Message");
+                        txtClear();
+                        return false;
+                    }
+                });
+            }
+            else {
+                $.ajax({
+                    url: "@Url.Action("ASerNoUpdate", "Assetqty")?" + +new Date().getTime(),
+                    type: 'POST',
+                    cache: false,
+                    data: objsheet,
+                    success: function (data) {
+                        if (data == "Success") {
+                            $("#fileUploadTrfMaker").val("");
+                            $("#theuploadformtrfma").val('');
+                            objforAttachment.dialog({
+                                autoOpen: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+                                width: 400,
+                                height: 300,
+                                resizable: false
+                            });
+                            objforAttachment.load("@Url.Action("ASerUploadstatus", "Assetqty")?ddlSelectsheet2=" + sheet + '&' + new Date().getTime());
+                            objforAttachment.dialog({ title: 'Upload Summary' });
+                            objforAttachment.dialog("open");
+                        }
+                        else {
+                            jAlert(" \tInvalid template." + "\n\t\t" + "   Please refer template.", "Message");
+                            $("#fileUploadTrfMaker").val("")
+                            txtClear();
+                            return false;
+                        }
+                    },
+                    error: function () {
+                        jAlert("Please refer template.", "Message");
+                        txtClear();
+                        return false;
+                    }
+                });
+            }
+
+        }
+    }
+
+
+    function getsheets() {
+        
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '../Assetqty/AqtyUploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                $("#ddlSelectsheet2").empty();
+                $("#ddlSelectsheet2").append("<option value='0' >---Select---</option>");
+                if (result == "undefined" || result == "") {
+                    jAlert("Please Upload File with Data", "Message");
+                    txtClear();
+                    return false;
+                }
+                else {
+                    var err = result[0].aqtySheetname;                    
+                    if (result.length > 0) {
+                        var stylesSelect = $('#ddlSelectsheet2');
+                        stylesSelect.attr('disabled', false);
+                        for (var i = 0; i < result.length; i++) {
+                            $("#ddlSelectsheet2").append("<option value=" + result[i].aqtySheetid + " >" + result[i].aqtySheetname + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSelectsheet2');
+                        stylesSelect.attr('disabled', true);
+                    }
+
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                jAlert(err, "Error");
+                txtClear();
+                return false;
+            }
+        });
+    }
+
+    function backtotmsummary() {
+        window.location.reload();
+    }
+
+    function checkfile(sender) {
+        var validExts = new Array(".xlsx", ".xls");
+        var fileExt = sender.value;
+        fileExt = fileExt.substring(fileExt.lastIndexOf('.'));
+        if (validExts.indexOf(fileExt) < 0) {
+            jAlert("Invalid file selected, valid files are of " +
+                     validExts.toString() + " types."); txtClear();
+        }
+        else {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#theuploadformtrfma');
+            form.attr("action", "../Assetqty/AqtyUploadFilesnew");
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#fileUploadTrfMaker').val());
+            form.submit();
+            getsheets();
+
+        }
+    }
+
+    function txtClear() {
+        var fileUpload = $("[id*=fileUploadTrfMaker]");
+        var id = fileUpload.attr("id");
+        var name = fileUpload.attr("name");
+        //Create a new FileUpload element.
+        var newFileUpload = $("<input type = 'file' id='fileUploadTrfMaker' name='fileUploadTrfMaker' class='textboxStyleSearch' onchange='checkfile(this)' accept='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel' />");
+        fileUpload.after(newFileUpload);
+        fileUpload.remove();
+        $("#ddlSelectsheet2").empty();
+        $("#ddlSelectsheet2").append("<option value='0' >---Select---</option>");
+    }
+</script>

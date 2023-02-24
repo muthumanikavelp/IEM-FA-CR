@@ -1,0 +1,902 @@
+﻿@model  IEM.Areas.ASMS.Models.SupplierHeader
+@using IEM.Areas.ASMS.Models
+@{
+    //System.Web.HttpContext.Current.Session["controlrefreshtab"] = "inprocess";
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    ViewBag.SupplierHeaderGid = Convert.ToInt64(System.Web.HttpContext.Current.Session["SupplierHeaderGid"]);
+    SupplierHeader sh = (SupplierHeader)ViewBag.supplierheader;
+    ViewBag.OwnerGid = sh._OwnerId;
+    ViewBag.ispermanent = sh._SupplierType;
+
+    SupDataModel dm = new SupDataModel();
+    SupplierBranchDetails objSupBranch = new SupplierBranchDetails();
+    objSupBranch.lstCity = new SelectList(dm.GetAllCityBranch(), "_CityID", "_CityName");
+
+}
+
+<script type="text/javascript">
+    var pagemode;
+    function chkisvaliddata() {
+        if ($.trim($('#txtNoofYearsInBusiness').val()) == "0") {
+            $('#txtNoofYearsInBusiness').val("");
+        }
+        if ($.trim($('#txtNoofYearsOfAssociation').val()) == "0") {
+            $('#txtNoofYearsOfAssociation').val("");
+        }
+        if ($.trim($('#_NoofOfficesInIndia').val()) == "0") {
+            $('#_NoofOfficesInIndia').val("");
+        }
+        if ($.trim($('#_NoofFactoriesInIndia').val()) == "0") {
+            $('#_NoofFactoriesInIndia').val("");
+        }
+        if ($.trim($('#_TotalEmployees').val()) == "0") {
+            $('#_TotalEmployees').val("");
+        }
+        if ($.trim($('#_PermanentEmployees').val()) == "0") {
+            $('#_PermanentEmployees').val("");
+        }
+        if ($.trim($('#_ContractEmployees').val()) == "0") {
+            $('#_ContractEmployees').val("");
+        }
+
+    }
+    function IsDiableDropDownCity(value) {
+        if (value == true) {
+            $('#selectedCityID').data('chosen').search_field_disabled();
+            $('#selectedCityID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedCityID').removeAttr('disabled');
+            $('#selectedCityID').trigger("chosen:updated");
+        }
+    }
+    /*function IsDiableDropDown(value) {
+        if (value == true) {
+            $('#selectedCityID').data('chosen').search_field_disabled();
+            $('#selectedCityID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedCityID').removeAttr('disabled');
+            $('#selectedCityID').trigger("chosen:updated");
+        }
+    }*/
+    
+    $(document).ready(function () {
+        $("#selectedCityID").chosen({});
+        $("#selectedCityID_chosen").css("width", "99%").addClass("mychosen");
+        chkisvaliddata();
+        pagemode = '@ViewBag.PageMode';
+        $('#_TotalEmployees').attr("disabled", "disabled");
+      
+        if (pagemode == "3" || pagemode == "5" || pagemode == "2") {
+            $('#txtNoofYearsInBusiness').attr("disabled", "disabled");
+            $('#txtNoofYearsOfAssociation').attr("disabled", "disabled");
+            $('#_NoofOfficesInIndia').attr("disabled", "disabled");
+            $('#_NoofFactoriesInIndia').attr("disabled", "disabled");
+            $('#_TotalEmployees').attr("disabled", "disabled");
+            $('#_PermanentEmployees').attr("disabled", "disabled");
+            $('#_ContractEmployees').attr("disabled", "disabled");
+            
+            IsDiableDropDownCity(true);
+            
+
+            $("#txtSupServiceName").css("display", "none");
+            $("#btnAddServiceProfile").css("display", "none");
+            $("#btnSearchServiceProfile").css("display", "none");
+            $("#btnRefreshServiceProfile").css("display", "none");
+
+            $("#txtSubContractorName").css("display", "none");
+            $("#txtSubContServiceName").css("display", "none");
+            $("#btnAddSubContractProfile").css("display", "none");
+            $("#btnSearchSubContractProfile").css("display", "none");
+            $("#btnRefreshSubContractProfile").css("display", "none");
+
+            $("#tdAddCustomer").css("display", "none");
+            $("#tdAddCustomerSeparator").css("display", "none");
+
+            $("#txtSupBranchName").css("display", "none");
+            $("#btnAddBranchProfile").css("display", "none");
+            $("#btnSearchBranchProfile").css("display", "none");
+            $("#btnRefreshBranchProfile").css("display", "none");
+
+            $("#txtSupAwardName").css("display", "none");
+            $("#txtSupAwardDesc").css("display", "none");
+            $("#btnSupAwardAdd").css("display", "none");
+            $("#btnSupAwardSearch").css("display", "none");
+            $("#btnSupAwardRefresh").css("display", "none");
+
+            $("#tdAddClient").css("display", "none");
+            $("#tdAddClientSeparator").css("display", "none");
+
+        }
+        $('#txtNoofYearsInBusiness').attr("maxlength", "4");
+        $('#txtNoofYearsOfAssociation').attr("maxlength", "4");
+        $('#_NoofOfficesInIndia').attr("maxlength", "6");
+        $('#_NoofFactoriesInIndia').attr("maxlength", "6");
+        $('#_TotalEmployees').attr("maxlength", "8");
+        $('#_PermanentEmployees').attr("maxlength", "8");
+        $('#_ContractEmployees').attr("maxlength", "8");
+        $("#txtNoofYearsInBusiness,#txtNoofYearsOfAssociation,#_NoofOfficesInIndia,#_NoofFactoriesInIndia,#_TotalEmployees,#_PermanentEmployees,#_ContractEmployees").keypress(function (event) {
+            return isNumber(event);
+        });
+        $("#txtSupServiceName,#txtSubContServiceName,#_CustomerServiceNameSearch,#_ClientNameSearch,#_CustomerNameSearch,#txtSupBranchName").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#txtSupAwardName,#txtSupAwardDesc").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#txtSubContractorName,#_CustomerContactPersonSearch").keypress(function (event) {
+            return isAlphabetWithSingleQuote(event);
+        });
+        //$("#_ClientAgeOfProductSearch").keypress(function (event) {
+        //    return isAlphaNumericWithLtGt(event);
+        //});
+        $("#_ClientAddressSearch").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#_CustomerMobileNoSearch,#_CustomerPhoneNoSearch").keypress(function (event) {
+            return isPhoneNumber(event, this);
+        });
+        $('#_CustomerMobileNoSearch').attr("maxlength", "10");
+        $("#_SupBranchName").attr("maxlength", "64");
+        $("#txtSupAwardName").attr("maxlength", "128");
+        $("#txtSupAwardDesc").attr("maxlength", "256");
+
+        $("#_PermanentEmployees,#_ContractEmployees").keyup(function () {
+            var permanent_emp = parseInt($("#_PermanentEmployees").val().replace('', '0'));
+            var contract_emp = parseInt($("#_ContractEmployees").val().replace('', '0'));
+            var total_emp = permanent_emp + contract_emp;
+            $("#_TotalEmployees").val(total_emp);
+        });
+    });
+
+    $("#btnNextProfile").live("click", function () {
+        //if (pageMode = "3") {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 2);
+        //}
+        //else {
+        //    var SupProfileGid = $("#SessionSupplierProfileGid").val().trim();
+
+        //    var NoOfYearsInBusiness = $("#txtNoofYearsInBusiness").val();
+        //    var NoOfYearsOfAssociation = $("#txtNoofYearsOfAssociation").val();
+        //    var NoOfFactories = $("#_NoofFactoriesInIndia").val();
+        //    var NoOfOffices = $("#_NoofOfficesInIndia").val();
+        //    var TotalNoOfEmployees = $("#_TotalEmployees").val();
+        //    var ContractEmployees = $("#_ContractEmployees").val();
+        //    var PermanentEmployees = $("#_PermanentEmployees").val();
+
+        //    objSupProfile = {
+        //        "_SupProfileID": SupProfileGid,
+        //        "_NoofYearsIBusiness": NoOfYearsInBusiness,
+        //        "_NoofYearsOfAssociation": NoOfYearsOfAssociation,
+        //        "_NoOfFactories": NoOfFactories,
+        //        "_NoOfOffices": NoOfOffices,
+        //        "_TotalEmployees": TotalNoOfEmployees,
+        //        "_PermanentEmployees": PermanentEmployees,
+        //        "_ContractEmployees": ContractEmployees
+        //    };
+
+        //    if (SupProfileGid == "" || SupProfileGid == "0" || SupProfileGid == null) {
+
+        //        $.post('../Onboarding/InsertSupplierProfile', objSupProfile,
+        //        function (data) {
+        //            $("#SessionSupplierProfileGid").val(data);
+        //            var tabs = $('#tabs').tabs();
+        //            tabs.tabs('select', 2);
+        //        }, 'json');
+
+        //    }
+        //    else {
+        //        $.post('../Onboarding/UpdateSupplierProfile', objSupProfile,
+        //               function (data) {
+        //                   var tabs = $('#tabs').tabs();
+        //                   tabs.tabs('select', 2);
+        //               }, 'json');
+        //    }
+        //}
+
+    });
+    $("#btnPrevProfile").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 0);
+    });
+
+    
+</script>
+
+<div style="width:100%;">
+    <div class="row">
+        <div class="col-lg-3">
+            <div style="width:100%; height:220px;">
+                <fieldset>
+                    <legend style="text-align:left;">SERVICE HISTORY</legend>
+                    <br />
+                    <center>
+                        <div class="table-responsive borderStyleNew" style="height:170px; width:100%;">
+                            <input type="hidden" id="SessionSupplierProfileGid" name="SessionSupplierProfileGid" />
+                            <table class="myTableStyleTabNew" width="100%">
+                                <tr>
+                                    <td>
+                                        <span>No.of Years in Business</span><br />
+                                        <input type="text" class="textboxStyle" name="txtNoofYearsInBusiness" id="txtNoofYearsInBusiness" value="@sh._NoofYearsIBusiness" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span>If Associated with @System.Configuration.ConfigurationManager.AppSettings["CompanyName"],No.of Years of Association</span><br />
+                                        <input type="text" class="textboxStyle" name="txtNoofYearsOfAssociation" id="txtNoofYearsOfAssociation" value="@sh._NoofYearsOfAssociation" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </center>
+                </fieldset>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div style="width:100%; height:220px;">
+                <fieldset>
+                    <legend style="text-align:left;">PRODUCTS / SERVICES</legend>
+                    <br />
+                    <center>
+                        <div class="borderStyleNew SampleTextStyle" style="height:170px; overflow: auto;">
+                            <span>Products/Services supplied by Supplier</span><br />
+                            <div>
+                               @* <input type="text" id="txtSupServiceName" name="txtSupServiceName" class="textboxStyleMedium" placeholder="Service Name" />*@
+                                @*<a title='Add Service' id="btnAddServiceProfile" onclick='SaveSupService()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-plus-sign '> </span> </a>
+                                <a title='Search Service' id="btnSearchServiceProfile" onclick='SearchService()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-search '> </span> </a>
+                                <a title='Refresh Service' id="btnRefreshServiceProfile" onclick='RefreshService()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-refresh '> </span> </a>*@
+
+                                @Html.Partial("SupplierServiceDetails")
+                            </div>
+                        </div>
+                    </center>
+                </fieldset>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div style="width:100%;height:220px;">
+                <fieldset>
+                    <legend style="text-align:left;">SUB-CONTRACTORS</legend>
+                    <br />
+                    <center>
+                        <div class="borderStyleNew SampleTextStyle" style="height:170px; overflow: auto;">
+                            <span>Incase of SubContract,Specify Sub Contractor Name & Services</span><br />
+                            <div>
+                                @*<input type="text" id="txtSubContractorName" name="txtSubContractorName" class="textboxStyleSmall" placeholder="SubContractor Name" />
+                                <input type="text" id="txtSubContServiceName" name="txtSubContServiceName" class="textboxStyleSmall" placeholder="Service Name" />*@
+                                @*<a title='Add' id="btnAddSubContractProfile" onclick='SaveSubContract()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-plus-sign '> </span> </a>
+                                <a title='Search' id="btnSearchSubContractProfile" onclick='SearchSubContract()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-search '> </span> </a>
+                                <a title='Refresh' id="btnRefreshSubContractProfile" onclick='RefreshSubContract()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-refresh '> </span> </a>*@
+                                <br />
+                                @Html.Partial("SubContractorDetails")
+                            </div>
+                        </div>
+                    </center>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+</div>
+
+<fieldset>
+    <legend>CUSTOMER & PRODUCT/ SERVICE MATRIX</legend>
+    <div id="forcust" style="width:100%;margin:0;padding:0;">
+        <div style="float:right;padding-right:20px;">
+            <table style="text-align:right;">
+                <tr>
+                    <td id="tdAddCustomer">
+                        <a onclick="NewCustomer()" class="BlueColorFont"><span class='glyphicon glyphicon-plus-sign '> </span> </a>
+                    </td>
+                    <td id="tdAddCustomerSeparator">
+                        &nbsp;   &nbsp;
+                    </td>
+                    <td>
+                        <a onclick="ShowSearchOptions()" class="BlueColorFont"><span class='glyphicon glyphicon-search'> </span></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br /><br />
+        <div id="CustomerSearchPanel" class="SearchPanel borderStyle">
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="width:33%;">
+                        <span>Customer Name</span><br />
+                        <input name="_CustomerNameSearch" class="textboxStyle" id="_CustomerNameSearch" title="Customer Name" type="text" />
+                    </td>
+                    <td style="width:33%;">
+                        <span>Customer Service Name</span> <br />
+                        <input name="_CustomerServiceNameSearch" class="textboxStyle" id="_CustomerServiceNameSearch" title="Service Name" type="text" />
+                    </td>
+                    <td style="width:33%;">
+                        <span>Contact Person Name</span> <br />
+                        <input name="_CustomerContactPersonSearch" class="textboxStyle" id="_CustomerContactPersonSearch" title="Contact Person Name" type="text" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:33%;">
+                        <span>Mobile No</span> <br />
+                        <input name="_CustomerMobileNoSearch" id="_CustomerMobileNoSearch" class="textboxStyle" title="Mobile No" type="text" />
+                    </td>
+                    <td style="width:33%;">
+                        <span>Phone No</span> <br />
+                        <input name="_CustomerPhoneNoSearch" id="_CustomerPhoneNoSearch" class="textboxStyle" title="Phone No" type="text" />
+                    </td>
+                    <td style="width:33%;">
+                        <span>Age of Product/ Service</span> <br />
+                        <input name="_CustomerAgeOfProductSearch" class="textboxStyle" id="_CustomerAgeOfProductSearch" title="Age Of Product" type="text" />
+                    </td>
+                    @*<td style="text-align:right;padding-right:5%;">
+                            <input type="button" name="btnSearchCustomer" id="btnSearchCustomer" class="btn btn-primary" value="Search" onclick="SearchCustomer()" />
+                            <input type="button" id="btnCloseCustomerSearch" name="btnCloseCustomerSearch" class="btn btn-warning" value="Cancel" onclick="ShowSearchOptions()" />
+                        </td>*@
+
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align:right;vertical-align:bottom;">
+                        <button name="btnSearchCustomer" id="btnSearchCustomer" class="btn btn-primary" onclick="SearchCustomer()"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        <button id="btnCloseCustomerSearch" name="btnCloseCustomerSearch" class="btn btn-warning" onclick="ShowSearchOptions()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        @Html.Partial("CustomerDetails")
+        <div id="ForPartialViewCustomer"></div>
+    </div>
+</fieldset>
+
+<div style="padding:0;margin-top:10px;height:220px;width:100%;">
+    <div style="width:70%;float:left;padding-right:10px;">
+        <fieldset>
+            <legend style="text-align:left;">BRANCH DETAILS</legend>
+            <div class="row borderStyleNew" style="min-height:220px; max-height:225px; margin-top:10px; overflow:auto;">
+                <div class="col-lg-3">
+                    <span>No.of Offices in India</span>
+                    <br />
+                    <input type="text" id="_NoofOfficesInIndia" class="textboxStyle" name="_NoofOfficesInIndia" value="@sh._NoOfOffices" />
+                </div>
+                <div class="col-lg-3">
+                    <span>No.of Factories in India</span>
+                    <br />
+                    <input type="text" id="_NoofFactoriesInIndia" class="textboxStyle" name="_NoofFactoriesInIndia" value="@sh._NoOfFactories" />
+                </div>
+                <div class="col-lg-4">
+                    <span>Branch City</span><br />
+                    @Html.DropDownList("selectedCityID", objSupBranch.lstCity, "--select--", new { @class = "textboxStyle", @id = "selectedCityID" })
+                </div>
+                <div class="col-lg-2" style="vertical-align:bottom; margin-top:20px;">
+                    <a title='Add Branch' id="btnAddBranchProfile" onclick='SaveSupBranch()' style="text-decoration:none;" class="InlineIconStyle"> <span class='glyphicon glyphicon-plus-sign '> </span> </a>
+                    <a title='Search Branch' id="btnSearchBranchProfile" onclick='SearchBranch()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-search '> </span> </a>
+                    <a title='Refresh Branch' id="btnRefreshBranchProfile" onclick='RefreshBranch()' class="InlineIconStyle" style="text-decoration:none;"> <span class='glyphicon glyphicon-refresh '> </span> </a>
+                </div>
+                <div class="col-lg-12">
+                    @Html.Partial("SupplierBranchDetails")
+                    </div>
+                </div>
+        </fieldset>
+    </div>
+    <div style="width:28%;float:right;">
+        <fieldset>
+            <legend style="text-align:left;">MANPOWER DETAILS</legend>
+
+            <center style="margin-top:10px;">
+                @*<p class="legendStyle">MANPOWER DETAILS</p>*@
+                <div class="borderStyleNew SampleTextStyle" style="min-height:220px;">
+                    <hr style="padding:0;margin:0;" />
+                    <span>Permanent Employees</span>
+                    <br />
+                    <input type="text" id="_PermanentEmployees" class="textboxStyle" name="_PermanentEmployees" value="@sh._PermanentEmployees" />
+                    <br />
+                    <span>Contract Employees</span>
+                    <br />
+                    <input type="text" id="_ContractEmployees" class="textboxStyle" name="_ContractEmployees" value="@sh._ContractEmployees" />
+                    <br />
+                    <span>Total No.of Employees</span>
+                    <br />
+                    <input type="text" id="_TotalEmployees" class="textboxStyle" name="_TotalEmployees" value="@sh._TotalEmployees" />
+                </div>
+            </center>
+        </fieldset>
+    </div>
+
+</div>
+<br />
+<div style="width:100%;padding:5px;float:left;">
+    <fieldset>
+        <legend>AWARD DETAILS</legend>
+        <div id="foraward" style="width:100%;margin:0;padding:0;" class="SampleTextStyle">
+            <span>If Supplier hold any awards means,Specify Award Name & Description</span><br />
+            <div style="padding-bottom: 5px;">
+                <input type="text" id="txtSupAwardName" name="txtSupAwardName" class="textboxStyleSmall" placeholder="Award Name" />
+                <input type="text" id="txtSupAwardDesc" name="txtSupAwardDesc" class="textboxStyleSmall" placeholder="Description" />
+                <a title='Add' id="btnSupAwardAdd" onclick='SaveSupAward()' class="InlineIconStyle cursorpointer"> <span class='glyphicon glyphicon-plus-sign '> </span> </a>
+                <a title='Search' id="btnSupAwardSearch" onclick='SearchSupAward()' class="InlineIconStyle cursorpointer"> <span class='glyphicon glyphicon-search '> </span> </a>
+                <a title='Refresh' id="btnSupAwardRefresh" onclick='RefreshSupAward()' class="InlineIconStyle cursorpointer"> <span class='glyphicon glyphicon-refresh '> </span> </a>
+
+            </div>
+            @Html.Partial("SupAwardDetails")
+        </div>
+    </fieldset>
+</div>
+<br />
+<div style="width:100%;padding:5px;float:left;">
+    <fieldset>
+        <legend>CUSTOMER ADDRESS DETAILS</legend>
+        <div id="forclient" style="width:100%;margin:0;padding:0;">
+            <div style="float:right;padding-right:20px;">
+                <table style="text-align:right;">
+                    <tr>
+                        <td id="tdAddClient">
+                            <a onclick="NewClient()" class="BlueColorFont"><span class='glyphicon glyphicon-plus-sign'> </span></a>
+                        </td>
+                        <td id="tdAddClientSeparator">
+                            &nbsp;   &nbsp;
+                        </td>
+                        <td>
+                            <a onclick="ShowSearchOptionsClient()" class="BlueColorFont"><span class='glyphicon glyphicon-search'> </span></a>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <br /><br />
+            <div id="ClientSearchPanel" class="borderStyle">
+                <center>
+                    <table class="myTableStyleTabNew" width="100%">
+                        <tr>
+                            <td style="width:20%;">
+                                <span>Client Name</span><br />
+                                <input name="_ClientNameSearch" class="textboxStyle100" id="_ClientNameSearch" title="Client Name" type="text" />
+                            </td>
+                            <td style="width:30%;">
+                                <span>Address</span> <br />
+                                <textarea name="_ClientAddressSearch" class="textareaStyle" id="_ClientAddressSearch" title="Address" rows="1"></textarea>
+                            </td>
+                            <td style="vertical-align:bottom;width:50%;">
+                                <button name="btnSearchClient" id="btnSearchClient" class="btn btn-primary" onclick="SearchClient()"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                                <button id="btnCloseClientSearch" name="btnCloseClientSearch" class="btn btn-warning" onclick="ShowSearchOptionsClient()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                            </td>
+                        </tr>                        
+                    </table>
+                </center>
+            </div>
+
+            @Html.Partial("ClientDetails")
+        </div>
+    </fieldset>
+</div>
+<br />
+<div style="text-align:right;padding-right:25px;" class="divforbutton">
+    <button id="btnPrevProfile" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-backward"></span> Prev</button>
+    <button id="btnNextProfile" class="btn btn-primary">Next <span style="color:white;" class="glyphicon glyphicon-forward"></span></button>
+</div>
+<script type="text/javascript">
+    var objDialog3;
+    $(document).ready(function () {
+        
+        $("#CustomerSearchPanel").hide();
+        $("#ServiceSearchPanel").hide();
+        $("#ClientSearchPanel").hide();
+        objDialog3 = $("[id$='ForPartialViewCustomer']");
+        objDialog3.dialog({
+            autoOpen: false,
+            async: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out'
+            //   resizable: false
+            //  close: function (ev, ui) { $(this).close(); }
+        });
+        
+       
+        
+    });
+    
+    function NewCustomer() {
+        objDialog3.load('../Onboarding/CreateCustomer?' + new Date().getTime());
+        objDialog3.dialog({ title: 'Add New Customer', width: 470, height: 370 });
+        objDialog3.dialog("open");
+    }
+
+    function EditCustomer(id) {
+        objDialog3.load('../Onboarding/EditCustomer?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit Customer', width: 470, height: 370 });
+        objDialog3.dialog("open");
+    }
+    function ViewCustomer(id) {
+        objDialog3.load('../Onboarding/EditCustomer?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View Customer', width: 470, height: 370 });
+        objDialog3.dialog("open");
+    }
+    function DeleteCustomer(id) {
+        objDialog3.load('../Onboarding/EditCustomer?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete Customer', width: 470, height: 370 });
+        objDialog3.dialog("open");
+
+    }
+
+    function GotoIndexCustomer() {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    }
+
+    function ShowSearchOptions() {
+        if ($("#_CustomerNameSearch").val() != "" || $("#_CustomerServiceNameSearch").val() != ""
+            || $("#_CustomerContactPersonSearch").val() != "" || $("#_CustomerAgeOfProductSearch").val() != "" || $("#_CustomerMobileNoSearch").val() != "" || $("#_CustomerPhoneNoSearch").val() != "") {
+            $("#wgCustomer").load("../onboarding/customerdetails?" + new Date().getTime());
+            $("#_CustomerNameSearch").val("");
+            $("#_CustomerServiceNameSearch").val("");
+            $("#_CustomerContactPersonSearch").val("");
+            $("#_CustomerMobileNoSearch").val("");
+            $("#_CustomerPhoneNoSearch").val("");
+            $("#_CustomerAgeOfProductSearch").val("");
+        }
+        $("#CustomerSearchPanel").slideToggle(500);
+    }
+    function SearchCustomer() {
+        var custname = $("#_CustomerNameSearch").val();
+        var custservicename = $("#_CustomerServiceNameSearch").val();
+        var custcontactperson = $("#_CustomerContactPersonSearch").val();
+        var custmobile = $("#_CustomerMobileNoSearch").val();
+        var custphone = $("#_CustomerPhoneNoSearch").val();
+        var ageogproduct = $("#_CustomerAgeOfProductSearch").val();
+        var customersmodelSearch = {
+            "_CustomerName": custname,
+            "_CustomerServiceName": custservicename,
+            "_CustomerContactPerson": custcontactperson,
+            "_CustomerMobileNo": custmobile,
+            "_CustomerPhoneNo": custphone,
+            "_CustomerAgeOfProduct": ageogproduct
+
+        };
+        $.post('../Onboarding/SearchCustomer', customersmodelSearch,
+         function (data) {
+             if (data == 0) { location = location.href; } else {
+                 $("#wgCustomer").load("../onboarding/customerdetails?" + new Date().getTime());
+             }
+         }, 'json');
+    }
+    function SearchClient() {
+        var ClientName = $("#_ClientNameSearch").val();
+
+        var ClientAddress = $("#_ClientAddressSearch").val();
+
+        var objClientDetails = {
+            "_ClientName": ClientName,
+            "_ClientAddress": ClientAddress
+        };
+        $.post('../Onboarding/SearchClient', objClientDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgClient").load("../onboarding/ClientDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    //supplier service
+    function EditSupService(id) {
+        objDialog3.load('../Onboarding/EditSupplierService?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit Service', width: 330, height: 300 });
+        objDialog3.dialog("open");
+    }
+    function ViewSupService(id) {
+        objDialog3.load('../Onboarding/EditSupplierService?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View Service', width: 330, height: 300 });
+        objDialog3.dialog("open");
+    }
+    function DeleteSupService(id) {
+        objDialog3.load('../Onboarding/EditSupplierService?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete Service', width: 330, height: 300 });
+        objDialog3.dialog("open");
+
+
+    }
+    function SaveSupService() {
+        var SupServiceName = $("#txtSupServiceName").val();
+        if (SupServiceName == null || SupServiceName == "") {
+            jAlert("Please Enter Service Name.", "Error", function () {
+                $("#txtSupServiceName").focus();
+            });
+
+            return false;
+        }
+        var objServiceDetails = {
+            "_SupServiceDetailsName": SupServiceName
+
+        };
+        $.post('../Onboarding/CreateSupplierService', objServiceDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#txtSupServiceName").val("");
+                $("#wgService").load("../onboarding/SupplierServiceDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function SearchService() {
+        var SupServiceName = $("#txtSupServiceName").val();
+        var objServiceDetails = {
+            "_SupServiceDetailsName": SupServiceName
+        };
+        $.post('../Onboarding/SearchSupplierService', objServiceDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+
+                $("#wgService").load("../onboarding/SupplierServiceDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function RefreshService() {
+        $("#txtSupServiceName").val("");
+        var objServiceDetails = {
+            "_SupServiceDetailsName": ""
+        };
+        $.post('../Onboarding/SearchSupplierService', objServiceDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgService").load("../onboarding/SupplierServiceDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    //sub contractor
+    function EditSubContract(id) {
+        objDialog3.load('../Onboarding/EditSubContractor?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit SubContractor Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function ViewSubContract(id) {
+        objDialog3.load('../Onboarding/EditSubContractor?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View SubContractor Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function DeleteSubContract(id) {
+        objDialog3.load('../Onboarding/EditSubContractor?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete SubContractor Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+
+
+    }
+    function SaveSubContract() {
+        var SubContName = $("#txtSubContractorName").val();
+        var SubContServiceName = $("#txtSubContServiceName").val();
+        if (SubContName == null || SubContName == "") {
+            jAlert("Please Enter Sub Contractor Name.", "Error", function () {
+                $("#txtSubContractorName").focus();
+            });
+
+            return false;
+        }
+        if (SubContServiceName == null || SubContServiceName == "") {
+            jAlert("Please Enter SubContractor Service Name.", "Error", function () {
+                $("#txtSubContServiceName").focus();
+            });
+
+            return false;
+        }
+        var objSubContDetails = {
+            "_SubContractorName": SubContName,
+            "_SubContractorServiceName": SubContServiceName
+
+        };
+        $.post('../Onboarding/CreateSubContractor', objSubContDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#txtSubContractorName").val("");
+                $("#txtSubContServiceName").val("");
+                $("#wgSubContractor").load("../onboarding/SubContractorDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function SearchSubContract() {
+        var SubContName = $("#txtSubContractorName").val();
+        var SubContServiceName = $("#txtSubContServiceName").val();
+        var objSubContDetails = {
+            "_SubContractorName": SubContName,
+            "_SubContractorServiceName": SubContServiceName
+
+        };
+        $.post('../Onboarding/SearchSubContractor', objSubContDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSubContractor").load("../onboarding/SubContractorDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function RefreshSubContract() {
+        $("#txtSubContractorName").val("");
+        $("#txtSubContServiceName").val("");
+        var objSubContDetails = {
+            "_SubContractorName": "",
+            "_SubContractorServiceName": ""
+
+        };
+        $.post('../Onboarding/SearchSubContractor', objSubContDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSubContractor").load("../onboarding/SubContractorDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+
+    //supplier Branch
+    function EditSupBranch(id) {
+        objDialog3.load('../Onboarding/EditSupplierBranch?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit Branch', width: 370, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function ViewSupBranch(id) {
+        objDialog3.load('../Onboarding/EditSupplierBranch?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View Branch', width: 370, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function DeleteSupBranch(id) {
+        objDialog3.load('../Onboarding/EditSupplierBranch?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete Branch', width: 370, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function SaveSupBranch() {
+        var SupBrancheName = $("#selectedCityID").val();
+        if (SupBrancheName == 0) {
+            jAlert("Please Enter Branch Name.", "Error", function () {
+                $("#selectedCityID").focus();
+            });
+
+            return false;
+        }
+        var objSupBranchDetails = {
+            "selectedCityID": SupBrancheName
+        };
+        $.post('../Onboarding/CreateSupplierBranch', objSupBranchDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#selectedCityID").val("").trigger('chosen:updated');
+                $("#wgSupBranch").load("../onboarding/SupplierBranchDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function SearchBranch() {
+        var SupBrancheName = $("#selectedCityID").val();
+        var objSupBranchDetails = {
+            "selectedCityID": SupBrancheName
+        };
+        $.post('../Onboarding/SearchSupplierBranch', objSupBranchDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSupBranch").load("../onboarding/SupplierBranchDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function RefreshBranch() {
+        $("#selectedCityID").val("").trigger('chosen:updated');
+        var objSupBranchDetails = {
+            "selectedCityID": 0
+        };
+        $.post('../Onboarding/SearchSupplierBranch', objSupBranchDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSupBranch").load("../onboarding/SupplierBranchDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+
+    //sup award
+    function EditSupAward(id) {
+        objDialog3.load('../Onboarding/EditSupAward?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit Award Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function ViewSupAward(id) {
+        objDialog3.load('../Onboarding/EditSupAward?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View Award Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+    }
+    function DeleteSupAward(id) {
+        objDialog3.load('../Onboarding/EditSupAward?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete Award Details', width: 470, height: 200 });
+        objDialog3.dialog("open");
+
+    }
+    function SaveSupAward() {
+        var SupAwardName = $("#txtSupAwardName").val();
+        var SupAwardDesc = $("#txtSupAwardDesc").val();
+        if (SupAwardName == null || SupAwardName == "") {
+            jAlert("Please Enter Award Name.", "Error", function () {
+                $("#txtSupAwardName").focus();
+            });
+
+            return false;
+        }
+        //if (SupAwardDesc == null || SupAwardDesc == "") {
+        //    alert("Please Enter Award Description.");
+        //    $("#txtSupAwardDesc").focus();
+        //    return false;
+        //}
+        var objSupAwardDetails = {
+            "_SupAwardName": SupAwardName,
+            "_SupAwardDesc": SupAwardDesc
+
+        };
+        $.post('../Onboarding/CreateSupAward', objSupAwardDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#txtSupAwardName").val("");
+                $("#txtSupAwardDesc").val("");
+                $("#wgSupAward").load("../onboarding/SupAwardDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function SearchSupAward() {
+        var SupAwardName = $("#txtSupAwardName").val();
+        var SupAwardDesc = $("#txtSupAwardDesc").val();
+        var objSupAwardDetails = {
+            "_SupAwardName": SupAwardName,
+            "_SupAwardDesc": SupAwardDesc
+
+        };
+        $.post('../Onboarding/SearchSupAward', objSupAwardDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSupAward").load("../onboarding/SupAwardDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    function RefreshSupAward() {
+        $("#txtSupAwardName").val("");
+        $("#txtSupAwardDesc").val("");
+        var objSupAwardDetails = {
+            "_SupAwardName": "",
+            "_SupAwardDesc": ""
+
+        };
+        $.post('../Onboarding/SearchSupAward', objSupAwardDetails,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgSupAward").load("../onboarding/SupAwardDetails?" + new Date().getTime());
+            }
+        }, 'json');
+    }
+    //client
+    function NewClient() {
+        objDialog3.load('../Onboarding/CreateClient?' + new Date().getTime());
+        objDialog3.dialog({ title: 'Add New Client', width: 370, height: 300 });
+        objDialog3.dialog("open");
+    }
+
+    function EditClient(id) {
+        objDialog3.load('../Onboarding/EditClient?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Edit Client', width: 370, height: 300 });
+        objDialog3.dialog("open");
+    }
+    function ViewClient(id) {
+        objDialog3.load('../Onboarding/EditClient?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog3.dialog({ title: 'View Client', width: 370, height: 300 });
+        objDialog3.dialog("open");
+    }
+    function DeleteClient(id) {
+        objDialog3.load('../Onboarding/EditClient?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog3.dialog({ title: 'Delete Client', width: 370, height: 300 });
+        objDialog3.dialog("open");
+
+    }
+    function GotoIndexCustomer() {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    }
+
+    function ShowSearchOptionsClient() {
+        if ($("#_ClientNameSearch").val() != "" || $("#_ClientAddressSearch").val() != "") {
+            $("#wgClient").load("../onboarding/ClientDetails?" + new Date().getTime());
+            $("#_ClientNameSearch").val("");
+            $("#_ClientAddressSearch").val("");
+        }
+        $("#ClientSearchPanel").slideToggle(500);
+    }
+</script>

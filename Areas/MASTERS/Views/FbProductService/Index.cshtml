@@ -1,0 +1,189 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@model IEM.Areas.MASTERS.Models.FbEntity
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canSort: false, canPage: false);
+    grid.Bind(Model.lListProdService);
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Product & Service</span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:25%;">
+                    <span>Product/Service Code</span>
+                    <br />
+                    <input type="text"
+                           id="txtproduct"
+                           name="txtProduct"
+                           value="@ViewBag.txtproduct"
+                           class="fstextbox"
+                           maxlength="16" />
+                </td>
+                <td style="width:25%;">
+                    <span>Product/Service Name</span>
+                    <br />
+                    <input type="text"
+                           id="txtparent"
+                           name="txtproductname"
+                           value="@ViewBag.txtproductname"
+                           class="fstextbox"
+                           maxlength="64"
+                            />
+                </td>
+                <td style="width:25%;">
+                    <span>Parent</span>
+                    <br />
+                    <select id="ddlflag1" class="fstextbox" name="parent">
+                        <option selected>--Select Parent--</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </td>
+                <td style="width:25%;">
+                    <span>Type</span>
+                    <br />
+                    <select id="type" class="fstextbox" name="Type">
+                        <option selected>--Select Type--</option>
+                        <option value="Product">Product</option>
+                        <option value="Service">Service</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:25%;">
+                    <span>Category Type</span>
+                    <br />
+                    <select id="CatType" class="fstextbox" name="CategoryType">
+                        <option selected>--Select Category--</option>
+                        <option value="Asset">Asset</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </td>
+                <td colspan="3" style="width:75%; text-align:right;">
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+                    <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" id="btnrefresh" value="Clear" onclick="refresh()" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Clear</button>
+                    <button type="button" value="New Prod/Serv" onclick="NewProductService()" class="btn btn-primary cursorpointer" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus cursorpointer"></span> New Prod/Serv</button>
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" style="margin-top:10px">
+            @grid.GetHtml(
+            tableStyle: "tableSmall table-bordered table-hover",
+            htmlAttributes: new { id = "prodservgrid" },
+            columns: grid.Columns
+            (
+                grid.Column("slno", "SlNo", style: "slno"),
+                grid.Column("productCode", "Code", style: "colSmall"),
+                grid.Column("productServflag", "Type", style: "colSmall"),
+                grid.Column("productName", "Product/Service Name", style: "collargeBreak"),
+                //grid.Column("productDescription", "Product/Service Description", style: "collargeBreak"),
+                grid.Column("productService", "Category", style: "colSmall"),
+                grid.Column("parentFlag", "Parent", style: "colSmall"),
+                grid.Column("parentProduct", "Parent Product", style: "colSmall"),
+                grid.Column("assetCategory", "Category Name", style: "colmediumBreak"),
+                grid.Column("glCode", "Gl Code", style: "colSmall"),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <a style="padding-right:5px; text-decoration:none;"><span id="Color" class="glyphicon glyphicon-eye-open" title="View" onclick="ViewProduct(@item.productgid)"></span></a>
+                    <a style="padding-right:5px; text-decoration:none;"><span id="Color" class="glyphicon glyphicon-edit" title="Edit" onclick="EditProduct(@item.productgid)"></span></a>
+                    <a style="text-decoration:none;"><span id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteProduct(@item.productgid)"></span></a>
+                </text>)))
+        </div>
+    </div>
+    
+    <div id="ForPartialView"></div>
+}
+<script>
+    var objDialog;
+    $(document).ready(function () {
+        $('tfoot a').click(function () {
+            $('form').attr('action', $(this).attr('href')).submit();
+            return false;
+        });
+        
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 655,
+            height: 500
+        });
+
+        $("#CatType,#type,#ddlflag1").chosen({});
+        $("#CatType,#type,#ddlflag1").css('width', '100%')
+
+        $('#prodservgrid tr th:nth-child(10)').addClass("nosort");
+        $('#prodservgrid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+        //$("#DocGrpIDn_chosen,#DocFrqIDn_chosen,#ddldocFrqID_chosen").addClass("mychosen").css('width', '100%');
+    });
+
+    //var tr = $("#prodservgrid").find('tr');
+    //$("#prodservgrid tr #Color").click(function () {
+    //    $('#prodservgrid').find('tr').css('background', 'none');
+    //    $(this).closest('tr').css('background', '#CEECF5');
+    //});
+
+    function NewProductService() {
+        objDialog.load('../FbProductService/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Product/Service'  });
+        objDialog.dialog("open");
+    }
+    function EditProduct(id) {
+        objDialog.load('../FbProductService/EditNew?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Product/Service' });
+        objDialog.dialog("open");
+    }
+    function ViewProduct(id) {
+        objDialog.load('../FbProductService/EditNew?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Product/Service' });
+        objDialog.dialog("open");
+    }
+    function DeleteProduct(id) {
+        objDialog.load('../FbProductService/EditNew?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Product/Service' });
+        objDialog.dialog("open");
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "FbProductService")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=ProductService&' + new Date().getTime());
+    }
+    function refresh() {
+        location = '../FbProductService/Index';
+    }
+    if ('@ViewBag.parent' != null) {
+        var selectedvalue = '@ViewBag.parent';
+        $('#ddlflag1').val(selectedvalue);
+    }
+
+    if ('@ViewBag.Type' != null) {
+        var selectedvalue = '@ViewBag.Type';
+        $('#type').val(selectedvalue);
+    }
+    if ('@ViewBag.CategoryType' != null) {
+        var selectedvalue = '@ViewBag.CategoryType';
+        $('#CatType').val(selectedvalue);
+    }
+</script>
+

@@ -1,0 +1,299 @@
+﻿@model IEM.Areas.ASMS.Models.SEModel
+@using IEM.Areas.ASMS.Models;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid gridPen = new WebGrid(source: Model.modelPList, canPage: false, canSort: false, ajaxUpdateContainerId: "divPend", ajaxUpdateCallback: "divPend()");
+    WebGrid gridComp = new WebGrid(source: Model.modelCList, canPage: false, canSort: false, ajaxUpdateContainerId: "divComp", ajaxUpdateCallback: "divComp()");
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Evaluation Summary</span>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew" width="40%">
+            <tr>
+                <td>
+                    <span>Supplier Evaluation Assessment:</span>
+                </td>
+                <td>
+                    <input type="radio" id="radioPending" value="Pending" name="rdo" /> Pending
+                </td>
+                <td>
+                    @if (@ViewBag.search == "Completed")
+                    {
+                        <div>
+                            <input type="radio" id="radioCompleted" value="Completed" name="rdo" checked="checked" /> Completed
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <input type="radio" id="radioCompleted" value="Completed" name="rdo" /> Completed
+                        </div>
+                    }
+                </td>
+            </tr>
+        </table>
+
+        <div id="CompletedDetailTable" style="width:100%; margin-top:10px; display:none;">
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    @*<td style="width:20%;">
+                        Supplier Code <br />
+                        <input type="text"
+                               name="txtCompCodeFilter1"
+                               id="txtCompCodeFilter1"
+                               value="@ViewBag.txtCompCodeFilter1"
+                               class="fstextbox"
+                               maxlength="100" />
+                    </td>
+                    <td style="width:20%;">
+                        Supplier Name <br />
+                        <input type="text"
+                               name="txtCompFilter1"
+                               id="txtCompFilter1"
+                               value="@ViewBag.txtCompFilter1"
+                               class="fstextbox"
+                               maxlength="100" />
+                    </td>
+                    <td style="width:20%;">
+                        Assessment Year <br />
+                        <select name="yearpicker1" id="txtperiod1" class="fstextbox">
+                            <option value="0"> --Select Year-- </option>
+                        </select>
+                    </td>
+                    <td style="width:20%;">
+                        <button class="btn btn-primary" onclick="CompSearch()" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        <button class="btn btn-primary" onclick="BtnRefresh()" id="btnclear" value="Clear" name="command" type="button" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    </td>*@
+                    <td style="width:20%; ">
+                        <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel Export</button>
+                        @*<a href="@Url.Action("CDownload", "SupplierEvaluation")" class=" btn btn-primary" style="float: right;height:35px;"><span style="color: white; " class="glyphicon glyphicon-export"></span>Excel Export</a>*@
+                    </td>
+                </tr>
+            </table>
+
+            <div id="divComp" style="margin-top:10px;" class="table-responsive">
+                @gridComp.GetHtml(
+                    htmlAttributes: new { id = "wgCompleted" },
+                    tableStyle: "tableSmall table-bordered table-hover",
+                    columns: gridComp.Columns
+                    (
+                        gridComp.Column(header: "SlNo", style: "slno", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(gridComp.TotalRowCount / gridComp.PageCount) / gridComp.RowsPerPage) * gridComp.RowsPerPage * gridComp.PageIndex),
+                        gridComp.Column("seSupCode", "Supplier Code", style: "colmedium"),
+                        gridComp.Column("seSupName", "Supplier Name"),
+                        gridComp.Column("seOverAllRating", "Overall Rating"),
+                        gridComp.Column("seReviewYear", "Reviewed Year", style: "action"),
+                        gridComp.Column("seStatus", "Supplier Status", style: "action"))
+                    )
+            </div>
+        </div>
+
+        <div id="PendingDetailTable" style="width:100%">
+            <table class="myTableStyleTabNew" style="width:100%; margin-top:10px;">
+                <tr>
+                    @*<td style="width:20%;">
+                        Supplier Code <br />
+                        <input type="text"
+                               name="txtCodePenFilter"
+                               id="txtCodePenFilter"
+                               value="@Session["txtCodePenFilter"]"
+                               class="fstextbox"
+                               maxlength="100" />
+                    </td>
+                    <td style="width:20%;">
+                        Supplier Name <br />
+                        <input type="text"
+                               name="txtPenFilter"
+                               id="txtPenFilter"
+                               value="@Session["txtPenFilter"]"
+                               class="fstextbox"
+                               maxlength="100" />
+                    </td>
+                    <td style="width:20%;">
+                        Assessment Year <br />
+                        <select name="yearpicker" id="txtYear1" class="fstextbox">
+                            <option value="0"> --Select Year-- </option>
+                        </select>
+                    </td>
+                    <td style="width:20%;">
+                        <button class="btn btn-primary" id="btnsearch1" onclick="BtnPend()" value="SearchPen" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        <button class="btn btn-primary" onclick="Refresh()" id="btnclear" value="ClearPen" name="command" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </td>*@
+                    <td style="width:20%; ">
+                        @*<a href="@Url.Action("PDownload", "SupplierEvaluation")" class=" btn btn-primary" style="float: right;height:35px;"><span style="color: white;" class="glyphicon glyphicon-export"></span>Excel Export</a>*@
+                        <button class="btn btn-primary" id="reportDownloadExcel1" value="Excel Download" name="command" onclick="DownloadPending()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel Export</button>
+                    </td>
+                </tr>
+            </table>
+
+            <div id="divPend" style="margin-top:10px;" class="table-responsive">
+                @gridPen.GetHtml(
+                   htmlAttributes: new { id = "wgPending" },
+                   tableStyle: "tableSmall table-bordered table-hover",
+                   columns: gridPen.Columns
+                    (
+                    gridPen.Column(header: "SlNo", style: "slno", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(gridPen.TotalRowCount / gridPen.PageCount) / gridPen.RowsPerPage) * gridPen.RowsPerPage * gridPen.PageIndex),
+                    gridPen.Column("seSupCode", "Supplier Code", style: "colmedium"),
+                    gridPen.Column(header: "Supplier Name",
+                        format: @<text>
+                        <span title="Click to Evaluate the Supplier" class="btn btn-link btnselect">@item.seSupName</span>
+                        <label style="display:none;height:0px;" id="lblseID">@item.seID</label>
+                        <label style="display:none;height:0px;" id="lblseYear">@item.seYear</label>
+                        </text>),
+                    gridPen.Column("seYear", "Reviewed Year", style: "action"),
+                    gridPen.Column("SEstatus", "Supplier Status", style:"action")))
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('th a, tfoot a').click(function () {
+            $('form').attr('action', $(this).attr('href')).submit();
+            return false;
+        });
+
+        $("#txtYear1,#txtperiod1").chosen({});
+        $("#txtYear1_chosen,#txtperiod1_chosen").css("width", "99%").addClass("mychosen");
+
+        if (!$('input[name=rdo]:checked').val()) {
+            $("#radioPending").attr('checked', true);
+            $("#PendingDetailTable").show(0);
+            $("#CompletedDetailTable").hide(0);
+        }
+        else {
+            $("#radioCompleted").attr('checked', true);
+            $("#CompletedDetailTable").show(0);
+            $("#PendingDetailTable").hide(0);
+        }
+
+        $('#wgPending').dataTable({ }).css("width", "99%");
+
+        $('#wgCompleted').dataTable({ }).css("width", "99%");
+    });
+
+    $('input:radio[name=rdo]').change(function () {
+        if ($(this).val() != "Pending") {
+            $("#radioCompleted").attr('checked', true);
+            $("#CompletedDetailTable").show(0);
+            $("#PendingDetailTable").hide(0);
+        }
+        else {
+            $("#radioPending").attr('checked', true);
+            $("#PendingDetailTable").show(0);
+            $("#CompletedDetailTable").hide(0);
+        }
+
+        if ($(this).val() == "Completed") {
+            $("#radioCompleted").attr('checked', true);
+            $("#CompletedDetailTable").show(0);
+            $("#PendingDetailTable").hide(0);
+        }
+    });
+
+    var supName;
+    var supCode;
+    var txtYearFilter;
+    var i = (new Date().getFullYear()) - 1;
+    var end = i - 10;
+    for (i  ; i > end; i--) {
+        $('#txtYear1').append($('<option />').val(i).html(i));
+    }
+    function BtnPend() {
+        supName = $("#txtPenFilter").val();
+        supCode = $("#txtCodePenFilter").val();
+        supYear = $("#txtYear1").val();
+        var modelPen = {
+            "seYear": supYear,
+            "seSupName": supName,
+            "seSupCode": supCode,
+            "SheetName": "Pending"
+        };
+        $.post('../SupplierEvaluation/Index', modelPen,
+                function (data) {
+                    $("#txtPenFilter").val(supName);
+                    $("#txtCodePenFilter").val(supCode);
+                    var selectedvalue = supYear
+                    $('#txtYear1').val(selectedvalue);
+                    if (data == 0) {
+                        location = location.href;
+                    }
+
+                }, 'json');
+    }
+
+    function GetId(id, year) {
+        location = "../SupplierEvaluation/Evaluation?year=" + year + "&id=" + id;
+    }
+
+    function Refresh() {
+        location = '../SupplierEvaluation/Index?pending=Pending';
+    }
+
+    $('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var empid = tr.find("#lblseID").text();
+        var empcode = tr.find("#lblseYear").text();
+        location = "../SupplierEvaluation/Evaluation/?id=" + empid + "&year=" + empcode;
+    });
+
+    var txtCompFilter1;
+    var txtCompCodeFilter1;
+    var period1;
+    function CompSearch() {
+
+        txtCompFilter1 = $("#txtCompFilter1").val();
+        txtCompCodeFilter1 = $("#txtCompCodeFilter1").val();
+        period1 = $("#txtperiod1").val();
+        var modelComp = {
+            "seYear": period1,
+            "seSupName": txtCompFilter1,
+            "seSupCode": txtCompCodeFilter1,
+            "SheetName": "Completed"
+        };
+        $.post('../ASMS/SupplierEvaluation/Index', modelComp,
+                function (data) {
+                    $("#txtPenFilter").val(txtCompFilter1);
+                    $("#txtCodePenFilter").val(txtCompCodeFilter1);
+                    var selectedvalue = supYear
+                    $('#txtYear1').val(period);
+                    if (data == 0) {
+                        location = location.href;
+                    }
+
+                }, 'json');
+    }
+    var i = (new Date().getFullYear()) - 1;
+    var end = i - 10;
+    for (i  ; i > end; i--) {
+        $('#txtperiod1').append($('<option />').val(i).html(i));
+    }
+
+    function BtnRefresh() {
+        location = '../SupplierEvaluation/Index?pending=Completed';
+    }
+
+    function DownloadPending() {
+        location = '@Url.Action("PDownload", "SupplierEvaluation")';
+    }
+
+    function Download() {
+        location = '@Url.Action("CDownload", "SupplierEvaluation")';
+    }
+
+    if ('@Session["cYEAR"]' != null) {
+        var selectedvalue = '@Session["cYEAR"]';
+        $('#txtperiod1').val(selectedvalue);
+    }
+
+    if ('@Session["pYEAR"]' != null) {
+        var selectedvalue = '@Session["pYEAR"]';
+        $('#txtYear1').val(selectedvalue);
+    }
+
+</script>

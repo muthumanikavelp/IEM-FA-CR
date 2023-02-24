@@ -1,0 +1,241 @@
+﻿@{
+    ViewBag.Title = "Tracker";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">Tracker</span>
+<div ng-app="TrackerApp">
+    <div class="well" ng-controller="TrackerController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            @*<div style="width:45%;float:left;">
+                Search &nbsp;  <input type="text" ng-model="search1.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>*@
+            <div style="width:100%;">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+                @*<input style="float:right" type="button" value="Export" ng-click="ExportDoc()" />*@
+                <button class="btn-sm btn-primary" style="float:right" ng-click="ExportDoc()">
+                    <span style="color:white;font-size:x-small" class="glyphicon glyphicon-export"></span>
+                    Export to Excel
+                </button>
+            </div>
+        </div>
+        <div style="width:100%" id="divData">
+            <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                <thead>
+                    <tr class="SortText">
+                        <th style="width:3%;">
+                            S.No
+                        </th>
+                        <th style="width:10%;" class="cursorpointer">
+                            <span> Doc Type</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.DocType" />
+                        </th>
+                        <th style="width:15%;" class="cursorpointer">
+                            <span>Ref Number</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.DocRefNumber" />
+                        </th>
+                        <th style="width:15%;" class="cursorpointer">
+                            <span>Doc Date</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.DocDate" />
+                        </th>
+                        <th style="width:10%;" class="cursorpointer">
+                            <span>Doc Amount</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.DocAmount" />
+                        </th>
+                        <th style="width:10%;" class="cursorpointer">
+                            <span>Status</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.Status" />
+                        </th>
+                        <th style="width:22%;" class="cursorpointer">
+                            <span>Description</span>
+                            <br />
+                            <input type="text" class="textboxStyle100" ng-model="search1.DocDescription" />
+                        </th>
+                        <th style="width:15%;">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-show="FilteredItems1 > 0" ng-repeat="myapproval in myapprovals |orderBy:sortKey:reverse | filter:search1:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                    <tr>
+                        <td style="width:3%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:10%;">
+                            {{myapproval.DocType}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocRefNumber}}
+                        </td>
+                        <td style="width:15%;">
+                            {{myapproval.DocDate}}
+                        </td>
+                        <td style="width:10%;">
+                            {{myapproval.DocAmount}}
+                        </td>
+                        <td style="width:10%;">
+                            {{myapproval.Status}}
+                        </td>
+                        <td style="width:22%;">
+                            {{myapproval.DocDescription}}
+                        </td>
+                        <td style="width:15%;" align="center">
+                            <a ng-click="ViewDoc(myapproval.DocGid,myapproval.DocType)" title="View">
+                                <span class="glyphicon glyphicon-eye-open"></span>
+                            </a>
+                            &nbsp;&nbsp;
+                            @*<a ng-hide="myapproval.Status != 'APPROVED'" ng-click="Track(myapproval.DocGid,myapproval.DocType)" title="Track">
+                                <span class="glyphicon glyphicon-transfer"></span>
+                            </a>*@
+                            <a ng-show="myapproval.Status == 'APPROVED'" ng-click="Track(myapproval.DocGid,myapproval.DocType)" title="Track">
+                                <span style="color:green;" class="glyphicon glyphicon-transfer"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-show="FilteredItems1 < 1">
+                    <tr>
+                        <td colspan="8" style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItems1 > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItems1"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItems1}}
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var queryApp = angular.module('TrackerApp', ['ui.bootstrap']);
+
+    queryApp.config(['$httpProvider', function ($httpProvider) {
+
+        $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+
+        var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+
+        $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    }]);
+
+
+
+
+
+    queryApp.service("trackerservice", function ($http) {
+        this.GetTrackerScreenData = function () {
+            var url = '@Url.Action("GetTrackerScreenData", "Tracker")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    queryApp.controller('TrackerController', function ($scope, trackerservice) {
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        GetTrackerScreenData();
+
+        function GetTrackerScreenData() {
+            var getData = trackerservice.GetTrackerScreenData();
+            getData.then(function (response) {
+                var Data0 = "";
+                if (response.data.data0 != null && response.data.data0 != "")
+                    Data0 = JSON.parse(response.data.data0);
+                $scope.myapprovals = Data0;
+                $scope.FilteredItems1 = $scope.myapprovals.length;
+
+            }, function () {
+                alert('Error While Loading record');
+            });
+        }
+        $scope.ViewDoc = function (docgid, doctype) {
+            var url;
+            if (doctype == 'PAR')
+                url = '@Url.Action("ParRaiserEditIndex", "ParRaiserEdit")?parheadgid=' + docgid + '&viewfor=view&' + new Date().getTime();
+            else if (doctype == 'PR')
+                // url = '../PrSummary/ViewPRDetails/' + docgid;
+                url = '@Url.Action("ViewPRDetails", "PrSummary")/' + docgid ;
+            else if (doctype == 'CBF'  )
+                {
+             
+                url = '@Url.Action("Edit", "CBF")/' + docgid + '/0';
+            }
+            else if (doctype == 'OBF')
+            {
+                var frompage = "1";
+                url = '@Url.Action("POSummary", "Tracker")?docgid=' + docgid + '&frompage=' + frompage + '&' + new Date().getTime();
+            }
+             
+            else if (doctype == 'PO')
+                url = '@Url.Action("RaisePO", "PO")/' + docgid + '/0';
+            else if (doctype == 'WO')
+                url = '@Url.Action("Index", "WONew")?wogid=' + docgid + '&viewtype=view&' + new Date().getTime();
+
+            window.open(url, "_blank");
+        }
+        $scope.Track = function (docgid, doctype) {
+            var frompage = "1";
+            var url;
+            if (doctype == 'PAR')
+                url = '@Url.Action("CBFSummary", "Tracker")?docgid=' + docgid + '&doctype=' + doctype + '&frompage=' + frompage + '&' + new Date().getTime();
+            else if (doctype == 'PR')
+                url = '@Url.Action("CBFSummary", "Tracker")?docgid=' + docgid + '&doctype=' + doctype + '&frompage=' + frompage + '&' + new Date().getTime();
+            else if (doctype == 'CBF' || doctype == 'OBF')
+            {
+             
+                url = '@Url.Action("POSummary", "Tracker")?docgid=' + docgid + '&frompage=' + frompage + '&' + new Date().getTime();
+
+            }
+                
+            else if (doctype == 'PO')
+                url = '@Url.Action("GRNSummary", "Tracker")?docgid=' + docgid + '&frompage=' + frompage + '&' + new Date().getTime();
+            else if (doctype == 'WO')
+                url = '@Url.Action("GRNSummary", "Tracker")?docgid=' + docgid + '&frompage=' + frompage + '&' + new Date().getTime();
+
+            location = url;
+        }
+        $scope.SortQueryData = function (keyname) {
+            $scope.sortKey = keyname;   //set the sortKey to the param passed
+            $scope.reverse = !$scope.reverse; //if true make it false and vice versa
+        }
+        $scope.ExportDoc = function () {
+            location = '@Url.Action("DTtoExcell", "Print")?' + new Date().getTime();
+        }
+    });
+    queryApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

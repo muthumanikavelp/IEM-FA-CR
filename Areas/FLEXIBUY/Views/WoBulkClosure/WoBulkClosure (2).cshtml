@@ -1,0 +1,297 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.WoBulkClosure
+@using IEM.Common
+@{
+    ViewBag.Title = "WoBulkClosure";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lListBulkUpload, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+    CmnFunctions obj = new CmnFunctions();
+}
+
+<div id="bulk_closure">
+
+    <b>
+        <span style="color: rgb(52, 108, 196);">WO Bulk Closure</span>
+    </b>
+    <br /><br />
+    <div class="well">
+        <div id="fileuploadprocess" class="panel panel-default" style="margin-left:15px;margin-right:15px;">
+            <table class="myTableStyleTabNew" align="center"style="margin-bottom:15px;margin-top:15px;">
+                <tr>
+                    <td>
+                        <span><b>Select file</b></span>
+                        @*<input id="fileupld" style="margin-top:7px;margin-right: -9px;" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />*@
+                        <form id="uploadforclosure">
+                            <input class="fileuploadlocal form-control" id="fileupld" name="fileupld" type="file" accept=".xlsx,.xls">
+                            @* <input id="fileupldExcel" style="margin-top:7px;margin-right:44px" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />*@
+                        </form>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <span><b>Select Sheet</b></span>
+                        <br />
+                        <div style="width:185px;">
+                            @Html.DropDownList("sheetId", Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle", @id = "ddlSelSheet", @name = "ddlSelSheet" })
+                        </div>
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    @*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*@
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <input type="button" id="btnfrstsubmit" style="margin-right:22px;" class="btn btn-primary" value="Upload" onclick="WoBulkUploadProcess()" />&nbsp;
+                        <input type="button" class="btn btn-primary" value="Template" onclick="DownlWoClosureTempl()" style="margin-right: 25px;" id="DownloadTemplate" />&nbsp;
+                        &nbsp;<input type="button" id="btntableClear" class="btn btn-warning" onclick="ExcelClear()" value="Clear" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <br />
+    <br />
+
+    <div id="ForWoExcel"></div>
+    <input type="hidden" value="" id="hid_excelwo" />
+    <div>
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "woheadergrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+           grid.Column("Slno", obj.Sorter("Slno", "Sl", grid)),
+           grid.Column("woNo", obj.Sorter("woNo", "WoNo", grid)),
+           grid.Column("woDate", obj.Sorter("woDate", "WoDate", grid)),
+           grid.Column("Remarks", obj.Sorter("Remarks", "Remarks", grid))))
+
+        @if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle btnCenter">
+                @ViewBag.records
+            </div>
+        }
+    </div><br/><br/>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div @*style="margin-top:45px;margin-left:400px;"*@>
+                    <button type="button" id="btn_wosubmit" class="btn btn-success" value="Submit" onclick="BulkWoClosureInsert()">
+                        <span style="color:white;" class="glyphicon glyphicon-floppy-saved"></span> Submit
+                    </button>
+                    &nbsp;
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Cancel" onclick="CancelWoBulkClosure()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span> Cancel
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+    $('#btn_wosubmit').attr("disabled", true);
+    var count = '@Model.lListBulkUpload.Count';
+    if (count > 0) {
+        $('#btn_wosubmit').attr("disabled", false);
+    }
+    var objexcelWo;
+    function WoBulkUploadProcess() {
+        var sheet = $("#ddlSelSheet option:selected").text();
+
+        var objValid =
+           {
+               "sheetName": sheet,
+           };
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please Select Sheet", "Error");
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("ColumnValidation", "WoBulkClosure")?' + new Date().getTime(),
+            type: 'POST',
+            cache: false,
+            data: objValid,
+            success: function (data) {
+                if (data == "Success") {
+                    if ($("#hid_excelwo").val() == "") {
+                        objexcelWo = $("[id$='ForWoExcel']");
+                        $("#hid_excelwo").val("excelvalid");
+                        objexcelWo.dialog({
+                            autoOpen: false,
+                            cache: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+
+                        });
+                    }
+                    objexcelWo.load('@Url.Action("BulkUploadStatusForWo", "WoBulkClosure")?' + new Date().getTime());
+                    objexcelWo.dialog({ title: 'Upload Summary', width: '600', height: '300' });
+                    objexcelWo.dialog("open");
+                }
+                else {
+                    jAlert("Column Mismatches in Template", "Error");
+                    $("#ddlSelSheet").val("--Select--");
+                    $("#fileupldExcel").val("");
+                    return false;
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+                return false;
+            }
+        });
+    }
+
+    $('#fileupld').on('change', function (e) {
+        @*var files = e.target.files;
+            if (files.length > 0) {
+                if (window.FormData !== undefined) {
+                    var data = new FormData();
+                    for (var x = 0; x < files.length; x++) {
+                        // alert(files[x].name);
+                        //alert(files[x].files.name);
+                        // $("#txtfile").val(files[x].name);
+                        var filename = files[x].name;
+                        var split = filename.split('.');
+                        var extension = split[1];
+                        //alert(extension);
+                        if (extension != "xlsx" && extension != "xls") {
+                            jAlert("Please Select Valid Excel File", "Error");
+                            $("#ddlSelSheet").attr("disabled", true);
+                            $("#fileupld").val("");
+                            return false;
+                        }
+                        data.append("temp_" + x, files[x]);
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("FileUpload", "WoBulkClosure")',
+                        contentType: false,
+                        processData: false,
+                        data: data,
+                        success: function (result) {
+                            //alert(result);
+                            //alert(result.length);
+                            $("#ddlSelSheet").empty();
+                            if (result.length > 0) {
+                                $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+                                for (var i = 0; i < result.length; i++) {
+                                    var stylesSelect = $('#ddlSelSheet');
+                                    stylesSelect.attr('disabled', false);
+                                    $("#ddlSelSheet").append("<option value=" + result[i].sheetId + ">" + result[i].sheetName + "</option>");
+                                }
+                            }
+                            if (result.length == 0) {
+                                $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+                                var stylesSelect = $('#ddlSelSheet');
+                                stylesSelect.attr('disabled', true);
+                            }
+                        },
+                        error: function (xhr, status, p3, p4) {
+                            var err = "Error " + " " + status + " " + p3 + " " + p4;
+                            if (xhr.responseText && xhr.responseText[0] == "{")
+                                err = JSON.parse(xhr.responseText).Message;
+                            console.log(err);
+                        }
+                    });
+                } else {
+                    alert("This browser doesn't support HTML5 file uploads!");
+                }
+            }*@
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#uploadforclosure');
+        form.attr("action", "@Url.Action("ExcelUplFiles", "WoBulkClosure")?" + new Date().getTime());
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#fileupld').val());
+            form.submit();
+            getwobulksheets();
+        });
+        function getwobulksheets() {
+            var data = "fff";
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("FileUpload", "WoBulkClosure")?' + new Date().getTime(),
+                contentType: false,
+                processData: false,
+                data: data,
+                success: function (result) {
+                    if (result.length == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#ddlSelSheet").empty();
+                        $("#ddlSelSheet").append("<option value='0' >--Select--</option>");
+                        var err = result[0].SheetName;
+                        if (err == "Error") {
+                            jAlert("Please Upload Valid File", "Message");
+                            return false;
+                        }
+                        else {
+                            if (result.length > 0) {
+                                for (var i = 0; i < result.length; i++) {
+                                    var stylesSelect = $('#ddlSelSheet');
+                                    stylesSelect.attr('disabled', false);
+                                    $("#ddlSelSheet").append("<option value=" + result[i].sheetId + " >" + result[i].sheetName + "</option>");
+                                }
+                            }
+                            if (result.length == 0) {
+                                var stylesSelect = $('#ddlSelSheet');
+                                stylesSelect.attr('disabled', true);
+                            }
+                        }
+                    }
+                },
+                error: function (xhr, status, p3, p4) {
+                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+                    if (xhr.responseText && xhr.responseText[0] == "{")
+                        err = JSON.parse(xhr.responseText).Message;
+                    console.log(err);
+                }
+            });
+        }
+        function DownlWoClosureTempl() {
+            location = '@Url.Action("DownloadExcel", "WoBulkClosure")?' + new Date().getTime();
+    }
+    function ExcelClear() {
+        // $("#ddlSelSheet").empty();
+        $("#ddlSelSheet").val(0);
+        $("#fileupld").val("");
+    }
+    function BulkWoClosureInsert() {
+        @*location = '@Url.Action("InsertBulkClosure", "PoBulkClosure")';*@
+        $.ajax({
+            url: '@Url.Action("InsertBulkClosure", "WoBulkClosure")?' + new Date().getTime(),
+            type: 'POST',
+            success: function (data) {
+                if (data != null) {
+                    jAlert("Wo Submitted Successfully", "Success", function (e) {
+                        if (e == true) {
+                            location = '@Url.Action("WoBulkClosure", "WoBulkClosure")?' + new Date().getTime();
+                        }
+                    });
+
+
+                }
+                else {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+               //$("#poEditgrid1").empty().append(data);
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+        });
+    }
+    function CancelWoBulkClosure() {
+        var viewfor = "cancel";
+        location = '@Url.Action("WoBulkClosure", "WoBulkClosure")?viewfor=' + viewfor + '&' +new Date().getTime();
+    }
+    </script>
+</div>

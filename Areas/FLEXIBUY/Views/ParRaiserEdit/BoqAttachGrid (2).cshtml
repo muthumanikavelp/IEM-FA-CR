@@ -1,0 +1,177 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+
+@{
+    ViewBag.Title = "Index";
+    CbfSumEntity objMAttachment = new CbfSumEntity();
+    CbfSumModel objRep = new CbfSumModel();
+
+    //if (ViewBag.viewfor == "edit" || ViewBag.viewfor == "view" || ViewBag.viewfor == "delete")
+    //{
+    if (Session["parheadergid"] != null)
+    {
+        int a = (int)Session["parheadergid"];
+        objMAttachment.amoun = Convert.ToString(a);
+        Session["mode"] = "9";
+    }
+        
+   //}
+   
+   
+    Session["cbfdetails"] = objMAttachment.amoun;
+  //  objMAttachment = objRep.Attachmentname(objMAttachment);
+    objMAttachment.attachment = objRep.getattachmentdetails(objMAttachment.amoun, "PAR");
+    Session["cbfdetails"] = objMAttachment;
+    Model.attachment = objMAttachment.attachment;
+    if (objMAttachment.attachment.Count() != 0)
+    {
+        ViewBag.NoRecordsFound = "";
+    }
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridattachment", ajaxUpdateCallback: "gridparheaderedit()");
+    int rowcount = 0;
+    
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "checker" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+
+    <div id="gridattachment">
+        <div class="panel panel-default" style="overflow-y:scroll;height:100px">
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment123" },
+                           mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attacheddate", Sorter("attacheddate", "Attachment Date", grid)),
+                grid.Column("filename", Sorter("filename", "File name", grid), format: @<text> <a title='click here to download' onclick='DownloadPARAttachment("@item.FileTempName")'> @item.filename </a></text>),
+                grid.Column("description", Sorter("description", "Description", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+            <input type="button" value="Delete" class="btn btn-link  @ViewBag.viewmode" onclick="DeletePAREditAttachment(@item.attachGid)" id="@item.attachGid" title="Delete" />
+                </text>)))
+    <div class="borderStyle btnCenter">
+        @ViewBag.NoRecordsFound
+    </div>
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.attachment.Count</label>
+</div>
+
+</div>
+
+<script>
+    if ('@ViewBag.viewmode' == "disabled") {
+        $("#gridattachment123 td:nth-child(5),#gridattachment123 th:nth-child(5)").hide();
+    }
+    function DownloadPARAttachment(filename){
+
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "PrSummary")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+
+                    location = "@Url.Action("DownloadAttachedFilesNew", "PrSummary")?filename=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function DownloadSupAttachment(filename) {
+
+        var supattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('../ParRaiserEdit/DownloadDocument?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '../ParRaiserEdit/Download?' + new Date().getTime() }
+        }, 'json');
+
+    }
+    function attachmentDetele(id1) {
+
+        id = "";
+        var supattachmentmodel =
+                {
+                    "attachment1": id1
+                };
+
+        $.post('../ParRaiserEdit/DeleteAttachment?' + new Date().getTime(), supattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //alert("0");
+                // location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    $('#gridattachment').load('@Url.Action("BoqAttachgrid", "ParRaiserEdit")?' + new Date().getTime());
+                });
+                return false;
+
+            }
+            else {
+                //alert("else");
+                $('#gridattachment').load('@Url.Action("BoqAttachgrid", "ParRaiserEdit")?' + new Date().getTime());
+            }
+        }, 'json');
+
+    }
+    function DeletePAREditAttachment(id) {
+        
+        $.ajax({
+            url: '@Url.Action("DeletePREditAttachment", "PrSummary")?AttachmentGid=' + id + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("Error While Deleting", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    jAlert("Deleted Successfully", "Message", function () {
+                        $('#gridattachment').load('@Url.Action("BoqAttachgrid", "ParRaiserEdit")?' + new Date().getTime());
+                    });
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function gridparheaderedit() {
+
+    }
+</script>

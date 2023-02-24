@@ -1,0 +1,110 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+
+@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common
+@{
+    CbfSumModel objd = new CbfSumModel();
+    List<CbfSumEntity> lst = new List<CbfSumEntity>();
+    int rowum = 0;
+    int cbfdetid = 0;
+    if (Session["rownum"] != null)
+    {
+        rowum = (int)Session["rownum"];
+    }
+    if (Session["cbfdetidforattachment"] != null)
+    {
+        cbfdetid = (int)Session["cbfdetidforattachment"];
+    }
+    
+    if (lst == null || lst.Count == 0)
+    {
+        lst = objd.GetCBFAttachmentTemp(rowum, cbfdetid).ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<center>
+    <div id="wgCBFAttachment">
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgCBFAttachment", ajaxUpdateCallback: "DummyFunction2020()");
+            int rowcount = 0;
+        }
+
+        <div class="overflowx">
+            <div>
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridCBFAttachment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                        grid.Column("_CBFAttachmentID", objCmnFunctions.Sorter("_CBFAttachmentID", "ID", grid), canSort: false, style: "IdColumn"),
+                        grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_CBFAttachmentFileName", objCmnFunctions.Sorter("_CBFAttachmentFileName", "File Name", grid), format: @<text> <a onclick="DownloadCBFEditAttachments('@item._CBFAttachmentID','@item._CBFAttachmentFileName')" title='click here to download'> @item._CBFAttachmentFileName </a></text>),
+                        grid.Column("_CBFAttachmentDescription", objCmnFunctions.Sorter("_CBFAttachmentDescription", "Description", grid)),
+                        grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                           
+                            @Html.Raw("<a title='Delete' onclick='DeletetaxAttachment(" + item._CBFAttachmentID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)
+                                                                                                               ))
+
+            </div>
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+    </div>
+
+</center>
+<script type="text/javascript">
+
+    function DeletetaxAttachment(id) {
+        jConfirm("Do you want to delete Attachment : ", Title_3, function (e) {
+            if (e == true) {
+                var objCBFAttachment = { "_CBFAttachmentID": id }
+                $.post('../CbfRaiser/DeleteCBFAttachment', objCBFAttachment,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgridCBFAttachment").load("../CbfRaiser/CBFAttachmentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    function DownloadCBFEditAttachments(id, filename) {
+        filename = filename.substr(filename.lastIndexOf('.') + 1);
+        filename = id + '.' + filename;
+        $.ajax({
+            url: '@Url.Action("CheckFileExists1", "PrSummary")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+
+                    location = "@Url.Action("DownloadAttachedFilesNew", "PrSummary")?filename=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+   
+</script>

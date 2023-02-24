@@ -1,0 +1,118 @@
+﻿@model IEM.Areas.MASTERS.Models.ProjectOwner
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lListProjOwner, canSort: false, canPage: false);
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Project Owner</span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%">
+                    <span>Project Owner Name</span>
+                    <br />
+                    <input type="text"
+                           name="projownername"
+                           value="@ViewBag.projownername"
+                           class="fstextbox" />
+                </td>
+                <td style="width:60%">
+                    <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" id="btnrefresh" value="Clear" onclick="ProjectOwnerRefresh()" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Clear</button>
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+                </td>
+                <td style="width:20%; text-align:right;">
+                    <button type="button" value="New Project Owner" onclick="NewprojectOwner()" class="btn btn-primary cursorpointer" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus cursorpointer"></span> New Project Owner</button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+            tableStyle: "tableSmall table-bordered table-hover",
+            htmlAttributes: new { id = "projownergrid" },
+            columns: grid.Columns
+            (
+                grid.Column("SlNo", "SNo", style: "slno"),
+                grid.Column("projOwner", "Project Owner"),
+                grid.Column(header: "Action", style: "slno",
+                     format: @<text>
+                    <a><span class="glyphicon glyphicon-trash" id="Color" title="Delete" onclick="deleteOwner(@item.projOwnerGid)"></span></a>
+                    </text>)))
+        </div>
+    </div>
+}
+<div id="projectownerPartial"></div>
+
+<script type="text/javascript">
+    var objDialog1;
+    $(document).ready(function () {
+        objDialog1 = $("[id$='projectownerPartial']");
+        objDialog1.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 455,
+            height: 220,
+            duration: 300
+        });
+
+        $('#projownergrid tr th:nth-child(3)').addClass("nosort");
+        $('#projownergrid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+    function NewprojectOwner() {
+        objDialog1.load('../FbProjectOwner/Create');
+        objDialog1.dialog({ title: 'Add Project Owner' });
+        objDialog1.dialog("open");
+    }
+   
+    function Refresh() {
+        location = '../FbProjectOwner/Index';
+    }
+    function deleteOwner(id) {
+
+        jConfirm("Do you want to Delete Project Owner?", "Message", function (e) {
+            if (e == true) {
+                var objDeleteID =
+                    {
+                        "projOwnerGid": id
+                    };
+                $.post('../FbProjectOwner/DeleteOwnerDetails', objDeleteID,
+                     function (data) {
+                         if (data == 0) {
+                             location = location.href;
+                         }
+                         else {
+                             if (data.projOwnerGid != 0) {
+                                 jAlert("Already Used this Project Owner Name,You cannot able to delete!.", "Message")
+                             } else {
+                                 jAlert("Record Deleted Successfully", "Message", function (e) {
+                                     if (e == true) {
+                                         location = '../FbProjectOwner/Index';
+                                     }
+                                 });
+                             }
+                         }
+                     }, 'json');
+            }
+        });
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "FbProjectOwner")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=ProjectOwner&' + new Date().getTime());
+    }
+    function ProjectOwnerRefresh() {
+        location = '../FbProjectOwner/Index';
+    }
+</script>

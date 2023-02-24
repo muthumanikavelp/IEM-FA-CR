@@ -1,0 +1,339 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+@*<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript">
+
+    </script>*@
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CbfSumModel objrep = new CbfSumModel();
+    List<CbfParHeader> lst = new List<CbfParHeader>();
+    var grid1 = new WebGrid();
+    int record = 0;
+
+    //if (Model.cbfParheader == null)
+    //{
+    //    objDetails = objrep.GetParHeader();
+    //    if (Session["parheadersession"] != null)
+    //    {
+    //        //  objDetails = (CbfSumEntity)Session["parheadersession"];
+    //        objDetails.cbfParheader = (List<CbfParHeader>)Session["parheadersession"];
+    //    }
+    //    //grid1 = new WebGrid(source: objDetails.cbfParheader, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid1", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+    //    //record = objDetails.cbfParheader.Count;
+    //}
+    //else
+    //{
+    //    Session["parheadersession"] = Model.cbfParheader;
+    //    objDetails.cbfParheader = Model.cbfParheader;
+    //    //grid1 = new WebGrid(source: Model.cbfParheader, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid1", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+    //    //record = Model.cbfParheader.Count;
+    //}
+    if (Session["parheadersession"] != null)
+    {
+        objDetails = (CbfSumEntity)Session["parheadersession"];
+        lst = objDetails.cbfParheader;
+    }
+    else
+    {
+        if (TempData["isBudgeted"] != null)
+        {
+            var PageFor = (string)TempData["isBudgeted"];
+           
+            if (PageFor == "yes")
+            {
+                objDetails = objrep.GetParHeader(0,"Y");
+                lst = objDetails.cbfParheader;
+            }
+            else if (PageFor == "no")
+            {
+                objDetails = objrep.GetParHeader(0, "N");
+                lst = objDetails.cbfParheader;
+            }
+            else if (PageFor == "pr")
+            {
+                objDetails = objrep.GetParHeader(0, "Y");
+                lst = objDetails.cbfParheader;
+            }
+        }
+        else
+        {
+            objDetails = objrep.GetParHeader(0, "Y");
+            lst = objDetails.cbfParheader;
+        }
+    }
+    grid1 = new WebGrid(source: lst, canSort: false, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "parheaderid", ajaxUpdateCallback: "gridCBFPAR()", selectionFieldName: "selectedRow");
+    record = objDetails.cbfParheader.Count;
+}
+
+<div id="parheaderid">
+    @*<h4>
+            PAR Header
+        </h4>*@
+
+    @*<span style="color: rgb(52, 108, 196);">PAR Header</span>*@
+
+    @*@using (Html.BeginForm())
+        {*@
+    <fieldset>
+        <legend style="margin-left:10px; padding-top:5px; border:0px; display:none;">PAR Header</legend>
+        <div id="pargrid" style="padding:10px; padding-bottom:0px;">
+            <table class="myTableStyleTabpopup" style="width:100%; margin: -10px -10px 0px -10px;">
+                <tr>
+                    <td style="padding:10px; width:20%;">
+                        <span>PAR Date</span>
+                        <br />
+                        <input type="text"
+                               name="txtpardate"
+                               id="pardate_id"
+                               maxlength="10"
+                               value="@ViewBag.txtpardate"
+                               style="width:100%;"
+                               class="textboxStyle" />
+                    </td>
+                    <td style="padding:10px; width:20%;">
+                        <span>PAR No</span>
+                        <br />
+                        <input type="text"
+                               name="txtparno"
+                               id="txtparno"
+                               value="@ViewBag.txtparno"
+                               class="textboxStyle"
+                               style="width:100%;"
+                               maxlength="16" />
+                    </td>
+                    <td style="padding:10px; width:20%;">
+                        <span>PAR Amount</span>
+                        <br />
+                        <input type="text"
+                               name="txtparamount"
+                               value="@ViewBag.txtparamount"
+                               class="textboxStyle "
+                               maxlength="10"
+                               id="paramount_id"
+                               style="width:100%;" />
+                    </td>
+
+                    <td style="padding:10px; width:20%;">
+                        <div>
+                            <span>
+                                <br />
+                                <button onclick="parsearch1()" id="searchid" class="btn btn-primary" style="font-size:12px;" type="button" name="command" title="Search" value="SEARCH">
+                                    <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                                </button>
+                                <button type="button" id="btncancel" class="btn btn-primary" style="font-size:12px;" value="Cancel" onclick="parreferesh1()">
+                                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                                </button>
+                            </span>
+                        </div>
+                    </td>
+                    <td style="padding:10px; width:20%;"></td>
+
+                </tr>
+            </table>
+
+            <div>
+                <table width="100%">
+                    <tr>
+                        <td>
+                            @functions {
+                                public static string Sorter1(string columnName, string columnHeader, WebGrid grid1)
+                                {
+                                    return string.Format("{0} {1}", columnHeader, grid1.SortColumn == columnName ?
+                                        grid1.SortDirection == SortDirection.Ascending ? "▲" :
+                                        "▼" : string.Empty);
+                                }
+                            }
+
+                            @grid1.GetHtml(
+                        tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                        htmlAttributes: new { id = "grid1" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid1.Columns
+                        (
+                        grid1.Column("parDate", Sorter1("parDate", "PAR Date", grid1)),
+                        grid1.Column("parNo", Sorter1("parNo", "PAR No", grid1)),
+                        grid1.Column("parNo", Sorter1("parNo", "PAR No", grid1)),
+                        grid1.Column("par_Budget", Sorter1("par_Budget", "Is Budgeted", grid1), style: "col-sm-1"),
+                        grid1.Column("parDesc", Sorter1("parDesc", "PAR Description", grid1), style: "col-sm-3"),
+                        grid1.Column("parAmt", Sorter1("parAmt", "PAR Amount", grid1), style: "amountright"),
+                        grid1.Column("utilizedAmt", Sorter1("utilizedAmt", "Utilized Amount", grid1), style: "amountright"),
+                        grid1.Column("balancedAmt", Sorter1("balancedAmt", "Balance Amount", grid1), style: "amountright"),
+
+                        grid1.Column(header: "Action", canSort: false, style: "action",
+                        format: @<text>
+                            <input type="button" value="Select" class="btn btn-link prselect" onclick="pardetailsfunction(id)" id="@item.parGid" title="Select" />
+
+                        </text>)))
+                            @if (ViewBag.NoRecordsFound == "No Records Found")
+                            {  <div align="center" class="borderStyle">
+                                <h6 class="row" style="font-weight:normal ;">
+                                    @ViewBag.NoRecordsFound
+                                </h6>
+                            </div>
+                            }
+
+
+                            <div style="float:right;margin-right:15px;"><span>Page: @(grid1.PageIndex + 1) of @grid1.PageCount</span>  <span> - Total No Of Records:@record</span></div>
+
+                            @if (ViewBag.Message != null)
+                            {
+                                <div align="center">
+                                    <label class="control-label">@ViewBag.Message</label>
+                                </div>
+                            }
+                            @if (@ViewBag.Error != null)
+                            {
+                                <div align="center">
+                                    <label>@ViewBag.Error</label>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </fieldset>
+
+
+</div>
+
+
+    <script>
+        var parno;
+        var pardate;
+        var parreqno;
+        $("#pardate_id").datepicker(
+            {
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '1950:2100',
+                currentText: "Now",
+                dateFormat: "dd-mm-yy"
+            }
+            );
+        function pardetailsfunction(id) {
+            $('#pardetails').show();
+            //  $('#cbfdetailsgridforpar').hide();
+            var request = $('#Request').val();
+            var budject = $("input[name='Budgeted']:checked").val();
+            var parheader = id;
+            $("#hidParHeaderGid").val(id);
+            var par = {
+                "pargid": id,
+                "par_Requestfor": request,
+                "par_Budget": budject
+            };
+            $.ajax({
+                url: "../CbfRaiser/ParDetails/",
+                type: 'POST',
+                data: par,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#pardetails").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+        function parsearch1() {
+
+            parno = $('#txtparno').val();
+            pardate = $('#pardate_id').val();
+            parreqno = $('#paramount_id').val();
+            var budject1 = $("input[name='Budgeted']:checked").val();
+            var prheader = {
+                "parNo": parno,
+                "parDate": pardate,
+                "parAmt": parreqno,
+                "par_Budget": budject1
+            };
+
+            $.post('../CbfRaiser/CbfSearchPAR', prheader,
+                function (data) {
+                    //  $("#parheaderid").append(data);
+                    if (data == null) {
+                        //location = location.href;
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    } else {
+                        $("#parheaderid").load('../CbfRaiser/CbfSearchPAR?listfor=search&' + new Date().getTime());
+                        return false;
+                    }
+                }
+           , 'json');
+            if ($('#ui-datepicker-div').val() != "") {
+                $('#ui-datepicker-div').hide();
+            }
+        }
+
+        $(document).ready(function () {
+            $('#txtparno').val(parno);
+            $('#pardate_id').val(pardate);
+            $('#paramount_id').val(parreqno);
+            $("#grid1 tr .prselect").click(function () {
+                $('#grid1').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+            });
+
+
+        });
+        function gridCBFPAR() {
+
+        }
+        function parreferesh1() {
+            parno = "";
+            pardate = "";
+            parreqno = "";
+            $('#txtparno').val("");
+            $('#pardate_id').val("");
+            $('#paramount_id').val("");
+            //  var request = $('#Request').val();
+            //  var budject = $("input[name='Budgeted']:checked").val();
+            //  $.post('../CbfRaiser/CbfRefreshPAR',
+            //     function (data) {
+            //         if (data == null) { location = location.href; } else {
+            //             $("#parheaderid").load('../CbfRaiser/CbfRefreshPAR?listfor=search&' + new Date().getTime());
+            //         }
+            //     }
+            //, 'json');
+            var budject2 = $("input[name='Budgeted']:checked").val();
+            var prheader = {
+                "parNo": parno,
+                "parDate": pardate,
+                "parAmt": parreqno,
+                "par_Budget": budject2
+            };
+
+            $.post('../CbfRaiser/CbfSearchPAR', prheader,
+                function (data) {
+                    //  $("#parheaderid").append(data);
+                    if (data == null) {
+                        //location = location.href;
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    } else {
+                        $("#parheaderid").load('../CbfRaiser/CbfSearchPAR?listfor=search&' + new Date().getTime());
+                        return false;
+                    }
+                }
+           , 'json');
+            if ($('#ui-datepicker-div').val() != "") {
+                $('#ui-datepicker-div').hide();
+            }
+        }
+    </script>
+    @*}*@

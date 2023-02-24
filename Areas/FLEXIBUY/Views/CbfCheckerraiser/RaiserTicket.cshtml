@@ -1,0 +1,93 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using System.Data;
+@using IEM.Common
+@{
+    CmnFunctions cmnfunction = new CmnFunctions();
+    var name = cmnfunction.GetLoginUserGid();
+    DataTable na = cmnfunction.GetLoginUserDetails(name);
+    var name2 = na.Rows[0]["employee_name"].ToString();
+}
+<div class="well">
+    <div id="createsupattachment" class="borderstyle">
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td colspan="2">
+                    <span>Approver's ID</span> <br />
+                    @Html.DropDownList("Supervisor", Model.Supervisor, "--Select Supervisor for--", new { @class = "textboxStyle", @id = "Supervisor12" })
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <ul id="Conversation"  class="panel panel-default" style="width:300px;height:200px;overflow-x:scroll;overflow-y:scroll"></ul>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input name="Content" id="ContentDate" class="textboxStyle" title="File Name" type="text" />
+                </td>
+                <td>
+                    <input type="button" class="btn btn-primary" id="btnSend" name="command" onclick="Send()" value="Send" />
+                </td>
+            </tr>
+        </table>
+        <input id="idfrom" hidden="hidden" value="@name">
+        <input id="id" hidden="hidden" value=@name2>
+    </div>
+    <script>
+        (function ($) {
+            $.fn.focusToEnd = function () {
+                return this.each(function () {
+                    var v = $(this).val();
+                    $(this).focus().val("").val(v);
+                });
+            };
+        })(jQuery);
+        $("#Supervisor12").live('change', function () {
+            var objTicket = {
+                "fromID": $("#idfrom").val(),
+                "toID": $("#Supervisor12").val(),
+                "message": 'Drop'
+            };
+            if ($("#Supervisor12").val() != 0) {
+                $.post('../CbfCheckerraiser/SaveRaiserTicket', objTicket,
+                function (SelectDate) {
+
+                    if (SelectDate.length > 0) {
+                        $('#Conversation').empty();
+                        for (var i = 0; i < SelectDate.length; i++) {
+                            $('#Conversation').append('<li><strong>' + SelectDate[i].Fromemp + '</strong>' + ': At ' + SelectDate[i].time + ' on ' + SelectDate[i].date
+                                 + ' </br>' + SelectDate[i].message + '</li>');
+                        }
+                    }
+                    else {
+                        $('#Conversation').empty();
+                    }
+                    $("#Conversation li:nth-last-child(l)").focus();
+                }, 'json');
+            }
+
+        });
+        function Send() {
+            var dt = new Date();
+            var time = dt.getHours() + ":" + dt.getMinutes();
+            var date = dt.getDate() + "/" + dt.getMonth() + "/" + dt.getFullYear();
+            var objTicket = {
+                "fromID": $("#idfrom").val(),
+                "toID": $("#Supervisor12").val(),
+                "dateRaiser": date,
+                "time": time,
+                "message": $('#ContentDate').val(),
+            };
+            $.post('../CbfCheckerraiser/SaveRaiserTicket', objTicket,
+             function (SelectDate) {
+                 if (SelectDate.length > 0) {
+                     $('#Conversation').empty();
+                     for (var i = 0; i < SelectDate.length; i++) {
+                         $('#Conversation').append('<li><strong>' + SelectDate[i].Fromemp + '</strong>' + ': At ' + SelectDate[i].time + ' on ' + SelectDate[i].date + ' </br>' + SelectDate[i].message + '</li>');
+                     }
+                 }
+                 $("#Conversation li:nth-last-child(l)").focus();
+
+             }, 'json');
+        }
+    </script>

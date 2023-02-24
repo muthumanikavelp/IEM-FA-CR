@@ -1,0 +1,463 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Receipt Entry Maker</span>
+    </div>
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Receipt Date From </span>
+                    <br />
+                    <input type="text"
+                           id="txtReceiptDateFrom"
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox fsDatePicker" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Receipt Date To </span>
+                    <br />
+                    <input type="text"
+                           id="txtReceiptDateTo"
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox fsDatePicker" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Receipt No</span>
+                    <br />
+                    <input type="text"
+                           id="txtReceiptNo"
+                           maxlength="20"
+                           class="fstextbox" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Receipt From</span>
+                    <br />
+                    <select name="ddlReceiptFrom" id="ddlReceiptFrom" class="fstextbox"
+                            data-bind="options: SearchReceiptFromArray, optionsText: 'Text', optionsValue:'Id', value:0, event:{ change:$root.ReceiptFromChanged }"></select>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Employee Code</span>
+                    <br />
+                    <input type="hidden" id="hdfEmpCodeId" value="0" />
+                    <input type="text"
+                           id="txtEmpCode"
+                           name="txtEmpCode"
+                           class="fstextbox" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Employee Name</span>
+                    <br />
+                    <input type="hidden" id="hdfEmpName" value="0" />
+                    <input type="text"
+                           id="txtEmpName"
+                           name="txtEmpName"
+                           class="fstextbox" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Supplier Code</span>
+                    <br />
+                    <input type="hidden" id="hdfSupplierId" value="0" />
+                    <input type="text"
+                           id="txtSupplierCode"
+                           name="txtSupplierCode"
+                           class="fstextbox" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span>Supplier Name</span>
+                    <br />
+                    <input type="hidden" id="hdfSupplierName" value="0" />
+                    <input type="text"
+                           id="txtSupplierName"
+                           name="txtSupplierName"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" width="50%" style="padding: 0px 10px 0px 3px;"></td>
+                <td colspan="2" style="width:50%; padding: 0px 10px 0px 3px; vertical-align:bottom; text-align:right;">
+                    <button class="btn btn-primary" id="btnsearch" data-bind="click: $root.Search()" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                        Search
+                    </button>
+                    <button class="btn btn-primary" data-bind="click: $root.ClearFilter" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                        Clear
+                    </button>
+                    <button class="btn btn-success" data-bind="click: $root.AddNew" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-plus"></span>
+                        Add New
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top: 15px;">
+            <table id="gvReceiptEntry" class="tableSmall table-bordered table-hover" data-bind="visible: ReceiptEntryArray().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:4%; min-width:50px;">
+                            SLNo
+                        </th>
+                        <th style="width:8%; min-width:100px;" class="colDate">
+                            Receipt Date
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Receipt No
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Receipt From
+                        </th>
+                        <th style="width:8%; min-width:150px;">
+                            Raiser Name
+                        </th>
+                        <th style="width:12%; min-width:200px;">
+                            Employee/Supplier Name
+                        </th>
+                        <th style="width:8%; min-width:120px;">
+                            Amount
+                        </th>
+                        <th style="width:8%; min-width:100px;" class="colDate">
+                            Tran Date
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            PayMode
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Pay Ref No
+                        </th>
+                        <th style="width:6%; min-width:100px;">
+                            Status
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Verified Date
+                        </th>
+                        <th style="width:10%; min-width:200px;">
+                            Verified By
+                        </th>
+                        <th style="width:4%; min-width:60px;" class="nosort">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:{ data: ReceiptEntryArray, afterRender: DatatableCall }, visible: ReceiptEntryArray().length > 0">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: SNo"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: receiptDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: receiptNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: receiptFrom"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Raiser"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: EmployeeSupplierName"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(amount)"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: tranDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: payMode"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: payRefNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: statusName"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: verifiedDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: verifiedBy"></span>
+                        </td>
+                        <td align="center">
+                            @*<span title="Select" data-bind="visible: statusName != 'Draft', click: $root.ViewDetails" style="cursor:pointer; color:blue;">View</span>*@
+                            <span title="Select" data-bind="visible: statusName == 'Draft', click: $root.Select" style="cursor:pointer; color:blue;">Select</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:none" id="digReceiptDet">
+        <input type="hidden" id="hdfReceiptId" value="0" />
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                @*<td style="width:33%; padding:0px 10px">
+                        <span> Receipt Number</span>
+                        <br />
+                        <input type="text"
+                               id="txtEReceiptNumber"
+                               maxlength="20"
+                               onkeypress="return isNumberKey(event)"
+                               class="fstextbox receiptentry required" />
+                    </td>*@
+                <td style="width:33%; padding:0px 10px">
+                    <span> Receipt Date</span>
+                    <br />
+                    <input type="text"
+                           id="txtEReceiptDate"
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox fsDatePicker receiptentry required" />
+                </td>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Receipt From</span>
+                    <br />
+                    <select name="ddlEReceiptFrom" id="ddlEReceiptFrom" class="fstextbox valid"
+                            data-bind="options: ReceiptFromArray, optionsText: 'Text', optionsValue:'Text', value:0, event:{ change:$root.EReceiptFromChanged }"></select>
+                </td>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Receipt Source</span>
+                    <br />
+                    <select name="ddlESource" id="ddlESource" class="fstextbox valid"
+                            data-bind="options: SourceArray, optionsText: 'Text', optionsValue:'Id', value:0"></select>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:0px 10px;">
+                    <span> Raiser Name</span>
+                    <br />
+                    <input type="hidden" id="hdfRaiserName" value="0" />
+                    <input type="text"
+                           id="txtRaiserName"
+                           name="txtRaiserName"
+                           class="fstextbox receiptentry required" />
+                </td>
+                <td colspan="2" style="padding:0px 10px;">
+                    <span> Employee/Supplier Name</span>
+                    <br />
+                    <input type="hidden" id="hdfEReceiptName" value="0" />
+                    <input type="text"
+                           id="txtEReceiptName"
+                           name="txtEmpCode"
+                           class="fstextbox required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Pay Mode</span>
+                    <br />
+                    <select name="ddlEReceiptMode" id="ddlEReceiptMode" class="fstextbox valid"
+                            data-bind="options: ReceiptModeArray, optionsText: 'Text', optionsValue:'Id', value:0"></select>
+                </td>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtEAmount"
+                           maxlength="12"
+                           onkeypress="return isNumberKey(event)"
+                           class="fstextbox receiptentry required" />
+                </td>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Ref.No</span>
+                    <br />
+                    <input type="text"
+                           id="txtEPayRefNo"
+                           maxlength="20"
+                           onkeypress="return isNumberAndLetterAndSpace(event)"
+                           class="fstextbox receiptentry required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:33%; padding:0px 10px">
+                    <span> Tran Date</span>
+                    <br />
+                    <input type="text"
+                           id="txtETranDate"
+                           onkeypress="return isEvent(event)"
+                           class="fstextbox fsDatePicker receiptentry required" />
+                </td>
+                <td colspan="2" style="width:66%; padding:0px 10px">
+                    <span> Bank Name</span>
+                    <br />
+                    <select name="ddlEBankName" id="ddlEBankName" class="fstextbox valid"
+                            data-bind="options: BankArray, optionsText: 'Text', optionsValue:'Id', value:0"></select>
+                </td>
+            </tr>
+            <tr></tr>
+            <tr>
+                <td colspan="3" style="width:99%; padding:0px 10px">
+                    <span> Remarks</span>
+                    <br />
+                    <textarea id="txtERemarks" rows="3" class="txtboxStyleBig" style="width:100%; border-radius:4px;"></textarea>
+                    <br />
+                </td>
+            </tr>
+            <tr style="vertical-align:bottom;">
+                <td colspan="3" style="width:99%; padding:0px 10px; text-align:center;">
+                    <button class="btn btn-primary" id="btnSubmit" data-bind="click: $root.SaveReceipt" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-floppy-save"></span>
+                        Save
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:99%; padding:10px 10px">
+                    <span style="color: rgb(29, 76, 209); font-weight: bold; font-size: 14px;"> GL Uploads</span>
+                </td>
+                <td style="width:33%; padding:0px 10px; text-align:right;">
+                    <button class="btn btn-primary" id="btnAddGL" data-bind="click: $root.AddGl, visible: ReceiptEntryDetailArray().length == 0" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                        Add New GL
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="max-height: 200px; overflow: auto; height:100%;">
+            <table id="gvGLUpload" class="tableSmall table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th style="width:5%;">
+                            SlNo
+                        </th>
+                        <th style="width:10%;">
+                            Credit From
+                        </th>
+                        <th style="width:15%;">
+                            Document No
+                        </th>
+                        <th style="width:15%;">
+                            GL A/C
+                        </th>
+                        <th style="width:38%;">
+                            Description
+                        </th>
+                        <th style="width:10%;">
+                            Amount
+                        </th>
+                        <th style="width:7%;" align="center">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: ReceiptEntryDetailArray">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: CRFrom"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: docNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: GLNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Desc"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(GLamount)"></span>
+                        </td>
+                        <td align="center">
+                            <span title="Edit" data-bind="click: $root.EditGl" style="cursor: pointer; width:15px; padding-left:5px; padding-right:5px;"> <span class=" glyphicon glyphicon-edit"></span></span>
+                            <span title="Delete" data-bind="click: $root.DeleteGl" style="cursor: pointer; width:15px;"> <span class="glyphicon glyphicon-trash"></span></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <br />
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:100%; padding:0px 10px">
+                    <button class="btn btn-success" id="btnMSubmit" data-bind="click: $root.MakerSubmit" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-save"></span>
+                        Submit
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="display:none" id="digGL">
+        <input type="hidden" id="hdfEGLUploadId" />
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:50%; padding:0px 10px">
+                    <span> Credit From</span>
+                    <br />
+                    <input type="text"
+                           id="txtEGLCreditFrom"
+                           class="fstextbox glEntry valid" disabled="disabled" />
+                </td>
+                <td style="width:50%; padding:0px 10px">
+                    <span> Document Number</span>
+                    <br />
+                    <input type="text"
+                           id="txtEGLDocNo"
+                           class="fstextbox glEntry valid" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50%; padding:0px 10px">
+                    <span> GL A/C</span>
+                    <br />
+                    <input type="hidden" id="hdfEGLAC" value="0" />
+                    <input type="text"
+                           id="txtEGLAC"
+                           onkeypress="return isNumberKey(event)"
+                           class="fstextbox" />
+                </td>
+                <td style="width:50%; padding:0px 10px">
+                    <span> Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtEGLAmount"
+                           @*onkeypress="return isNumberKey(event)"*@
+                           class="fstextbox glEntry valid" disabled="disabled" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:100%; padding:0px 10px">
+                    <span>Description</span>
+                    <br />
+                    <input type="text"
+                           id="txtEGLDescription"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:100%; padding:10px 10px; text-align:center;">
+                    <button class="btn btn-primary" id="btnGLSubmit" data-bind="click: $root.SubmitGL" style="margin-top:10px;  color:white;">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-floppy-save"></span>
+                        Submit
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+<input type="hidden" id="hfAmount" value="0" />
+<input type="hidden" id="hfBankName" value="" />
+<input type="hidden" id="hfDocno" value="" />
+
+<script>
+    var UrlDet = "@Url.Action("GetReceiptEntry", "Receipt")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsReceiptEntry.js")" type="text/javascript"></script>

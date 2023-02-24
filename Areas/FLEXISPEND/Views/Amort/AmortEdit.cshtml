@@ -1,0 +1,655 @@
+﻿@{
+    ViewBag.Title = "AmortEdit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsCommon.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Amort Edit</span>
+</div>
+<div style="padding:5px;" class="well">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td width="25%" style="padding: 0px 10px;">
+                <span>ECF From </span>
+                <br />
+                <input type="text"
+                       id="txtECFFrom"
+                       name="txtECFFrom"
+                       value=""
+                       onkeypress="return isEvent(event)"
+                       class="fstextbox fsDatePicker" />
+            </td>
+            <td width="25%" style="padding: 0px 10px;">
+                <span> ECF To </span>
+                <br />
+                <input type="text"
+                       id="txtECFTo"
+                       name="txtECFTo"
+                       value=""
+                       class="fstextbox fsDatePicker" />
+            </td>
+            <td width="25%" style="padding: 0px 10px;">
+                <span> ECF No </span>
+                <br />
+                <input type="text"
+                       name="txtEcfNumber"
+                       id="txtEcfNumber"
+                       value=""
+                       maxlength="32"
+                       class="fstextbox" />
+            </td>
+            <td width="25%" style="padding: 0px 10px;">
+                <span> ECF Amount </span>
+                <br />
+                <input type="text"
+                       name="txtEcfAmount"
+                       id="txtEcfAmount"
+                       value=""
+                       maxlength="8"
+                       class="fstextbox" />
+            </td>
+        </tr>
+        <tr>
+            <td width="25%" style="padding: 0px 10px;">
+                <span> Supplier Code </span>
+                <br />
+                <input type="hidden" name="hdfSSupplierId" id="hdfSSupplierId" value="0" />
+                <input type="text"
+                       name="txtSupplierCode"
+                       id="txtSupplierCode"
+                       value=""
+                       maxlength="30"
+                       class="fstextbox" />
+            </td>
+            <td width="25%" style="padding: 0px 10px;">
+                <span> Supplier Name </span>
+                <br />
+                <input type="hidden" name="hdfSSupplierName" id="hdfSSupplierName" value="0" />
+                <input type="text"
+                       name="txtSupplierName"
+                       id="txtSupplierName"
+                       value=""
+                       maxlength="60"
+                       class="fstextbox" />
+            </td>
+            <td width="25%" style="padding: 0px 10px;"></td>
+            <td style="width:25%; padding:0px 10px; vertical-align:bottom; text-align:right;">
+                <button class="btn btn-primary" id="btnsearch" accesskey="q" value="Search" type="button" data-bind="click: $root.search" style="margin-top:10px;  color:white;">
+                    <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                    Search
+                </button>
+                <button class="btn btn-primary" value="Clear" accesskey="c" data-bind="click: $root.Clear" type="button" style="margin-top:10px;  color:white;">
+                    <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                    Clear
+                </button>
+            </td>
+        </tr>
+    </table>
+    <div style="width:100%; overflow:auto; height:100%; margin-top: 15px;">
+        <table id="gvAmortEditDetails" class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: AmortEditDetails().length > 0">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:50px;">
+                        SlNo
+                    </th>
+                    <th style="width:8%; min-width:100px;" class="colDate">
+                        ECF Date
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        ECF No
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        Invoice No
+                    </th>
+                    <th style="width:8%; min-width:100px;">
+                        Supplier Code
+                    </th>
+                    <th style="width:18%; min-width:180px;">
+                        Supplier Name
+                    </th>
+                    <th style="width:7%; min-width:100px;">
+                        ECF Amount
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Completed
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Balance
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Cycle
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Split Month
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Completed Month
+                    </th>
+                    <th style="width:6%; min-width:70px;">
+                        Balance Month
+                    </th>
+                    <th style="width:8%; min-width:80px;" class="nosort">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach:{ data: AmortEditDetails, afterRender: DatatableCall }, visible: AmortEditDetails().length > 0">
+                <tr>
+                    <td style="width:5%; min-width:50px;" align="center">
+                        <span data-bind="text: Slno"></span>
+                    </td>
+                    <td style="width:8%; min-width:100px;" align="center">
+                        <span data-bind="text: ECFDate"></span>
+                    </td>
+                    <td style="width:10%; min-width:100px;">
+                        <span data-bind="text: ECFNO"></span>
+                    </td>
+                    <td style="width:10%; min-width:100px;">
+                        <span data-bind="text: InvNo"></span>
+                    </td>
+                    <td style="width:8%; min-width:100px;">
+                        <span data-bind="text: suppliercode"></span>
+                    </td>
+                    <td style="width:18%; min-width:180px;">
+                        <span data-bind="text: suppliername"></span>
+                    </td>
+                    <td style="width:7%; min-width:100px; text-align:right; padding-right:10px;">
+                        <span data-bind="text: $root.formatNumber(ecfamount)"></span>
+                    </td>
+                    <td style="width:6%; min-width:70px; text-align:center;">
+                        <span data-bind="text: completed"></span>
+                    </td>
+                    <td style="width:6%; min-width:70px; text-align:right; padding-right:10px;">
+                        <span data-bind="text: $root.formatNumber(balance)"></span>
+                    </td>
+                    <td style="width:6%; min-width:70px; text-align:center;">
+                        <span data-bind="text: cycle"></span>
+                    </td>
+                    <td style="width:6%; min-width:70px; text-align:center;">
+                        <span data-bind="text: splitmonth"></span>
+                    </td>
+                    <td style="width:6%; min-width:70px; text-align:center;">
+                        <span data-bind="text: completedmonth"></span>
+                    </td>
+                    <td style="width:6%; min-width:100px; text-align:center;">
+                        <span data-bind="text: Balancemonth"></span>
+                    </td>
+                    <td style="width:8%; min-width:80px; text-align:center;">
+                        <span title="Edit" data-bind="click: $root.Edit" style="padding-right:10px; cursor:pointer;"> <span class="glyphicon glyphicon-edit"></span></span>
+                        <span title="View" data-bind="click: $root.view" style="cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"></span></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div style="display:none;" id="ViewDialog">
+    <table class="myTableStyleTabNew tblstyles" align="center" width="100%">
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> ECF No </span>
+                <br />
+                <input type="text"
+                       name="txtEcfNoView"
+                       id="txtEcfNoView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> ECF Amount </span>
+                <br />
+                <input type="text"
+                       name="txtEcfAmountView"
+                       id="txtEcfAmountView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span>ECF Date</span>
+                <br />
+                <input type="text"
+                       id="txtEcfDateView"
+                       name="txtEcfDateView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Amount </span>
+                <br />
+                <input type="text"
+                       name="txtAmortAmountView"
+                       id="txtAmortAmountView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Cycle </span>
+                <br />
+                <input type="text"
+                       name="txtAmortCycleView"
+                       id="txtAmortCycleView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amount Started On</span>
+                <br />
+                <input type="text"
+                       name="txtAmountStartedOnView"
+                       id="txtAmountStartedOnView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span>Supplier Code </span>
+                <br />
+                <input type="text"
+                       name="txtSupplierCodeView"
+                       id="txtSupplierCodeView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td colspan="2" style="width:40%; padding:5px 5px;">
+                <span> Supplier Name</span>
+                <br />
+                <input type="text"
+                       name="txtSupplierNameView"
+                       id="txtSupplierNameView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Split</span>
+                <br />
+                <input type="text"
+                       name="txtAmortSplitView"
+                       id="txtAmortSplitView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;"></td>
+        </tr>
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Completed Month</span>
+                <br />
+                <input type="text"
+                       name="txtCompletedMonthView"
+                       id="txtCompletedMonthView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Completed Amount</span>
+                <br />
+                <input type="text"
+                       name="txtCompletedAmountView"
+                       id="txtCompletedAmountView"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Balance Month</span>
+                <br />
+                <input type="text"
+                       name="txtBalanceMonthView"
+                       id="txtBalanceMonthView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Balance Amount</span>
+                <br />
+                <input type="text"
+                       name="txtBalanceAmountView"
+                       id="txtBalanceAmountView"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;"></td>
+        </tr>
+    </table>
+</div>
+
+<div style="display:none;" id="EditDialog">
+    <table class="myTableStyleTabNew tblstyles" align="center" style="width:100%; margin:0px;">
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> ECF No </span>
+                <br />
+                <input type="hidden" id="hdnECFId" />
+                <input type="hidden" id="hdnInvId" />
+                <input type="hidden" id="hdnAmortId" />
+                <input type="hidden" id="hdnSupplierId" />
+                <input type="text"
+                       name="txtEcfNoEdit"
+                       id="txtEcfNoEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> ECF Amount </span>
+                <br />
+                <input type="text"
+                       name="txtEcfAmountEdit"
+                       id="txtEcfAmountEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span>ECF Date</span>
+                <br />
+                <input type="text"
+                       id="txtEcfDateEdit"
+                       name="txtEcfDateEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Amount </span>
+                <br />
+                <input type="text"
+                       name="txtAmortAmountEdit"
+                       id="txtAmortAmountEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Cycle </span>
+                <br />
+                <input type="text"
+                       name="txtAmortCycleEdit"
+                       id="txtAmortCycleEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Started On</span>
+                <br />
+                <input type="text"
+                       name="txtAmountStartedOnEdit"
+                       id="txtAmountStartedOnEdit"
+                       disabled="disabled"
+                       class="fstextbox fsDatePicker" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span>Supplier Code </span>
+                <br />
+                <input type="text"
+                       name="txtSupplierCodeEdit"
+                       id="txtSupplierCodeEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td colspan="2" style="width:40%; padding:5px 5px;">
+                <span> Supplier Name</span>
+                <br />
+                <input type="text"
+                       name="txtSupplierNameEdit"
+                       id="txtSupplierNameEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Split</span>
+                <br />
+                <input type="text"
+                       name="txtAmortSplitEdit"
+                       id="txtAmortSplitEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Completed Months</span>
+                <br />
+                <input type="text"
+                       name="txtCompletedMonthEdit"
+                       id="txtCompletedMonthEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Completed Amount</span>
+                <br />
+                <input type="text"
+                       name="txtCompletedAmountEdit"
+                       id="txtCompletedAmountEdit"
+                       disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Balance Months</span>
+                <br />
+                <input type="text"
+                       name="txtBalanceMonthEdit"
+                       id="txtBalanceMonthEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Balance Amount</span>
+                <br />
+                <input type="text"
+                       name="txtBalanceAmountEdit"
+                       id="txtBalanceAmountEdit"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+            <td style="width:20%; padding:5px 5px;"></td>
+        </tr>
+    </table>
+    <h4>Reschedule</h4>
+    <table class="myTableStyleTabNew tblstyles" style="width:100%;">
+        <tr>
+            <td style="width:25%; padding:5px 5px;">
+                <span> Current Month upfront Amount</span>
+                <br />
+                <input type="text"
+                       name="txtEditCurrentMonthAmount"
+                       id="txtEditCurrentMonthAmount"
+                       data-bind="value: $root.CurrentMonthAmount"
+                       class="fstextbox "
+                       maxlength="30" />
+            </td>
+            <td style="width:25%; padding:5px 5px;">
+                <span> Balance</span>
+                <br />
+                <input type="text"
+                       name="txtEditBalance"
+                       id="txtEditBalance"
+                       data-bind="value: $root.balance"
+                       class="fstextbox"
+                       maxlength="30" />
+            </td>
+            <td style="width:25%; padding:5px 5px;">
+                <span> Amort Cycle</span>
+                <br />
+                <select name="ddlAmortCycle" id="ddlAmortCycle" class="fstextbox required"
+                        data-bind="options: AmortCycle, optionsText: 'Text', optionsValue:'Id', optionsCaption:'Please Select'"></select>
+            </td>
+            <td style="width:25%; padding:5px 5px;">
+                <span> Amort Split</span>
+                <br />
+                <input type="text"
+                       name="txtEditAmortSplit"
+                       id="txtEditAmortSplit"
+                       data-bind="value: $root.splitmonth"
+                       class="fstextbox"
+                       disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort Start Date</span>
+                <br />
+                <input type="text"
+                       name="txtEditAmountStartDate"
+                       id="txtEditAmountStartDate"
+                       data-bind="value: $root.AmortStartDate"
+                       class="fstextbox required"
+                       maxlength="30" />
+            </td>
+            <td style="width:20%; padding:5px 5px;">
+                <span> Amort End Date</span>
+                <br />
+                <input type="text"
+                       name="txtEditAmountEndDate"
+                       id="txtEditAmountEndDate"
+                       data-bind="value: $root.AmortEndDate"
+                       class="fstextbox required"
+                       maxlength="30" />
+            </td>
+            <td colspan="2" style="width:50%; padding:5px 5px; vertical-align:bottom; text-align:right;">
+                <button type="button" id="btnReschedule" accesskey="r" class="btn btn-primary" data-bind="click: $root.RescheduleView">
+                    <span class="glyphicon glyphicon-download-alt" style="color:white;"></span>
+                    Reschedule
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <div style="width: 483px !important; overflow-y: scroll; overflow-x: hidden; min-height: 100px; max-height: 200px; margin-top: 15px;" data-bind="visible: AmortReScheduleArray().length > 0">
+        <table class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: AmortReScheduleArray().length > 0" style="width:468px">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:50px;">
+                        SlNo
+                    </th>
+                    <th style="width:35%; min-width:180px;" class="colDate">
+                        Amort Month
+                    </th>
+                    <th style="width:15%; min-width:150px;">
+                        Amort Amount
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach:{ data: AmortReScheduleArray }, visible: AmortReScheduleArray().length > 0">
+                <tr>
+                    <td style="width:5%; min-width:50px;" align="center">
+                        <span data-bind="text: Slno"></span>
+                    </td>
+                    <td style="width:9%; min-width:180px;" align="center">
+                        <span data-bind="text: Amortmonth"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:right; padding-right:5px;">
+                        <span data-bind="text: Amount"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="width:100%; overflow: auto; min-height: 100px; max-height: 200px; margin-top: 15px;" data-bind="visible: AmortDebitLineArray().length > 0">
+        <table class="tableSmall table-bordered table-hover table-responsive" data-bind="visible: AmortDebitLineArray().length > 0" style="width:468px">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:50px;">
+                        SlNo
+                    </th>
+                    <th style="width:35%; min-width:180px;" class="colDate">
+                        Nature of Expenses
+                    </th>
+                    <th style="width:15%; min-width:150px;">
+                        Expense Category
+                    </th>
+                    <th style="width:15%; min-width:150px;">
+                        Sub Category
+                    </th>
+                    <th style="width:10%; min-width:150px;">
+                        GL Code
+                    </th>
+                    <th style="width:5%; min-width:150px;">
+                        FC
+                    </th>
+                    <th style="width:5%; min-width:150px;">
+                        CC
+                    </th>
+                    <th style="width:5%; min-width:150px;">
+                        Product Code
+                    </th>
+                    <th style="width:10%; min-width:150px;">
+                        OU Code
+                    </th>
+                    <th style="width:10%; min-width:150px;">
+                        Amount
+                    </th>
+                    <th style="width:10%; min-width:50px;">
+                        Percentage
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach:{ data: AmortDebitLineArray }, visible: AmortDebitLineArray().length > 0">
+                <tr>
+                    <td style="width:5%; min-width:50px;" align="center">
+                        <span data-bind="text: Slno"></span>
+                    </td>
+                    <td style="width:9%; min-width:180px;" align="left">
+                        <span data-bind="text: NatureOfExpenses"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: ExpCategory"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: ExpSubCat"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;">
+                        <span data-bind="text: GLno"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: FC"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: CC"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: ProdCode"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:left; padding-right:5px;" align="left">
+                        <span data-bind="text: OUCode"></span>
+                    </td>
+                    <td style="width:25%; min-width:150px; text-align:right; padding-right:5px;">
+                        <span data-bind="text: $root.formatNumber(Amt)"></span>
+                    </td>
+                    <td style="width:25%; min-width:50px; text-align:left; padding-right:5px;">
+                        <input type="text" style="padding-left:10px;" onkeypress="return isNumberKey(event)" data-bind="attr: { name: 'txt_'+ GId, id: 'txt_'+ GId }, value: DPercent, event: { focusout: $root.textChange }" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <br />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button type="button" id="btnConfirm" class="btn btn-primary" data-bind="visible: AmortReScheduleArray().length > 0, click: $root.Confirm">
+                    <span class="glyphicon glyphicon-download-alt" style="color:white;"></span>
+                    Confirm
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    var UrlDet = "@Url.Action("AmortSearchDetails", "Amort")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+<script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsAmortEdit.js")" type="text/javascript"></script>

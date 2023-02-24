@@ -1,0 +1,164 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+@{
+    ViewBag.Title = "Index";
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+        Session["ViewBag"] = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        Session["ViewBag"] = "disabled";
+    }
+}
+
+
+@*@using (Html.BeginForm())
+    {*@
+@Html.AntiForgeryToken()
+<div id="addviewattachment" class=" ">
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <span>Document Date</span> <br />
+                <input type="text" disabled="disabled" id="id_attachDate" value="@System.DateTime.Now.ToShortDateString()" maxlength="10"
+                       title="Document Date" class="textboxStyle" />
+            </td>
+            <td>
+                <span>Select File</span><br />
+                @Html.TextBoxFor(m => m._upld_fname, new { @id = "txtfilename", type = "file", @class = "txtfilename textboxStyle form-control" })
+
+            </td>
+            <td>
+                <span>File Name</span> <br />
+                <input name="toaAttachName" readonly="readonly" id="toaAttachName" class="textboxStyle" title="File Name" type="text" value="@Model._attach_file" />
+            </td>
+
+            <td>
+                <span>Description</span> <br />
+                <input name="toaAttachDesc" id="toaAttachDesc" class="textboxStyle" width="100px" title="Description" type="text" value="@Model._attach_desc" maxlength="128" />
+            </td>
+            <td>
+                <br />
+                <button class="btn btn-primary" id="btnSaveSupAttachment" onclick="Save_Attachment(@Model._gid)" type="submit" name="command" value="Save">
+                    <span style="color:white" class="glyphicon glyphicon-floppy-disk"></span> Save
+                </button>
+            </td>
+            <td>
+                <br />
+                <button class="btn btn-primary" id="btntoaclear" onclick="refreshattach()" type="submit" name="command" value="Clear"><span style="color:white" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                @*    <button class="btn btn-warning" id="btntoaback" onclick="backtotmsummary()" type="submit" name="command" value="Back"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>*@
+            </td>
+        </tr>
+    </table>
+</div>
+<br />
+<div>
+    @Html.Partial("toaAttachgrid")
+</div>
+@*}*@
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+
+
+    var jqXHRData;
+
+    $(document).ready(function () {
+        debugger;
+        if ('@ViewBag.viewmode' == "disabled") {
+            $("#addviewattachment").hide(0);
+        }
+        initAutoFileUpload();
+    });
+
+    function initAutoFileUpload() {
+        'use strict';
+        $('#txtfilename').fileupload({
+
+            autoUpload: true,
+
+            url: '@Url.Action("UploadedFiles", "AssetTransfer")?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+
+                        }
+                        $("#toaAttachName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            jAlert(textStatus + errorThrown + data, "Error");
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    jAlert(data.files[0].error, "Error");
+                }
+            }
+        });
+    }
+
+
+    function Save_Attachment(id) {
+        debugger;
+        if ($("#toaAttachName").val() == "") {
+            jAlert("Please Choose a File", "Information");
+            return false;
+        }
+        if ($("#toaAttachDesc").val() == "") {
+            jAlert("Please enter description", "Information");
+            return false;
+        }
+        if ($("#toaAttachDesc").val() != "" && $("#toaAttachName").val() != "") {
+            var AttachFileName = $("#toaAttachName").val();
+            var AttachDescription = $("#toaAttachDesc").val();
+            var model = {
+                "_gid": id,
+                "_attach_file": AttachFileName,
+                "_attach_desc": AttachDescription,
+            };
+
+            $.post('../AssetTransfer/save_attach?' + new Date().getTime(), model,
+
+            function (data) {
+                debugger;
+                if (data == 0) {
+                    location = location.href;
+                }
+                else {
+                    $('#toaattachmentgrid').load('@Url.Action("toaAttachgrid", "AssetTransfer")?id=' + id + '&' + new Date().getTime());
+                    jAlert("Inserted Successfully", "Message");
+                    refreshattach();
+                }
+            }, 'json');
+        }
+    }
+
+    function backtotmsummary() {
+        debugger
+        $('#TCgridId').find('tr').css('background', 'none');
+        $('#TMgridId').find('tr').css('background', 'none');
+        window.parent.jQuery('#forAttachment').dialog('close');
+    }
+
+    function refreshattach() {
+        $("#toaAttachName").val("");
+        $("#toaAttachDesc").val("");
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#TCgridId').find('tr').css('background', 'none');
+        $('#TMgridId').find('tr').css('background', 'none');
+    });
+
+</script>

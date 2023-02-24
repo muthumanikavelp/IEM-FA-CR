@@ -1,0 +1,661 @@
+﻿@model IEM.Areas.IFAMS.Models.PhysicalVerificationAsset
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@{
+    ViewBag.Title = "PVReport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.PVReport,
+
+                       rowsPerPage:20,
+                          canPage: true, canSort: false
+                       );
+    int id = @grid.PageIndex;
+
+    // int rowVal = 0;
+}
+
+
+<b>
+    <span style="color: rgb(52, 108, 196);">Physical Verification Report</span>
+</b>
+
+    <div class="well">
+@using (Html.BeginForm())
+{
+        <div id="PVReport">
+            <div class="well" style="background-color:white">
+                <div style="margin-left:75px;">
+
+                    <table class="myTableStyleTabNew" width="100%" height="80px;" align="center">
+                        <tr>
+
+                            <td>
+
+                                <span>Year</span>
+                                <br />
+                                <input type="text"
+                                       name="txtyear"
+                                       id="txtyear"
+                                       value="@ViewBag.txtyear"
+                                       class="textboxStyleSearch" maxlength="20" />
+
+
+                            </td>
+                            <td>
+                                <span>Asset ID</span>
+                                <br />
+                                <input type="text"
+                                       name="txtassetid"
+                                       id="txtassetid"
+                                       value="@ViewBag.txtassetid"
+                                       class="textboxStyleSearch" maxlength="20" />
+
+                            </td>
+                            <td>
+                                <span>Asset Sub-Category</span>
+                                <br />
+                                <input type="text"
+                                       name="txtassetsubcat"
+                                       id="txtassetsubcat"
+                                       value="@ViewBag.txtassetsubcat"
+                                       class="textboxStyleSearch" maxlength="20" />
+
+                            </td>
+                            <td>
+                                <span>Barcode</span>
+                                <br />
+                                <input type="text"
+                                       name="txtbarcode"
+                                       id="txtbarcode"
+                                       value="@ViewBag.txtbarcode"
+                                       class="textboxStyleSearch" maxlength="20" style="width:265px;" />
+
+                            </td>
+
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <span>Branch</span>
+                                <br />
+                                <input type="text"
+                                       name="txtlocation"
+                                       id="txtlocation"
+                                       value="@ViewBag.txtlocation"
+                                       class="textboxStyleSearch" maxlength="20" />
+
+                            </td>
+                            <td>
+                                <span>File Name</span>
+                                <br />
+                                <input type="text"
+                                       name="txtfilename"
+                                       id="txtfilename"
+                                       value="@ViewBag.txtfilename"
+                                       class="textboxStyleSearch" maxlength="25" />
+
+
+                            </td>
+                            <td>
+                                <span>Status</span>
+                                <br />
+                                @*<input type="text"
+                                    name="txtstatus"
+                                    id="txtstatus"
+                                    value="@ViewBag.txtstatus"
+                                    class="textboxStyleSearch" maxlength="20" />*@
+
+                                <select class="textboxStyleSearch" id="txtstatus" name="txtstatus">
+
+                                    <option value="@ViewBag.DropStatus">-----Select------</option>
+                                </select>
+
+
+                            </td>
+
+                            <td colspan="2">
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="submit" name="command" onclick="" value="SEARCH" id="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                <button id="btncanpayclear" onclick="" class="btn btn-primary" name="command" value="Clear"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Clear</button>
+
+                                <button id="Recon" onclick="" class="btn btn-primary" type="button" name="command" value="Recon"><span style="color:white;" class="glyphicon glyphicon-search"></span> Recon</button>
+
+                                <button type="button" id="btnpvPrintRecon" onclick="fnExcelReport()" class="btn btn-primary" @*name="command" value="Download"*@><span style="color:white;" class="glyphicon glyphicon-print"></span> Print</button>
+
+
+                                @if (@grid.TotalRowCount != 0)
+                                {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                                }
+                            </td>
+
+                        </tr>
+
+                    </table>
+                    
+                </div>
+
+            </div>
+        </div>
+
+        <b>
+
+            <span style="color: #7c6a55;">PV REPORT</span>
+        </b>
+        <div style="margin-top:17px; " @*class="overflowx overflowy"*@>
+
+            @grid.GetHtml(
+        fillEmptyRows: false,
+                mode: WebGridPagerModes.All,
+                htmlAttributes: new { id = "PVReport" },
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+
+        columns: grid.Columns(
+
+                   // grid.Column("AssetGID", obj.Sorter("AssetGID", "AssetGID", grid), style: "col-lg-2"),
+                   grid.Column("Barcode", obj.Sorter("Barcode", "Barcode No", grid), style: "MidColumns10"),
+                   grid.Column("AssetID", obj.Sorter("AssetID", "Asset Id", grid), style: "MidColumns30"),
+                   grid.Column("Asset_Category", obj.Sorter("Asset_Category", "Asset Category", grid), style: "MidColumns10"),
+                   grid.Column("Asset_Sub_Category", obj.Sorter("Asset_Sub_Category", "Asset Sub-Category", grid), style: "MidColumns20"),
+                //grid.Column("AssetDesc", obj.Sorter("AssetDesc", " Asset Description ", grid), style: "MidColumns20"),
+                   grid.Column("Branch", obj.Sorter("Branch", "Branch Code", grid), style: "MidColumns20"),
+                   grid.Column("Status", obj.Sorter("Status", " Status", grid), style: "MidColumns20"),
+                   grid.Column("ReMarks", obj.Sorter("ReMarks", " Remarks", grid), style: "MidColumns20"),
+                   grid.Column("FileName", obj.Sorter("FileName", "File Name", grid), style: "MidColumns20"),
+                   grid.Column("ReceiptDate", obj.Sorter("ReceiptDate", "ReceiptDate", grid), style: "MidColumns20"),
+                    grid.Column("FinancialYear", obj.Sorter("FinancialYear", "Financial Year", grid), style: "MidColumns20")
+
+                   ))
+
+
+
+            @*grid.Column("AssetCode", obj.Sorter("AssetCode", "Asset Code", grid), style: "MidColumns10"),
+
+
+                //grid.Column("PVstatus", obj.Sorter("PVstatus", "Status", grid), style: "MidColumns10"),*@
+
+
+            <div class="table-bordered btnCenter" align="center">
+                <b> @ViewBag.Message </b>
+            </div>
+
+
+
+        </div>
+
+        <div class="myTableStyleTabNew">
+            <b> <span>  Total No Of Records :@Model.PVReport.Count</span></b>
+        </div>
+        @*<table class="myTableStyleTabNew" width="100%" height="80px;" align="center">
+                <tr>
+                    <td>
+                        <button id="Recon" onclick="" class="btn btn-primary" name="command" value="Recon"><span style="color:white;" class="glyphicon glyphicon-search"></span> RECON</button>
+                    </td>
+                </tr>
+            </table>*@}
+        <iframe id="txtArea1" style="display:none"></iframe>
+        <div class="container" id="dvReconnew" style="display:none;">
+            <br />
+            <br />
+            <table class="table table-striped" width="100%" align="center" id="TABLETOPRINT">
+
+                <thead>
+                    <tr>
+                        <th>
+                            Description
+                        </th>
+                        <th>
+                            Status
+                        </th>
+                        <th>
+                            Formula
+                        </th>
+                        <th>
+                            Count - 1
+                        </th>
+                        <th>
+                            Count - 2
+                        </th>
+                        <th>
+                            WD Value
+                        </th>
+                    </tr>
+                </thead>
+
+                <tr>
+                    <td>
+                        <span> As per FA Register (Overall):</span>
+                    </td>
+                    <td></td>
+                    <td>(A+B+C)</td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.FAOverAll</text></span></b> </td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.FAOverAll_wdv</text></span></b> </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>  As per FA Register (Branch):</span>
+                    </td>
+                    <td></td>
+                    <td>(A+C)</td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.FABranch</text></span></b></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.FABranch_wdv</text></span></b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span> ID Avlb in FA, Branch matched:</span>
+                    </td>
+                    <td>Verified</td>
+                    <td>A</td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.Verified</text></span></b></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text></text></span></b></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.Verified_wdv</text></span></b></td>
+
+                </tr>
+                <tr>
+
+                    <td>
+                        <span>ID Avlb in FA , Branch mismatch:</span>
+                    </td>
+                    <td>Not Verified</td>
+                    <td>B</td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.MisMatched </text></span></b></td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.MisMatched_wdv </text></span></b></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>ID Avlb in FA, not Avlb in File:</span>
+                    </td>
+                    <td>Not Verified</td>
+                    <td>C</td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.NotVerifiedInLoc </text></span></b></td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.NotVerifiedInLoc_wdv </text></span></b></td>
+
+
+
+
+                </tr>
+                <tr>
+                    <td>
+                        <span>ID not Avlb n FA, Avlb in File:</span>
+                    </td>
+                    <td>NA</td>
+                    <td>D</td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.NotInFA </text></span></b></td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text>@ViewBag.NotInFA_wdv </text></span></b></td>
+
+
+
+
+                </tr>
+                <tr>
+                    <td>
+                        <span>As per File Import (A+C):</span>
+                    </td>
+                    <td></td>
+                    <td>(A+B+D)</td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="NotinFA">@ViewBag.FileCount </text></span></b></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="NotinFA">@ViewBag.FileCount_wdv </text></span></b></td>
+                </tr>
+
+            </table>
+
+            <table align="center" style="margin-top:0px;" class="myTableStyleTabNew">
+                <tr>
+
+                    <td align="center">
+                        <div style="float:right;padding-right:20px;margin-top:5px;">
+
+                            <button type="button" name="command" id="ClosePV" class="btn backbtn btn-warning"><span style="color:white;" class="glyphicon glyphicon-circle-arrow-left"> Back</span></button>
+                        </div>
+                    </td>
+
+                </tr>
+            </table>
+
+
+
+        </div>
+    </div>
+
+
+
+    @*<span style="color: #7c6a55;">PV RECONCILIATION SUMMARY</span>*@
+
+    @*<div class="well" style="background-color:white;height:250px;">*@
+
+    @*<div id="dvRecon" style="display:none">
+
+            <table class="table table-striped" width="100%" align="center">
+
+                <thead>
+                    <tr>
+                        <th>
+                            Status
+                        </th>
+                        <th>
+                            Count
+                        </th>
+                        <th>
+                            Column1
+                        </th>
+                    </tr>
+                </thead>
+
+                <tr>
+                    <td>
+                        <span> As per FA Register (A+B):</span>
+                    </td>
+
+
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="FAReg">@ViewBag.AsPerFACount </text></span></b> </td>
+
+                </tr>
+                <tr>
+
+                    <td>
+                        <span>  Verified (A):</span>
+                    </td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="AFMismatched">@ViewBag.Verified</text></span></b></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>  Not Verified (B):</span>
+                    </td>
+
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="BranchMismatched">@ViewBag.NotVerified</text></span></b></td>
+                    <td></td>
+                </tr>
+                <tr>
+
+                    <td>
+                        <span>  Not in FA Register (C):</span>
+                    </td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="NotinFA">@ViewBag.NotInFAR</text></span></b></td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <span>  As per File Import (A+C):</span>
+                    </td>
+                    <td></td>
+                    <td align="right"><b><span style="color: #7c6a55;"><text id="NoOfRec">@ViewBag.AsFileImp</text></span></b> </td>
+
+
+
+
+                </tr>
+
+
+            </table>
+        </div>*@
+
+
+    @*<div id="dvReconpop"></div>*@
+
+
+    <script type="text/javascript">
+
+        var DropStatus = '@ViewBag.DropStatus';
+
+
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("StatusPV", "PhysicalVerificationAsset")?' + new Date().getTime(),
+                type: "GET",
+                success: function (data) {
+                    //alert(data[0].FinancialYear);
+                    //$("#FinancialYear").empty();
+                    //$("#FinancialYear").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].Status, data[i].Status);
+                        $('#txtstatus').append(opt);
+
+                        $("#txtstatus").find('option').each(function (i, opt) {
+
+
+                            if (opt.value === DropStatus)
+                                $(opt).attr('selected', 'selected');
+                        });
+
+
+                    }
+                }
+            });
+        });
+
+        //function print()
+        //{
+        //    alert('print')
+        //    location = " ../PhysicalVerificationAsset/Print";
+
+        //}
+
+        $("#Recon").on('click', function () {
+
+            $("#dvReconnew").show();
+
+            $("#dvReconnew").dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 1200,
+                height: 410,
+                resizable: false
+            });
+            @*$("#MergedAssetPartial").load("@Url.Action("MergedAsset", "AssetMerge")?ddlSelectsheet=" + sheet + '&Financialyear=' + Financialyear);*@
+            // $("#dvReconpop").load('@Url.Action("Recon", "PhysicalVerificationAsset")?' + new Date().getTime());
+            $("#dvReconnew").dialog({ title: 'PV RECONCILIATION SUMMARY' });
+            $("#dvReconnew").dialog("open");
+
+
+        });
+        //$("#btnPrintPVreconreport").on('click', function () {
+        //    $.ajax({
+        //        url: "../PhysicalVerificationAsset/Print",
+        //        type: "POST",
+        //        dataType: "json"
+        //    });
+        //});
+
+
+        $("#ClosePV").on('click', function () {
+
+            window.parent.jQuery('#dvReconnew').dialog('close');
+            $("#dvReconnew").hide();
+            //location = '../AssetMerge/AssetMerging';
+        });
+
+        $(document).ready(function () {
+            $("#txtyear").focus();
+
+            $("#txtyear").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../PhysicalVerificationAsset/AutoFinancialYear",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.FinancialYear, value: item.FinancialYear };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+
+
+
+
+
+            $("#txtstatus").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../PhysicalVerificationAsset/AutoStatus",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.PVstatus, value: item.PVstatus };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+
+
+            $("#txtfilename").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../PhysicalVerificationAsset/AutoFileName",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.FileName, value: item.FileName };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+
+
+
+
+            $("#txtbarcode").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../PhysicalVerificationAsset/AutoBarcode",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.Barcode, value: item.Barcode };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+
+
+
+
+            $("#txtlocation").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "../PhysicalVerificationAsset/AutoBranch",
+                        type: "POST",
+                        dataType: "json",
+                        data: { term: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.Branch, value: item.Branch };
+                            }))
+
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "", results: ""
+                }
+            });
+
+        });
+
+
+
+        $("#SEARCH").on('click', function () {
+
+            var year = $("#txtyear").val();
+            if (year == "" || year == null) {
+
+                $("#txtyear").focus();
+                jAlert("Please Select FinancialYear", "Information");
+                //location = '@Url.Action("PVReport", "PhysicalVerificationAsset")';
+            }
+
+        })
+
+        function fnExcelReport() {
+            //$("#btnExport").live("click", function () {
+            var tab_text = "<table border='2px'> <caption ><b>Physical Verification Report - Recon</b></caption><tr bgcolor='#DF9357' style='color: rgb(256, 256, 256);'>";
+            var textRange; var j = 0; var k = 1;
+            tab = document.getElementById('TABLETOPRINT'); // id of table
+
+            for (j = 0 ; j < 1 ; j++) {
+                tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
+                //tab_text=tab_text+"</tr>";
+            }
+
+            tab_text = tab_text;
+            var tab_text1 = "<table border='2px'> <caption > <tr bgcolor='#FFFFFF'>";
+            var textRange;
+            tab = document.getElementById('TABLETOPRINT'); // id of table
+
+            for (k = 1 ; k < tab.rows.length ; k++) {
+                tab_text1 = tab_text1 + tab.rows[k].innerHTML + "</tr>";
+                //tab_text=tab_text+"</tr>";
+            }
+
+            tab_text1 = tab_text1 + "</table>";
+            tab_text1 = tab_text1.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+            tab_text1 = tab_text1.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+            tab_text1 = tab_text1.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf("MSIE ");
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+            {
+                txtArea1.document.open("txt/html", "replace");
+                txtArea1.document.write(tab_text);
+                txtArea1.document.write(tab_text1);
+                txtArea1.document.close();
+                txtArea1.focus();
+                sa = txtArea1.document.execCommand("SaveAs", true, "PV Recon Report.xls");
+            }
+            else                 //other browser not tested on IE 11
+
+                sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+            return (sa);
+        }
+        function Download() {
+         
+            location = '@Url.Action("PVRExceldownload", "PhysicalVerificationAsset")';
+        }
+    </script>

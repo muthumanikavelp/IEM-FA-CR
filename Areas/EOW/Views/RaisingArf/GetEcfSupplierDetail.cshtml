@@ -1,0 +1,82 @@
+﻿@model IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    if (Session["ecf_supplier_gid"] != null)
+    {
+        DataTable getemployee = new DataTable();
+        List<EOW_arfraising> list = new List<EOW_arfraising>();
+        ArfRaising get = new ArfRaising();
+        getemployee = get.GetEcfDetails(int.Parse(Session["ecf_employee_gid"].ToString()));
+        foreach (DataRow dr in getemployee.Rows)
+        {
+            list.Add(
+            new EOW_arfraising
+            {
+                ecf_no = dr["ecf_no"].ToString(),
+                ecf_date = dr["ecf_date"].ToString(),
+                ecf_raiser = int.Parse(dr["ecf_raiser"].ToString()),
+                ecf_amount = decimal.Parse(dr["ecf_amount"].ToString()),
+
+            });
+        };
+        WebGrid grid = new WebGrid(source: list, canPage: true, canSort: true);
+        <div>
+            @using (Html.BeginForm())
+            {
+                <div class="well">
+                    <div style="margin-top:17px;">
+                        @functions {
+                            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                            {
+                                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                    "▼" : string.Empty);
+                            }
+                        }
+                        @grid.GetHtml(
+        tableStyle: "table table-bordered table-hover table-responsive",
+        columns: grid.Columns
+            (
+
+                //grid.Column("creditline_gid ", Sorter("creditline_gid ", "SNo", grid), canSort: false),
+grid.Column("ecf_no", Sorter("ecf_no", "ECF No", grid), canSort: false),
+grid.Column("ecf_date", Sorter("ecf_date", "ECF Date", grid), canSort: false),
+grid.Column("ecf_raiser", Sorter("ecf_raiser", "ECF Raiser", grid), canSort: false),
+grid.Column("ecf_amount", Sorter("ecf_amount", "Amount", grid), canSort: false),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                 format: @<text>
+                    <a><span class="linkStyle">View </span></a>
+                </text>)))
+                    </div>
+                </div>
+            }
+        </div>
+        <div>
+            @*<table style="float:right;padding-right:20px;">
+                <tr>
+                    <td>
+                        <input type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" />
+                    </td>
+                </tr>
+            </table>*@
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    <td>
+                        <div>
+
+                            <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+}
+<script type="text/javascript">
+    function GotoIndex()
+    {
+        window.parent.jQuery('#ForPartialViewforecfsupdetails').dialog('close');
+    }
+</script>
+

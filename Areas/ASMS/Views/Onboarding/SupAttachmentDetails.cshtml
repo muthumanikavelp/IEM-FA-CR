@@ -1,0 +1,219 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.SupAttachment>
+
+@{
+    SupDataModel objd = new SupDataModel();
+    SupAttachment ss = new SupAttachment();
+    List<SupAttachment> lst = new List<SupAttachment>();
+
+    string IsChecker="";
+    if (lst == null || lst.Count == 0)
+    {
+        lst = objd.getrole().ToList();
+        IsChecker = lst[0].ischeckingmaker.ToString();// ss.ischeckingmaker 
+        lst = objd.GetSupAttachment().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+    //IsChecker="Y";
+    //string IsChecker = ViewBag.data;   
+    if (ViewBag.PageMode != "5")
+    {
+        IsChecker = "Y";
+    } 
+    string EnableData = (IsChecker == "N" ? "DownloadSupplier" : "DownloadSupplierAttachments");
+    string cssdata = (IsChecker == "N" ? "none" : "");
+    string msgdata = (IsChecker == "N" ? "" : "click here to download");
+}
+
+    <div id="wgSupAttachment">
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage:10, ajaxUpdateContainerId: "wgSupAttachment", ajaxUpdateCallback: "DummyFunction3()");
+            int rowcount = 0;
+        }
+
+        <div class="table-responsive" style="margin-top:10px; width:100%;">
+            @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridSupAttachment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                        grid.Column("_SupAttachmentID", objCmnFunctions.Sorter("_SupAttachmentID", "ID", grid), canSort: false, style: "IdColumn"),
+                        grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_SupDocumentGroupName", objCmnFunctions.Sorter("_SupDocumentGroupName", "Document Group", grid), style: "colmediumBreak"),
+                        grid.Column("_SupDocumentName", objCmnFunctions.Sorter("_SupDocumentName", "Document Name", grid), style: "colmediumBreak"),
+                        grid.Column("_SupAttachedFileName", objCmnFunctions.Sorter("_SupAttachedFileName", "File Name", grid),style: "colmediumBreak",
+                        format:@<text> <a id="mclink" style="cursor:@cssdata; text-decoration:@cssdata;" onclick="@EnableData ('@item._SupAttachedFileName')" title='@msgdata'> @item._SupAttachedActualFileName </a></text>),
+                        grid.Column("_SupAttachDescription", objCmnFunctions.Sorter("_SupAttachDescription", "Description", grid), style: "collargeBreak"),
+                        grid.Column("_SupAttachDate", objCmnFunctions.Sorter("_SupAttachDate", "Attachment Date", grid), style: "numcolumn"),
+                        grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                            @*@Html.Raw("<a title='view' onclick='ViewSupAttachment(" + item._SupAttachmentID + ")' > <span class='glyphicon glyphicon-search'> </span> </a>")*@
+                            @*@Html.Raw("<a title='Edit' onclick='EditSupAttachment(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")*@
+                            <a title='Delete' id=@item._AttachmentFor onclick='DeleteSupAttachment(this,id)'> <span class='glyphicon glyphicon-trash'> </span> </a>
+                </text>)))
+            </div>
+
+            @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+            {
+                <div class="gridMessage">
+                    @ViewBag.NoRecordsFound
+                </div>
+            }
+            else
+            {
+                <div class="gridCount" style="text-align:left;">
+                    Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b>
+                </div>
+            }
+            @*<div class="borderStyle">
+                @ViewBag.NoRecordsFound
+            </div>*@
+        </div>
+
+<script type="text/javascript"> 
+
+    function EditSupAttachment(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_SupAttachmentID").val(ids);
+        var documentgroup = tds.eq(2).text();
+        var documentname = tds.eq(3).text();
+        var filename = tds.eq(4).text();
+        var description = tds.eq(5).text();
+        var attacheddate = tds.eq(6).text();
+     
+        $("#selectedDocumentGroupID1 option").each(function () {
+            if ($(this).text() == documentgroup) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+      
+        var docgroupid = $("#selectedDocumentGroupID1").val();
+            var objSupAttachment =
+                {
+                    "selectedDocumentGroupID": docgroupid
+                };
+           
+            $.ajax({
+                url: '@Url.Action("GetDocumentName", "Onboarding")',
+                data: JSON.stringify(objSupAttachment),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $("#selectedDocumentNameID1").empty();
+                    if (data.length > 0) {
+                        $("#selectedDocumentNameID1").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            $('#selectedDocumentNameID1').attr('disabled', false);
+                            $("#selectedDocumentNameID1").append("<option value=" + data[i]._DocumentNameID + " >" + data[i]._DocumentName + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#selectedDocumentNameID1").append("<option value='0' >--Select--</option>");
+                        $('#selectedDocumentNameID1').attr('disabled', true);
+                    }
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+       // setTimeout(function () {
+            $("#selectedDocumentNameID1 option").each(function () {
+                if ($(this).text() == documentname) {
+                    $(this).attr('selected', 'selected');
+                }
+            });
+      //  }, 50);
+               
+        $("#_SupAttachDateCreate").val(attacheddate);
+        $("#_SupAttachedFileNameCreate").val(filename);
+        $("#_SupAttachDescriptionCreate").val(description);
+
+    }
+    function DownloadSupplier(filename) {
+        //fucntion calls only on nonowner and non vmu checker
+        return false;
+    }
+    function DeleteSupAttachment(element, code) {
+        
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        jConfirm("Do you want to delete Attachment: ", Title_3, function (e) {
+            if (e == true) {
+                if (code == "supplier") {
+                    var objSupAttachment = { "_SupAttachmentID": ids }
+                    $.post('../Onboarding/DeleteSupAttachment', objSupAttachment,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+                }
+                else if (code == "tax") {
+                    var objTaxAttachment = { "_TaxAttachmentID": ids }
+                    $.post('../Onboarding/DeleteTaxAttachment', objTaxAttachment,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                             }
+                         }, 'json');
+                }
+                else if (code == "tds") {
+                    var objTdsAttachment = { "_TdsAttachmentID": ids }
+                    $.post('../Onboarding/DeletetdsAttachment', objTdsAttachment,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+                }
+
+            }
+            else {
+                return false;
+            }
+        });
+       
+    }
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridSupAttachment td:nth-child(1),#wgridSupAttachment th:nth-child(1)").hide();
+        $("#wgridSupAttachment td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridSupAttachment td:nth-child(8),#wgridSupAttachment th:nth-child(8)").hide();
+        }
+       
+    });
+    function DummyFunction3() {
+        $("#wgridSupAttachment td:nth-child(1),#wgridSupAttachment th:nth-child(1)").hide();
+        $("#wgridSupAttachment td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridSupAttachment td:nth-child(8),#wgridSupAttachment th:nth-child(8)").hide();
+        }
+       
+    }
+</script>

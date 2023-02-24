@@ -1,0 +1,279 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CbfSumModel objrep = new CbfSumModel();
+    //List<CbfPrHeader> lst = new List<CbfPrHeader>();
+    var grid = new WebGrid();
+    //List<shipment> lstbranch = new List<shipment>();
+    //int branchgid = 0;
+    //if(Session["branchgidforpr"] !=null) {
+    //    branchgid = (int)Session["branchgidforpr"];
+    //}
+    //else{
+    //    lstbranch = objrep.getbranchForLoginUser();
+    //    branchgid = lstbranch[0].branchgid;
+    //}
+    int recordcount = 0;
+    if (Model.cbfPrheader == null)
+    {
+        objDetails = objrep.GetPrHeader(recordcount);
+      //  lst = objDetails.cbfPrheader.Where(n => n.branch_Gid.Equals(branchgid)).ToList();
+        //grid = new WebGrid(source: objDetails.cbfPrheader, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridprheader", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+        //recordcount = objDetails.cbfPrheader.Count;
+
+    }
+    else
+    {
+        if (Session["prheadersession"] != null)
+        {
+            objDetails = (CbfSumEntity)Session["prheadersession"];
+          //  lst = objDetails.cbfPrheader.Where(n => n.branch_Gid.Equals(branchgid)).ToList();
+        }
+        //grid = new WebGrid(source: objDetails.cbfPrheader, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridprheader", ajaxUpdateCallback: "grid()", selectionFieldName: "selectedRow");
+        //recordcount = Model.cbfPrheader.Count;
+    }
+    grid = new WebGrid(source: objDetails.cbfPrheader, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "prgrid", ajaxUpdateCallback: "gridprheaderbranch()", selectionFieldName: "selectedRow");
+    recordcount = objDetails.cbfPrheader.Count;
+    int rowcount = 0;
+    
+}
+<style type="text/css">
+    .selectr {
+        background-color: #a4d4e6;
+    }
+</style>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+    <div id="prheader">
+      
+            @*<span style="color: rgb(52, 108, 196);">PR Header</span>
+        
+        <br /><br />*@
+        <fieldset>
+            <div id="prgrid">
+                <div>
+                    <table class="myTableStyleTabpopup" style="width:100%;">
+                        <tr>
+                            <td style="padding:10px; width:20%;">
+                                <span>PR Date</span>
+                                <br />
+                                <input type="date"
+                                       name="txtprdate"
+                                       value="@ViewBag.txtprdate"
+                                       id="txtprdate"
+                                       class="textboxStyle datepicker "
+                                       maxlength="9"
+                                       style="width:100%;" />
+                            </td>
+                            <td style="padding:10px; width:20%;">
+                                <span>PR No</span>
+                                <br />
+                                <input type="text"
+                                       name="txtprno"
+                                       id="txtprno"
+                                       value="@ViewBag.txtprno"
+                                       class="textboxStyle"
+                                       style="width:100%;"
+                                       maxlength="16" />
+                            </td>
+                            <td style="padding:10px; width:25%;">
+                                <span>
+                                    <br />
+                                    <button id="searchid" class="btn btn-primary" onclick="prsearch1()" type="submit" name="command" title="Search" value="SEARCH">
+                                        <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                                    </button>
+                                    <button type="button" id="btncancel" class="btn btn-primary" value="Cancel" onclick="parreferesh1()">
+                                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                                    </button>
+                                </span>
+                            </td>
+                            <td style="padding:10px; width:35%;"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="overflowx overflowy" style="padding:5px 10px;" id="prgridweb">
+                    @if (@ViewBag.Error != null)
+                    {
+                        <div align="center">
+                            <label>@ViewBag.Error</label>
+                        </div>
+                    }
+                    @functions {
+
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+
+                    @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered overflowx",
+                    htmlAttributes: new { id = "gridprheader" },
+                    selectedRowStyle: "selectr",
+                    mode: WebGridPagerModes.All,
+                    columns: grid.Columns
+                    (
+                    grid.Column("prDate", Sorter("prDate", "PR Date", grid), style: "MidColumns10"),
+                    grid.Column("prNo", Sorter("prno", "PR No", grid), style: "MidColumns10"),
+                    grid.Column("branch", Sorter("branch", "Branch", grid), style: "MidColumns10"),
+                    grid.Column("dept", Sorter("dept", "Department", grid), style: "MidColumns10"),
+                    grid.Column("description", Sorter("description", "Description", grid), style: "MidColumns50"),
+                    grid.Column("prRequestFor", Sorter("prRequestFor", "Request by", grid), style: "MidColumns50"),
+                    grid.Column("Source", format: item => "IEM"),
+                    grid.Column(header: "Action", canSort: false, style: "Col-sm-1",
+                    format: @<text>
+                    <input type="button" value="Select" class="btn btn-link" onclick="samplefunction(@item.prhed_Gid)" id="btn" title="Select" />
+                    </text>)))
+
+                    @if (ViewBag.records != null)
+                    {  <div align="center" class="borderStyle">
+                        <h6 class="row" style="font-weight:normal ;">
+                            @ViewBag.records
+                        </h6>
+                    </div>
+                    }
+                    <div style="float:right;margin-right:15px;">
+                        <span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@grid.TotalRowCount</span></>
+                        </div>
+                        @if (ViewBag.Message != null)
+                        {
+                            <div align="center">
+                                <label class="control-label">@ViewBag.Message</label>
+                            </div>
+                        }
+
+                    </div>
+            </div>
+        </fieldset>
+
+        
+
+    </div>
+    
+}
+    <script>
+        var prno;
+        var prdate;
+        var prreqno;
+
+
+        function prsearch1() {
+            prno = $('#txtprno').val();
+            prdate = $('#txtprdate').val();
+            prreqno = $('#requestfor').val();
+            var prheader = {
+                "prno": prno,
+                "prdate": prdate,
+                "branch_gid": prreqno
+            };
+            $.post('../CbfRaiser/CbfSearch', prheader,
+                function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#prheader").load('../CbfRaiser/CbfSearch?listfor=search');
+                    }
+
+                }
+           , 'json');
+
+
+        }
+        function prreferesh1() {
+            prno = "";
+            prdate = "";
+            prreqno = 0;
+            $('#txtprno').empty();
+            $('#txtprdate').empty();
+            $('#requestfor').val(0);
+            $.post('../CbfRaiser/CbfRefresh',
+               function (data) {
+                   if (data == 0) {
+                       jAlert("Error Occured", "Error", function () {
+                           return false;
+                       });
+                       return false;
+                   }
+                   else {
+                       $("#prheader").load('../CbfRaiser/PrHeader?listfor=refresh');
+                   }
+               }
+          , 'json');
+
+        }
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+
+        };
+        $(document).ready(function () {
+
+            $('#txtprno').val(prno);
+            $('#txtprdate').val(prdate);
+            $('#requestfor').val(prreqno);
+            $("#txtprdate").datepicker(pickerOpts);
+            var tr = $("#gridprheader").find('tr');
+            $("#gridprheader tr #btn").click(function () {
+                $('#gridprheader').find('tr').css('background', 'none');
+                $(this).closest('tr').css('background', '#ccc');
+            });
+
+           
+
+        });
+
+        function samplefunction(id) {
+            //if (branchcode == null || branchcode == "") {
+            //    jAlert("Please Select Any Branch.", "Error",function(){
+            //        return false;
+            //    });
+            //    return false;
+            //}
+            $("#grid_details").show();
+            var value1 = id;
+            $("#hidParHeaderGid").val(id);
+            var prhegid =
+            {
+                "prhed_gid": value1
+            };
+            $.ajax({
+                url: "../CbfRaiser/PrDetails/",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(prhegid),
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#prdetailsgrid").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+
+        }
+        function gridprheaderbranch() {
+
+        }
+    </script>
+ @*}*@

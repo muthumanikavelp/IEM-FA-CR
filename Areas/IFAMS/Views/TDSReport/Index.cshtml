@@ -1,0 +1,280 @@
+﻿@using IEM.Areas.IFAMS.Models
+@model IEM.Areas.IFAMS.Models.tdsreport
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int rowval = 0;
+
+    var grid = new WebGrid(source: Model.tdsrep, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "tdsrep", ajaxUpdateCallback: "tdsrep", selectionFieldName: "SelectedRow");
+
+
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"> </script>
+
+<b>
+    <span style="color: rgb(52,108,196);">
+        TDS Report
+    </span>
+</b>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div id="" style="margin-top:17px; " class="overflowx overflowy">
+
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <div>
+                        <span>From Date </span>
+                        <br />
+                        <input type="text" name="depfd" id="txtdepfd" maxlength="25" onchange="Fromdatechange(), checkRequiredfields()" value="@ViewBag.depfd" readonly="readonly" class="textboxStyleSearch" />
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <span>To Date </span>
+                        <br />
+                        <input type="text" name="deptd" id="txtdeptd" maxlength="25" onchange="Todatechange(), checkRequiredfields()" value="@ViewBag.deptd" readonly="readonly" class="textboxStyleSearch" />
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <span></span>
+                        <br />
+                        <button class="btn btn-primary" id="btnsearchreport" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        <div>
+                </td>
+                <td>
+                    <span></span>
+                    <br />
+                    <button class="btn btn-primary" type="submit" id="btnclear" value="Clear" name="command" onclick="TDSclear()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+                <td>
+                    <div>
+
+                        <span></span>
+                        <br />
+                        @if (ViewBag.alert != "No Records")
+                        {
+                            <button class="btn btn-primary" type="button" id="btnexport" value="Export" name="command" onclick="sectorexl()"><span style="color:white;" class="glyphicon glyphicon-export"></span> Export</button>
+                        }
+                        <div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="fagridid" style="overflow-x:scroll;" margin-top:17px; class=" ">
+
+        @grid.GetHtml(htmlAttributes: new { id = "tdsrep" }, fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover table-responsive", mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+        grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+          grid.Column("MODE", "Mode", style: "col-lg-3 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.mode</label>
+            </span>
+        </text>),
+          grid.Column("FINYEAR", "Fin Year", style: "col-lg-3 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.finyear</label>
+            </span>
+        </text>),
+             grid.Column("employee_code", "Employee Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.employeecode</label>
+            </span>
+            </text>),
+         grid.Column("employee_name", "Employee Name", style: "col-lg-3 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.employeename</label>
+            </span>
+        </text>),
+             grid.Column("withholdtax_amount", "Tax Amount", style: "col-lg-3 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.taxableamount</label>
+            </span>
+            </text>),
+            grid.Column("ecf_claim_month", "ECF Claimmonth", style: "col-lg-2 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ecfclaimmonth</label>
+            </span>
+            </text>),
+        @*grid.Column("supplierheader_code", "Supplier Code", style: "col-lg-2 MidColumn20Center", format: @<text>
+                <span class="editsmv">
+                    <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.payrunvoucherpvno</label>
+                </span>
+            </text>),*@
+ grid.Column("supplierheader_name", "Vendor Name", style: "col-lg-2 MidColumn20Center", format: @<text>
+            <span class="editsmv">
+                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.suppliername</label>
+            </span>
+</text>)))
+        @if (ViewBag.Message != null)
+        {
+            <div class="borderStyle" style="width:9752x" align="left">
+                <b> @ViewBag.Message</b>
+            </div>
+        }
+
+
+        <br /><br />
+
+        <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount@*</span> <span class="myTableStyleTabNew">*@ - Total No of Records: @grid.TotalRowCount</span>
+    </div>
+
+    <script type="text/javascript">
+
+        function checkRequiredfields() {
+
+            var frmdat = $("#txtdepfd").val();
+            var tdat = $("#txtdeptd").val();
+            if (frmdat != "") {
+                $("#txtdepfd").removeClass('required');
+                $("#txtdepfd").addClass('valid');
+                // CheckFieldcount();
+            }
+            else {
+                $("#txtdepfd").removeClass('valid');
+                $("#txtdepfd").addClass('required');
+                //CheckFieldcount();
+            }
+
+
+            if (tdat != "") {
+                $("#txtdeptd").removeClass('required');
+                $("#txtdeptd").addClass('valid');
+                // CheckFieldcount();
+            }
+            else {
+                $("#txtdeptd").removeClass('valid');
+                $("#txtdeptd").addClass('required');
+                //CheckFieldcount();
+            }
+        }
+        $(document).ready(function () {
+
+            checkRequiredfields();
+            // $('#btnsearchreport').click(function () {
+            //     showProgress();
+            //});
+
+            $("#btnexport").show();
+
+            var todate = $("#txtdeptd").val();
+            var fromdate = $("#txtdepfd").val();
+            if (todate != "" && fromdate != "") {
+                $("#btnsearchreport").removeAttr('disabled');
+            }
+            else {
+                $("#btnsearchreport").attr("disabled", true);
+            }
+            @*if ('@Model.ReportModel.Count' != 0)
+            { hideProgress(); }*@
+            });
+       
+        function Todatechange() {
+            var todate = $("#txtdeptd").val();
+            var fromdate = $("#txtdepfd").val();
+            if (todate != "" && fromdate != "") {
+                $("#btnsearchreport").removeAttr('disabled');
+            }
+            else {
+                $("#btnsearchreport").attr("disabled", true);
+            }
+        }
+        function Fromdatechange() {
+            var todate = $("#txtdeptd").val();
+            var fromdate = $("#txtdepfd").val();
+            if (fromdate != "") { $("#txtdepfd") }
+            if (todate != "" && fromdate != "") {
+                $("#btnsearchreport").removeAttr('disabled');
+            }
+            else {
+                $("#btnsearchreport").attr("disabled", true);
+            }
+        }
+
+
+        $("#txtinwfd").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                $("#txtinwtd").datepicker("option", "minDate", selected)
+            }
+        });
+        $("#txtinwtd").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                $("#txtinwfd").datepicker("option", "maxDate", selected)
+            }
+        });
+
+        
+        function TDSclear() {
+            $("#txtdepfd").val("");
+            $("#txtdeptd").val("");
+        }
+
+        function sectorexl() {
+
+            location = '@Url.Action("TDSExport", "TDSReport")?' + new Date().getTime();
+        }
+        $(window).load(function () {
+            $.ajax({
+                url: '@Url.Action("FinancialYearDrop", "Report")?' + new Date().getTime(),
+                type: "GET",
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        var opt = new Option(data[i].FinancialYear, data[i].FinancialYear);
+                        $('#FinancialYear').append(opt);
+
+                    }
+                }
+            });
+        });
+
+
+
+        var tdate = new Date();
+        $("#txtdepfd, #txtdeptd").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: false,
+            dateFormat: 'dd-mm-yy ',
+            minDate: '',
+            maxDate: new Date(),
+            onClose: function (dateText, inst) {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                //$(this).datepicker('setDate', new Date(year, month, 1));
+                // $(this).datepicker('setDate', new Date(year, month, "#txtdepfd"));
+            },
+            beforeShow: function (input, inst) {
+                if ((datestr = $(this).val()).length > 0) {
+                    year = datestr.substring(datestr.length - 4, datestr.length);
+                    month = jQuery.inArray(datestr.substring(0, datestr.length - 5), $(this).datepicker('option', 'monthNames'));
+                    $(this).datepicker('option', 'defaultDate', 'maxDate', new Date(year, month, Date));
+                    // $(this).datepicker('setDate', new Date(year, month, 1));
+                }
+                var other = this.id == "from" ? "#txtdeptd" : "#txtdepfd";
+                var option = this.id == "from" ? "maxDate" : "minDate";
+
+                if ((selectedDate = $(other).val()).length > 0) {
+                    year = selectedDate.substring(selectedDate.length - 4, selectedDate.length);
+                    month = jQuery.inArray(selectedDate.substring(0, selectedDate.length - 5), $(this).datepicker('option', 'monthNames'));
+                    $(this).datepicker("option", option, new Date(year, month, Date));
+                }
+            }
+        });
+
+    </script>
+}

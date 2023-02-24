@@ -1,0 +1,235 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+
+    Layout = null;
+    WebGrid gridemparch = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "searchgridcennew", ajaxUpdateCallback: "fb_employeenew();");
+    int rowVal = 0;
+}
+<div id="searchgridcennew">
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                <table class="myTableStyleTabNew" style="margin:-9px 0px 0px 0px;">
+                    <tr>
+                        <td>
+                            <span style="margin:0px 0px 0px 14px;"> Employee Code </span>
+                            <input name="EmployeeCode"
+                                   id="txtcentranempcode"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.EmployeeCode"
+                                   style="margin:9px 0px 0px 14px;width:181px;" />
+                        </td>
+                        <td>
+                            <span> Employee Name </span>
+                            <input name="EmployeeName"
+                                   id="txtcentralempname"
+                                   type="text"
+                                   class="textboxStyle required"
+                                   value="@ViewBag.EmployeeName"
+                                   style="margin: 8px 0px 0px 0px;width:271px;" />
+                        </td>
+
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button class="btn btn-primary" id="btnscenempsearch" value="Search" name="command" type="button" onclick="Searforcent()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                                </span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+                                    <button class="btn btn-primary" id="btncanforcenemp" value="Clear" name="command" type="button" onclick="refforcentral()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span class="input-append">
+
+                                    <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="GotoIncent()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:17px;" id="mainll">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+                @gridemparch.GetHtml(
+                  htmlAttributes: new { id = "wgridEmpserforcent" },
+            tableStyle: "table table-bordered table-hover table-responsive ",
+          mode: WebGridPagerModes.All,
+         columns: gridemparch.Columns
+            (
+          gridemparch.Columns(gridemparch.Column("S No", format: item => rowVal = rowVal + 1),
+        gridemparch.Column("RaiserCode", Sorter("RaiserCode", "Employee Code", gridemparch)),
+          gridemparch.Column("RaiserName", Sorter("RaiserName", "Employee Name", gridemparch)),
+            // grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+              gridemparch.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <input type="hidden" id="EmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />
+                <input type="hidden" id="RaiserCodeFind_@item.EmployeeId" name="RaiserCode" value="@item.RaiserCode" />
+                <input type="hidden" id="RaiserNameFind_@item.EmployeeId" name="RaiserName" value="@item.RaiserName" />
+                <input type="hidden" id="empbranchFind_@item.EmployeeId" name="empbranch" value="@item.empbranch" />
+                <a><span class="btn btn-link btn" id="EmployeeSearch" onclick="Select(@item.EmployeeId)">Select</span></a>
+
+                </text>)
+)))
+            </div>
+            @if (ViewBag.Message != null)
+            {   <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#txtcentranempcode").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNewmanual/AutoCompletecode",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.RaiserCode, value: item.RaiserCode };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+        $("#txtcentralempname").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../SupplierInvoiceNewmanual/AutoCompletename",
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.RaiserName, value: item.RaiserName };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+    $(document).ready(function () {
+        var txtSupplierNamem = $("#txtcentranempcode").val();
+        if (txtSupplierNamem != "") {
+            $("#txtcentranempcode").removeClass('required');
+            $("#txtcentranempcode").addClass('valid');
+        }
+        var txtcentralempnameq = $("#txtcentralempname").val();
+        if (txtcentralempnameq != "") {
+            $("#txtcentralempname").removeClass('required');
+            $("#txtcentralempname").addClass('valid');
+        }
+
+        $("#txtcentranempcode").keyup(function () {
+            var txtSupplierName = $("#txtcentranempcode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtcentranempcode").removeClass('required');
+                $("#txtcentranempcode").addClass('valid');
+
+            }
+            else {
+                $("#txtcentranempcode").removeClass('valid');
+                $("#txtcentranempcode").addClass('required');
+
+            }
+        });
+        $("#txtcentralempname").keyup(function () {
+            var txtSupplierName = $("#txtcentralempname").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txtcentralempname").removeClass('required');
+                $("#txtcentralempname").addClass('valid');
+
+            }
+            else {
+                $("#txtcentralempname").removeClass('valid');
+                $("#txtcentralempname").addClass('required');
+
+            }
+        });
+
+    });
+    function Searforcent() {
+
+        var empcode = $('#txtcentranempcode').val();
+        var empname = $('#txtcentralempname').val();
+        var objownersearch =
+            {
+                "RaiserName": empname,
+                "RaiserCode": empcode
+            };
+
+        $.post('../SupplierInvoiceNewmanual/EmployeeSearchforinward', objownersearch,
+     function (data) {
+         $("#searchgridcennew").load('../SupplierInvoiceNewmanual/EmployeeSearch?listfor=search&' + new Date().getTime());
+         setTimeout(function () {
+             $("#searchgridcennew").val(empname);
+         }, 50);
+
+     }, 'json');
+    }
+
+    function refforcentral() {
+        $('#txtcentranempcode').val('');
+        $('#txtcentralempname').val('');
+        $("#searchgridcennew").load('../SupplierInvoiceNewmanual/EmployeeSearch?' + new Date().getTime());
+    }
+    function Select(id) {
+        var Employeeid = $("#EmployeeIdFind_" + id + "").val();
+        var EmployeeCode = $("#RaiserCodeFind_" + id + "").val();
+        var EmployeeName = $("#RaiserNameFind_" + id + "").val();
+        var Employeegrade = $("#empbranchFind_" + id + "").val();
+
+        $("#txtraisercodes").text(EmployeeCode);
+        $("#txtraisernames").text(EmployeeName);
+        $("#txtgrades").text(Employeegrade);
+
+        $("#txtraisercodess").val(EmployeeCode);
+        $("#txtraisernamess").val(EmployeeName);
+        $("#txtraisergisss").val(Employeeid);
+        $("#txtecrnewraiser").val(Employeeid);
+        GotoIncent();
+    }
+    function GotoIncent() {
+        objDialogEmployeedettails.dialog("close");
+        objDialogEmployeedettails.remove();
+        window.parent.jQuery('#ForPartialViewraiseradd').dialog('close');
+
+    }
+    function fb_employeenew() {
+        $("#gridemparch td:nth-child(2),#gridemparch th:nth-child(2)").show();
+    }
+</script>

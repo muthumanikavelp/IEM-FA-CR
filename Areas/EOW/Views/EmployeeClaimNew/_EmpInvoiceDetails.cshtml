@@ -1,0 +1,1708 @@
+﻿
+<script type="text/javascript">
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "EOWHelper")"
+    UrlHelper = UrlHelper.replace("GetAutoCompleteCourier", "");
+    var Mainurl = "@Url.Action("GetInvoicedetails", "EmployeeClaimNew")";
+    Mainurl = Mainurl.replace("GetInvoicedetails", "");
+    var _CurrentTab = 0;
+    $(function () {
+        $("#Invoicetabs").tabs({
+            select: function (e, i) {
+                _CurrentTab = i.index;
+
+            }
+        });
+    });
+</script>
+<div id="tabs-1">
+    <div style="height:320px; overflow-y:auto;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="padding:5px 10px 5px 3px; width:20%;"></td>
+                <td style=" padding:5px 10px; width:20%;"></td>
+                <td style=" padding:5px 10px; width:20%;"></td>
+                <td style=" padding:5px 10px; width:30%;"></td>
+                <td style=" padding:5px 10px; width:10%; vertical-align:bottom;">
+                    <button type="button" style="color:white; margin-bottom:1px;" class="btn btn-primary divForNonPO1" data-bind="click: $root.AddInvoiceDetail">
+                        <span style=" color:white; font-size:12px;" class="glyphicon glyphicon-floppy-save">
+                        </span>
+                        Add Invoice
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div style="width:100%; overflow:auto;">
+            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:40px;">
+                            #
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Invoice Date
+                        </th>
+                        <th style="width:15%; min-width:150px;">
+                            Invoice No
+                        </th>
+                        <th style="width:39%; min-width:200px;">
+                            Description
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Amount
+                        </th>
+                        <th style="width:9%; min-width:100px;">
+                            Verification
+                        </th>
+                        <th style="width:12%; min-width:100px;">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: {data: ECFInvoiceArray}">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: Slno"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: InvDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: InvNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: InvDesc"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: InvAmt"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: isverified"></span>
+                        </td>
+                        <td align="center">
+                            <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-eye-open" data-bind="click:$root.ViewInvoiceDetails"> </span> </span>
+                            <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-edit" data-bind="click:$root.EditInvoiceDetails"> </span> </span>
+                            <span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash" data-bind="click:$root.DeleteInvoiceDetails"> </span> </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+<div style="width:100%; margin-bottom:20px; display:none;" id="divInvoice">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td colspan="2" width="50%" style="padding: 0px 10px;">
+                <span> Vendor Name/Code</span>
+                <br />
+                <input type="hidden" id="hfInvId" />
+                <input type="hidden" name="hdfSVendorName" id="hdfSVendorName" value="0" />
+                @*Ramya Aug*@
+                <input type="hidden" name="hdfEditViewGstChargedFlag" id="hdfEditViewGstChargedFlag" value="N" />
+                <input type="text"
+                       name="txtVendorName"
+                       id="txtVendorName"
+                       value=""
+                       class="fstextbox blockMouse" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%; padding:0px 10px;">
+                <span>Invoice No </span>
+                <br />
+                <input type="text"
+                       id="txtInvoiceNo" maxlength="128"
+                       class="fstextbox valid" /> @*//Length fixed by selva*@
+            </td>
+            <td style="width:25%; padding:0px 10px;">
+                <span>Invoice Date </span>
+                <br />
+                <input type="text"
+                       id="txtInvoiceDate"
+                       class="fstextbox fsDatepicker valid" />
+            </td>
+            <td style="width:25%; padding:0px 10px;">
+                <span> Service Month</span>
+                <br />
+                <input type="text"
+                       id="txtServiceMonth"
+                       class="fstextbox valid" />
+
+            </td>
+
+            <td style="width:25%; padding:0px 10px;">
+                <span> Invoice Amount</span>
+                <br />
+                <input type="text"
+                       id="txtInvoiceAmount" maxlength="15"
+                       class="fstextbox valid" />  @*//Length fixed by selva*@
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Without Tax Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtWithoutTaxAmount" maxlength="15"
+                           class="fstextbox valid" /> @*//Length fixed by selva*@
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Invoice Description </span>
+                    <br />
+                    <input type="text"
+                           id="txtInvoiceDescription" maxlength="255"
+                           class="fstextbox valid" /> @*//Length fixed by selva*@
+                </td>
+                <td style="padding:5px 10px;" colspan="2">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:25%; padding:3px;">
+                                <span> Verification</span>
+                                <br />
+                                <input id="rdoVerifyYes" name="rdoVerify" type="radio" value="1" style="margin-top: 12px; margin-right:5px;">Yes
+                                <input checked="checked" id="rdoVerifyNo" name="rdoVerify" type="radio" value="0" style="margin: 12px 5px 0px 20px;">No
+                            </td>
+                            <td style="width:33%; padding:3px;">
+                                <span> GST Charged</span>
+                                <br />
+                                <input checked="checked" id="rdogstChargedFlagYes" name="rdogstChargedFlag" type="radio" value="Y" style="margin-top: 10px; margin-right:5px;">Yes
+                                <input id="rdogstChargedFlagNo" name="rdogstChargedFlag" type="radio" value="N" style="margin: 10px 5px 0px 20px;">No
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>GSTIN Vendor </span>
+                        <br />
+                        <input type="text"
+                               id="txtGSTINVendor" maxlength="50"
+                               class="fstextbox" /> @*//Length fixed by selva*@
+                    </div>
+                </td>
+                <td style="padding:5px 10px;" colspan="2">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; " class="divGSTChargedShow">
+                                    <span>Provider Location (state)</span><br />
+                                    <select id="ddlgstProviderLoc" class="fstextbox required" data-bind="foreach: {data: ProviderLocationArray}">
+                                        <option data-bind="attr: { value: Id}, text: Value"></option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; display:none;" class="divGSTChargedShow">
+                                    <span>Receiver Location (state)</span><br />
+                                    <select id="ddlgstReceiverLoc" class="fstextbox required" data-bind="foreach: {data: ReceiverLocationArray}">
+                                        <option data-bind="attr: { value: Id, title: Value1 }, text: Value"></option>
+                                    </select>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>GSTIN @System.Configuration.ConfigurationManager.AppSettings["CompanyName"] </span>
+                        <br />
+                        <input type="text"
+                               id="txtGSTINFICCL" disabled
+                               class="fstextbox" maxlength="50" /> @*//Length fixed by selva*@
+                    </div>
+                </td>
+            </tr>
+            <tr style="height:55px;">
+                <td style="padding:5px 10px;">
+                    <table style="width:100%">
+                        <tr>
+
+                            <td style="width:50%; padding:0px 0px 0px 3px;">
+                                <div style="width:100%; display:none;" class="divRetention">
+                                    <span>Retention Amount </span>
+                                    <br />
+                                    <input type="text"
+                                           id="txtRetentionAmount"
+                                           class="fstextbox required" />
+                                </div>
+                            </td>
+                        </tr>
+                    </table>    
+                </td>
+                <td style=" padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divRetention">
+                        <span> Release Date</span>
+                        <br />
+                        <input type="text"
+                               id="txtReleaseDate"
+                               onkeypress="return isEvent(event)"
+                               class="fstextbox  required" />
+                    </div>
+                </td>
+
+                <td style=" padding:5px 10px;  vertical-align:bottom; text-align:right;" colspan="2">
+                    <button type="button" style="color:white; margin-bottom:1px;" class="btn btn-primary viewForIvoice" id="btnSaveInv" data-bind="click: $root.SaveInvoiceDetails">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-floppy-save"></span>
+                        Save
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+        <div id="Invoicetabs" style="min-height:200px; font-size:12px; margin-top:15px;">
+            <ul>
+
+                <li><a href="#tabsmaintravel-1">Expense Details</a></li>
+                <li><a id="tabGST" href="#itabs-3" style="display:none;">GST</a></li>
+                <li><a id="tabRCM" href="#itabs-4" style="display:none;">RCM</a></li>
+                <li><a href="#tabsmaintravel-3">Payment Details</a></li>
+            </ul>
+            <div id="tabsmaintravel-1" style="padding: 10px 4px 3px 15px">
+                @Html.Partial("_EmpExpense")
+            </div>
+            <div id="tabsmaintravel-3" style="padding: 10px 4px 3px 15px">
+                @Html.Partial("_EmpPayment")
+            </div>
+            <div id="itabs-3">
+                @Html.Partial("_LoadGstDetails")
+            </div>
+            <div id="itabs-4">
+                @Html.Partial("_LoadRCMDetails")
+            </div>
+        </div>
+
+        <div style="width:100%; text-align:center; margin-top:15px;">
+
+            <button type="button" title="close" style="font-size:12px;" name="Cancel" class="btn btn-warning" onclick="CloseDetails(0)">
+                <span style="color:white; font-size: 13px;" class="glyphicon glyphicon-remove-sign"></span>
+                Close
+            </button>
+        </div>
+        <div style="display:none" id="ShowDialog">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:50%; padding:5px 10px;">
+                        <span>Tax Type</span>
+                        <br />
+                        <select id="ddlTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: TaxTypeArray} ,event:{ change: $root.ChangeTaxType }">
+                            <option data-bind="attr: {value: Id}, text: Combo"></option>
+                        </select>
+                        <input type="hidden" value="0" id="hfInvoiceTaxgid" />
+                    </td>
+                    <td style="width:50%; padding:5px 10px;">
+                        <span>SubTax Type</span>
+                        <br />
+                        <select id="ddlSubTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: SubTaxTypeArray},event:{ change: $root.ChangeSubTaxType3 }">
+                            <option data-bind="attr: {value: Id, title: Value1}, text: Combo"></option>
+                        </select>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td style="padding:5px 10px;">
+                        <span>Tax Rate(%)</span>
+                        <br />
+                        @*<select id="txtTaxRate" class="fstextbox required" data-bind="foreach: {data: TaxRateArray}">
+                                <option data-bind="attr: {value: Id}, text: Combo"></option>
+                            </select>*@
+                        <input type="text"
+                               id="txtTaxRate" disabled="disabled" class="fstextbox required" readonly="readonly" maxlength="5" />
+                    </td>
+                    <td style="padding:5px 10px;">
+                        <span>Taxable Amount</span>
+                        <br />
+                        <input type="text"
+                               id="txtTaxableAmount" data-bind="event:{ change: $root.ChangeSubTaxType3 }"
+                               class="fstextbox required" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:5px 10px;">
+                        <span>Tax Amount</span>
+                        <br />
+                        <input type="text" id="txtTaxAmount" disabled="disabled"
+                               class="fstextbox" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                        @if ("N" == "N")
+                        {
+                            <button type="button" id="btnTaxSubmit" style="color:white;" class="btn btn-primary" data-bind="click: function() { $root.SaveCessTaxDetails(1); }">
+                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                                Submit
+                            </button>
+                            <input type="hidden" id="hfTaxTempgid" />
+                        }
+                        <button type="button" title="Cancel" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(1); }">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        var objDialogyInvoice;
+        var objDialogyAdd;
+        var isgstvalid = "Y";
+        var Months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        $(document).ready(function () {
+            objDialogyAdd = $("[id$='ShowDialog']");
+            objDialogyAdd.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 460,
+                height: 290,
+                duration: 300
+
+            });
+
+            $("#txtInvoiceDate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                //maxDate: '-id',
+                dateFormat: 'dd/mm/yy',
+            });
+            $("#txtInvoiceDate, #txtInvoiceDescription, #txtServiceMonth").focusout(function () {
+                var value = $(this).val();
+                if (value != "")
+                    $(this).removeClass("required").addClass("valid");
+                else
+                    $(this).removeClass("valid").addClass("required");
+            });
+            $('#txtServiceMonth').datepicker({
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                maxDate: '-id',
+                dateFormat: 'MM yy'
+            }).focus(function () {
+                var thisCalendar = $(this);
+                $('.ui-datepicker-header').css("width", "240px");
+                $('.ui-datepicker-calendar').detach();
+                $('.ui-datepicker-close').click(function () {
+                    var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                    var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                    thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                    $("#txtServiceMonth").removeClass('required');
+                    $("#txtServiceMonth").addClass('valid');
+                });
+            });
+            $("#txtInvoiceNo").focusout(function () {
+                var value = $(this).val();
+                if (value != "" && value != "0")
+                    $(this).removeClass("required").addClass("valid");
+                else
+                    $(this).removeClass("valid").addClass("required");
+            });
+
+
+            $("#txtWithoutTaxAmount,#txtInvoiceAmount").focusout(function () {
+                var value = $.trim($(this).val()) == "" ? 0 : parseFloat($(this).val());
+                if (value > 0)
+                    $(this).removeClass("required").addClass("valid");
+                else
+                    $(this).removeClass("valid").addClass("required");
+            });
+            objDialogyInvoice = $("[id$='divInvoice']");
+            objDialogyInvoice.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 1100,
+                height: 600,
+                duration: 300
+            });
+
+            $("#txtGSTINVendor").focusout(function () {
+
+                debugger;
+                var value = $("#txtGSTINVendor").val();
+                if (value != "") {
+                    $("#txtGSTINVendor").addClass("valid");
+                }
+                else {
+                    $("#txtGSTINVendor").addClass("required");
+                }
+                isgstvalid = "Y";
+                var value = $("#txtGSTINVendor").val();
+                gstinvalid();
+                if (isgstvalid == "N") {
+                    $("#txtGSTINVendor").val("");
+                    $("#txtGSTINVendor").focus();
+                    return false;
+                }
+
+                $("#txtGSTINVendor").removeClass("valid").removeClass("required");
+                //$("#ddlgstProviderLoc").hasClass("valid") &&
+                if ($("#txtGSTINVendor").val() != "") {
+                    $("#txtGSTINVendor").addClass("valid");
+                    var _Filter = {
+                        ViewType: "7",
+                        SubrefId: $("#ddlgstProviderLoc").val(),
+                        GSTIN: $("#txtGSTINVendor").val()
+                    };
+                    $.ajax({
+                        type: "post",
+                        url: UrlHelper + "GetGSTNVendorDetails",
+                        data: JSON.stringify(_Filter),
+                        async: false,
+                        contentType: "application/json;",
+                        success: function (response) {
+                            var Data1 = "";
+                            $("#txtVendorName").removeClass("required").removeClass("valid");
+                            if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                                Data1 = JSON.parse(response.Data1);
+                                if (Data1.length > 0) {
+                                    if (Data1.length > 1) {
+                                        //$('#ddlgstProviderLoc').find('option').remove();
+                                        //$('<option/>').val(Data1[1].Id).html(Data1[1].Value).appendTo('#ddlgstProviderLoc')
+                                        $("#ddlgstProviderLoc").val(Data1[1].Id);
+                                        $("#ddlgstProviderLoc").addClass("valid");
+                                    }
+
+                                    if (Data1[0].Id > 0) {
+                                        $("#hdfSVendorName").val(Data1[0].Id);
+                                        $("#txtVendorName").val(Data1[0].Value + ' - ' + Data1[0].Value1);
+                                        $("#txtVendorName").attr("disabled", true);
+                                        $("#txtVendorName").addClass("valid");
+
+                                    }
+                                    else {
+                                        $("#hdfSVendorName").val("0");
+                                        $("#txtVendorName").val("");
+                                        $("#txtVendorName").addClass("required");
+                                        $("#txtVendorName").attr("disabled", false);
+                                        $("#txtVendorName").focus();
+                                    }
+                                }
+                                else {
+                                    $("#hdfSVendorName").val("0");
+                                    $("#txtVendorName").val("");
+                                    $("#txtVendorName").addClass("required");
+                                    $("#txtVendorName").attr("disabled", false);
+                                    $("#txtVendorName").focus();
+                                }
+
+                            } else {
+                                $("#hdfSVendorName").val("0");
+                                $("#txtVendorName").val("");
+                                $("#txtVendorName").addClass("required");
+                                $("#txtVendorName").attr("disabled", false);
+                                $("#txtVendorName").focus();
+                                jAlert("Vendor GST Code Not Valid!!", "Message");
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                        }
+                    });
+                } else {
+                    $("#txtGSTINVendor").addClass("required");
+                }
+            });
+
+            /*$("input[name=rdogstChargedFlag]:radio").change(function () {
+                $("#ddlgstProviderLoc").val("0");
+                $("#ddlgstReceiverLoc").val("0");
+                $("#txtGSTINVendor").val("");
+                $("#txtGSTINFICCL").val("");
+
+                $("#ddlgstProviderLoc,#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+                $("#ddlgstProviderLoc,#ddlgstReceiverLoc").addClass("required");
+
+                if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y")
+                    $(".divGSTChargedShow").show();
+                else
+                    $(".divGSTChargedShow").hide();
+            });*/
+            $("#txtVendorName").keyup(function (e) {
+                if (e.which != 13) {
+                    $("#hdfSVendorName").val("0");
+                }
+                var GstCharged = "N";
+                GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+
+                $("#txtVendorName").autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: UrlHelper + "GetAutoCompleteSupplierAll",
+                            data: "{ 'txt' : '" + $("#txtVendorName").val() + "'}",
+                            dataType: "json",
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                response($.map(data, function (item) {
+                                    return {
+                                        label: item.split('~')[1],
+                                        val: item.split('~')[0]
+                                    }
+                                }))
+                            },
+                            error: function (response) {
+                                //alert(response.responseText);
+                            },
+                            failure: function (response) {
+                                //alert(response.responseText);
+                            }
+                        });
+                    },
+                    minLength: 1,
+                    select: function (e, i) {
+                        $("#hdfSVendorName").val(i.item.val);
+                        $("#txtVendorName").val(i.item.label);
+                        //if (GstCharged == "N") {
+                        $("#txtVendorName").removeClass("required").removeClass("valid").addClass("valid");
+                        // }
+                        tab = false;
+                    }
+                });
+            });
+            var tab = false;
+
+            $('#txtVendorName').bind('keydown', function (e) {
+                if (e.keyCode === 9) {//Tab key
+                    tab = true;
+                }
+            }).bind('focusout', function (e) {
+                if (tab) {
+                    tab = false;
+                    var hdfId = $("#hdfSVendorName").val();
+                    var _data = $("#txtVendorName").val();
+                    debugger;
+                    var GstCharged = "N";
+                    GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+                    $("#txtVendorName").removeClass("required").removeClass("valid");
+                    if (hdfId.trim() != "" && hdfId.trim() != "0" && GstCharged == "N") {
+                        $("#txtVendorName").addClass("valid");
+                        return false;
+                    }
+                    //if (hdfId.trim() == "" || hdfId.trim() == "0") {
+                    if ($.trim($("#txtVendorName").val()) != "") {
+                        var Message = "";
+                        var Name = $.trim($("#txtVendorName").val());
+
+                        if (hdfId.trim() != "" && hdfId.trim() != "0") {
+                            Name = Name.split('-')[1];
+                            Name = $.trim(Name);
+                            Message = "Are you want to map this GSTIN!";
+                        } else {
+                            Message = "Are you want to create Adhoc!";
+                        }
+
+                        jConfirm(Message, "Confirm", function (callback) {
+                            if (callback == true) {
+                                var Name = $.trim($("#txtVendorName").val());
+                                if (hdfId.trim() != "" && hdfId.trim() != "0") {
+                                    Name = Name.split('-')[1];
+                                    Name = $.trim(Name);
+                                }
+                                var _Filter = {
+                                    Name: Name,
+                                    GSTIN: $.trim($("#txtGSTINVendor").val()),
+                                    LocationId: $("#ddlgstProviderLoc").val(),
+                                    Suppliergid: hdfId,
+                                    IsGST: (GstCharged == "Y" || GstCharged == "y") ? "1" : "0"
+                                };
+                                $.ajax({
+                                    type: "post",
+                                    url: UrlHelper + "SetAdhocVendor",
+                                    data: JSON.stringify(_Filter),
+                                    async: false,
+                                    contentType: "application/json;",
+                                    success: function (response) {
+                                        var Data1 = "";
+                                        $("#txtVendorName").removeClass("required").removeClass("valid");
+                                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                                            Data1 = JSON.parse(response.Data1);
+                                            if (Data1.length > 0) {
+                                                if (Data1[0].Clear == true) {
+                                                    $("#hdfSVendorName").val(Data1[0].SupplierId);
+                                                    $("#txtVendorName").val(Data1[0].SupplierCode + ' - ' + Name);
+                                                    $("#txtVendorName").attr("disabled", GstCharged == "N" ? false : true);
+                                                    $("#txtVendorName").addClass("valid");
+                                                } else {
+                                                    $("#hdfSVendorName").val("0");
+                                                    $("#txtVendorName").val(Name);
+                                                    $("#txtVendorName").addClass("required");
+                                                    $("#txtVendorName").attr("disabled", false);
+                                                }
+                                            }
+                                        } else {
+                                            $("#hdfSVendorName").val("0");
+                                            $("#txtVendorName").val("");
+                                            $("#txtVendorName").addClass("required");
+                                            $("#txtVendorName").attr("disabled", false);
+                                        }
+                                    },
+                                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                                    }
+                                });
+                                return false;
+                            } else {
+                                $("#txtVendorName").addClass("required");
+                                return false;
+                            }
+                        });
+                    } else {
+                        $("#hdfSVendorName").val("0");
+                        $("#txtVendorName").val("");
+                        $("#txtVendorName").addClass("required");
+                    }
+                    //} else {
+                    //    $("#txtVendorName").addClass("valid");
+                    //}
+                }
+                return false;
+            });
+
+            $("#ddlgstReceiverLoc").change(function () {
+                $("#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+                var value = $(this).val();
+                if (value != null && value != "0" && value != "") {
+                    $("#ddlgstReceiverLoc").addClass("valid");
+                } else { $("#ddlgstReceiverLoc").addClass("required"); }
+
+                var _text = $('#ddlgstReceiverLoc option:selected').attr('title');
+                $("#txtGSTINFICCL").val(_text);
+            });
+        });
+
+        function CloseDetails(flg) {
+            if (flg == 0) {
+                objDialogyInvoice.dialog("close");
+            }
+            if (flg == 1) {
+                objDialogyAdd.dialog("close");
+            }
+        }
+
+        function EditTaxDetails(id) {
+
+            var InvoiceTaxgid = id;
+            var action;
+            var InvoiceTax = {
+                action: "Edit",
+                InvoiceTaxgid: InvoiceTaxgid
+            };
+            $.ajax({
+                type: "post",
+                url: "../EmployeeClaimNew/SetCessTaxDetails",
+                data: JSON.stringify(InvoiceTax),
+                contentType: "application/json;",
+                success: function (response) {
+                    var Data1 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                        Data1 = JSON.parse(response.Data1);
+                        if (Data1[0].invoicetaxgid != "0") {
+
+                            $("#hfTaxTempgid").val(Data1[0].invoicetaxgid);
+                            $("#ddlTaxType").val(Data1[0].Taxgid);
+                            $("#ddlSubTaxType").val(Data1[0].TaxsubtypegID);
+                            $("#txtTaxRate").val(Data1[0].Rate);
+                            $("#txtTaxAmount").val(Data1[0].TaxAmt);
+                            $("#txtTaxableAmount").val(Data1[0].TaxableAmt);
+                            $("#btnTaxSubmit").css("display", "");
+                            // $('#ShowDialog').attr("style", "display:block;");
+                            objDialogyAdd.dialog({ title: 'Invoice Tax', width: '460', height: '290' });
+                            objDialogyAdd.dialog("open");
+
+                        }
+                    }
+
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    //alert(errorThrown);
+                }
+            });
+
+
+        }
+
+
+
+        var SearchModel = function () {
+            var self = this;
+            self.ProviderLocationArray = ko.observableArray();
+            self.ReceiverLocationArray = ko.observableArray();
+            //self.GSTInvoiceTaxArray = ko.observableArray();
+            //self.GSTTotalTaxAmt = ko.observable(0.0);
+            //self.ECFPaymentArray = ko.observableArray();
+            self.ECFInvoiceArray = ko.observableArray();
+            self.TaxTypeArray = ko.observableArray();
+            self.SubTaxTypeArray = ko.observableArray();
+            self.TaxRateArray = ko.observableArray();
+
+            self.LoadTaxRate = function () {
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetTaxRate",
+                    data: "{}",
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "", Data2 = "", Data3 = "";// alert("6");
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.TaxRateArray(Data1);
+                        //if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                        //    Data2 = response.Data2;
+
+                        //$("#ddlWHTaxSubType").val(Data2);
+                        //if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                        //    Data3 = response.Data3;
+
+                        //$("#ddlWHTaxType").val(Data3);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+            self.LoadTaxSubType = function () {
+                var CatId = $("#ddlTaxType").val();
+                var CatFilter = {
+                    CatId: CatId
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetWHTaxSubType",
+                    data: JSON.stringify(CatFilter),
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.SubTaxTypeArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    }
+                });
+            };
+            self.LoadTaxType = function () {
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetTaxType",
+                    data: "{}",
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.TaxTypeArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+            self.LoadInvoiceDetails = function () {
+                var _Filter = {
+                    ViewType: "4",
+                    RefId: "0"
+                };
+                $.ajax({
+                    type: "post",
+                    url: "../EmployeeClaimNew/LoadInvoiceHeaderDetails",
+                    data: JSON.stringify(_Filter),
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        debugger;
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.ECFInvoiceArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    }
+                });
+            }
+            self.LoadGSTINCategory = function () {
+                //alert('test');
+                //debugger;
+                //var _Filter = {
+                //    ViewType: "4",
+                //    RefId: "0"
+                //};
+                //$.ajax({
+                //    type: "post",
+                //    url: UrlHelper + "GetGSTINArray",
+                //    data: JSON.stringify(_Filter),
+                //    async: false,
+                //    contentType: "application/json;",
+                //    success: function (response) {
+                //        var Data1 = "";
+                //        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                //            Data1 = JSON.parse(response.Data1);
+                //        self.ProviderLocationArray(Data1);
+                //    },
+                //    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                //    }
+                //});
+
+                var _tmpFilter = {
+                    ViewType: "5",
+                    RefId: "0"
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetGSTINArray",
+                    data: JSON.stringify(_tmpFilter),
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.ProviderLocationArray(Data1);//Ramya added to make GSTIN optional(commentted above codes)
+                        self.ReceiverLocationArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    }
+                });
+            };
+            this.ChangeTaxType = function () {
+                self.LoadTaxSubType();
+            };
+            this.ChangeSubTaxType3 = function () {
+
+                var rate = $("#txtTaxRate").val();
+                if (rate > 0) {
+                    var TaxRate = $("#txtTaxRate").val();
+                    var TaxableAmt = $.trim($("#txtTaxableAmount").val()) == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                    var tax = TaxableAmt * TaxRate / 100;
+                    $("#txtTaxAmount").val(tax);
+
+                }
+
+            };
+            self.SaveInvoiceDetails = function () {
+                //$("#tabGST").show();
+                $('#Invoicetabs').tabs('select', 0);
+                var GstCharged = "N", ProviderLocation = "0", GstinVendor = "", ReceiverLocation = "0", GstinFiccl = "", VendorId = "0";
+
+                GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+                //if (GstCharged == "Y") {
+                ProviderLocation = $("#ddlgstProviderLoc").val();
+                GstinVendor = $("#txtGSTINVendor").val();
+                ReceiverLocation = $("#ddlgstReceiverLoc").val();
+                GstinFiccl = $("#txtGSTINFICCL").val();
+                //}
+                $("#hdfEditViewGstChargedFlag").val(GstCharged);
+                VendorId = $("#hdfSVendorName").val();
+                var EcfId = 0;
+                var InvId = 0;
+                var InvDate = $("#txtInvoiceDate").val();
+                var ServiceMonth = $("#txtServiceMonth").val();
+                var InvNo = $("#txtInvoiceNo").val();
+                var Desc = $("#txtInvoiceDescription").val();
+                var Amount = $("#txtInvoiceAmount").val();
+                var WOTaxAmount = $("#txtWithoutTaxAmount").val();
+                var IsVerify = $("input[name=rdoVerify]:radio[checked=checked]").attr("value");
+                var IsRemoved = "0";
+                var month = new Date(Date.parse(ServiceMonth.split(' ')[0] + " 1, " + ServiceMonth.split(' ')[1])).getMonth() + 1;
+                ServiceMonth = ("1/" + month + "/" + ServiceMonth.split(' ')[1]);
+                // alert($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value"));
+                //radio button validation by kavitha on 05-07-2017
+                if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+                    if ($.trim(VendorId) == "" || $.trim(VendorId) == "0" || $("#txtVendorName").hasClass('required')) {
+                        jAlert("Ensure Supplier Code/Name!", "Message");
+                        return false;
+                    }
+                    if ($.trim(InvNo) == "" || $.trim(InvNo) == "0") {
+                        jAlert("Ensure Invoice No!", "Message");
+                        return false;
+                    }
+                    if ($.trim(Desc) == "") {
+                        jAlert("Ensure Invoice Description!", "Message");
+                        return false;
+                    }
+                }
+                else if (InvNo == "") {
+                    InvNo = "0";
+                }
+
+                if ($.trim(InvDate) == "") {
+                    jAlert("Ensure Invoice Date!", "Message");
+                    return false;
+                }
+
+                if ($.trim(ServiceMonth) == "") {
+                    jAlert("Ensure Service Month!", "Message");
+                    return false;
+                }
+                debugger;
+                if ($.trim(Amount) == "" || parseFloat(Amount) == 0) {
+                    jAlert("Ensure Invoice Amount!", "Message");
+                    return false;
+                }
+
+                if ($.trim(WOTaxAmount) == "" || parseFloat(WOTaxAmount) == 0) {
+                    jAlert("Ensure Without Tax Amount!", "Message");
+                    return false;
+                }
+
+                if (parseFloat(WOTaxAmount) > parseFloat(Amount)) {
+                    jAlert("Without Tax Amount should be less than or equal to invoice Amount!", "Message");
+                    return false;
+                }
+
+                //if ((parseInt(ProviderLocation) == 0 || $.trim(ProviderLocation) == "") && GstCharged == "Y") {
+                if ((parseInt(ProviderLocation) == 0 || $.trim(ProviderLocation) == "")) {
+                    jAlert("Ensure Provider Location!", "Message");
+                    return false;
+                }
+
+                if (($.trim(GstinVendor) == "") && GstCharged == "Y") {
+                    //  if (($.trim(GstinVendor) == "")) {
+                    jAlert("Ensure GSTIN Vendor!", "Message");
+                    return false;
+                }
+
+                // if ((parseInt(ReceiverLocation) == 0 || $.trim(ReceiverLocation) == "") && GstCharged == "Y") {
+                if ((parseInt(ReceiverLocation) == 0 || $.trim(ReceiverLocation) == "")) {
+                    jAlert("Ensure Receiver Location!", "Message");
+                    return false;
+                }
+
+                if (($.trim(GstinFiccl) == "") && GstCharged == "Y") {
+                    jAlert("Ensure GSTIN " +@System.Configuration.ConfigurationManager.AppSettings["CompanyName"] +"!", "Message");
+                    return false;
+                }
+                //$("#tabGST").show();
+                //$('#Invoicetabs').tabs('select', 0);
+                InvId = $("#hfInvId").val();
+                var InvoiceHeader = {
+                    EcfId: EcfId,
+                    InvId: InvId,
+                    ProviderLocation: ProviderLocation,
+                    GstinVendor: GstinVendor,
+                    Suppliergid: VendorId,
+                    InvNo: InvNo,
+                    InvDate: InvDate,
+                    Amount: Amount,
+                    Desc: Desc,
+                    WOTaxAmount: WOTaxAmount,
+                    IsVerify: IsVerify,
+                    IsRemoved: IsRemoved,
+                    GstCharged: GstCharged,
+                    ReceiverLocation: ReceiverLocation,
+                    GstinFiccl: GstinFiccl,
+                    ServiceMonth: ServiceMonth
+                };
+                $.ajax({
+                    type: "post",
+                    url: Mainurl + "SetInvoiceNonTravelDetails",
+                    data: JSON.stringify(InvoiceHeader),
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "", Data2 = "", Data3 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                            Data1 = JSON.parse(response.Data1);
+                            if (Data1[0].Clear == false)
+                                jAlert(Data1[0].Msg, "Message");
+                            else {
+                                jAlert(Data1[0].Msg, "Message");
+                                $("#hfInvId").val(Data1[0].InvId);
+
+                                if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                                    Data2 = JSON.parse(response.Data2);
+                                self.ECFInvoiceArray(Data2);
+
+                                if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                                    Data3 = JSON.parse(response.Data3);
+                                //self.ECFPaymentArray(Data3);
+
+                                if (GstCharged == "Y") {
+                                    $("#tabGST").show();
+                                    $("#tabRCM").hide();
+                                } else {
+                                    $("#tabGST").hide();
+                                    $("#tabRCM").show();
+                                }
+
+                                $('#Invoicetabs').tabs('select', 0);
+                                var url = '@Url.Action("_EmpExpenseDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#wgExpense").load(url);
+                                var url1 = '@Url.Action("_EmpPaymentDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#wgriPayment").load(url1);
+                                var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#Grdgstdetls").load(url2);
+                                var url3 = '@Url.Action("_LoadRCMDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#GrdrcmDtls").load(url3);
+                            }
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) { }
+                });
+            };
+            self.ViewInvoiceDetails = function (item) {
+                $('#objDialogyInvoice').attr("style", "display:block;");
+                objDialogyInvoice.dialog({ title: 'Invoice Details', width: '1100', height: '600' });
+                objDialogyInvoice.dialog("open");
+                debugger;
+                $("#hfInvId").val(item.InvId);
+                $("#ddlgstReceiverLoc,#ddlgstProviderLoc,#hdfSVendorId,#hdfSVendorName").val("0");
+                $("#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#txtGSTINVendor,#txtGSTINFICCL").val("");
+                $("input[name=rdogstChargedFlag][value=Y]").prop("checked", true);
+                $("input[name=rdoVerify][value=1]").prop("checked", true);
+                $("#txtGSTINVendor,#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#ddlgstReceiverLoc,#ddlgstProviderLoc").removeClass("valid").removeClass("required");
+
+                $("#tabGST").hide();
+                $('#Invoicetabs').tabs('select', 1);
+
+                var InvId = $("#hfInvId").val();
+                var EcfFilter = {
+                    InvId: InvId
+                };
+                $.ajax({
+                    type: "post",
+                    url: "../EmployeeClaimNew/LoadInvoiceHeaderDetails",
+                    data: JSON.stringify(EcfFilter),
+                    contentType: "application/json;",
+                    async: false,
+                    success: function (response) {
+                        var Data1 = "", Data2 = "", Data3 = "", Data4 = "", Data5 = "", value = "";
+                        if (response.Data3 != null)
+                            Data3 = JSON.parse(response.Data3);
+                        if (Data3.length > 0) {
+
+                            var url = '@Url.Action("_EmpExpenseDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                            $("#wgExpense").load(url);
+                            var url1 = '@Url.Action("_EmpPaymentDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                            $("#wgriPayment").load(url1);
+                            var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                            $("#Grdgstdetls").load(url2);
+                            var url3 = '@Url.Action("_LoadRCMDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                            $("#GrdRCMdetls").load(url3);
+
+                            $("#txtInvoiceDate").val(Data3[0].InvDate);
+                            $("#txtInvoiceNo").val(Data3[0].InvNo);
+                            var ServiceDate = Data3[0].servicemonth;
+                            if (ServiceDate != null) {
+                                var month;
+                                month = ServiceDate.split("/")[1];
+                                $("#txtServiceMonth").val(Months[parseInt(month)] + " " + ServiceDate.split("/")[2]);
+                            }
+                            $("#txtInvoiceAmount").val(Data3[0].InvAmt);
+                            $("#txtWithoutTaxAmount").val(Data3[0].WOTaxAmount);
+                            $("#txtInvoiceDescription").val(Data3[0].InvDesc);
+
+                            $("#hdfSVendorName").val(Data3[0].InvoiceSuppliergid);
+                            if ($.trim(Data3[0].SupplierCode) != "") {
+                                $("#txtVendorName").addClass("valid");
+                                $("#txtVendorName").val(Data3[0].SupplierCode + ' - ' + Data3[0].SupplierName);
+                            } else { $("#txtVendorName").addClass("required"); $("#txtVendorName").val(""); $("#txtVendorName").attr("disabled", false); }
+
+                            $("input[name=rdoVerify][value=" + (Data3[0].isverified ? "1" : "0") + "]").prop("checked", true);
+                            var _value = Data3[0].GstCharged == "Y" ? "Y" : "N";
+                            //Ramya Aug
+                            $("#hdfEditViewGstChargedFlag").val(_value);
+                            $("input[name=rdogstChargedFlag][value=" + _value + "]").prop("checked", true);
+
+                            $("#ddlgstProviderLoc").val(Data3[0].ProviderLocation);
+                            $("#ddlgstReceiverLoc").val(Data3[0].ReceiverLocation);
+                            $("#txtGSTINVendor").val(Data3[0].GstinVendor);
+                            $("#txtGSTINFICCL").val(Data3[0].GstinFiccl);
+                            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+                                $("#tabGST").show();
+                                $("#tabRCM").hide();
+                            }
+                            else {
+                                $("#tabGST").hide();
+                                $("#tabRCM").show();
+                            }
+                            $(".divGSTChargedShow").show();
+                            $("#ddlgstProviderLoc").val(Data3[0].ProviderLocation);
+                            $("#ddlgstReceiverLoc").val(Data3[0].ReceiverLocation);
+                            $("#txtGSTINVendor").val(Data3[0].GstinVendor);
+                            $("#txtGSTINFICCL").val(Data3[0].GstinFiccl);
+                            $("#txtVendorName").attr("disabled", true);
+                            $('#Invoicetabs').tabs('select', 0);
+                            /*}
+                                $(".divGSTChargedShow").hide();
+                                $("#ddlgstProviderLoc").val("0");
+                                $("#ddlgstReceiverLoc").val("0");
+                                $("#txtGSTINVendor").val("");
+                                $("#txtGSTINFICCL").val("");
+                                $("#txtVendorName").attr("disabled", false);
+                                $('#Invoicetabs').tabs('select', 0);
+                            }*/
+
+                            value = $("#txtInvoiceDate").val();
+                            if (value != "")
+                                $("#txtInvoiceDate").addClass("valid");
+                            else
+                                $("#txtInvoiceDate").addClass("required");
+
+                            value = $("#txtInvoiceNo").val();
+                            if (value != "" && value != "0")
+                                $("#txtInvoiceNo").addClass("valid");
+                            else
+                                $("#txtInvoiceNo").addClass("required");
+
+                            value = $("#txtGSTINVendor").val();
+                            if (value != "")
+                                $("#txtGSTINVendor").addClass("valid");
+                            else
+                                $("#txtGSTINVendor").addClass("required");
+
+                            value = $("#txtServiceMonth").val();
+                            if (value != "")
+                                $("#txtServiceMonth").addClass("valid");
+                            else
+                                $("#txtServiceMonth").addClass("required");
+
+                            value = $("#txtInvoiceDescription").val();
+                            if (value != "")
+                                $("#txtInvoiceDescription").addClass("valid");
+                            else
+                                $("#txtInvoiceDescription").addClass("required");
+
+                            value = $.trim($("#txtInvoiceAmount").val()) == "" ? 0 : parseFloat($("#txtInvoiceAmount").val());
+                            if (value > 0)
+                                $("#txtInvoiceAmount").addClass("valid");
+                            else
+                                $("#txtInvoiceAmount").addClass("required");
+
+                            value = $.trim($("#txtWithoutTaxAmount").val()) == "" ? 0 : parseFloat($("#txtWithoutTaxAmount").val());
+                            if (value > 0)
+                                $("#txtWithoutTaxAmount").addClass("valid");
+                            else
+                                $("#txtWithoutTaxAmount").addClass("required");
+
+                            if (parseInt($("#ddlgstProviderLoc").val()) == 0 || $("#ddlgstProviderLoc").val() == "") {
+                                $("#ddlgstProviderLoc").addClass("required");
+                            } else {
+                                $("#ddlgstProviderLoc").addClass("valid");
+                            }
+                            if (parseInt($("#ddlgstReceiverLoc").val()) == 0 || $("#ddlgstReceiverLoc").val() == "") {
+                                $("#ddlgstReceiverLoc").addClass("required");
+                            } else {
+                                $("#ddlgstReceiverLoc").addClass("valid");
+                            }
+
+                        }
+
+                        //if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                        //    Data2 = JSON.parse(response.Data2);
+                        //self.GSTInvoiceTaxArray(Data2);
+                        //self.FindTotalTax();
+
+                        //if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                        //    Data3 = JSON.parse(response.Data3);
+                        //self.ECFExpenseArray(Data3);
+
+                        //if (response.Data4 != null && response.Data4 != "" && JSON.parse(response.Data4) != null)
+                        //    Data4 = JSON.parse(response.Data4);
+                        //self.ECFPaymentArray(Data4);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    }
+                });
+
+                $(".viewForIvoice").css("display", "none");
+                return false;
+            };
+            self.EditInvoiceDetails = function (item) {
+                $('#objDialogyInvoice').attr("style", "display:block;");
+                objDialogyInvoice.dialog({ title: 'Invoice Details', width: '1100', height: '650' });
+                objDialogyInvoice.dialog("open");
+                $("#hfInvId").val(item.InvId);
+                $("#btnSaveInv").text("Update");
+                $("#ddlgstReceiverLoc,#ddlgstProviderLoc,#hdfSVendorId,#hdfSVendorName").val("0");
+                $("#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#txtGSTINVendor,#txtGSTINFICCL").val("");
+                $("input[name=rdogstChargedFlag][value=Y]").prop("checked", true);
+                $("input[name=rdoVerify][value=1]").prop("checked", true);
+                $("#txtGSTINVendor,#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#ddlgstReceiverLoc,#ddlgstProviderLoc").removeClass("valid").removeClass("required");
+
+                $("#tabGST").hide();
+                $('#Invoicetabs').tabs('select', 1);
+                var InvId = $("#hfInvId").val();
+                var EcfFilter = {
+                    InvId: InvId
+                };
+                $.ajax({
+                    type: "post",
+                    url: "../EmployeeClaimNew/LoadInvoiceHeaderDetails",
+                    data: JSON.stringify(EcfFilter),
+                    contentType: "application/json;",
+                    async: false,
+                    success: function (response) {
+                        debugger;
+                        var Data1 = "", Data2 = "", Data3 = "", Data4 = "", Data5 = "", value = "";
+                        if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                            Data3 = JSON.parse(response.Data3);
+
+                        if (Data3.length > 0) {
+
+
+
+
+                            $("#txtInvoiceDate").val(Data3[0].InvDate);
+                            $("#txtInvoiceNo").val(Data3[0].InvNo);
+                            var ServiceDate = Data3[0].servicemonth;
+                            if (ServiceDate != null) {
+                                var month;
+                                month = ServiceDate.split("/")[1];
+                                $("#txtServiceMonth").val(Months[parseInt(month)] + " " + ServiceDate.split("/")[2]);
+                            }
+                            $("#txtInvoiceAmount").val(Data3[0].InvAmt);
+                            $("#txtWithoutTaxAmount").val(Data3[0].WOTaxAmount);
+                            $("#txtInvoiceDescription").val(Data3[0].InvDesc);
+                            $("#hdfSVendorName").val(Data3[0].InvoiceSuppliergid);
+                            if ($.trim(Data3[0].SupplierCode) != "") {
+                                $("#txtVendorName").addClass("valid");
+                                $("#txtVendorName").val(Data3[0].SupplierCode + ' - ' + Data3[0].SupplierName);
+                            } else { $("#txtVendorName").addClass("required"); $("#txtVendorName").val(""); $("#txtVendorName").attr("disabled", false); }
+
+                            $("input[name=rdoVerify][value=" + (Data3[0].isverified ? "1" : "0") + "]").prop("checked", true);
+                            var _value = Data3[0].GstCharged == "Y" ? "Y" : "N";
+                            //Ramya Aug
+                            $("#hdfEditViewGstChargedFlag").val(_value);
+                            $("input[name=rdogstChargedFlag][value=" + _value + "]").prop("checked", true);
+
+                            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y") {
+                                $("#tabGST").show();
+                                $("#tabRCM").hide();
+                            } else {
+                                $("#tabGST").hide();
+                                $("#tabRCM").show();
+                            }
+                            $(".divGSTChargedShow").show();
+                            $("#ddlgstProviderLoc").val(Data3[0].ProviderLocation);
+                            $("#ddlgstReceiverLoc").val(Data3[0].ReceiverLocation);
+                            $("#txtGSTINVendor").val(Data3[0].GstinVendor);
+                            $("#txtGSTINFICCL").val(Data3[0].GstinFiccl);
+                            $('#Invoicetabs').tabs('select', 0);
+
+                            /*$(".divGSTChargedShow").hide();
+                            $("#ddlgstProviderLoc").val("0");
+                            $("#ddlgstReceiverLoc").val("0");
+                            $("#txtGSTINVendor").val("");
+                            $("#txtGSTINFICCL").val("");
+                            $("#txtVendorName").attr("disabled", false);
+                            $('#Invoicetabs').tabs('select', 0);
+                        }*/
+
+                            value = $("#txtInvoiceDate").val();
+                            if (value != "")
+                                $("#txtInvoiceDate").addClass("valid");
+                            else
+                                $("#txtInvoiceDate").addClass("required");
+
+                            value = $("#txtInvoiceNo").val();
+                            if (value != "" && value != "0")
+                                $("#txtInvoiceNo").addClass("valid");
+                            else
+                                $("#txtInvoiceNo").addClass("required");
+
+                            value = $("#txtGSTINVendor").val();
+                            if (value != "")
+                                $("#txtGSTINVendor").addClass("valid");
+                            else
+                                $("#txtGSTINVendor").addClass("required");
+
+                            value = $("#txtServiceMonth").val();
+                            if (value != "")
+                                $("#txtServiceMonth").addClass("valid");
+                            else
+                                $("#txtServiceMonth").addClass("required");
+
+                            value = $("#txtInvoiceDescription").val();
+                            if (value != "")
+                                $("#txtInvoiceDescription").addClass("valid");
+                            else
+                                $("#txtInvoiceDescription").addClass("required");
+
+                            value = $.trim($("#txtInvoiceAmount").val()) == "" ? 0 : parseFloat($("#txtInvoiceAmount").val());
+                            if (value > 0)
+                                $("#txtInvoiceAmount").addClass("valid");
+                            else
+                                $("#txtInvoiceAmount").addClass("required");
+
+                            value = $.trim($("#txtWithoutTaxAmount").val()) == "" ? 0 : parseFloat($("#txtWithoutTaxAmount").val());
+                            if (value > 0)
+                                $("#txtWithoutTaxAmount").addClass("valid");
+                            else
+                                $("#txtWithoutTaxAmount").addClass("required");
+
+                            if (parseInt($("#ddlgstProviderLoc").val()) == 0 || $("#ddlgstProviderLoc").val() == "") {
+                                $("#ddlgstProviderLoc").addClass("required");
+                            } else {
+                                $("#ddlgstProviderLoc").addClass("valid");
+                            }
+                            if (parseInt($("#ddlgstReceiverLoc").val()) == 0 || $("#ddlgstReceiverLoc").val() == "") {
+                                $("#ddlgstReceiverLoc").addClass("required");
+                            } else {
+                                $("#ddlgstReceiverLoc").addClass("valid");
+                            }
+                        }
+
+                        //if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                        //    Data2 = JSON.parse(response.Data2);
+                        //self.GSTInvoiceTaxArray(Data2);
+                        //self.FindTotalTax();
+
+                        //if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                        //    Data3 = JSON.parse(response.Data3);
+                        //self.ECFExpenseArray(Data3);
+
+                        //if (response.Data4 != null && response.Data4 != "" && JSON.parse(response.Data4) != null)
+                        //    Data4 = JSON.parse(response.Data4);
+                        //self.ECFPaymentArray(Data4);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    }
+                });
+                debugger;
+                var url = '@Url.Action("_EmpExpenseDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                $("#wgExpense").load(url);
+                var url1 = '@Url.Action("_EmpPaymentDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                $("#wgriPayment").load(url1);
+                var url3 = '@Url.Action("_LoadRCMDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                $("#GrdRCMdetls").load(url3);
+                var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                $("#Grdgstdetls").load(url2);
+                $(".viewForIvoice").css("display", "");
+                return false;
+            };
+            self.DeleteInvoiceDetails = function (item) {
+                jConfirm("Are you sure? Want to delete Invoice!", "Confirm", function (callback) {
+                    if (callback == true) {
+                        var EcfId = $("#hfECFId").val();
+                        var InvId = item.InvId;
+                        var IsRemoved = "1";
+                        var InvoiceHeader = {
+                            EcfId: EcfId,
+                            InvId: InvId,
+                            ProviderLocation: "0",
+                            GstinVendor: "",
+                            Suppliergid: item.Suppliergid,
+                            InvNo: item.InvNo,
+                            InvDate: "",
+                            Amount: "0",
+                            Desc: "",
+                            WOTaxAmount: "0",
+                            IsVerify: "0",
+                            IsRemoved: IsRemoved,
+                            GstCharged: "N",
+                            ReceiverLocation: "0",
+                            GstinFiccl: "",
+                            ServiceMonth: ""
+                        };
+                        $.ajax({
+                            type: "post",
+                            url: "../EmployeeClaimNew/SetInvoiceNonTravelDetails",
+                            data: JSON.stringify(InvoiceHeader),
+                            contentType: "application/json;",
+                            success: function (response) {
+                                var Data1 = "", Data2 = "";
+                                if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                                    Data1 = JSON.parse(response.Data1);
+                                    if (Data1[0].Clear == false)
+                                        jAlert(Data1[0].Msg, "Message");
+                                    else
+                                        jAlert(Data1[0].Msg, "Message");
+                                }
+                                if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                                    Data2 = JSON.parse(response.Data2);
+                                self.ECFInvoiceArray(Data2);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                //alert(errorThrown);
+                            }
+                        });
+                    } else {
+                        return false;
+                    }
+                });
+            };
+            self.AddInvoiceDetail = function () {
+                var Ecfid = $("#TxtEcfId").val();
+                var EcfAmt = $("#txtecfamountt").val();
+                var EcfDate = $("#txtecfdatet").val();
+                var EcfSerMonth = $("#txtclaimmontht").val();
+
+                $("#ddlgstReceiverLoc,#ddlgstProviderLoc,#hdfSVendorId,#hdfSVendorName").val("0");
+                $("#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#txtGSTINVendor,#txtGSTINFICCL").val("");
+
+                $("#txtGSTINVendor,#txtInvoiceDate,#txtInvoiceNo,#txtServiceMonth,#txtInvoiceAmount,#txtWithoutTaxAmount,#txtInvoiceDescription,#txtVendorName,#txtVendorCode,#ddlgstReceiverLoc,#ddlgstProviderLoc").removeClass("valid").removeClass("required").addClass("required");
+                $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+                $("input[name=rdoVerify][value=1]").prop("checked", true);
+
+
+                var servicemonth = $("#txtclaimmonthh").val();
+                var Invdate = $("#txtecfdate").val();
+                $("#txtInvoiceDate").val(Invdate.replace('-', '/'));
+                $("#txtServiceMonth").val(servicemonth.replace('-', ' '));
+                $("#txtInvoiceDate").addClass("valid");
+                $("#txtServiceMonth").addClass("valid");
+                $("#tabGST").hide();
+                $("#tabRCM").hide();
+                $(".divGSTChargedShow").show();
+                $('#InvoicetabsNew').tabs('select', 1);
+                $("#hfInvId").val("0");
+                $(".viewForIvoice").css("display", "");
+
+                $.ajax({
+                    type: "post",
+                    url: "../EmployeeClaimNew/DestroySession",
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                            Data1 = JSON.parse(response.Data1);
+                            if (Data1 == 'Success') {
+                                var url = '@Url.Action("_EmpExpenseDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#wgExpense").load(url);
+                                var url1 = '@Url.Action("_EmpPaymentDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#wgriPayment").load(url1);
+                                var url3 = '@Url.Action("_LoadRCMDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#GrdRCMdetls").load(url3);
+                                var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#Grdgstdetls").load(url2);
+                                $(".viewForIvoice").css("display", "");
+                                $('#divInvoice').attr("style", "display:block;");
+                                objDialogyInvoice.dialog({ title: 'Add Invoice Details', width: '1100', height: '600' });
+                                objDialogyInvoice.dialog("open");
+                            }
+
+                        }
+
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+
+            this.SaveCessTaxDetails = function (id) {
+                debugger;
+                var InvoiceTaxgid = $("#hfTaxTempgid").val();
+                var InvId = $("#hfInvId").val();
+                var TaxId = $("#ddlTaxType").val();
+                var SubTaxId = $("#ddlSubTaxType").val();
+                var TaxRate = $("#txtTaxRate").val();
+                var TaxableAmt = $.trim($("#txtTaxableAmount").val()) == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                var TaxAmount = $.trim($("#txtTaxAmount").val()) == "" ? 0 : parseFloat($("#txtTaxAmount").val());
+                var IsRemoved = "N";
+                var INVAmount = $.trim($("#txtInvoiceAmount").val()) == "" ? 0 : parseFloat($("#txtInvoiceAmount").val());
+                var Tax = (TaxRate * TaxableAmt) / 100;
+                var action = "Update";
+
+                if (TaxId == "0") {
+                    jAlert("Ensure Tax Type!", "Message");
+                    return false;
+                }
+
+                if (SubTaxId == "0") {
+                    jAlert("Ensure Tax SubType!", "Message");
+                    return false;
+                }
+
+                if ($.trim(TaxRate) == "" || parseFloat(TaxRate) == 0) {
+                    jAlert("Ensure Tax Rate!", "Message");
+                    return false;
+                }
+
+                if ($.trim(TaxableAmt) == "" || parseFloat(TaxableAmt) == 0) {
+                    jAlert("Ensure Taxable Amount!", "Message");
+                    return false;
+                }
+
+                if (TaxAmount == 0) {
+                    jAlert("Ensure Tax Amount!", "Message");
+                    return false;
+                }
+
+                //if (TaxAmount > (Tax + 5) || TaxAmount < (Tax - 5)) {
+                //    jAlert("You can only plus or minus 5 into Tax Amount!", "Message");
+                //    return false;
+                //}
+
+                //if (INVAmount < (TaxableAmt + TaxAmount) && parseFloat(TaxRate) != 100) {
+                //    jAlert("Taxable Amount + Tax Amount should not exceeded Invoice Amount!", "Message");
+                //    return false;
+                //}
+
+                var InvoiceTax = {
+                    action: action,
+                    InvoiceTaxgid: InvoiceTaxgid,
+                    InvId: InvId,
+                    TaxId: TaxId,
+                    SubTaxId: SubTaxId,
+                    TaxRate: TaxRate,
+                    TaxableAmt: TaxableAmt,
+                    TaxAmount: Tax,
+                    IsRemoved: IsRemoved
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "SetCessTaxDetails",
+                    data: JSON.stringify(InvoiceTax),
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                            Data1 = JSON.parse(response.Data1);
+                            if (Data1[0].Msg == false)
+                                jAlert("Error", "Message");
+                            else {
+                                objDialogyAdd.dialog("close");
+                                jAlert(Data1[0].Msg, "Message");
+                                var url2 = '@Url.Action("_LoadGstDetails", "EmployeeClaimNew")?' + new Date().getTime();
+                                $("#Grdgstdetls").load(url2);
+                                $("#tabGST").show();
+                                $("#tabRCM").hide();
+                            }
+                        }
+
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+
+            this.AddTaxAmount = function () {
+                $('#ShowDialog').attr("style", "display:block;");
+
+                if ($("#ddlTaxType").hasClass("valid")) {
+                    $("#ddlTaxType").removeClass("valid");
+                    $("#ddlTaxType").addClass("required");
+                }
+                if ($("#ddlSubTaxType").hasClass("valid")) {
+                    $("#ddlSubTaxType").removeClass("valid");
+                    $("#ddlSubTaxType").addClass("required");
+                }
+                if ($("#txtTaxRate").hasClass("valid")) {
+                    $("#txtTaxRate").removeClass("valid");
+                    $("#txtTaxRate").addClass("required");
+                }
+                $("#txtTaxableAmount").val($("#txtWithoutTaxAmount").val());
+                var Amount = $("#txtTaxableAmount").val() == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                if (Amount > 0) {
+                    $("#txtTaxableAmount").removeClass("required");
+                    $("#txtTaxableAmount").addClass("valid");
+                }
+                else {
+                    $("#txtTaxableAmount").removeClass("valid");
+                    $("#txtTaxableAmount").addClass("required");
+                }
+
+                objDialogyAdd.dialog({ title: 'Invoice Tax', width: '460', height: '290' });
+                $("#hfInvoiceTaxgid").val("0");
+                $("#ddlTaxType").val("0");
+                $("#ddlSubTaxType").val("0");
+                $("#txtTaxRate").val("0");
+                $("#txtTaxAmount").val("");
+                $("#btnTaxSubmit").css("display", "");
+                objDialogyAdd.dialog("open");
+                return false;
+            }
+
+            this.CloseDetails = function (flag) {
+                if (flag == 0)
+                    objDialogyAdd.dialog("close");
+            }
+            //self.LoadGstdetails = function () {
+            //    debugger;
+            //    var InvId = $("#hfInvId").val();
+            //    if (InvId != 0 || InvId != "") {
+            //        var InvoiceHeader = {
+            //            InvId: InvId,
+            //        };
+            //        $.ajax({
+            //            type: "post",
+            //            url: Mainurl + "LoadGstvalues",
+            //            data: JSON.stringify(InvoiceHeader),
+            //            contentType: "application/json;",
+            //            success: function (response) {
+            //                var Data1 = "", Data2 = "", Data3 = "";
+            //                if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+            //                    Data1 = JSON.parse(response.Data1);
+            //                    debugger;
+            //                }
+            //            },
+            //            error: function (XMLHttpRequest, textStatus, errorThrown) { }
+            //        });
+            //    }
+            //};
+            self.LoadGSTINCategory();
+            self.LoadInvoiceDetails();
+            self.LoadTaxType();
+            self.LoadTaxSubType();
+            self.LoadTaxRate();
+            // self.LoadGstdetails();
+        }
+        var mainViewModel = new SearchModel();
+        ko.applyBindings(mainViewModel);
+
+        function gstinvalid() {
+            debugger;
+            var tin = $("#txtGSTINVendor").val();
+            var pan = "";
+            if (tin != "") {
+                if (tin.length == 15) {
+                    for (var i = 0, len = tin.length; i < len; i++) {
+                        if (i == 0 || i == 1) {
+                            var regex = /^[0-9]+$/;
+                            if (!tin[i].match(regex)) {
+                                isgstvalid = "N";
+                                jAlert("Ensure GSTIN!", "Message");
+                                return false;
+                            }
+                        }
+                        else if (i > 1 && i < 12) {
+                            pan = pan + tin[i];
+                            if (pan.length == 10) {
+                                var ObjVal = pan;
+                                var panPattern = /^([a-zA-Z]{5})(\d{4})([a-zA-Z]{1})$/;
+                                var matchArray = ObjVal.match(panPattern);
+                                if (matchArray == null) {
+                                    isgstvalid = "N";
+                                    jAlert("Ensure GSTIN!", "Message");
+                                    return false;
+                                }
+                            }
+                        }
+                        else if (!tin[12].match(regex)) {
+                            //alert("Invalid GSTIN : 13- 1 digit (Check Sum digit)")
+                            //return false;
+                        }
+                        else if (!tin[13].match(regex)) {
+                            //alert("Invalid GSTIN :  14- 1 Character (Alphabet Z by default)");
+                            //return false;
+                        }
+                        else if (!tin[14].match(regex)) {
+                            //alert("Invalid GSTIN : 1 digit (Check Sum digit)")
+                            //return false;
+                        }
+                    }
+                }
+                else {
+                    isgstvalid = "N";
+                    jAlert("Ensure GSTIN!", "Message");
+                    return false;
+                }
+            }
+        }
+    </script>

@@ -1,0 +1,130 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierServiceDetails
+
+@{
+   
+}
+<div id="editcustomer">
+
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="display:none;">
+                <span>SupService Name</span><br />
+                <input name="_SupServiceDetailsID" class="textboxStyle" id="_SupServiceDetailsID" title="Service ID" type="text" value="@Model._SupServiceDetailsID" />
+            </td>
+            <td>
+                <span>Supplier Service Name</span><br />
+                <input name="_SupServiceDetailsName" class="textboxStyle valid" id="_SupServiceDetailsName" title="Customer Name" type="text" value="@Model._SupServiceDetailsName" @ViewBag.viewmode1 />
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-top:15px;">
+                <a name="btnUpdateSupService" id="btnUpdateSupService" class="btn btn-primary" onclick="UpdateSupService()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnDeleteEditSupService" name="btnDeleteEditSupService" class="btn btn-danger" onclick="DeleteSupServiceEdit()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-trash"></span> Delete</a>
+                <a id="btnCloseEditSupService" name="btnCloseEditSupService" class="btn btn-warning" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-remove"></span> Cancel</a>
+                <a id="btnCloseEditSupService1" name="btnCloseEditSupService1" class="btn btn-warning" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-remove"></span> Close</a>
+            </td>
+        </tr>
+    </table>
+
+    }
+      
+    <script type="text/javascript">
+        var custpagemode;
+        function DisableSupServiceEditDetails() {
+            $("#_SupServiceDetailsName").attr("disabled", "disabled");
+        }
+        $(document).ready(function () {
+            custpagemode = '@ViewBag.viewfor';
+            if ($.trim(custpagemode) == "edit") {
+                $("#btnDeleteEditSupService").css("display", "none");
+                $("#btnCloseEditSupService1").css("display", "none");
+            }
+            else if ($.trim(custpagemode) == "view") {
+                $("#btnUpdateSupService").css("display", "none");
+                $("#btnCloseEditSupService").css("display", "none");
+                $("#btnDeleteEditSupService").css("display", "none");
+                DisableSupServiceEditDetails();
+            }
+            else if ($.trim(custpagemode) == "delete") {
+                $("#btnUpdateSupService").css("display", "none");
+                $("#btnCloseEditSupService1").css("display", "none");
+                DisableSupServiceEditDetails();
+            }
+            if ($.trim("#_SupServiceDetailsName") != "") {
+                $("#_SupServiceDetailsName").removeClass('required');
+                $("#_SupServiceDetailsName").addClass('valid');
+            }
+            else {
+                $("#_SupServiceDetailsName").removeClass('valid');
+                $("#_SupServiceDetailsName").addClass('required');
+            }
+            $("#_SupServiceDetailsName").keyup(function () {
+                var CustNameEdit = $("#_SupServiceDetailsName").val();
+                if (CustNameEdit.trim() != "") {
+                    $("#_SupServiceDetailsName").removeClass('required');
+                    $("#_SupServiceDetailsName").addClass('valid');
+                }
+                else {
+                    $("#_SupServiceDetailsName").removeClass('valid');
+                    $("#_SupServiceDetailsName").addClass('required');
+                }
+            });
+            $("#_SupServiceDetailsName").keypress(function (event) {
+                return isAlphabet(event);
+            });
+            $("#_SupServiceDetailsName").attr("maxlength", "128");
+        });
+        function UpdateSupService() {
+            var SupServiceIdEdit = $("#_SupServiceDetailsID").val();
+            var SupServiceNameEdit = $("#_SupServiceDetailsName").val();
+            if (SupServiceNameEdit == null || SupServiceNameEdit == "") {
+                jAlert("Please Enter Service Name.", "Error", function () {
+                    $("#_SupServiceDetailsName").focus();
+                });
+                
+                return false;
+            }
+            var objServiceDetails = {
+                "_SupServiceDetailsID": SupServiceIdEdit,
+                "_SupServiceDetailsName": SupServiceNameEdit
+                
+            };
+            $.post('../Onboarding/EditSupplierService', objServiceDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgService").load("../onboarding/SupplierServiceDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+
+        }
+        function DeleteSupServiceEdit() {
+            jConfirm("Do you want to delete Service: ", Title_3, function (e) {
+                if (e == true) {
+                    var id = $("#_SupServiceDetailsID").val();
+                    var objServiceDetails = { "_SupServiceDetailsID": id }
+                    $.post('../Onboarding/DeleteSupplierService', objServiceDetails,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgService").load("../onboarding/SupplierServiceDetails?" + new Date().getTime());
+                             }
+                         }, 'json');
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $("#btnCloseEditSupService,#btnCloseEditSupService1").live('click', function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

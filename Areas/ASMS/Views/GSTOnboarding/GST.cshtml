@@ -1,0 +1,88 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+@{
+    if (Session["isFinancialReviewer"] != null)
+    {
+        ViewBag.isFinancialReviewer = (string)Session["isFinancialReviewer"];
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        //if (ViewBag.PageMode == "3")
+        //{
+        //    ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+        //    if (ViewBag.IsAllowApproverToEdit == "1")
+        //    {
+        //        ViewBag.PageMode = "2";
+        //    }
+        //}
+    }
+    ViewBag.SupplierHeaderGid = Convert.ToInt64(System.Web.HttpContext.Current.Session["SupplierHeaderGid"]);
+    SupplierHeader sh = (SupplierHeader)ViewBag.supplierheader;
+}
+<style type="text/css">gridhide {   visibility:hidden;  }</style> 
+<script type="text/javascript">
+    var curpagemode;
+    var financereviewmode;
+    $(document).ready(function () { 
+        financereviewmod = '@ViewBag.isFinancialReviewer';
+        curpagemode = '@ViewBag.PageMode';
+        if ((curpagemode == "3" || curpagemode == "5") && financereviewmod !="yes") {
+            $("#gstdetailsdiv").css("display", "none");           
+        }
+    });
+    $("#btnNextTax").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 9);
+});
+    $("#btnPrevTax").live("click", function () {
+        $("#tabs").tabs({ disabled: [10] });
+        $('#tabs').tabs('select', 7);
+    });
+    function SubmitFinReview() {
+        var objtaxdet = null;
+        $.post('../GSTOnboarding/UpdateFinReviewStatus', objtaxdet,
+          function (data) {
+              location = "../AsmsMain/Dashboard?" + new Date().getTime();
+          }, 'json');
+    }
+
+    function GotoIndexCustomer() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>
+<div>
+    <div id="idhidden_ASMS1" hidden="hidden"></div>
+    <div id="idhidden_ASMS2" hidden="hidden"></div>
+    <div id="divTaxDetails">
+        <div>
+            <fieldset>             
+                <div id="gstdetailsdiv">
+                    @*/************** GST Work *********************************/*@
+                    @Html.Partial("GSTIndex")
+                    @*/************** GST Work *********************************/*@
+                </div>
+            </fieldset>
+        </div>
+        
+        <div id="GSTDetailsIndex">
+            @Html.Partial("GSTDetailsIndex")
+        </div>
+        <div id="ForPartialView"></div>
+    </div>
+    <div style="text-align:right;padding-right:25px;" class="divforbutton">
+        <button id="btnPrevTax" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-backward"></span> Prev</button>
+        @if (ViewBag.PageMode != "1")
+        {
+            <button id="btnNextTax" class="btn btn-primary">Next <span style="color:white;" class="glyphicon glyphicon-forward"></span></button>
+        }
+        @if (ViewBag.isFinancialReviewer == "yes")
+        {
+            <button id="btnSubmitFinReview" onclick="SubmitFinReview()" class="btn btn-success"><span style="color:white;" class="glyphicon glyphicon-ok"></span> Submit</button>
+        }
+
+    </div>
+</div>
+
+

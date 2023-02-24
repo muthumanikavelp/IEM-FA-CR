@@ -1,0 +1,84 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_RefNo>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_RefNo> lstPayment = new List<EOW_RefNo>();
+    lstPayment = (List<EOW_RefNo>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.EmployeeePaymentRefNodatagri(Session["SupplierGid"].ToString(), "S").ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+<div id="wgempEmployeeeefds" class="overflowy" style="max-height: 350px;">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPaymentfg = new WebGrid(lstPayment, canSort: false, canPage: false, rowsPerPage: 100, ajaxUpdateContainerId: "wgempEmployeeeefds", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+    <div class="table-responsive" style="padding-right: 10px;max-height: 350px;">
+            @gridPaymentfg.GetHtml(
+            htmlAttributes: new { id = "wgempEmployeeGridManual" },
+            tableStyle: "tableSmall table-bordered table-hover table-responsive",
+            mode: WebGridPagerModes.All,
+            columns:
+            gridPaymentfg.Columns(gridPaymentfg.Column("#", style: "IdColumn", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+            gridPaymentfg.Column("Ref No Name",
+            format: @<text>
+                <label style="font-weight:normal;" id="RefNoName">@item.RefNoName</label>
+            </text>, canSort: false, style: "MidColumn20"),
+            gridPaymentfg.Column("RefDescription", "ARF Description", style: "MidColumn20"),
+            gridPaymentfg.Column("RefLiquidationdate", "ARF Liquidation Date", style: "MidColumn20"),
+            gridPaymentfg.Column("RefAmount", "ARF Amount", style: "MidColumn20"),
+            gridPaymentfg.Column("ARF Exception", format: @<text>
+                <label style="font-weight:normal;" id="RefException">@item.RefException</label>
+            </text>,style: "MidColumn20"),
+            gridPaymentfg.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+            <span class="btn btn-link btnselect">Select</span>
+            </text>)))
+    </div>
+    </div>
+<br />
+<div align="center" style="width:100%">
+    <input type="button" id="btncanpay" class="btn btn-warning" value="Close" onclick="GotoIndexPaymentmodepopupd()" />
+</div>
+<script>
+    $('.btnselect').click(function () {
+        var tr = $(this).parents('tr:first');
+        var RefNoName = tr.find("#RefNoName").text();
+        var RefException = tr.find("#RefException").text();
+        $("#ddlRefNo option:selected").text(RefNoName);
+        $("#arfamont").val(RefException);
+        $("#ddlRefNo").addClass('valid');
+
+        var currentval = RefException;
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtPaymentAmount").val(replaceCommas(currentval));
+
+        // $("#txtPaymentAmount").val(RefException);
+        $("#txtPaymentAmount").addClass('valid');
+        GotoIndexPaymentmodepopupd();
+    });
+    $(document).ready(function () {
+        $('#wgempEmployeeGridManual').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+</script>
+

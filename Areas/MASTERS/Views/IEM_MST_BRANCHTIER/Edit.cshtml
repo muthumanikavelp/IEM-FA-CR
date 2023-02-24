@@ -1,0 +1,164 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_branchtier
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyle">
+        <tr>
+            <td colspan="2" style="display:none;">
+                <input name="CategoryID" id="_Branchtiergid" type="text" placeholder="Category ID" data-val="true" value="@Model.branchtier_gid" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <div id="txtCategoryName">
+                    <span> Banch Tier </span>
+                    <input name="CategoryeName" id="_EditBranchTier" maxlength="32" style="width:263px;height:30px;" type="text" class="textboxStyle valid" data-val="true" value="@Model.branchtier_name" @ViewBag.viewmode />
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:15px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:15px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_EditBranchTier").focus();
+        $("#_EditBranchTier").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_EditBranchTier").keyup(function () {
+            var txtSupplierName = $("#_EditBranchTier").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_EditBranchTier").removeClass('required');
+                $("#_EditBranchTier").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#_EditBranchTier").removeClass('valid');
+                $("#_EditBranchTier").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    function Update() {
+
+        var branchtier = $("#_EditBranchTier").val().trim();
+        var branchtiergid = $("#_Branchtiergid").val();       
+        
+        var CategoryModel = { "branchtier_gid": branchtiergid, "branchtier_name": branchtier };
+        $.post('../IEM_MST_BRANCHTIER/UpdateBranchtier', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record Updated Successfully !", "Information", function (r) {
+                            if (r == true) {
+                                location = '../IEM_MST_BRANCHTIER/Index';
+                            }
+                        });
+
+                    }
+                }
+
+            , 'json');
+        }
+    
+    function DeleteType() {
+        var couriergid = $("#_Branchtiergid").val();
+        jConfirm("Do you want to delete this Branch Tier? ", "Delete Branch Tier", function (j) {
+            if (j == true) {
+                var model = { "branchtier_gid": couriergid }
+                $.post('../IEM_MST_BRANCHTIER/DeleteBranchtier', model,
+                     function (data) {
+                         if (data = "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location = '../IEM_MST_BRANCHTIER/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridbranchtier').find('tr').css('background', 'none');
+    });
+
+    function goToIndex() {
+        $('#gridbranchtier').find('tr').css('background', 'none');
+            window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+        function CheckFieldsHeader() {
+            var valu = $('#_EditBranchTier').val();
+            var ErrCount = 0;
+            if ($("#_EditBranchTier").val().trim() == "" || $("#_EditBranchTier").val() == null)
+            {
+                ErrCount = 1;
+            }
+            if (ErrCount == 0) {
+                $("#_save").removeAttr('disabled');
+            }
+            else {
+                $("#_save").attr('disabled', 'disabled');
+            }
+        }
+
+</script>

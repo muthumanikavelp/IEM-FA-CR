@@ -1,0 +1,157 @@
+﻿@model IEM.Areas.ASMS.Models.SEModel
+@using IEM.Common;
+@using IEM.Areas.ASMS.Models;
+@{
+    CmnFunctions cmn = new CmnFunctions();
+    ASMSDataModel model = new ASMSDataModel();
+    SEModel revirew = new SEModel();
+    List<SEModel> List = new List<SEModel>();
+    string mt = null;
+    if (List.Count() == 0)
+    {
+        List = model.GetSEModelCompleted(mt, Convert.ToInt32(cmn.GetLoginUserGid())).ToList();
+        if (List.Count() == 0)
+        {
+            ViewBag.Message = "No records found";
+        }
+    }
+    else
+    {
+        ViewBag.search = "Completed";
+        List = (List<SEModel>)Session["cDownload"];
+    }
+    if ((List<SEModel>)Session["cDownload"] != null)
+    {
+        ViewBag.search = "Completed";
+        List = (List<SEModel>)Session["cDownload"];
+    }
+
+    WebGrid gridComp = new WebGrid(source: List, canPage:false, ajaxUpdateContainerId: "divComp", ajaxUpdateCallback: "divComp()");
+
+}
+<div>
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="myTableStyleTabNew">
+                <tr>
+                    <td>
+                        Supplier Code <br />
+                        <input type="text"
+                               name="txtCompCodeFilter"
+                               id="txtCompCodeFilter"
+                               value="@ViewBag.txtCompCodeFilter"
+                               class="textboxStyleSearch"
+                               style="display: block; " maxlength="100" />
+                    </td>
+                    <td>
+                        Supplier Name <br />
+                        <input type="text"
+                               name="txtCompFilter"
+                               id="txtCompFilter"
+                               value="@ViewBag.txtCompFilter"
+                               class="textboxStyleSearch"
+                               style="display: block; " maxlength="100" />
+                    </td>
+                    <td>
+                        Assessment Period <br />
+                        <select name="yearpicker" id="txtSeYear" class="textboxStyleSearch">
+                            <option value="0"> --Select Period-- </option>
+                        </select>
+                    </td>
+                   
+                    <td>
+
+                        <br />
+                        <button class="btn btn-primary" onclick="BtnComp()" id="btnsearch" value="Search" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    </td>                  
+                    <td>
+
+                        <br />
+                        <button class="btn btn-primary" onclick="BtnRefresh()" id="btnclear" value="Clear" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table class="myTableStyleTabNew" style="float:right;margin-right :3px;">
+            <tr>
+                <td>
+                    <div style="float:right;padding-right:8px;">
+
+                        <br />
+                        <a href="@Url.Action("CDownload", "SupplierEvaluation")" class=" btn btn-primary" style="float: right;height:35px;"><span style="color: white; " class="glyphicon glyphicon-export"></span>Excel Export</a>
+                    </div>
+            </tr>
+        </table>
+
+    </div>
+
+    <div id="divComp" style="margin-top:17px;" class="overflowy ">
+        @functions {
+            public static string Sort(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        @gridComp.GetHtml(
+        htmlAttributes: new { id = "wgCompleted" },          
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+ columns: gridComp.Columns
+               (
+gridComp.Column("sNo", "S.No.", canSort: false),
+gridComp.Column("seSupCode", "Supplier Code", canSort: false),
+gridComp.Column( "seSupName", "Supplier Name", canSort: false),
+gridComp.Column("seOverAllRating", "Overall Rating", canSort: false),
+gridComp.Column("seReviewYear", "Reviewed Year", canSort: false),
+gridComp.Column("seStatus", "Supplier Status", canSort: false))
+                )
+    </div>
+    @if (ViewBag.Message != null)
+    {   <div align="center" class="borderStyle">
+        <h6 class="row" style="font-weight:bold ;">
+            @ViewBag.Message
+        </h6>
+    </div>
+    }
+    <span class="myTableStyleTabNew"></span> <span class="myTableStyleTabNew"> Total No Of Records:@List.Count()</span>
+
+
+</div>
+
+<script>
+
+    function BtnComp() {
+        var txtCompFilter = $("#txtCompFilter").val();
+        var txtCompCodeFilter = $("#txtCompCodeFilter").val();
+        var txtYearFilter = $("#txtSeYear1").val();
+        alert(txtYearFilter);
+        $.post('../ASMS/SupplierEvaluation/Completed?txtCompFilter=' + txtCompFilter + '&pending=Completed&txtCompCodeFilter=' + txtCompCodeFilter + '&txtYearFilter=' + txtYearFilter,
+                function (data) {
+                    if (data == 0) {
+                        location = location.href;
+                    }
+
+                }, 'json');
+    }
+    var i = (new Date().getFullYear()) - 1;
+    var end = i - 10;
+    for (i  ; i > end; i--) {
+        $('#txtSeYear').append($('<option />').val(i).html(i));
+    }
+
+    function BtnRefresh() {
+        location = '../SupplierEvaluation/Index?pending=Completed';
+    }
+
+    @*if ('@Session["cYEAR"]' != null) {
+        var selectedvalue = '@Session["cYEAR"]';
+        $('#txtperiod1').val(selectedvalue);
+    }*@
+
+    if ('@Session["pYEAR"]' != null) {
+        var selectedvalue = '@Session["pYEAR"]';
+        $('#txtSeYear').val(selectedvalue);
+    }
+
+</script>

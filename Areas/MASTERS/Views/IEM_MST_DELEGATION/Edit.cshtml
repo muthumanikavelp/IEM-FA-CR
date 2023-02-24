@@ -1,0 +1,410 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_delegation
+@using IEM.Areas.MASTERS.Models
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+    if (@Model.delegate_active == "Y")
+    { ViewBag.yes = "checked"; }
+    else
+    { ViewBag.no = "checked"; }
+    iem_mst_delegation delmat = (iem_mst_delegation)ViewBag.DelmatypeName;
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Delegation ID</span>
+                    <br />
+                    <input name="CategoryName" id="txtedelegationid" maxlength="16" class="textboxStyle valid " type="text" style="width:107px;height:30px;" data-val="true" value="@Model.employee_code" @ViewBag.viewmode />
+                    <input type="text" id="egetdelegatioid" style="display:none" value="@Model.employee_code" />
+                    <input type="text" id="txtdelegateempgid" style="display:none" value="@Model.employee_gid" />
+                    <input type="text" id="egetdelegatioid1" style="display:none" value="@Model.delegate_gid"  />
+                </div>
+            </td>
+            <td style="padding-left:15px;">
+                <div id="txtTypeName">
+                    <span> Delegation Name</span>
+                    <br />
+                    <input name="CategoryName" id="txtedelegationname" type="text" style="width:220px;height:30px;" class="textboxStyle valid " maxlength="64" data-val="true" value="@Model.temp_delegate_to" @ViewBag.viewmode />
+                </div>
+            </td>
+            <td><a title="Search"><span class="glyphicon glyphicon-search" style="margin:30px 0px 0px 0px;" id="Searchicon" onclick="Editsearch()" @ViewBag.viewmode></span></a></td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Period From</span>
+                    <br />
+                    <input name="CategoryName" id="Edittxtedelegationpfrom" class="textboxStyle valid" maxlength="10" type="text" style="width:107px;" onchange="checkperiodfrom()" data-val="true" value="@Model.delegate_period_from" @ViewBag.viewmode />
+                </div>
+            </td>
+            <td style="padding-left:15px;">
+                <div id="txtTypeName">
+                    <span>Period To</span>
+                    <br />
+                    <input name="CategoryName" id="Edittxtedelegationpto" type="text" class="textboxStyle valid" style="width:223px;" maxlength="10" onchange="checkperiodto()" data-val="true" value="@Model.delegate_period_to" @ViewBag.viewmode />
+                </div>
+            </td>
+        </tr>
+
+    </table>
+    <table class="myTableStyleTabNew">
+        <tr>
+          
+            <td>
+                <div class="input-append">
+                    <span>Delmat Type</span>
+                    <br />
+                    @if (ViewBag.viewmode == "disabled")
+                    {
+                        @Html.DropDownListFor(g => g.delmattypename, Model.GetDelmattype, "--Select --", new { @class = "form-control ", @style = "width: 349px;height:30px;", @id = "EDelmatgid", @onchange = "echeckdelmat()", @disabled = "disabled" })
+                    }
+                    else
+                    {
+                        @Html.DropDownListFor(g => g.delmattypename, Model.GetDelmattype, "--Select--", new { @class = "form-control ", @style = "width: 349px;height:30px;", @id = "EDelmatgid", @onchange = "echeckdelmat()" })
+                    }
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Delegation Remark</span>
+                    <br />
+                    <textarea id="edelegationrem" name="delegationrem" maxlength="255" style="width:353px;" @ViewBag.viewmode>@Model.delegate_remark</textarea>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td style="padding-top:10px;">
+                <span>Active</span>
+                <input type="radio" id="Yes" value="Y" checked="@ViewBag.yes" name="Radiotypenameforactive" @ViewBag.viewmode>
+                Yes &nbsp;
+                <input type="radio" id="No" value="N" checked="@ViewBag.no" name="Radiotypenameforactive" @ViewBag.viewmode>
+                No
+            </td>
+
+
+        </tr>
+    </table>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:20px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<div id="EForPartialViewdelegation"></div>
+<script type="text/javascript">
+
+    var eobjDialogdelegation;
+    $(document).ready(function () {
+        eobjDialogdelegation = $("[id$='EForPartialViewdelegation']");
+        eobjDialogdelegation.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+        });
+    });
+
+
+    $(document).ready(function () {
+        $(function () {
+            $("#txtedelegationid").focus();
+        });
+
+        $("#txtedelegationid").focus();
+        $("#txtedelegationid").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtedelegationname").focus();
+        $("#txtedelegationname").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        
+    });
+
+    $("#txtedelegationid").keypress(function () {
+        var txtSupplierName = $("#txtedelegationid").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtedelegationid").removeClass('required');
+            $("#txtedelegationid").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#txtdelegationid").removeClass('valid');
+            $("#txtdelegationid").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#txtedelegationname").keypress(function () {
+        var txtSupplierName = $("#txtedelegationname").val();
+        if (txtSupplierName.trim() != "") {
+            $("#txtedelegationname").removeClass('required');
+            $("#txtedelegationname").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#txtedelegationname").removeClass('valid');
+            $("#txtedelegationname").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+
+    $("#edelegationrem").keypress(function () {
+        var txtSupplierName = $("#edelegationrem").val();
+        if (txtSupplierName.trim() != "") {
+            $("#edelegationrem").removeClass('required');
+            $("#edelegationrem").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            $("#edelegationrem").removeClass('valid');
+            $("#edelegationrem").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+    
+    function echeckperiodfrom() {
+
+        var txtSESubCategoryName = $("#Edittxtedelegationpfrom").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#Edittxtedelegationpfrom").removeClass('required');
+            $("#Edittxtedelegationpfrom").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#Edittxtedelegationpfrom").removeClass('valid');
+            $("#Edittxtedelegationpfrom").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+
+    function echeckperiodto() {
+
+        var txtSESubCategoryName = $("#Edittxtedelegationpto").val();
+        if (txtSESubCategoryName.trim() != "") {
+            CheckFieldsHeader();
+            $("#Edittxtedelegationpto").removeClass('required');
+            $("#Edittxtedelegationpto").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#Edittxtedelegationpto").removeClass('valid');
+            $("#Edittxtedelegationpto").addClass('required');
+            CheckFieldsHeader();
+        }
+    }
+
+    function Editsearch() {       
+
+        var url = "@(Html.Raw(Url.Action("EEmployeeSearch", "IEM_MST_DELEGATION")))";
+        eobjDialogdelegation.load(url);
+        eobjDialogdelegation.dialog({
+            title: 'Delegation Employee Search ', 'width': 830, show: 'fade-in', close: 'fade-out', modal: true,resizable:false, cache: false, autoOpen: false, 'height': 510
+        });
+        eobjDialogdelegation.dialog("open");
+        
+    }
+
+    $(document).ready(function () {
+        //$("#txtedelegationpfrom").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy'
+        //});
+
+        //$("#txtedelegationpto").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy'
+        //});
+        $("#Edittxtdelegationpfrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+
+                var dt = $('#Edittxtdelegationpfrom').val();
+                var dt1 = $('#Edittxtdelegationpto').val();
+                $("#Edittxtdelegationpfrom").addClass('valid');
+                $("#Edittxtdelegationpto").datepicker("option", "minDate", selected)
+            }
+        })
+        $("#Edittxtdelegationpto").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                var dt = $('#Edittxtdelegationpfrom').val();
+                var dt1 = $('#Edittxtdelegationpto').val();
+                $("#Edittxtdelegationpto").addClass('valid');
+            }
+        });
+    });
+    function echeckdelmat() {
+
+        if ($("#EDelmatgid").val() == 0) {
+            CheckFieldsHeader();
+            $("#EDelmatgid").removeClass('valid');
+            $("#EDelmatgid").addClass('required');
+            CheckFieldsHeader();
+        }
+        else {
+            CheckFieldsHeader();
+            $("#EDelmatgid").removeClass('required');
+            $("#EDelmatgid").addClass('valid');
+            CheckFieldsHeader();
+        }
+    }
+
+
+    $(".ui-icon-closethick").click(function () {
+        $('#gridelegateion').find('tr').css('background', 'none');
+    });
+
+
+    function CheckFieldsHeader()
+    {
+        var ErrCount = 0;
+        if ($("#txtedelegationid").val() == "" || $("#txtedelegationid").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#txtedelegationname").val().trim() == "" || $("#txtedelegationname").val() == null) {
+            ErrCount = 2;
+        }
+        if ($("#Edittxtedelegationpfrom").val() == null || $("#txtedelegationpfrom").val() == "") {
+            ErrCount = 3;
+        }
+        if ($("#Edittxtedelegationpto").val() == null || $("#txtedelegationpto").val() == "") {
+            ErrCount = 4;
+        }
+
+        if (ErrCount == 0) {
+            $("#_save").removeAttr('disabled');
+        }
+        else {
+            $("#_save").attr('disabled', 'disabled');
+        }
+    }
+    function goToIndex()
+    {
+        $('#gridelegateion').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialViewfordelegation').dialog('close');
+    }
+    function DeleteType() {
+        var locationgid = $("#egetdelegatioid1").val();
+        jConfirm("Do you want to delete this Location ? ", "Delete Location", function (j) {
+            if (j == true) {
+                var model = { "delegate_gid": locationgid }
+                $.post('../IEM_MST_DELEGATION/DeleteDeleagtion', model,
+                     function (data) {
+                         if (data == "Sucess") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) {
+                                     location = '../IEM_MST_DELEGATION/Index';
+                                 }
+                             });
+                         }
+
+                     }, 'json');
+            }
+        });
+    }
+
+    function Update() {
+        var delegateto = $("#txtdelegateempgid").val();
+        var delmatflag;
+        var superflag = "N";
+        var periodfrom = $("#Edittxtedelegationpfrom").val();
+        var periodto = $("#Edittxtedelegationpto").val();
+        var active = $('input[name=Radiotypenameforactive]:checked').val();
+        var remark = $("#edelegationrem").val();
+        var delmattpe = $("#EDelmatgid").val();
+        var delegatiogid = $("#egetdelegatioid1").val();;
+        if (delmattpe == "-----Select----") {
+            delmatflag = "N";
+        }
+        else {
+            delmatflag = "Y";
+        }
+        var CategoryModel = {
+            "delegate_to": delegateto, "delegate_delmat_flag": delmatflag, "delegate_supervisory_flag": superflag,
+            "delegate_period_from": periodfrom, "delegate_period_to": periodto, "delegate_active": active, "delegate_remark": remark, "delegate_delmattype": delmattpe,
+            "delegate_gid": delegatiogid
+        };
+        $.post('../IEM_MST_DELEGATION/UpdateDelegation', CategoryModel,
+            function (data) {
+
+                if (data != "success") {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else {
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+                            location = '../IEM_MST_DELEGATION/Index';
+                        }
+                    });
+                }
+            }
+        , 'json');
+    }
+</script>

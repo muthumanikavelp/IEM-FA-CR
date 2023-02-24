@@ -1,0 +1,129 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_TravelMode*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_TravelClaim>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_TravelClaim> lst = new List<EOW_TravelClaim>();
+    lst = (List<EOW_TravelClaim>)TempData["SearchItems"];
+    if (lst == null)
+    {
+        ViewBag.IsSearched = "no";
+        lst = objd.GetTravelModedata(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "E").ToList();
+        for (int tr = 0; lst.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lst[tr].Amount.ToString());
+            }
+        }
+        ViewBag.NoRecordse = "total";
+        Session["Ecfrowtolamtot"] = remamount.ToString();
+        remamount = Convert.ToDecimal(Session["Ecfamountvalmain"].ToString()) - remamount;
+        Session["Ecfamountvaloe"] = remamount.ToString();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordse = "no";
+        ViewBag.NoRecords = "NoRecords";
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    var grid = new WebGrid(lst, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgTravelmodeo", ajaxUpdateCallback: "DummyFunction()");
+    int rowValExpense = 0;
+}
+
+<div class="container" style="padding-left: 0px;padding-right: 15px;">
+    <div id="wgTravelmodeo">
+        <div class="overflowy overflowx">
+            <div style="max-height: 350px;">
+                @grid.GetHtml(
+                                 htmlAttributes: new { id = "wgridTravelmodeo" },
+                                                   tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                                   grid.Columns(
+                        //grid.Column("#", canSort: false, format: item => rowValExpense = rowValExpense + 1),
+                                                             grid.Column("NatureofExpensesName", objCmnFunctions.Sorter("NatureofExpensesName", "Nature of Expenses", grid), canSort: false),
+                                                   grid.Column("ExpenseCategoryName", objCmnFunctions.Sorter("ExpenseCategoryName", "Expense Category", grid), canSort: false),
+                                                   grid.Column("SubCategoryName", objCmnFunctions.Sorter("SubCategoryName", "Sub Category", grid), canSort: false),
+                                                   grid.Column("PlaceFrom", objCmnFunctions.Sorter("PlaceFrom", "Place", grid), canSort: false),
+                                                    grid.Column("ClaimPeriodFrom", objCmnFunctions.Sorter("ClaimPeriodFrom", "Claim Period From", grid), canSort: false),
+                                                    grid.Column("ClaimPeriodTo", objCmnFunctions.Sorter("ClaimPeriodTo", "Claim Period To", grid), canSort: false),
+                                                    grid.Column("FC", objCmnFunctions.Sorter("FC", "FC", grid), canSort: false),
+                                                                      grid.Column("CC", objCmnFunctions.Sorter("CC", "CC", grid), canSort: false),
+                                                                      grid.Column("ProductCode", objCmnFunctions.Sorter("ProductCode", "ProductCode", grid), canSort: false),
+                                                                      grid.Column("OUCode", objCmnFunctions.Sorter("OUCode", "OUCode", grid), canSort: false),
+                                                                                        grid.Column("Amount", objCmnFunctions.Sorter("Amount", "Amount", grid), canSort: false),
+                                  grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @Html.Raw("<a title='view' onclick='EmpOtherExpenseView(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    @Html.Raw("<a title='Edit' onclick='EmpOtherExpenseEdit(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                    @Html.Raw("<a title='Delete' onclick='EmpOtherExpenseDelete(" + item.TravelMode_GID + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ))
+
+
+                @if (@ViewBag.NoRecords == "NoRecords")
+                {
+                    <div class="borderStyle" style="font-weight:bold">
+                        <center>
+                            @ViewBag.NoRecordsFound
+                        </center>
+                    </div>
+                }
+            </div>
+        </div>
+        @if (@ViewBag.NoRecordse == "total")
+        {
+            <div>
+                <table style="width:100%">
+                    <tr>
+                        <td align="left">
+                            @*&nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label>*@
+                        </td>
+                        <td align="right">
+                            <label style="font-weight:normal;display:none" id="Ecfamountvalmain">@Session["Ecfamountvalmain"]</label>
+                            <span> Total Other Travel Expense Amount : <b> <label id="Ecfrowtolamto">@Session["Ecfrowtolamtot"]</label>  </b></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var Ecfamountvalmain = $("#Ecfamountvalmain").text();
+        var Ecfrowtolamt = $("#Ecfrowtolamto").text();
+        var val1 = parseFloat(Ecfamountvalmain);
+        var val2 = parseFloat(Ecfrowtolamt);
+        if (val1 == val2) {
+            var stylesSelect = $('#btnempNewExpensetot');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            var stylesSelect = $('#btnempNewExpensetot');
+            stylesSelect.attr('disabled', false);
+        }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgridTravelmodeo tr #id").click(function () {
+            $('#wgridTravelmodeo').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

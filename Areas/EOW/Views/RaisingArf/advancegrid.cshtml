@@ -1,0 +1,585 @@
+﻿@model IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    var vl = 0;
+    var viewfor = (string)ViewBag.viewfor;
+    var dis = "";
+    dis = ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+        vl = 1;
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+        vl = 1;
+    }
+    else if (viewfor == "Delete")
+    {
+        ViewBag.viewmode = "disabled";
+        vl = 1;
+    }
+    if (vl == 0)
+    {
+        dis = null;
+    }
+    //   DataTable getadvancetype = new DataTable();
+    //  List<GetAdvancetype> list = new List<GetAdvancetype>();
+    List<EOW_arfraising> getadvancedetails = new List<EOW_arfraising>();
+    //   ArfRaising rais = new ArfRaising();
+    //   getadvancetype = rais.SelectAdvance(Session["ecf_gid"].ToString());
+
+    WebGrid grid = new WebGrid(source: getadvancedetails, canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "gridadvance", ajaxUpdateCallback: "df()", selectionFieldName: "SelectedRow");
+    int rowValff = grid.TotalRowCount;
+
+    int rowVal = 0;
+}
+@*<link href="@Url.Content(" ~ />Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content(" ~ />Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<div id="adv">
+    @using (Html.BeginForm())
+    {
+        <div style="margin-top:5px; max-height: 150px;" id="advancegrid" class="table-responsive">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                  htmlAttributes: new { id = "wgridExpense" },
+                   tableStyle: "tableSmall table-bordered",
+                  columns: grid.Columns
+                                (
+            //Here I am going to add checkbox column
+                    grid.Columns(
+            //grid.Column("SlNo", canSort: false, style: "slno", format: item => rowVal = rowVal + 1),
+                     grid.Column("ecfarf_advancetype", "Advance Type", canSort: false, style: "dadvance"),
+                     grid.Column("ecfarf_desc", "Description", canSort: false, style: "dadvance"),
+                     grid.Column("ecfarf_liq_date", "Liquidation Date", canSort: false, style: "cadvance"),
+                       grid.Column("ecfarf_pi_gl_no", "Proforma Invoice Number", canSort: false, style: "cadvance"),
+                     grid.Column("ecfarf_po_no", "PO No", canSort: false, style: "cadvance"),
+                     grid.Column("ecfarf_cbf_no", "CBF No", canSort: false, style: "cadvance"),
+                     grid.Column("ecfarf_fc_code", "FC", canSort: false, style: "aadvance"),
+                     grid.Column("ecfarf_cc_code", "CC", canSort: false, style: "aadvance"),
+                     grid.Column("ecfarf_product_code", "Product Code", canSort: false, style: "dadvance"),
+                     grid.Column("ecfarf_ou_code", "OU Code", canSort: false, style: "fadvance"),
+                     grid.Column("ecfarf_amount", "Amount", canSort: false, style: "dadvance"),
+                    @*grid.Column(format: @<input type="hidden" name="FriendlyId" value="@item.ecfarf_ecf_gid" />),*@
+ grid.Column(header: "Action", canSort: false, style: "action",
+                                   format: @<text>
+    <a title='View' style="text-decoration:none;" id=@item.ecfarf_gid onclick='Viewadvance(this,id)'> <span style="color: #2a6393 !important;" class='glyphicon glyphicon-eye-open'> </span> </a>
+    <a title='Edit' style="text-decoration:none;" id=@item.ecfarf_gid onclick='Editadvance(this,id)'> <span style="color: #2a6393 !important;" class='glyphicon glyphicon-edit'> </span> </a>
+    @*@Html.Raw("<a title='Delete' onclick='DeleteType(" + item.ecfarf_gid + ")'> <span class='glyphicon glyphicon-trash'> </span> </a> ")*@
+    <a title='Delete' style="text-decoration:none;" id=@item.ecfarf_gid onclick='Deleteadvancee(this, id)'> <span style="color: #2a6393 !important;" id='id' class='glyphicon glyphicon-trash'> </span> </a>
+                                </text>))))
+        </div>
+    }
+</div>
+<style>
+    .cadvance {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 120px;
+        word-wrap: break-word;
+    }
+
+    .aadvance {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 170px;
+        word-wrap: break-word;
+    }
+
+    .dadvance {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 250px;
+        word-wrap: break-word;
+    }
+
+    .fadvance {
+        width: 15% !important;
+        padding-left: 5px !important;
+        min-width: 300px;
+        word-wrap: break-word;
+    }
+</style>
+<script type="text/javascript">
+    var objDialogforadvancegr;
+    $(document).ready(function () {
+
+        //$("#txtliqdate").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    // dateFormat: 'MM-yy'
+        //    dateFormat: 'dd-mm-yy'
+        //});\
+
+        // $('#btndel').hide();
+
+        //$('td:nth-child(11)').hide();
+
+    });
+    function Deleteadvancee(element, id) {
+        var ids = id;
+        var arftype = $('#ddlarftype').val().trim();
+        var arftypenew = arftype.split(' ');
+        objDialogycbfadvace.load('@Url.Action("advancepop", "RaisingArf")?id=' + id + '&arftype=' + arftypenew[0] + '&viewfor=Delete&' + new Date().getTime());
+        objDialogycbfadvace.dialog({ title: 'Delete Advance' });
+        objDialogycbfadvace.dialog("open");
+
+
+        @*var row = $(element).closest('tr');
+            var ids = id;
+
+            var a = row.find('td:eq(1)').text();
+            var b = row.find('td:eq(2)').text();
+            var c = row.find('td:eq(3)').text();
+            var d = row.find('td:eq(4)').text();
+            var e = row.find('td:eq(5)').text();
+            var f = row.find('td:eq(6)').text();
+            var g = row.find('td:eq(7)').text();
+            var h = row.find('td:eq(8)').text();
+            var i = row.find('td:eq(9)').text();
+            var j = row.find('td:eq(10)').text();
+
+            $("#ecfarf_advancetype_gid option").each(function () {
+
+                if ($(this).text().toUpperCase().trim == a.toUpperCase().trim) {
+                    $(this).attr('selected', 'selected');
+                }
+            });
+
+            $("#ecfarf_gid").val(id);
+            // $("#ecfarf_advancetype_gid").val(a);
+            $("#_Delmatdesc").val(b);
+            $("#_proinvoice").val(c);
+            $("#_pono").val(d);
+            $("#cefno").val(e);
+            $("#fcno").val(f);
+            $("#ccno").val(g);
+            $("#productcode").val(h);
+            $("#oucode").val(i);
+            $("#amount").val(j);
+            alert('s');
+            objDialogycbfadvace.load('@Url.Action("advancepop", "RaisingArf")');
+            objDialogycbfadvace.dialog({ title: 'Add Advacnce' });
+            objDialogycbfadvace.dialog("open");*@
+        $('#ecfarf_advancetype_gid').attr('disabled', true);
+        $('#_Delmatdesc').attr('disabled', true);
+        $('#_proinvoice').attr('disabled', true);
+        $('#_pono').attr('disabled', true);
+        $('#cefno').attr('disabled', true);
+        $('#fcno').attr('disabled', true);
+        $('#ccno').attr('disabled', true);
+        $('#productcode').attr('disabled', true);
+        $('#amount').attr('disabled', true);
+        $('#oucode').attr('disabled', true);
+        $('#btnsaveadvance').hide();
+        $('#btndel').show();
+
+        var txtSupplierName = $("#amount").val();
+
+        if (txtSupplierName.trim() != "") {
+            $("#amount").removeClass('required');
+            $("#amount").addClass('valid');
+        }
+        else {
+            $("#amount").removeClass('valid');
+            $("#amount").addClass('required');
+        }
+        var txtSupplierName = $("#oucode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#oucode").removeClass('required');
+            $("#oucode").addClass('valid');
+        }
+        else {
+            $("#oucode").removeClass('valid');
+            $("#oucode").addClass('required');
+        }
+        var txtSupplierName = $("#productcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#productcode").removeClass('required');
+            $("#productcode").addClass('valid');
+        }
+        else {
+            $("#productcode").removeClass('valid');
+            $("#productcode").addClass('required');
+        }
+        var txtSupplierName = $("#ccno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ccno").removeClass('required');
+            $("#ccno").addClass('valid');
+        }
+        else {
+            $("#ccno").removeClass('valid');
+            $("#ccno").addClass('required');
+        }
+        var txtSupplierName = $("#ecfarf_advancetype_gid").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ecfarf_advancetype_gid").removeClass('required');
+            $("#ecfarf_advancetype_gid").addClass('valid');
+        }
+        else {
+            $("#ecfarf_advancetype_gid").removeClass('valid');
+            $("#ecfarf_advancetype_gid").addClass('required');
+        }
+        var txtSupplierName = $("#_Delmatdesc").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Delmatdesc").removeClass('required');
+            $("#_Delmatdesc").addClass('valid');
+        }
+        else {
+            $("#_Delmatdesc").removeClass('valid');
+            $("#_Delmatdesc").addClass('required');
+        }
+        var typearf = $('#ddlarftype').val();
+        if (typearf != "E") {
+            if (typearf != "Employee") {
+                var txtSupplierName = $("#_proinvoice").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_proinvoice").removeClass('required');
+                    $("#_proinvoice").addClass('valid');
+                }
+                else {
+                    $("#_proinvoice").removeClass('valid');
+                    $("#_proinvoice").addClass('required');
+                }
+                var txtSupplierName = $("#_pono").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_pono").removeClass('required');
+                    $("#_pono").addClass('valid');
+                }
+                else {
+                    $("#_pono").removeClass('valid');
+                    $("#_pono").addClass('required');
+                }
+                var txtSupplierName = $("#cefno").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#cefno").removeClass('required');
+                    $("#cefno").addClass('valid');
+                }
+                else {
+                    $("#cefno").removeClass('valid');
+                    $("#cefno").addClass('required');
+                }
+            }
+        }
+        var txtSupplierName = $("#fcno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#fcno").removeClass('required');
+            $("#fcno").addClass('valid');
+        }
+        else {
+            $("#fcno").removeClass('valid');
+            $("#fcno").addClass('required');
+        }
+        // $("#gridadvance").load('../RaisingArf/ArfAdvance?id=' + id + '&viewfor=Delete');
+    }
+    function Editadvance(element, id) {
+        //location = ('../RaisingArf/Indexadvance?id=' + id + '&viewfor=edit');
+        var ids = id;
+        var arftype = $('#ddlarftype').val().trim();
+        var arftypenew = arftype.split(' ');
+        objDialogycbfadvace.load('@Url.Action("advancepop", "RaisingArf")?id=' + id + '&arftype=' + arftypenew[0] + '&viewfor=edit&' + new Date().getTime());
+        objDialogycbfadvace.dialog({ title: 'Edit Advacnce' });
+        objDialogycbfadvace.dialog("open");
+        //var row = $(element).closest('tr');
+
+        //alert('d');
+        //var a = row.find('td:eq(1)').text();
+        //var b = row.find('td:eq(2)').text();
+        //var c = row.find('td:eq(3)').text();
+        //var d = row.find('td:eq(4)').text();
+        //var e = row.find('td:eq(5)').text();
+        //var f = row.find('td:eq(6)').text();
+        //var g = row.find('td:eq(7)').text();
+        //var h = row.find('td:eq(8)').text();
+        //var i = row.find('td:eq(9)').text();
+        //var j = row.find('td:eq(10)').text();
+        //var k = row.find('td:eq(11)').text();
+        //setTimeout(function () {
+        //    $("#ecfarf_advancetype_gid option").each(function () {
+        //        if ($(this).text().toUpperCase().trim == a.toUpperCase().trim) {
+        //            $(this).attr('selected', 'selected');
+        //        }
+        //    });
+        //}, 50);
+
+
+        //$('#ecfarf_ecf_gid').val(k);
+        //$("#ecfarf_gid").val(id);
+        //$("#_Delmatdesc").val(b);
+        //$("#_proinvoice").val(c);
+        //$("#_pono").val(d);
+        //$("#cefno").val(e);
+        //$("#fcno").val(f);
+        //$("#ccno").val(g);
+        //$("#productcode").val(h);
+        //$("#oucode").val(i);
+        //$("#amount").val(j);
+        $('#ecfarf_advancetype_gid').attr('disabled', false);
+        $('#_Delmatdesc').attr('disabled', false);
+        $('#_proinvoice').attr('disabled', false);
+        $('#_pono').attr('disabled', true);
+        $('#cefno').attr('disabled', true);
+        $('#amount').attr('disabled', false);
+        $('#btnsaveadvance').show();
+        $('#btnsaveadvance').attr('disabled', false);
+        $('#btndel').hide();
+
+        var txtSupplierName = $("#amount").val();
+        if (txtSupplierName.trim() != "") {
+            $("#amount").removeClass('required');
+            $("#amount").addClass('valid');
+        }
+        else {
+            $("#amount").removeClass('valid');
+            $("#amount").addClass('required');
+        }
+        var txtSupplierName = $("#oucode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#oucode").removeClass('required');
+            $("#oucode").addClass('valid');
+        }
+        else {
+            $("#oucode").removeClass('valid');
+            $("#oucode").addClass('required');
+        }
+        var txtSupplierName = $("#productcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#productcode").removeClass('required');
+            $("#productcode").addClass('valid');
+        }
+        else {
+            $("#productcode").removeClass('valid');
+            $("#productcode").addClass('required');
+        }
+        var txtSupplierName = $("#ccno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ccno").removeClass('required');
+            $("#ccno").addClass('valid');
+        }
+        else {
+            $("#ccno").removeClass('valid');
+            $("#ccno").addClass('required');
+        }
+        var txtSupplierName = $("#ecfarf_advancetype_gid").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ecfarf_advancetype_gid").removeClass('required');
+            $("#ecfarf_advancetype_gid").addClass('valid');
+        }
+        else {
+            $("#ecfarf_advancetype_gid").removeClass('valid');
+            $("#ecfarf_advancetype_gid").addClass('required');
+        }
+        var txtSupplierName = $("#_Delmatdesc").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Delmatdesc").removeClass('required');
+            $("#_Delmatdesc").addClass('valid');
+        }
+        else {
+            $("#_Delmatdesc").removeClass('valid');
+            $("#_Delmatdesc").addClass('required');
+        }
+        var typearf = $('#ddlarftype').val();
+        if (typearf != "E") {
+            if (typearf != "Employee") {
+                var txtSupplierName = $("#_proinvoice").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_proinvoice").removeClass('required');
+                    $("#_proinvoice").addClass('valid');
+                }
+                else {
+                    $("#_proinvoice").removeClass('valid');
+                    $("#_proinvoice").addClass('required');
+                }
+                var txtSupplierName = $("#_pono").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_pono").removeClass('required');
+                    $("#_pono").addClass('valid');
+                }
+                else {
+                    $("#_pono").removeClass('valid');
+                    $("#_pono").addClass('required');
+                }
+                var txtSupplierName = $("#cefno").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#cefno").removeClass('required');
+                    $("#cefno").addClass('valid');
+                }
+                else {
+                    $("#cefno").removeClass('valid');
+                    $("#cefno").addClass('required');
+                }
+            }
+        }
+        var txtSupplierName = $("#fcno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#fcno").removeClass('required');
+            $("#fcno").addClass('valid');
+        }
+        else {
+            $("#fcno").removeClass('valid');
+            $("#fcno").addClass('required');
+            //$("#gridadvance").load('../RaisingArf/ArfAdvance?id=' + id + '&viewfor=edit');
+        }
+    }
+    function Viewadvance(element, id) {
+        var ids = id;
+        var arftype = $('#ddlarftype').val().trim();
+        var arftypenew = arftype.split(' ');
+        objDialogycbfadvace.load('@Url.Action("advancepop", "RaisingArf")?id=' + id + '&arftype=' + arftypenew[0] + '&viewfor=view&' + new Date().getTime());
+        objDialogycbfadvace.dialog({ title: 'View Advacnce' });
+        objDialogycbfadvace.dialog("open");
+        //var row = $(element).closest('tr');
+
+        //alert('d');
+        //var a = row.find('td:eq(1)').text();
+        //var b = row.find('td:eq(2)').text();
+        //var c = row.find('td:eq(3)').text();
+        //var d = row.find('td:eq(4)').text();
+        //var e = row.find('td:eq(5)').text();
+        //var f = row.find('td:eq(6)').text();
+        //var g = row.find('td:eq(7)').text();
+        //var h = row.find('td:eq(8)').text();
+        //var i = row.find('td:eq(9)').text();
+        //var j = row.find('td:eq(10)').text();
+
+        //$("#ecfarf_advancetype_gid option").each(function () {
+        //    var text = $(this).text().toUpperCase().trim;
+        //    var advance = a.toUpperCase().trim;
+        //    if (text == advance) {
+        //        $(this).attr('selected', 'selected');
+        //    }
+        //});
+        //$("#ecfarf_gid").val(id);
+        ////  $("#ecfarf_advancetype_gid").val(a);
+        //$("#_Delmatdesc").val(b);
+        //$("#_proinvoice").val(c);
+        //$("#_pono").val(d);
+        //$("#cefno").val(e);
+        //$("#fcno").val(f);
+        //$("#ccno").val(g);
+        //$("#productcode").val(h);
+        //$("#oucode").val(i);
+        //$("#amount").val(j);
+        $('#ecfarf_advancetype_gid').attr('disabled', true);
+        $('#_Delmatdesc').attr('disabled', true);
+        $('#_proinvoice').attr('disabled', true);
+        $('#_pono').attr('disabled', true);
+        $('#cefno').attr('disabled', true);
+        $('#fcno').attr('disabled', true);
+        $('#ccno').attr('disabled', true);
+        $('#productcode').attr('disabled', true);
+        $('#amount').attr('disabled', true);
+        $('#oucode').attr('disabled', true);
+        $('#btnsaveadvance').hide();
+        $('#btndel').hide();
+
+        var txtSupplierName = $("#amount").val();
+        if (txtSupplierName.trim() != "") {
+            $("#amount").removeClass('required');
+            $("#amount").addClass('valid');
+        }
+        else {
+            $("#amount").removeClass('valid');
+            $("#amount").addClass('required');
+        }
+        var txtSupplierName = $("#oucode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#oucode").removeClass('required');
+            $("#oucode").addClass('valid');
+        }
+        else {
+            $("#oucode").removeClass('valid');
+            $("#oucode").addClass('required');
+        }
+        var txtSupplierName = $("#productcode").val();
+        if (txtSupplierName.trim() != "") {
+            $("#productcode").removeClass('required');
+            $("#productcode").addClass('valid');
+        }
+        else {
+            $("#productcode").removeClass('valid');
+            $("#productcode").addClass('required');
+        }
+        var txtSupplierName = $("#ccno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ccno").removeClass('required');
+            $("#ccno").addClass('valid');
+        }
+        else {
+            $("#ccno").removeClass('valid');
+            $("#ccno").addClass('required');
+        }
+        var txtSupplierName = $("#ecfarf_advancetype_gid").val();
+        if (txtSupplierName.trim() != "") {
+            $("#ecfarf_advancetype_gid").removeClass('required');
+            $("#ecfarf_advancetype_gid").addClass('valid');
+        }
+        else {
+            $("#ecfarf_advancetype_gid").removeClass('valid');
+            $("#ecfarf_advancetype_gid").addClass('required');
+        }
+        var txtSupplierName = $("#_Delmatdesc").val();
+        if (txtSupplierName.trim() != "") {
+            $("#_Delmatdesc").removeClass('required');
+            $("#_Delmatdesc").addClass('valid');
+        }
+        else {
+            $("#_Delmatdesc").removeClass('valid');
+            $("#_Delmatdesc").addClass('required');
+        }
+        var typearf = $('#ddlarftype').val();
+        if (typearf != "E") {
+            if (typearf != "Employee") {
+                var txtSupplierName = $("#_proinvoice").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_proinvoice").removeClass('required');
+                    $("#_proinvoice").addClass('valid');
+                }
+                else {
+                    $("#_proinvoice").removeClass('valid');
+                    $("#_proinvoice").addClass('required');
+                }
+                var txtSupplierName = $("#_pono").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_pono").removeClass('required');
+                    $("#_pono").addClass('valid');
+                }
+                else {
+                    $("#_pono").removeClass('valid');
+                    $("#_pono").addClass('required');
+                }
+                var txtSupplierName = $("#cefno").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#cefno").removeClass('required');
+                    $("#cefno").addClass('valid');
+                }
+                else {
+                    $("#cefno").removeClass('valid');
+                    $("#cefno").addClass('required');
+                }
+            }
+        }
+        var txtSupplierName = $("#fcno").val();
+        if (txtSupplierName.trim() != "") {
+            $("#fcno").removeClass('required');
+            $("#fcno").addClass('valid');
+        }
+        else {
+            $("#fcno").removeClass('valid');
+            $("#fcno").addClass('required');
+        }
+        // location = ('../RaisingArf/ArfAdvance?id=' + id + '&viewfor=view');
+        //$("#ss").load('../RaisingArf/ArfAdvance?id=' + id + '&viewfor=view');
+    }
+
+</script>

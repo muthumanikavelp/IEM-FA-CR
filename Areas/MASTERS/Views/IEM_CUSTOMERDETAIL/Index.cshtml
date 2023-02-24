@@ -1,0 +1,195 @@
+﻿@model IEM.Areas.MASTERS.Models.CustomerdetailModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model.CustomerDetailList, canPage: false, canSort: false);
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Customer Details</span>
+</div>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                    <input type="hidden" id="SessionCustomerid" name="SessionCustomerid" />
+                    <span> Customer Code  </span>
+                    <br />
+                    <input type="text"
+                           name="filter"
+                           id="txtFilter"
+                           value="@ViewBag.filter"
+                           class="fstextbox"
+                           maxlength="30" />
+
+                </td>
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                    <span> Customer Name  </span>
+                    <br />
+                    <input type="text"
+                           name="filter1"
+                           id="txtFilter1"
+                           value="@ViewBag.filter1"
+                           class="fstextbox"
+                           maxlength="70" />
+
+                </td>
+
+                <td style="width:20%; padding:0px 10px 0px 3px;">
+                    <span> PAN Number </span>
+                    <br />
+                    <input type="text"
+                           name="filter2"
+                           id="txtFilter2"
+                           value="@ViewBag.filter2"
+                           class="fstextbox"
+                           maxlength="10" />
+
+                </td>
+               
+                <td style="width:40%;">
+                    <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" onclick="refresh()" id="btnclear" value="Clear" name="command" type="button" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                    @if (@grid.TotalRowCount != 0)
+                    {
+                        <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Export()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                    }
+                </td>
+                <td style="width:10%; text-align:right;">
+                    <button type="button" value="New Question" onclick="NewTypeIndex()" class="btn btn-primary " style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Customer Detail</button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="margin-top:12px;">
+            @grid.GetHtml(htmlAttributes: new { id = "gridId" },
+                 mode: WebGridPagerModes.All,  
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                (grid.Column(header: "S.No", style: "slno", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+          grid.Column("CustomerCode", "CustomerCode"),
+          grid.Column("CustomerName", "CustomerName"),
+          grid.Column("Panno", "Panno", style: "colmedium"),
+       grid.Column("customergst_gstin", "GST Number", style: "colmedium"),
+                grid.Column(header: "Action", style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' style='text-decoration: none;' onclick='ViewTypeIndex(" + item.CustomerID + ")'> <span  id='Color' class='glyphicon glyphicon-eye-open '> </span> </a>")
+                    @Html.Raw("<a title='Edit' style='text-decoration: none;' onclick='EditTypeIndex(" + item.CustomerID + ")'> <span id='Color' class='glyphicon glyphicon-edit'> </span> </a>")
+                    @Html.Raw("<a title='Delete' style='text-decoration: none;' onclick='DeleteTypes(" + item.CustomerID + ")'> <span id='Color' class='glyphicon glyphicon-trash'> </span> </a> ")
+                </text>)))
+        </div>
+    </div>
+}
+<div id="ForCustPartialView"></div>
+
+<script type="text/javascript">
+    var objDialogcustcust;
+    var objDialogcustforedit;
+    $(document).ready(function () {
+
+        $('#gridId tr th:nth-child(10)').addClass("nosort");
+        $('#gridId').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+        $(function () {
+            $("#txtFilter").focus();
+        });
+
+        $("#txtFilter").focus();
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter1").focus();
+        $("#txtFilter1").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter2").focus();
+        $("#txtFilter2").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        objDialogcust = $("[id$='ForCustPartialView']");
+
+        objDialogcust.dialog({
+            autoOpen: false,
+            cache: false,
+            show: 'fade-in',
+            modal: true,
+            width: 950,
+            height: 600,
+            close: clearhistory 
+             
+        });
+    });
+
+
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    function NewTypeIndex() {
+         
+        objDialogcust.load('../IEM_CUSTOMERDETAIL/Header?viewfor=create&' + new Date().getTime());
+        objDialogcust.dialog({ title: 'Add New CustomerDetail' });
+        objDialogcust.dialog("open");
+        return false;
+    }
+    function EditTypeIndex(id) {
+        objDialogcust.load('../IEM_CUSTOMERDETAIL/Header?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialogcust.dialog({ title: 'Edit Question' });
+        objDialogcust.dialog("open");
+    }
+    function ViewTypeIndex(id) {
+        objDialogcust.load('../IEM_CUSTOMERDETAIL/Header?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialogcust.dialog({ title: 'View Question' });
+        objDialogcust.dialog("open");
+    }
+    function DeleteTypes(id) {
+        jConfirm("Do you want to delete this record ? ", "Delete Location", function (j) {
+            if (j == true) {
+                var model = { "CustomerID": id }
+                $.post('../IEM_CUSTOMERDETAIL/DeleteCustomerMasterDetail', model,
+                   function (data) {
+                       if (data == "Sucess") {
+                           jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                               if (r = true) {
+                                   location = '../IEM_CUSTOMERDETAIL/Index';
+                               }
+                           });
+                       }
+
+                   }, 'json');
+            }
+        });
+
+       
+    }
+
+
+    function Export() {
+                
+        location = "../IEM_CUSTOMERDETAIL/ExportCustomerDetail";
+            }
+
+    function refresh() {
+        location = '../IEM_CUSTOMERDETAIL/Index';
+    }
+
+
+
+    function clearhistory()
+    {
+            debugger;
+            $('#ForPartialView').dialog('destroy');
+            $('#ForCustPartialView').dialog('destroy');
+            location = '../IEM_CUSTOMERDETAIL/Index';
+    }
+
+</script>

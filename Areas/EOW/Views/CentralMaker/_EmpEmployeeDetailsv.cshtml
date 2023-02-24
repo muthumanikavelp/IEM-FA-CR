@@ -1,0 +1,52 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Employeelst>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_Employeelst> lstPayment = new List<EOW_Employeelst>();
+    lstPayment = (List<EOW_Employeelst>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        //lstPayment = objd.GetEmployeeePayment(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+        lstPayment = objd.GetEmployeeelist(Session["EcfGid"].ToString()).ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempEmployeeev">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempEmployeeev", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+    <div class="container">
+        <div>
+            @gridPayment.GetHtml(
+                                          htmlAttributes: new { id = "wgriEmployeee" },
+                                          tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                         gridPayment.Column("empCode", objCmnFunctions.Sorter("empCode", "Employee Code", gridPayment), canSort: false),
+                        gridPayment.Column("empName", objCmnFunctions.Sorter("empName", "Employee Name", gridPayment), canSort: false),
+                        gridPayment.Column("empbranch", objCmnFunctions.Sorter("empbranch", "Employee Branch", gridPayment), canSort: false),
+                         gridPayment.Column("empfc", objCmnFunctions.Sorter("empfc", "FC", gridPayment), canSort: false),
+                         gridPayment.Column("empcc", objCmnFunctions.Sorter("empcc", "CC", gridPayment), canSort: false)))
+
+
+            @if (@ViewBag.NoRecordsPayment == "NoRecords")
+            {
+                <div class="borderStyle" style="font-size: 16px; height: 35px;color: red;padding-left: 1%;padding-top: 5px;">
+                    @ViewBag.NoRecordsFoundPayment
+                </div>
+            }
+        </div>
+    </div>
+</div>

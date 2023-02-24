@@ -1,0 +1,479 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+@{
+    ViewBag.Title = "MergeSearch1";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<b>
+    <span style="color: rgb(52, 108, 196);">Asset Merging</span>
+</b>
+
+<div class="well">
+    <div id="AssetMerge">
+
+        <div class="row">
+            <div class="col-sm-11">
+                <table class="myTableStyleTabNew" style="">
+                    <tr>
+                        <td>
+
+                            <div style="display:none">
+                                <span> Branch ID - Asset Code </span>
+                                <br />
+                                <input type="text"
+                                       name="txtgroupid"
+                                       id="txtgroupid"
+                                       value="@ViewBag.txtgroupid"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <span> Group Id </span>
+                                <br />
+                                <input type="text"
+                                       name="txtgroupidsearch"
+                                       id="txtgroupidsearch"
+                                       value="@ViewBag.txtgroupidsearch"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" onclick="SearchGroupAsset()" value="SEARCH" id="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button><span> </span>
+                            <button id="btnmrgclear" onclick="" class="btn btn-primary" value="clear"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Clear</button>
+                            <span> </span>
+                            <button class="btn btn-primary" type="submit" name="command" id="btnMerging" disabled="disabled" onclick="AssetMerging()" value="Merge"><span style="color:white;" class="glyphicon glyphicon-link"></span> Merge</button>
+
+
+                            <button type="button" name="command" id="CloseMerged" onclick="goToIndex()" class="btn backbtn btn-warning"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"> Back</span></button>
+
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <table class="myTableStyleTabNew" align="center">
+            <tr></tr>
+        </table>
+    </div>
+    <div>
+        @Html.Partial("MergeSer")
+    </div>
+</div>
+
+<div id="MergedAssetPartial"></div>
+
+<script type="text/javascript">
+
+  
+
+    $(document).ready(function () {
+        $("#checkableGrid th").each(function () {
+           
+            var checked = $("#checkableGrid td :checkbox:checked").length;
+            if (checked == 0) {
+               $("#btnMerging").attr("disabled", true);
+               
+            }
+            else {
+                $("#btnMerging").attr("disabled", false);
+               
+            }
+            if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+                $(this).text('');
+                $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                $(this).append("<span>Select All</span>");
+            }
+        });
+
+        //2nd click event for header checkbox for select /deselect all
+        $("#cbSelectAll").live("click", function () {
+          
+            var ischecked = this.checked;
+            $('#checkableGrid').find("input:checkbox").each(function () {
+                this.checked = ischecked;
+            });
+            var checked = $("#checkableGrid td :checkbox:checked").length;
+            if (checked == 0 ) {
+               $("#btnMerging").attr("disabled", true);
+               
+            }
+            else {
+                $("#btnMerging").attr("disabled", false);
+               
+            }
+        });
+
+
+        //3rd click event for checkbox of each row
+        $("input[name='ids']").live("click", function () {
+            
+            var totalRows = $("#checkableGrid td :checkbox").length;
+            var checked = $("#checkableGrid td :checkbox:checked").length;
+            if (checked == 0 || checked == 1) {
+                $("#btnMerging").attr("disabled", true);
+               
+            }
+            else {
+                $("#btnMerging").attr("disabled", false);
+              
+            }
+            if (checked == totalRows) {
+                $("#checkableGrid").find("input:checkbox").each(function () {
+                    this.checked = true;
+                });
+            }
+            else {
+                $("#cbSelectAll").removeAttr("checked");
+            }
+        });
+
+        //$("#checkableGrid th").each(function () {
+            
+        //    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+        //        $(this).text('');
+        //        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+        //        $(this).append("Select All");
+        //    }
+        //    //var checked = $("#checkableGrid td :checkbox:checked").length;
+        //    //if (checked >= 2) {
+        //    //    $("#btnMerging").attr("disabled", true);
+
+        //    //}
+        //    //else {
+        //    //    $("#btnMerging").attr("disabled", false);
+
+        //    //}
+        //});
+
+
+        //$("#cbSelectAll").live("click", function () {
+        //    alert("1");
+        //    var ischecked = this.checked;
+        //    $('#checkableGrid').find("input:checkbox").each(function () {
+        //        this.checked = ischecked;
+
+        //    });
+        //    var checked = $("#checkableGrid td :checkbox:checked").length;
+        //    if (checked > 1) {
+               
+        //        $("#btnMerging").attr("disabled", true);
+        //    }
+        //    else {
+        //        $("#btnMerging").attr("disabled", false);
+               
+        //    }
+        //});
+
+
+
+        //var ID = 1;
+
+        //    var html =
+        //        '<tr>' +
+        //        '<td>' + ID + '</td>' +
+        //        '<td><input type="button" class="BtnPlus" value="+" /></td>' +
+        //        '<td><input type="button" class="BtnMinus" value="-" /></td>' +
+        //        '</tr>'
+        //    $(html).appendTo($("#MergedRecords"))
+        //    ID++;
+
+        @*$("#txtgroupid").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("AutoAssetId", "AssetMerge")',
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.AssetId, value: item.AssetId };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });*@
+
+
+    });
+
+
+
+
+
+
+
+    $("#btnmrgclear").on('click', function () {
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("MergerSearchClear", "AssetMerge")',
+            data: {},
+            success: function (data) {
+
+                $("#MergeSearch").empty().append(data);
+
+
+                $("#checkableGrid th").each(function () {
+
+                    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                        $(this).text('');
+                        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                        $(this).append("Select All");
+                        
+                    }
+
+                });
+            },
+            error: function () {
+            }
+        });
+        $("#txtgroupid").val('');
+        $("#txtgroupidsearch").val('');
+        $("#btnMerging").attr("disabled", true);
+
+    });
+
+    function SearchGroupAsset() {
+
+        var command = $("#SEARCH").val();
+        var AssetId = $("#txtgroupid").val();
+        var groupid = $("#txtgroupidsearch").val();
+
+        var objownersearch =
+            {
+                "AssetId": AssetId,
+                "command": command,
+                "Assetgrpid": groupid
+            };
+        showProgress();
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("MergeSearchGroupId", "AssetMerge")?' + new Date().getTime(),
+            data: objownersearch,
+            success: function (data) {
+                hideProgress();
+                $("#MergeSearch").empty().append(data);             
+                $("#checkableGrid th").each(function () {
+
+                    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                        $(this).text('');
+                        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                        $(this).append("Select All");                       
+                    }
+                });
+                $("#btnMerging").attr("disabled", true);
+            },
+            error: function () {
+            }
+
+        });
+    }
+
+
+
+
+    //Samsudeen modifucation
+
+    @*function AssetMerging() {
+        function splitasset() {
+            // alert('split');
+            location = '@Url.Action("SplitSummary", "AssetMerge")?' + new Date().getTime();
+
+        }
+    }*@
+
+
+
+
+
+
+
+
+
+
+    function AssetMerging() {
+
+        var ids;
+        $("#checkableGrid").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                ids = $(this).val() + "," + ids;
+
+            
+                       }
+          
+        });
+      
+        $.ajax({
+
+            url: '@Url.Action("AssetGroupMerging", "AssetMerge")?ids=' + ids,
+            datatype: 'json',
+            data: {},
+            type: 'POST',
+            success: function (data) {
+
+                if (data == "Success") {
+                    Merging(ids);
+                    $("#MergedAssetPartial").dialog({
+                        autoOpen: false,
+                        modal: true,
+                        show: 'fade-in',
+                        close: 'fade-out',
+                        width: 1000,
+                        height: 450,
+                        resizable: false
+                    });
+
+                    @*$("#MergedAssetPartial").load('@Url.Action("MergedAsset", "AssetMerge")?'+new Date().getTime());
+                    $("#MergedAssetPartial").dialog({ title: 'Merged Summary' });
+                    $("#MergedAssetPartial").dialog("open");*@
+
+
+                }
+                    @*else if(data=="PhysicalID is Refered"){
+
+                    jConfirm("Physical ID is Refered, Are You Sure to Merge", "Information", function (r) {
+                        if (r == true) {
+                            $("#MergedAssetPartial").dialog({
+                                autoOpen: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+                                width: 1000,
+                                height: 450,
+                                resizable: false
+                            });
+
+                            $("#MergedAssetPartial").load('@Url.Action("MergedAsset", "AssetMerge")?'+new Date().getTime());
+                            $("#MergedAssetPartial").dialog({ title: 'Merged Summary' });
+                            $("#MergedAssetPartial").dialog("open");
+
+                            }
+                    });
+
+
+                }*@
+                else {
+
+                    jAlert(data + ", Assets cant be merged ", "Information");
+                }
+                //else if (data == "Please Check Assets to Merge") {
+
+                //    jAlert(data, "Information");
+                //}
+                //else if (data == "Location Mismatch") {
+
+                //    jAlert("Location Mismatch,Assets cant be merged", "Information");
+
+                //}
+
+                //else if (data == "Assetcode Mismatch") {
+
+                //    jAlert("Asset Code Mismatch,Assets cant be merged", "Information");
+
+                //}
+                //else if (data == "Physical id Mismatch") {
+
+                //    jAlert("Physical Id Mismatch,Assets cant be merged", "Information");
+
+                //}
+                //else if (data == "Capitalization Date Mismatch") {
+
+                //    jAlert("Capitalization Date Mismatch,Assets cant be merged", "Information");
+
+                //}
+            },
+            error: function () {
+
+            }
+        });
+
+    }
+
+    function Merging(ids) {
+        $.ajax({
+            url: '@Url.Action("GetMergedAsset", "AssetMerge")?ids=' + ids + '&' + new Date().getTime(),
+          //  data: JSON.stringify(objSupHeader1),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "Successfully Merged") {
+
+                    jAlert(data, "Information", function(){
+                        SearchGroupAsset();
+                    });
+                                        
+                }
+                else {
+                    jAlert("Error in Merging", "Information", function () {
+                        return false;
+                    });
+
+                }
+            },
+            error: function (result) {
+                jAlert("Error While Merging", "Error", function () {
+                    return false;
+                });
+            }
+        });
+        @*$.ajax({
+            type: 'GET',
+                    url: '../AssetMerge/GetMergedAsset/',
+            data: {ids:ids},
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+            
+                if (data == "Successfully Merged") {
+                   
+                    jAlert(data, "Information");
+                   
+                    SearchGroupAsset();
+                }
+                else {
+                    jAlert("Error in Merging", "Information");
+
+                }
+                // $("#Mergeddata").empty().append(data);
+
+            },
+            error: function () {
+            }
+        });*@
+    }
+
+    function goToIndex() {
+        location = '../AssetMerge/AssetMerging';
+    }
+
+    $("#txtgroupidsearch").autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: '@Url.Action("AutoPopGroupid", "AssetMerge")?' + '&' + new Date().getTime(),
+                //url: "../AssetValueReduction/locautosearch",
+                type: "POST",
+                dataType: "json",
+                data: { term: request.term },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return { label: item.Assetgrpid, value: item.Assetgrpid };
+                    }))
+                }
+            })
+        },
+        messages: {
+            noResults: "", results: ""
+        }
+    });
+</script>

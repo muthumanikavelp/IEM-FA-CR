@@ -1,0 +1,192 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_delmat>
+@{
+    //ViewBag.Title = "Index";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    //WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    //grid.Pager(WebGridPagerModes.All);
+    //int rowVal = 0;
+
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Delmat </span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td style="width:25%; padding:0px 10px 0px 3px;">
+                        <span> Delmat Name </span>
+                        <br />
+                        <input type="text"
+                               name="delmatnamefilter"
+                               id="txtFilter"
+                               value="@ViewBag.filter"
+                               class="fstextbox"
+                               maxlength="70" />
+                    </td>
+                    <td style="width:75%; padding:0px 10px 0px 3px;">
+                        <button class="btn btn-primary" value="Search" name="command" type="submit" style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+
+                        <button class="btn btn-primary" value="Clear" onclick="refresh()" name="command" type="button" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+
+
+                        <button type="button" value="New Delmat" id="_NewDelmat" class="btn btn-primary" style="margin-top:20px;color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span> New Delmat
+                        </button>
+
+                    </td>
+                </tr>
+            </table>
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+       htmlAttributes: new { id = "grid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+             grid.Column(header: "Delmat Name", columnName: "delmat_name"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.delmat_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.delmat_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteType(" + item.delmat_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+              
+        </div>
+    }
+    <div id="ForPartialView"></div>
+
+    <script type="text/javascript" language="javascript">
+        $(document).ready(function () {
+            $('#grid tr th:nth-child(3)').addClass("nosort");
+            $('#grid').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            $('#_NewDelmat').click(function () {
+                window.location = '../IEM_DELMAT/Index';
+            });
+           
+        });
+    </script>
+    <script type="text/javascript">
+
+        function EditType(id) {
+            var str = "Edit";
+            var DelmatModel = { "Viewfor": str };
+            $.ajax({
+                url: '../IEM_DELMAT/GetFunction/',
+                data: JSON.stringify(DelmatModel),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (result) {
+                    if (result == "Success");
+                    window.location = '../IEM_DELMAT/EditDelmat/' + id;
+                },
+                error: function (result) {
+                    isSuccess = result;
+                }
+
+            })
+
+
+            //  window.location = '/IEM_DELMAT/EditDelmat/' + id;
+
+
+        }
+        function ViewType(id) {
+
+
+            var str = "View";
+            var DelmatModel = { "Viewfor": str };
+
+            $.ajax({
+                url: '../IEM_DELMAT/GetFunction/',
+                data: JSON.stringify(DelmatModel),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (result) {
+                    if (result == "Success");
+                    window.location = '../IEM_DELMAT/EditDelmat/' + id;
+                },
+                error: function (result) {
+                    isSuccess = result;
+                }
+
+            })
+            // window.location = '/IEM_DELMAT/EditDelmat/' + id ;
+        }
+        //function DeleteType(id) {
+
+
+        //    var str = "Delete";
+        //    var DelmatModel = { "Viewfor": str };
+
+        //    $.ajax({
+        //        url: '../IEM_DELMAT/GetFunction/',
+        //        data: JSON.stringify(DelmatModel),
+        //        type: 'POST',
+        //        contentType: 'application/json; charset=utf-8',
+
+        //        success: function (result) {
+        //            if (result == "Success");
+        //            window.location = '../IEM_DELMAT/EditDelmat/' + id;
+        //        },
+        //        error: function (result) {
+        //            isSuccess = result;
+        //        }
+
+        //    })
+        //    // window.location = '/IEM_DELMAT/EditDelmat/' + id ;
+        //}
+
+        function refresh() {
+            location = '../IEM_DELMAT/Main';
+        }
+        function DeleteType(id) {
+
+
+            var str = "Delete";
+            var DelmatModel = { "Viewfor": str };
+
+            $.ajax({
+                url: '../IEM_DELMAT/GetFunction/',
+                data: JSON.stringify(DelmatModel),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (result) {
+                    if (result == "Success");
+                    window.location = '../IEM_DELMAT/EditDelmat/' + id;
+                },
+                error: function (result) {
+                    isSuccess = result;
+                }
+
+            })
+            // window.location = '/IEM_DELMAT/EditDelmat/' + id ;
+        }
+    </script>

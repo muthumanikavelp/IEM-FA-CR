@@ -1,0 +1,322 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Payment Audit Trail</span>
+    </div>
+    <div class="well">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>PV Number</span>
+                    <br />
+                    <input type="text"
+                           id="txtSPVNo"
+                           maxlength="30"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>ECF Number</span>
+                    <br />
+                    <input type="text"
+                           id="txtSECFNo"
+                           maxlength="30"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Employee Code</span>
+                    <br />
+                    <input type="hidden" name="hdfSEmpCodeId" id="hdfSEmpCodeId" value="0" />
+                    <input type="text"
+                           id="txtSEmpCode"
+                           name="txtSEmpCode"
+                           value=""
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px">
+                    <span>Supplier Code</span>
+                    <br />
+                    <input type="hidden" name="hdfSSupplierId" id="hdfSSupplierId" value="0" />
+                    <input type="text"
+                           id="txtSSupplierCode"
+                           name="txtSSupplierCode"
+                           value=""
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Invoice Number</span>
+                    <br />
+                    <input type="text"
+                           id="txtSInvoiceNo"
+                           maxlength="30"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Cheque Number</span>
+                    <br />
+                    <input type="text"
+                           id="txtSChqNo"
+                           onkeypress="return isNumberKey(event)"
+                           maxlength="30"
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Employee Name</span>
+                    <br />
+                    <input type="hidden" name="hdfSEmpName" id="hdfSEmpName" value="0" />
+                    <input type="text"
+                           id="txtSEmpName"
+                           name="txtSEmpName"
+                           value=""
+                           class="fstextbox" />
+                </td>
+                <td width="25%" style="padding: 0px 10px">
+                    <span>Supplier Name</span>
+                    <br />
+                    <input type="hidden" name="hdfSSupplierName" id="hdfSSupplierName" value="0" />
+                    <input type="text"
+                           id="txtSSupplierName"
+                           name="txtSSupplierName"
+                           value=""
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td width="25%" style="padding: 0px 10px;">
+                    <span>Bank Name</span>
+                    <br />
+                    <select id="ddlSBank" class="fstextbox"
+                            data-bind="options: BankArray, optionsText: 'Text', optionsValue:'Id', value:0, optionsCaption:'-Select One-'"></select>
+                </td>
+                <td colspan="3" style="width:75%; padding:0px; text-align:right; vertical-align:bottom;">
+                    <button class="btn btn-primary" accesskey="e" type="button" style="margin-top:10px;  color:white;" data-bind="click: function() { $root.DownloadPaymentAuditTrail(); }, visible: tmpArray1().length > 0">
+                        <span style="color:white;" class="glyphicon glyphicon-download-alt"></span>
+                        Export Excel
+                    </button>
+                    <button class="btn btn-primary" accesskey="q" data-bind="click: $root.Search" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                        Search
+                    </button>
+                    <button class="btn btn-primary" accesskey="c" data-bind="click: $root.clear" type="button" style="margin-top:10px;  color:white;">
+                        <span style="color:white;" class="glyphicon glyphicon-refresh"></span>
+                        Clear
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div class="table-responsive" style="width:100%; overflow:auto; height:100%; margin-top: 15px;">
+            <table id="gvPaymentAuditTrail" class="tableSmall table-bordered table-hover" data-bind="visible: PaymentAuditTrail().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:50px;">
+                            SLNo
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Document Type
+                        </th>
+                        <th style="width:10%; min-width:100px;" class="colDate">
+                            Document Date
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            ECF No
+                        </th>
+                        <th style="width:55%; min-width:200px;">
+                            Employee/Supplier Name
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Amount
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach:{ data: PaymentAuditTrail, afterRender: DatatableCall }, visible: PaymentAuditTrail().length > 0">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: SlNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: DocType"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: DocDate"></span>
+                        </td>
+                        <td>
+                            <span title="View Details" style="color: blue; cursor:pointer; text-decoration:none;" data-bind="click: $root.viewInvoice"><span data-bind="text: DocNo"></span></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Type + '' + Name"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(DocAmount)"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:none;" id="ShowInvoice">
+        <div class="table-responsive" style="margin-top: 15px;">
+            <table class="tableSmall table-bordered table-hover" data-bind="visible: InvoiceDetailsArray().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:50px;">
+                            SLNo
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Invoice No
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Invoice Date
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Invoice Amount
+                        </th>
+                        <th style="width:15%; min-width:200px;">
+                            Invoice Description
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            PVDate
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            PVNo
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            PVAmount
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            PayMode
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Payment BatchNo
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: InvoiceDetailsArray, visible: InvoiceDetailsArray().length > 0">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td>
+                            <span title="View Details" style="color: blue; cursor:pointer; text-decoration:none;" data-bind="click: $root.viewCheque"><span data-bind="text: InvoiceNo"></span></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: InvoiceDate"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(InvoiceAmount)"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: InvoiceDesc"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PvDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PvNo"></span>
+                        </td>
+                        <td align="right">
+                            <span data-bind="text: $root.formatNumber(PvAmount)"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PayMode"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: PaymentBatchNo"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:none;" id="ShowCheque">
+        <div class="table-responsive" style="margin-top: 15px;">
+            <table class="tableSmall table-bordered table-hover" data-bind="visible: ChequeDetailsArray().length > 0">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:50px;">
+                            SLNo
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Cheque No
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Cheque Date
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Cheque Book No
+                        </th>
+                        <th style="width:15%; min-width:200px;">
+                            Bank
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Account No
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            IFSC Code
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Bounce Date
+                        </th>
+                        <th style="width:14%; min-width:150px;">
+                            Bounce Remarks
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: ChequeDetailsArray, visible: ChequeDetailsArray().length > 0">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: $index()+1"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ChqNo"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: ChqDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ChqbookNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Bank"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: accNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: IFSCcode"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: BounceDate"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: BounceRemark"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: Status"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<script>
+    var UrlDet = "@Url.Action("GetPaymentAuditTrail", "Search")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+</script>
+    <script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsPaymentAuditTrail.js")" type="text/javascript"></script>
+

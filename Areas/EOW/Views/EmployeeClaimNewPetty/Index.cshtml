@@ -1,0 +1,291 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var pro = ViewBag.process;
+    if (Session["Ecfdeclaratonnote"] != null)
+    {
+        ViewBag.decnote = Session["Ecfdeclaratonnote"].ToString();
+    }
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var currentTab = 0;
+    $(function () {
+        $("#tabsmaintravel").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Employee Petty Cash</span>
+</div>
+
+<div class="well">
+    <div style="padding:0;margin:0;">
+        <fieldset>
+            @Html.Partial("EmployeeClaimFrist")
+        </fieldset>
+    </div>
+
+    @if (@ViewBag.process == "Postdata" && @ViewBag.message != "")
+    {
+        <br />
+        <div id="processworking">
+            <div id="tabsmaintravel" style="font-size:12px">
+                <ul>
+                    <li><a href="#tabsmaintravel-1">Invoice Details</a></li>
+                    <li><a href="#tab-attachment">Attachment</a></li>
+                    @if (Session["QueueGide"].ToString() != "")
+                    {
+                        <li><a href="#tabsmaintravel-3">Audit Trail</a></li>
+                    }
+                </ul>
+                <div id="tab-attachment" style="padding: 10px 4px 3px 15px">
+                    @Html.Partial("_EmpAttachment")
+                </div>
+                @if (Session["QueueGide"].ToString() != "")
+                {
+                    <div id="tabsmaintravel-3" style="padding: 10px 4px 3px 15px">
+                        @Html.Partial("_EmpAuditTraileall")
+                    </div>
+                }
+                <div id="tabsmaintravel-1" style="padding: 10px 4px 3px 15px">
+                    @Html.Partial("_EmpPettyInvoiceDetails")
+                </div>
+              
+              
+            </div>
+        </div>
+        <table align="left" style="margin-top:5px;" class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td>
+                    <span><b>Remarks</b></span>
+                    <br />
+                    @*length fixed by selva*@
+                    <textarea id="txtempRemarks" style="width: 60%; height:60px;" maxlength="255" class="textboxStyle">@ViewBag.ecfrmarks</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span><b>Declaration Note</b></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td style="vertical-align:middle;"><input type="checkbox" id="comfirm" /></td>
+                            <td style="vertical-align:middle;"><label id="lbldecnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <button type="button" id="btnSubmitfinal" class="btn btn-success" value="Submit" onclick="SaveSubmitfinal()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                    @if (Session["QueueGide"].ToString() != "")
+                    {
+                        <button type="button" id="btnCancelfinaldash" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinalddash()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else
+                    {
+                        <button type="button" id="btnDraftfinal" value="Save" class="btn btn-primary" onclick="SaveDraftfinal()"><span class="glyphicon glyphicon-briefcase" style="color:white;font-size: small;"></span> Draft</button>
+                        <button type="button" id="btnCancelfinal" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinal()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                </td>
+            </tr>
+        </table>
+    }
+    else
+    {
+        <div style="padding-left: 25px;padding-top: 20px;color: red;">
+
+            @if (@ViewBag.message != null)
+            {
+                <script language="javascript">
+                    jAlert('@ViewBag.message', "Message");
+                    hideProgress();
+                </script>
+            }
+            else
+            {
+                <div>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            hideProgress();
+                        });
+                    </script>
+                </div>
+
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    $(document).ready(function () {
+        $("#txtempRemarks").keyup(function () {
+            var txtecfremarkh = $("#txtempRemarks").val();
+            $("#txtecfremarkh").val(txtecfremarkh);
+        });
+    });
+    function GotoIndexPaymentmodepopup() {
+        window.parent.jQuery('#ForPartialViewPaymentmodepopup').dialog('close');
+    }
+    function GotoIndexPayment() {
+        window.parent.jQuery('#ForPartialViewEmpPaymentmew').dialog('close');
+        window.parent.jQuery('#ForPartialViewPaymentmodepopup').dialog('close');
+    }
+    function SaveDraftfinal() {
+        jConfirm("Do you want to Save Draft Mode This ECF...? ", "Message", function (u) {
+            if (u == true) {
+                var empRemarks = $("#txtempRemarks").val();
+                //var ecfamount = $("#txtecfamount").val();
+                var ecfamount = $("#txtecfamount").val().replace(/,/g, "");
+                var NewAttmodel = {
+                    "ecfremark": empRemarks,
+                    "Exp_Amount": ecfamount
+                };
+                $.post('../EmployeeClaimNewPetty/_EmpECFDraft', NewAttmodel,
+                function (data) {
+                    if (data == "Success") {
+                        @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                        window.localStorage.previousurlflag = "-1";
+                        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                        
+                    }
+                    else {
+                        jAlert('Error..........', "Message");
+                        return false;
+                    }
+                }, 'json');
+            }
+        });
+    }
+    function SaveCancelfinalddash() {
+        @*location = '@Url.Action("index", "DashBoard")';*@
+        //location = "../EOW/DashBoard/index";
+        window.localStorage.previousurlflag = "-1";
+        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+        
+    }
+    function SaveCancelfinal() {
+        jConfirm("Do you want to Cancel This ECF...? ", "Message", function (u) {
+            if (u == true) {
+                window.location.href = '@Url.Action("index", "EmployeeClaimNewPetty")?' + new Date().getTime();
+            }
+        });
+    }
+    function SaveSubmitfinal() {
+        $('#btnSubmitfinal').attr('disabled', true);
+        var status = $('#comfirm').is(':checked');
+        if (status == false) {
+            $('#btnSubmitfinal').attr('disabled', false);
+            jAlert("Please select the Declaration Note", "Message");
+            return false;
+        }
+        else {
+            jConfirm("Do you want to Submit This ECF...? ", "Message", function (u) {
+                if (u == true) {
+                    showProgress();
+                    var empRemarks = $("#txtempRemarks").val();
+                    //var ecfamount = $("#txtecfamount").val();
+                    var ecfamount = $("#txtecfamount").val().replace(/,/g, "");
+                    var NewAttmodel = {
+                        "ecfremark": empRemarks,
+                        "Exp_Amount": ecfamount
+                    };
+                    $.post('../EmployeeClaimNewPetty/_EmpECFCreate', NewAttmodel,
+                    function (data) {
+                        if (data == "Expense") {
+                            hideProgress();
+                            $('#btnSubmitfinal').attr('disabled', false);
+                            jAlert("Please Check Expense Details : The Amount in Expense Details must be Equal To ECF Amount", "Message");
+                            return false;
+                        }
+                        else if (data == "BankAcc") {
+                            hideProgress();
+                            $('#btnSubmitfinal').attr('disabled', false);
+                            jAlert('Please Check Bank Details at Econnect System: Bank Details are not Updated Properly at IEM', "Message");
+                            return false;
+                        }
+                        else if (data == "Payment") {
+                            hideProgress();
+                            $('#btnSubmitfinal').attr('disabled', false);
+                            jAlert("Please Check Payment Details : The Amount in Payment Details must be Equal To ECF Amount", "Message");
+                            return false;
+                        } else if (data == "Error") {
+                            hideProgress();
+                            $('#btnSubmitfinal').attr('disabled', false);
+                            jAlert("Error..........", "Message");
+                            return false;
+                        }
+                        else if (data == "Delmat") {
+                            hideProgress();
+                            $('#btnSubmitfinal').attr('disabled', false);
+                            jAlert("Delmat has not been created.Contact functional IEM SPOC", "Message");
+                            return false;
+                        }
+                        else if (data == "Proxy") {
+                            hideProgress();
+                            jAlert("Saved Sucessfully", "Message", function (u) {
+                                if (u == true) {
+                                    //window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();
+                                    window.localStorage.previousurlflag = "-1";
+                                    location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                    
+                                }
+                            });
+                        }
+                        else {
+                            hideProgress();
+                            jAlert(data, "Message", function (u) {
+                                if (u == true) {
+                                    @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                                    window.localStorage.previousurlflag = "-1";
+                                    location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+                                    
+                                }
+                            });
+                        }
+                    }, 'json');
+                }
+                else {
+                    hideProgress();
+                    $('#btnSubmitfinal').attr('disabled', false);
+                }
+            });
+        }
+    }
+
+
+    $(document).ready(function () {
+        var stylesSelect = $('#txtempDeclarationnote');
+        stylesSelect.attr('disabled', true);
+    });
+</script>

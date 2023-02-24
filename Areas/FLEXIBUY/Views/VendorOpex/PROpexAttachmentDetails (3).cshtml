@@ -1,0 +1,100 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common
+@{
+    CbfSumModel objd = new CbfSumModel();
+    List<CbfSumEntity> lst = new List<CbfSumEntity>();
+    int prdetid = 0;
+    prdetid = ViewBag.prdetid;
+    lst = objd.GetPROpexAttachment(prdetid).ToList();
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+
+}
+<center>
+    <div id="wgPRAttachment">
+        @{
+            CmnFunctions objCmnFunctions = new CmnFunctions();
+            var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgPRAttachment", ajaxUpdateCallback: "DummyFunction2021()");
+            int rowcount = 0;
+        }
+
+        <div class="overflowx">
+            <div>
+                @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridPROpexAttachment" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                        grid.Column("_CBFAttachmentID", objCmnFunctions.Sorter("_CBFAttachmentID", "ID", grid), canSort: false, style: "IdColumn"),
+                        grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                        grid.Column("_CBFAttachmentFileName", objCmnFunctions.Sorter("_CBFAttachmentFileName", "File Name", grid), format: @<text> <a onclick="DownloadPROpexAttachments('@item._CBFAttachmentFileName')" title='click here to download'> @item._CBFAttachmentFileName </a></text>),
+                        grid.Column("_CBFAttachmentDescription", objCmnFunctions.Sorter("_CBFAttachmentDescription", "Description", grid))
+                        @*grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+
+                            @Html.Raw("<a title='Delete' onclick='DeleteprAttachment(" + item._CBFAttachmentID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)*@
+                                                                                                                                    ))
+
+            </div>
+        </div>
+        <div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+    </div>
+
+</center>
+<script type="text/javascript">
+    $("#wgridPROpexAttachment td:nth-child(1),#wgridPROpexAttachment th:nth-child(1)").hide();
+    $("#wgridPROpexAttachment td:nth-last-child(1)").show();
+    function DeleteprAttachment(id) {
+        jConfirm("Do you want to delete Attachment : ", Title_3, function (e) {
+            if (e == true) {
+                var objCBFAttachment = { "_CBFAttachmentID": id }
+                $.post('../CbfRaiser/DeleteCBFAttachment', objCBFAttachment,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             $("#wgridCBFAttachment").load("../CbfRaiser/CBFAttachmentDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    function DownloadPROpexAttachments(filename) {
+
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "PrSummary")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+
+                    location = "@Url.Action("DownloadAttachedFilesNew", "PrSummary")?filename=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function DummyFunction2021() {
+        $("#wgridPROpexAttachment td:nth-child(1),#wgridPROpexAttachment th:nth-child(1)").hide();
+        $("#wgridPROpexAttachment td:nth-last-child(1)").show();
+    }
+</script>

@@ -1,0 +1,257 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">WO Amendment</span>
+<div ng-app="WOAmendApp">
+    <div class="well" ng-controller="WOAmendController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            <div style="width:45%;float:left;">
+                Search &nbsp;  <input type="text" ng-model="search.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right;text-align:right;">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="entryLimit">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+        </div>
+        <div style="width:100%;overflow-x:scroll;" id="divData">
+            <div style="width:145%;">
+                <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                    <thead>
+                        <tr>
+                            <th style="width:3%;">
+                                S.No
+                            </th>
+                            <th style="width:13%;">
+                                WO Number
+                            </th>
+                            <th style="width:10%;">
+                                WO Date
+                            </th>
+                            <th style="width:10%;">
+                                Department
+                            </th>
+                            <th style="width:19%;">
+                                Vendor
+                            </th>
+                            <th style="width:10%;">
+                                Status
+                            </th>
+                            <th style="width:10%;">
+                                Version
+                            </th>
+                            <th style="width:15%;">
+                                Vendor Note
+                            </th>
+                            <th style="min-width:10%;">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="filtered.length>0" ng-repeat="item in filtered = items| filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{item.SNo}}
+                            </td>
+                            <td style="width:13%;">
+                                {{item.WONo}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.WODate}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.Department}}
+                            </td>
+                            <td style="width:19%;">
+                                {{item.Vendor}}
+                            </td>
+                            <td style="width:10%;">
+                                {{item.Status}}
+                            </td>
+                            <td style="width:10%;text-align:center">
+                                {{item.Version}}
+                            </td>
+                            <td style="width:15%;">
+                                {{item.VendorNote}}
+                            </td>
+                            <td style="min-width:10%;text-align:center">
+                                    <a ng-click="ViewDoc(item.WOHeaderGId)" title="View">
+                                        <span class="glyphicon glyphicon-eye-open"></span>
+                                    </a>
+                                    &nbsp;&nbsp;
+                                    <a  ng-click="AmendWO(item.WOHeaderGId)" title="Proceed">
+                                        <span class="glyphicon glyphicon-edit"></span>
+                                    </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="filtered.length==0">
+                        <tr>
+                            <td colspan="9" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+        <div style="width:100%;">
+            <div ng-show="filtered.length>0">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="color:#337ab7;font-weight:bold; padding-left:10px" align="left"> Total Records : <span>{{totalItems}} </span> @*of <span>{{filtered.length}} </span>*@ </td>
+                        <td align="right">
+                            <pagination total-items="totalItems"
+                                        ng-model="currentPage"
+                                        page="currentPage"
+                                        max-size="noofsetpages"
+                                        boundary-links="true"
+                                        items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                            </pagination>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    @*<iframe id="txtArea1" style="display:none"></iframe>
+        <button id="btnExport" onclick="fnExcelReport();"> EXPORT </button>*@
+</div>
+<script type="text/javascript">
+    var queryApp = angular.module('WOAmendApp', ['ui.bootstrap']);
+
+    queryApp.config(['$httpProvider', function ($httpProvider) {
+
+        $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+
+        var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+
+        $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    }]);
+
+
+
+    queryApp.service("woamendservice", function ($http) {
+        this.GetSupplierQuery = function () {
+            var url = '@Url.Action("GetWOAmendment", "WONew")?' + new Date().getTime();
+            return $http.get(url);
+        }
+    });
+    queryApp.controller('WOAmendController', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+        showProgress();
+        $http.get("../WONew/GetWOAmendment?" + new Date().getTime())
+     .then(function (response) {
+         $scope.items = JSON.parse(response.data.data0);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage = 1;
+         $scope.totalItems = $scope.items.length;
+         $scope.entryLimit = 10;
+         $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages = 5;
+         $scope.$watch('search', function (newVal, oldVal) {
+             $scope.filtered = filterFilter($scope.items, newVal);
+             $scope.totalItems = $scope.filtered.length;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.currentPage = 1;
+             $scope.noofsetpages = 5;
+         }, true);
+         hideProgress();
+     })
+        .catch(function (response) {
+            hideProgress();
+            jAlert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText, "Information");
+            return false;
+            //alert('ERRORm : ' + response.status + '\r\n' + response.config.url + '\r\n' + response.statusText);
+            console.error('Gists error', response.status, response.data);
+
+        })
+    .finally(function () {
+        hideProgress();
+        console.log("finally finished gists");
+    });
+        //hideProgress();
+        $scope.ViewDoc = function (docgid) {
+            var url;
+            url = '@Url.Action("Index", "WONew")?wogid=' + docgid + '&viewtype=view&' + new Date().getTime();
+            window.open(url, "_blank");
+        }
+        $scope.AmendWO = function (docgid) {
+            jConfirm("Are you sure to amend this WO?", "Confirmation", function (u) {
+                if (u == true) {
+                    showProgress();
+                    $.ajax({
+                        url: '../WONew/DoAmend?wogid=' + docgid + '&' + new Date().getTime(),
+                        type: 'POST',
+                        async: false,
+                        cache: false,
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            hideProgress();
+                            if (data.ErrorMsg == "1") {
+                                jAlert("Error While Doing Amendment", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else if (data.ErrorMsg == "0") {
+                                if (data.NewWOGid == "0") {
+                                    jAlert("Error While Doing Amendment", "Error", function () {
+                                        return false;
+                                    });
+                                    return false;
+                                }
+                                else{
+                                    location = '@Url.Action("Index", "WONew")?wogid=' + data.NewWOGid + '&' + new Date().getTime();
+                                }
+                            }
+                            else {
+                                jAlert(response.data.ErrorMsg, "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                        },
+                        error: function (result) {
+                            hideProgress();
+                            jAlert("Error While Doing Amendment", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    }]);
+    queryApp.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+</script>

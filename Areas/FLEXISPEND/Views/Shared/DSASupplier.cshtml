@@ -1,0 +1,2211 @@
+﻿@using IEM.Helper;
+@{
+    proLib pl = new proLib();
+    ViewBag.Title = "DSASupplier";
+    string IsChecker = @Model;
+    string[] Options = IsChecker.Split('~');
+    IsChecker = Options[0];
+    string EOWStatus = "", Attach = "N";
+    if (Options.Length > 1)
+        EOWStatus = Options[1];
+    if (Options.Length > 2)
+        Attach = Options[2];
+    string EnableData = (IsChecker == "Y" ? "disabled" : "");
+
+    //show redup option to checker level
+    string IsRedup = "N";
+    if (ViewBag.IsRedup != null)
+        IsRedup = ViewBag.IsRedup;
+}
+
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+
+<script type="text/javascript">
+    var _currDTTab = 0, _currIVTab = 0;
+    $(function () {
+
+        $("#Maintabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+
+    });
+</script>
+
+<div id="nontravelclaim" style="padding-top:10px;">
+    <span class="pageHeading">Supplier Invoice - DSA</span>
+
+    <div class="well" style="padding:10px;">
+        <div id="Maintabs" style="min-height :300px;font-size:12px;">
+            <ul>
+                <li><a href="#tabs-5">ECF Header</a></li>
+                <li><a href="#tabs-1">Invoice Details</a></li>
+                <li><a href="#tabs-2">Payment Details</a></li>
+                <li><a href="#tabs-3">Attachment Details</a></li>
+                <li><a href="#tabs-6">With Holding Tax</a></li>
+                <li><a href="#tabs-4">Audit Trail </a></li>
+                @if (EOWStatus == "1")
+                {
+                    <li><a href="#tabs-7">Inex Status </a></li>
+                }
+                else if (EOWStatus == "2")
+                {
+                    <li><a href="#tabs-7">Inex Status </a></li>
+                    <li><a href="#tabs-8">Payment Status</a></li>
+                }
+                @if (IsChecker == "N" || IsRedup == "Y")
+                {
+                    <li><a href="#tabs-9">RunDedup</a></li>
+                }
+                
+                <li> <a id="audithistory" href="#tabs-10">Audit History </a> </li>
+            </ul>
+            <div>
+                <div id="tabs-5">
+                    <div style="height:270px; overflow-y:auto;">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="width:100%; padding: 5px 10px 5px 0px;">
+                                    <table style="width:100%; height:100%; border:1px solid silver; border-collapse:separate; border-spacing:5px;">
+                                        <tr>
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">ECF No</p>
+                                            </td>
+                                            <td style="width:20%; padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="txtECFNo"></p>
+                                            </td>
+
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">ECF Date</p>
+                                            </td>
+                                            <td style="width:20%; padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="txtECFDate"></p>
+                                            </td>
+
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">ECF Amount</p>
+                                            </td>
+                                            <td style="width:20%; padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="txtECFAmount"></p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">Raiser Mode</p>
+                                            </td>
+                                            <td style="padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="lblRaiserMode"></p>
+                                            </td>
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">Raiser Code</p>
+                                            </td>
+                                            <td style="padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="lblRaiserCode"></p>
+                                            </td>
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">Raiser Name</p>
+                                            </td>
+                                            <td style="padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="lblRaiserName"></p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="MakerEmployee">
+                                                <p style="margin-bottom:0px;">Claim Month</p>
+                                            </td>
+                                            <td style="padding:5px 5px; background-color: #ddd; font-size:11px;">
+                                                <p style="margin-bottom:0px;" id="txtClaimMonth"></p>
+                                            </td>
+                                        </tr>
+
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <table class="myTableStyleTabNew" style="width:100%;">
+                            <tr>
+                                <td style="padding:5px 10px 5px 3px; width:13%;">
+                                    <span> Exchange Rate</span>
+                                    <br />
+                                    <input type="text"
+                                           id="txtExchangeRate"
+                                           disabled="disabled"
+                                           class="fstextbox valid" />
+                                </td>
+                                <td style=" padding:5px 10px; width:13%;">
+                                    <span>Currency </span>
+                                    <br />
+                                    <select id="ddlCurrency" disabled="disabled" class="fstextbox valid" data-bind="foreach: {data: CurrencyArray}">
+                                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                    </select>
+                                </td>
+                                <td style=" padding:5px 10px; width:24%;">
+                                    <span>Currency Amount</span>
+                                    <br />
+                                    <input type="text"
+                                           id="txtCurrencyAmount"
+                                           disabled="disabled"
+                                           class="fstextbox valid" />
+                                </td>
+                                <td style="padding:5px 10px; width:25%;">
+                                    <span>Reduced Amount</span>
+                                    <br />
+                                    <input type="text" @EnableData
+                                           id="txtReducedAmount"
+                                           class="fstextbox" />
+                                </td>
+                                <td style="padding:5px 10px; width:25%;">
+                                    <span>Processed Amount </span>
+                                    <br />
+                                    <input type="text"
+                                           disabled="disabled"
+                                           id="txtProcessedAmount"
+                                           class="fstextbox valid" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:5px 10px 5px 3px;">
+                                    <span> Payment Netting</span>
+                                    <br />
+                                    <input @EnableData id="rdoPaymentNettingYes" name="rdoGPaymentNetting" type="radio" value="1" style="margin-top: 12px; margin-right:5px;">Yes
+                                    <input @EnableData  id="rdoPaymentNettingNo" name="rdoGPaymentNetting" type="radio" value="0" style="margin: 12px 5px 0px 20px;">No
+                                </td>
+                                <td style=" padding:5px 10px;" colspan="2">
+                                    <span>ECF Description</span>
+                                    <br />
+                                    <input type="text"
+                                           id="txtECFDescription"
+                                           @EnableData
+                                           class="fstextbox valid" />
+                                </td>
+                                <td style=" padding:5px 10px;">
+                                    <table style="width:100%;">
+                                        <tr>
+                                            <td style="width:50%; padding:0px 3px 0px 0px;">
+                                                <span>Pyhsical Verification</span>
+                                                <br />
+                                                <input type="text"
+                                                       id="txtPyhsicalVerify"
+                                                       disabled="disabled"
+                                                       class="fstextbox" />
+                                            </td>
+                                            <td style="width:50%; padding:0px 0px 0px 3px; vertical-align:middle; text-align:center;">
+                                                <span id="lblUrgent" style="color:red; font-weight:bold; display:none;">Urgent Document</span>
+                                            </td>
+                                            <td style="width:50%; padding:0px 0px 0px 3px; display:none;">
+                                                <span>Urgent Tagging</span>
+                                                <br />
+                                                <input type="text"
+                                                       id="txtUrgentTagging"
+                                                       disabled="disabled"
+                                                       class="fstextbox" />
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                </td>
+                                <td style=" padding:5px 10px; vertical-align: bottom; text-align:right;">
+                                    @if (IsChecker == "N")
+                                    {
+                                    <button type="button" style="color:white; margin-bottom:1px;" class="btn btn-primary" data-bind="click: function() { $root.SetECFDetails();}">
+                                        <span style=" color:white; font-size:12px;" class="glyphicon glyphicon-floppy-save">
+                                        </span>
+                                        Proceed
+                                    </button>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="tabs-1">
+                    <div style="height:270px; overflow-y:auto;">
+                        @*@if (IsChecker == "N" )
+                        {
+                            <div style="width:100%; text-align:right; margin-bottom: 10px;" class="viewForIvoice">
+                                <table style="width:100%;">
+                                    <tr>
+                                        <td style="width:75%;">
+                                            <table class="myTableStyleTabNew" style="width:100%;">
+                                                <tr>
+                                                    <td style="width:25%; padding:5px;">
+                                                        <span>Excel File</span>
+                                                        <br />
+                                                        <form id="frmDebitUploader1">
+                                                            <input type="file" style="width: 100%;padding-top: 5px;" id="fuDebitLine1" class="clsDebitLine1" name="fuDebitLine1" />
+                                                        </form>
+                                                    </td>
+                                                    <td style="width:20%; padding:5px;">
+                                                        <span>Sheet Name</span>
+                                                        <br />
+                                                        <select id="ddlDSASheet" class="fstextbox">
+                                                            <option value="0">--Select--</option>
+                                                        </select>
+                                                    </td>
+                                                    <td style="width:25%; padding:0px 5px; vertical-align:bottom; text-align:right;">
+                                                        <button type="button" value="New" style="color:white;  margin-bottom:3px;" data-bind="click: function() { $root.UploadDebitLine1(); }" class="btn btn-primary">
+                                                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-upload"></span>
+                                                            Upload Excel
+                                                        </button>
+                                                        <button type="button" value="New" style="color:white; margin-bottom:3px;" data-bind="click: function() { $root.DownloadFormat1(); }" class="btn btn-warning">
+                                                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download"></span>
+                                                            Download Template
+                                                        </button>
+                                                    </td>
+                                                    <td style="width:05%; padding:0px 5px; text-align:right; vertical-align:bottom;">
+                                                        @*<button type="button" value="New" style="color:white; margin-bottom:3px;" data-bind="visible: InvoiceDebitArray().length > 0, click: function() { $root.DownloadDebitLine(); }" class="btn btn-warning">
+                                                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download"></span>
+                                                                Export Debitline
+                                                            </button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td style="width:25%; text-align:right; vertical-align:bottom;">
+                                            <button type="button" value="New" style="color:white; margin-bottom:3px;" class="btn btn-warning" data-bind="click: function() { $root.ResetDSA(); }">
+                                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                                                Clear Data
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+
+
+                            </div>
+                        }*@
+                        <div class="table-responsive" style="width:100%; height:200px; overflow:auto;">
+                            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:4%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Supplier Code
+                                        </th>
+                                        <th style="width:20%; min-width:150px;">
+                                            Supplier Name
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Invoice Date
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Invoice No
+                                        </th>
+                                        <th style="width:20%; min-width:150px;">
+                                            Description
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Amount
+                                        </th>
+                                        <th style="width:8%; min-width:80px;">
+                                            Provision
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: ECFExpenseArray}">
+                                    <tr class="" data-bind="css: {'received' : isupdated}">
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: suppliercode"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: suppliername"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: InvDate"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: invno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: invdesc"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: invamt"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Provisionflag"></span>
+                                        </td>
+                                        <td align="center">
+                                            <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.ViewInvoiceDetails(InvId); }"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="tabs-2">
+                    <div style="height:270px; overflow-y:auto;">
+                        @if (IsChecker == "N")
+                        {
+                        <div style="width:100%; text-align:right; display:none;" class="viewForIvoice">
+                            <button type="button" value="New" onclick="return AddPaymentAmount();" style="color:white; margin-bottom:3px;" class="btn btn-primary">
+                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                                Add Payment
+                            </button>
+                        </div>
+                        }
+                        <div style="max-height:250px;" class="table-responsive">
+                            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Supplier Code
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Supplier Name
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Payment Mode
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Account No
+                                        </th>
+                                        <th style="width:10%; min-width:150px;">
+                                            Beneficiary
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Description
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Pay Bank Name
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Amount
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: ECFPaymentArray}">
+                                    <tr class="" data-bind="css: {'received' : isupdated}">
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: suppliercode"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: suppliername"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: PMode"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: RefNo"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Beneficiary"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Desc"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Bank"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: Amt"></span>
+                                        </td>
+                                        <td align="center">
+                                            <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="visible: PMode != 'RET' && PMode != 'TDS' && PMode != 'WCT', click: function() { $root.EditInvoiceCreditDetails($index(), 0); }"> <span id="id" class="glyphicon glyphicon-eye-open"> </span> </span>
+                                            @if (IsChecker == "N")
+                                            {
+                                                <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="visible: PMode != 'RET' && PMode != 'TDS' && PMode != 'WCT', click: function() { $root.EditInvoiceCreditDetails($index(), 1); }"> <span id="id" class="glyphicon glyphicon-edit"> </span> </span>
+                                                <span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="visible: PMode != 'RRP' && PMode != 'CHQ' && PMode != 'DD' && PMode != 'EFT' && PMode != 'ERA' && PMode != 'RET' && PMode != 'TDS' && PMode != 'WCT', click: function() { $root.DeleteInvoiceCreditDetails($index()); }"> <span id="id" class="glyphicon glyphicon-trash"> </span> </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="tabs-3">
+                    <div style="height:270px; overflow-y:auto;">
+                        @if (IsChecker == "N" || Attach == "Y")
+                        {
+                        <div style="width:100%; text-align:right;">
+                            <button type="button" value="New" onclick="return AddAttachment();" style="color:white; margin-bottom:3px;" class="btn btn-primary">
+                                <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                                Add Attachment
+                            </button>
+                        </div>
+                        }
+                        <div style="width:100%; overflow:auto;">
+                            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:4%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:16%; min-width:130px;">
+                                            Attachment
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Attachment Type
+                                        </th>
+                                        <th style="width:30%; min-width:200px;">
+                                            Description
+                                        </th>
+                                        <th style="width:10%; min-width:120px;">
+                                            Attachment Date
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Attachment By
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: ECFAttachmentArray}">
+                                    <tr class="" data-bind="css: {'received' : isupdated }">
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Attachment"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: AttachmentType"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: AttachmentDesc"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: AttachmentDate"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: AttachedBy"></span>
+                                        </td>
+                                        <td align="center">
+                                            <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.AttachmentDownLoad(attachmentId, Attachment); }"> <span id="id" class="glyphicon glyphicon-eye-open"> </span> </span>
+                                            @if (IsChecker == "N" || Attach == "Y")
+                                            {
+                                                <span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer; display:none;" data-bind="click: function() { $root.DeleteAttachmentDetails(attachmentId); }"> <span id="id" class="glyphicon glyphicon-trash"> </span> </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="tabs-4">
+                    <div style="height:270px; overflow-y:auto;">
+                        <div style="width:100%; overflow:auto;">
+                            <table class="tableSmall table-bordered table-hover table-responsive">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:20%; min-width:150px;">
+                                            Employee Name
+                                        </th>
+                                        <th style="width:20%; min-width:150px;">
+                                            Designation
+                                        </th>
+                                        <th style="width:10%; min-width:120px;">
+                                            Action Date
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Status
+                                        </th>
+                                        <th style="width:30%; min-width:200px;">
+                                            Remarks
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: ECFAuditrailArray}">
+                                    <tr>
+                                        <td align="center">
+                                            <span data-bind="text: $index() + 1"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: EmpCode + ' - ' + EmpName"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Designation"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ActionDate"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ActionType"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Remarks"></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="tabs-6">
+                    @if (IsChecker == "N")
+                    {
+                        <div style="width:100%; text-align:right; margin-bottom: 10px;">
+                            <table style="width:100%;">
+                                <tr>
+                                    <td style="width:75%;">
+                                        <table class="myTableStyleTabNew" style="width:100%;">
+                                            <tr>
+                                                <td style="width:25%; padding:5px;">
+                                                    <span>DebitLine File</span>
+                                                    <br />
+                                                    <form id="frmDebitUploader">
+                                                        <input type="file" style="width: 100%;padding-top: 5px;" id="fuDebitLine" class="clsDebitLine" name="fuDebitLine" />
+                                                    </form>
+                                                </td>
+
+                                                <td style="width:50%; padding:5px; vertical-align:bottom; text-align:right;">
+                                                    <button type="button" value="New" style="color:white;  margin-bottom:3px;" data-bind="click: function() { $root.UploadDebitLine(); }" class="btn btn-primary">
+                                                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-upload"></span>
+                                                        Upload Excel
+                                                    </button>
+                                                    <button type="button" value="New" style="color:white; margin-bottom:3px;" data-bind="click: function() { $root.DownloadFormat(); }" class="btn btn-warning">
+                                                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download"></span>
+                                                        Download Template
+                                                    </button>
+                                                </td>
+                                                <td style="width:25%; padding:5px;"></td>
+                                                <td style="width:25%; padding:5px; display:none;">
+                                                    <span>Select Sheet</span>
+                                                    <br />
+                                                    <select id="ddlAttachmentType" class="fstextbox required">
+                                                        <option value="0">-Select-</option>
+                                                    </select>
+
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td style="width:25%; text-align:right; vertical-align:bottom;">
+                                        <button type="button" value="New" onclick="return AddWHTaxAmount();" style="color:white; margin-bottom:3px;" class="btn btn-primary">
+                                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                                            Add With Holding Tax
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+
+
+                        </div>
+                    }
+
+                    <div style="max-height:250px;" class="table-responsive">
+                        <table class="tableSmall table-bordered table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:15%; min-width:150px;">
+                                        Supplier Name
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Invoice No
+                                    </th>
+                                    <th style="width:15%; min-width:100px;">
+                                        Tax Type
+                                    </th>
+                                    <th style="width:15%; min-width:100px;">
+                                        Tax Sub Type
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Taxable Amount
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Rate
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Tax Amount
+                                    </th>
+                                    <th style="width:10%; min-width:100px;">
+                                        Net Amount
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: {data: InvoiceHoldingTaxArray}">
+                                <tr>
+                                    <td>
+                                        <span data-bind="text: SupplierName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: InvoiceNo"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: tax"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: taxsubtype"></span>
+
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: TaxableAmt"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: Rate"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: TaxAmount"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: NetAmt"></span>
+                                    </td>
+                                    <td align="center">
+                                        <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.EditWithHoldTaxDetails($index(), 0); }"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                                        @if (IsChecker == "N")
+                                        {
+                                            <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.EditWithHoldTaxDetails($index(), 1); }"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                            <span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.DeleteWithHoldTaxDetails(withholdtaxgid); }"> <span id="id" class="glyphicon glyphicon-trash"> </span> </span>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @if (EOWStatus == "1" || EOWStatus == "2")
+                {
+                    <div id="tabs-7">
+                        <div style="height:270px; overflow-y:auto;">
+                            <div style="width:100%; overflow:auto;">
+                                <table class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:5%; min-width:40px;">
+                                                #
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Inex Date
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Inex By
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Review By
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Status
+                                            </th>
+                                            <th style="width:20%; min-width:200px;">
+                                                Remarks
+                                            </th>
+                                            <th style="width:25%; min-width:200px;">
+                                                Reason
+                                            </th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: EOWInexArray}">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: inexDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: inexBy"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: reviewBy"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: actionStatus"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: remarks"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: reason"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="width:100%; overflow:auto; margin-top:10px;">
+                                <table class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:5%; min-width:40px;">
+                                                #
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Despatch Date
+                                            </th>
+                                            <th style="width:20%; min-width:150px;">
+                                                Courier Name
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                AWB No
+                                            </th>
+                                            <th style="width:15%; min-width:100px;">
+                                                Despatch To
+                                            </th>
+                                            <th style="width:35%; min-width:250px;">
+                                                Despatch Address
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: EOWDespatchArray}">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: despatchDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: courierName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: awbNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: despatchTo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: despatchAddress"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (EOWStatus == "2")
+                {
+                    <div id="tabs-8">
+                        <div style="height:270px; overflow-y:auto;">
+                            <div style="width:100%; overflow:auto;">
+                                <table class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:4%; min-width:40px;">
+                                                #
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                Payment Batch No
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                Payment Date
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                PV No
+                                            </th>
+                                            <th style="width:6%; min-width:60px;">
+                                                Pay Mode
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                PV Amount
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                Claim Type
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Beneficiary
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Beneficiary Bank Name
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Cheque Date
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                Cheque No
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                Invoice No
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                Invoice Amount
+                                            </th>
+                                            <th style="width:9%; min-width:100px;">
+                                                Invoice Net Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: EOWPaymentArray}">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PaymentBatchNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PayMode"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVAmount"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ClaimType"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: EmployeeSupplierName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Bank"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ChqDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ChqNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: InvoiceNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: InvoiceAmount"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: NetAmount"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div style="width:100%; overflow:auto; margin-top:10px;">
+                                <table class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:5%; min-width:40px;">
+                                                #
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                PV Date
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                PV No
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Pay Mode
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                PV Amount
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Payment Batch No
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Despatch Date
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Courier Name
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                AWB No
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: PaymentDespatchArray}">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PayMode"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PVAmount"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PaymentBatchNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: DespatchDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: CourierName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: AwbNo"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (IsChecker == "N" || IsRedup == "Y")
+                {
+                    <div id="tabs-9">
+                        <div style="height:320px; overflow-y:auto;">
+                            <div style="width:100%; text-align:right;">
+                                <button type="button" style="color:white; margin-bottom:1px;" class="btn btn-primary" data-bind="click: $root.RunDedup">
+                                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-random">
+                                    </span>
+                                    Run-Dedup
+                                </button>
+                                @*<button type="button" style="color:white; margin-bottom:1px;" class="btn btn-primary" data-bind="click: $root.DedupDownload, visible: DedupDetailsArray().length > 0">
+                                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt">
+                                        </span>
+                                        Download
+                                    </button>*@
+                            </div>
+                            <div style="width:100%; overflow:auto;">
+                                <table class="tableSmall table-bordered table-hover table-responsive">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:4%; min-width:50px;">
+                                                #
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Type(C-current/H-history)
+                                            </th>
+                                            <th style="width:8%; min-width:120px;">
+                                                ECF No
+                                            </th>
+                                            <th style="width:8%; min-width:120px;">
+                                                Invoice No
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Invoice Date
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Invoice Amount
+                                            </th>
+                                            <th style="width:14%; min-width:150px;">
+                                                ECF Status
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                ECF Date
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Supplier/Employee Code
+                                            </th>
+                                            <th style="width:10%; min-width:200px;">
+                                                Supplier/Employee Name
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                ECF Amount
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                ECF Processed Amount
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: DedupDetailsArray}, visible: DedupDetailsArray().length > 0">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: Sno"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Type"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ECFNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: InvoiceNo"></span>
+                                            </td>
+                                            <td align="center">
+                                                <span data-bind="text: InvoiceDate"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: $root.formatNumber(InvoiceAmount)"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ECFStatus"></span>
+                                            </td>
+                                            <td align="center">
+                                                <span data-bind="text: ECFDate"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: SupplierEmployeeCode"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: SupplierEmployeeName"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: $root.formatNumber(ECFAmount)"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: $root.formatNumber(ECFProcessedAmount)"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                <div id="tabs-10">
+
+                    <div class="row">
+                        <div class="col-sm-4" style="text-align:right"> @Html.Label("Filter Type") </div>
+                        <div class="col-sm-4">
+                            @Html.DropDownList("Select", new List<SelectListItem>
+                            {  new SelectListItem{Text="--Select--", Value="0"},
+                                new SelectListItem{Text="Payment Detail", Value="1"},
+                                new SelectListItem{Text="With-Hold Tax", Value="2"},
+                                new SelectListItem{Text="Debit Line Details", Value="3"},
+                                new SelectListItem{Text="Invoice Header", Value="4"},
+                              
+                              
+
+                            }, new { @id = "drpaudit", @class = "fstextbox" })
+                        </div>
+                        <div class="col-sm-4"></div>
+
+                    </div>
+
+
+                    <div style="height:320px; overflow-y:auto;">
+                        <div style="display:none;" id="showpaymentdialog">
+                            <div style="width:100%; overflow:auto;">
+                                <table id="paymentaudit" class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:5%; min-width:40px;">
+                                                #
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Payment Mode
+                                            </th>
+                                            <th style="width:10%; min-width:150px;">
+                                                Account No
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Beneficiary
+                                            </th>
+                                            <th style="width:20%; min-width:200px;">
+                                                Description
+                                            </th>
+                                            <th style="width:20%; min-width:150px;">
+                                                Pay Bank Name
+                                            </th>
+                                            <th style="width:10%; min-width:100px;">
+                                                Amount
+                                            </th>
+
+                                        </tr>
+                                    </thead>
+
+                                    <tbody data-bind="foreach: {data: ECFPaymentHistory}">
+                                        <tr>
+                                            <td align="center">
+                                                <span data-bind="text: Slno"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PMode"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: RefNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Beneficiary"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Description"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Bank"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: Amt"></span>
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div style="display:none;width:100%; overflow:auto;" id="showAuditworktray">
+                            <table class="tableSmall table-bordered table-hover table-responsive">
+                                <thead>
+                                    <tr>
+                                        <th style="width:3%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:15%; min-width:100px;">
+                                            Invoice No
+                                        </th>
+                                        <th style="width:18%; min-width:100px;">
+                                            Tax Type
+                                        </th>
+                                        <th style="width:15%; min-width:100px;">
+                                            Tax Sub Type
+                                        </th>
+                                        <th style="width:15%; min-width:100px;">
+                                            PAN No
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            Taxable Amount
+                                        </th>
+                                        <th style="width:7%; min-width:100px;">
+                                            Rate
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Tax Amount
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Net Amount
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: InvoiceHoldingTaxHistory}">
+                                    <tr>
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: InvoiceNo"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: tax"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: taxsubtype"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: PANNo"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: TaxableAmt"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: Rate"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: TaxAmount"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: NetAmt"></span>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="display:none;width:100%; overflow:auto;" id="showDebitline">
+                            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:11%; min-width:150px;">
+                                            Nature of Expenses
+                                        </th>
+                                        <th style="width:11%; min-width:150px;">
+                                            Expense/Asset Category
+                                        </th>
+                                        <th style="width:11%; min-width:150px;">
+                                            Sub Category
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            GL No
+                                        </th>
+                                        <th style="width:10%; min-width:160px;">
+                                            Business Segment(BU)
+                                        </th>
+                                        <th style="width:11%; min-width:150px;">
+                                            Cost Center(CC)
+                                        </th>
+                                        <th style="width:11%; min-width:150px;">
+                                            Product Code
+                                        </th>
+                                        <th style="width:11%; min-width:170px;">
+                                            Location Code(OUCode)
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            Amount
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: InvoiceDebitHistory}">
+                                    <tr>
+
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: NatureOfExpenses"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ExpCategory"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ExpSubCat"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: GLno"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: FC"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: CC"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ProdCode + '-' + Product"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: OUCode + '-' + location"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: Amt"></span>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="InvoiceHeader" style="width:100%; overflow:auto;display:none">
+                            <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%; min-width:40px;">
+                                            #
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Invoice Date
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Invoice No
+                                        </th>
+                                        <th style="width:30%; min-width:200px;">
+                                            Description
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Amount
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Without Tax
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            GST Charged
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Provider Location
+                                        </th>
+                                        <th style="width:10%; min-width:100px;">
+                                            Receiver Location
+                                        </th>
+                                        <th style="width:9%; min-width:100px;">
+                                            Provision
+                                        </th>
+                                        <th style="width:9%; min-width:100px;">
+                                            Verification
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: ECFInvoiceHeader}">
+                                    <tr>
+                                        <td align="center">
+                                            <span data-bind="text: Slno"></span>
+                                        </td>
+                                        <td align="center">
+                                            <span data-bind="text: InvDate"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: InvNo"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: InvDesc"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: InvAmt"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: Withouttax"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: GSTCharged"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: providerLocation"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: ReceiverLocation"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: InvProvision"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: isverified"></span>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                         
+
+
+
+
+
+                    </div>
+                </div>     
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+    <div style="display:none" id="ShowDialog1">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:33%; padding:5px 10px;">
+                    <span>Nature of Expenses</span>
+                    <br />
+                    <select id="ddlExpenses" @EnableData class="fstextbox required" data-bind="foreach: {data: ExpenseArray}, event:{ change: $root.ChangeNatureOfExpences }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="width:33%; padding:5px 10px;">
+                    <span>Expense Category</span>
+                    <br />
+                    <select id="ddlCategory" @EnableData class="fstextbox required" data-bind="foreach: {data: CategoryArray}, event:{ change: $root.ChangeExpencesCategory }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="width:33%; padding:5px 10px;">
+                    <span>Sub Category</span>
+                    <br />                   
+                    <select id="ddlSubCategory" @EnableData class="fstextbox required" data-bind="foreach: {data: SubCategoryArray}, event:{ change: $root.ChangeExpencesubCategory }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Business Segment(BU)</span>
+                    <br />
+                    <select id="ddlBU" @EnableData class="fstextbox valid" data-bind="foreach: {data: BusinessSegmentArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Cost Center(CC)</span>
+                    <br />
+                    <select id="ddlCC" @EnableData class="fstextbox valid" data-bind="foreach: {data: CostCenterArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Product Code</span>
+                    <br />
+                    <input type="text" @EnableData
+                           id="txtProductCode"
+                           class="fstextbox required" />
+                    <input type="hidden" value="0" id="hfProductCode" />
+
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>Location Code(OUCode)</span>
+                    <br />
+                    <input type="text"
+                           id="txtOUCode" @EnableData
+                           class="fstextbox required" />
+                    <input type="hidden" value="0" id="hfOUCode" />
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Amount</span>
+                    <br />
+                    <input type="text"
+                           @*disabled="disabled"*@
+                           id="txtDebitAmount"
+                           class="fstextbox required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="3">
+                    <span>Description</span>
+                    <br />
+                    <textarea id="txtDebitDescription" @EnableData class="fstextbox" cols="6" rows="3" style="height:100%;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>HSN CODE</span>
+                    <br />
+
+                    <select id="ddlhsngid" @EnableData class="fstextbox required" data-bind="foreach: {data: HsnCodeArray}, event:{ change: $root.ChangeHsnCode }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+
+
+                <td style="width:33%; padding:3px;">
+                    <span> RCM Flag</span>
+                    <br />
+                    <input id="rdorcmChargedYes" name="rdorcmChargedFlag" type="radio" value="Y" style="margin-top: 10px; margin-right:5px;">Yes
+                    <input checked="checked" id="rdorcmChargedNo" name="rdorcmChargedFlag" type="radio" value="N" style="margin: 10px 5px 0px 20px;">No
+                </td>
+
+            </tr>
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="3">
+                    <input type="hidden" value="0" id="hfDebitlineGId" />
+                    @if (IsChecker == "N")
+                    {
+                        <button type="button" style="color:white; margin-top:10px;" id="btnDebitLineSubmit" class="btn btn-primary" data-bind="click: function() { $root.SetInvoiceDebitDetails(); }">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" id="btncanexpNNN" title="Cancel" style="color:white; margin-top:10px;" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(1); }">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="display:none" id="ShowDialog2">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Pay Mode</span>
+                    <br />
+                    <table width="100%">
+                        <tr>
+                            <td style="width:85%; padding:0px;">
+                                <select @EnableData id="ddlPayMode" class="fstextbox required" data-bind="foreach: {data: PayModeArray}">
+                                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                </select>
+                            </td>
+                            <td style="width:15%; padding:0px 0px 0px 5px;">
+                                <a title="view" style="margin-left:3px; margin-right:3px;"> <span style="font-size: 18px; color: #337ab7; margin-top: 6px;" class="glyphicon glyphicon-eye-open"> </span> </a>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Account No</span>
+                    <br />
+                    <input type="text" id="txtPayRefNo" disabled="disabled" class="fstextbox required" />
+                </td>
+
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Beneficiary</span>
+                    <br />
+                    <input type="text" disabled="disabled"
+                           id="txtPayBeneficiary"
+                           class="fstextbox" />
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Amount</span>
+                    <br />
+                    <input type="text" @EnableData
+                           id="txtPaymentAmount"
+                           class="fstextbox required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>Description</span>
+                    <br />
+                    <textarea id="txtPayDescription" @EnableData class="fstextbox required" cols="6" rows="3" style="height:100%;"></textarea>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                    <input type="hidden" value="0" id="hfCreditlineGId" />
+                    @if (IsChecker == "N")
+                    {
+                        <button type="button" id="btnCreditLineSubmit" data-bind="click: function() { $root.SetInvoiceCreditDetails(); }" style="color:white; margin-top:10px;" class="btn btn-primary">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" style="color:white; margin-top:10px;" title="Cancel" name="Cancel" data-bind="click: function() { $root.CloseDetails(2); }" class="btn btn-warning">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="display:none" id="ShowDialog3">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Attachment File</span>
+                    <br />
+                    <form id="uploaderForm">
+                        <input type="file" @EnableData style="width: 100%;padding-top: 5px;" id="attUploader" class="attUploader" name="UploadFile" />
+                    </form>
+                </td>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Attachment Type</span>
+                    <br />
+                    <select id="ddlAttachmentType" @EnableData class="fstextbox required" data-bind="foreach: {data: AttachmentTypeArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+
+                </td>
+
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>Description</span>
+                    <br />
+                    <textarea id="txtAttachDescription" @EnableData class="fstextbox required" cols="6" rows="3" style="height:100%;"></textarea>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                    <input type="hidden" value="0" id="hfAttachmetId" />
+                    @if (IsChecker == "N")
+                    {
+                        <button data-bind="click: function() { $root.SetAttachmentDetails(); }" type="button" id="btnAttachmentSubmit" style="color:white; margin-top:10px;" class="btn btn-primary">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" style="color:white; margin-top:10px;" title="Cancel" data-bind="click: function() { $root.CloseDetails(3); }" name="Cancel" class="btn btn-warning">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="display:none" id="ShowDialog4">
+        <div style="width:100%;">
+            @if (IsChecker == "N")
+            {
+                <div style="width:100%; text-align:right; display:none;">
+                    <button type="button" value="New" onclick="return AddDebitAmount();" style="color:white; margin-bottom:3px; font-size: 12px;" class="btn btn-primary">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                        Add Debit
+                    </button>
+                </div>
+            }
+            <div style="width:100%; overflow:auto;">
+                <table class="tableSmall table-bordered table-hover table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width:8%; min-width:100px;">
+                                Action
+                            </th>
+                            <th style="width:11%; min-width:150px;">
+                                Nature of Expenses
+                            </th>
+                            <th style="width:11%; min-width:150px;">
+                                Expense Category
+                            </th>
+                            <th style="width:11%; min-width:150px;">
+                                Sub Category
+                            </th>
+                            <th style="width:8%; min-width:100px;">
+                                GL No
+                            </th>
+                            <th style="width:10%; min-width:160px;">
+                                Business Segment(BU)
+                            </th>
+                            <th style="width:11%; min-width:150px;">
+                                Cost Center(CC)
+                            </th>
+                            <th style="width:11%; min-width:150px;">
+                                Product Code
+                            </th>
+                            <th style="width:11%; min-width:170px;">
+                                Location Code(OUCode)
+                            </th>
+                            <th style="width:8%; min-width:100px;">
+                                Amount
+                            </th>
+                           
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: {data: InvoiceExpenseArray}">
+                        <tr>
+                            <td align="center">
+                                <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.EditInvoiceDebitDetails($index(), 0); }"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                                @if (IsChecker == "N")
+                                {
+                                    <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.EditInvoiceDebitDetails($index(), 1); }"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                    <span title="Delete" style="margin-left:3px; margin-right:3px; display:none; cursor:pointer;" data-bind="click: function() { $root.DeleteInvoiceDebitDetails(GId); }"> <span id="id" class="glyphicon glyphicon-trash"> </span> </span>
+                                }
+                            </td>
+                            <td>
+                                <span data-bind="text: NatureOfExpenses"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: ExpCategory"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: ExpSubCat"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: GLno"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: FC"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: CC"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: ProdCode + '-' + Product"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: OUCode + '-' + location"></span>
+                            </td>
+                            <td align="right">
+                                <span data-bind="text: Amt"></span>
+                            </td>
+                        
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <br/>
+            <br />
+            <div id="itabs-10">      
+                <span><b>GST</b></span>        
+                <div style="width:100%; overflow:auto;">
+                    <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                        <thead>
+                            <tr>
+                                <th style="width:10%; min-width:100px;" class="viewForIvoice">
+                                    Action
+                                </th>
+                                <th style="width:12%; min-width:130px;">
+                                    GSTApplicable
+                                </th>
+                                <th style="width:12%; min-width:120px;">
+                                    HSN Code
+                                </th>
+                                <th style="width:20%; min-width:180px;">
+                                    HSN Description
+                                </th>
+                                <th style="width:15%; min-width:200px;">
+                                    Sub Tax
+                                </th>
+                                <th style="width:13%; min-width:100px;">
+                                    Taxable Amount
+                                </th>
+                                <th style="width:8%; min-width:80px;">
+                                    Rate(%)
+                                </th>
+                                <th style="width:10%; min-width:100px;">
+                                    Tax Amount
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: { data: GSTInvoiceTaxArray }">
+                            <tr>
+                                <td align="center" class="viewForIvoice">
+                                    @*<span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer" data-bind="click: $root.ViewGSTInvoiceTaxDetails"> <span class="glyphicon glyphicon-eye-open"> </span> </span>*@
+                                    @if (IsChecker == "N")
+                                    {
+                                        <span title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: $root.EditGSTInvoiceTaxDetails"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                        @*<span title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: $root.DeleteGSTInvoiceTaxDetails"> <span class="glyphicon glyphicon-trash"> </span> </span>*@
+                                    }
+                                </td>
+                                <td align="center"><span data-bind="text: GsnApplicable"></span></td>
+                                <td><span data-bind="text: HsnCode"></span></td>
+                                <td><span data-bind="text: $root.ShortDescription(HsnDescription), attr: { title: HsnDescription }"></span></td>
+                                <td><span data-bind="text: TaxSubType"></span></td>
+                                <td align="right"><span data-bind="text: TaxableAmt"></span></td>
+                                <td><span data-bind="text: Rate"></span></td>
+                                <td align="right"><span data-bind="text: TaxAmt"></span></td>
+                            </tr>
+                        </tbody>
+                        @*<tfoot>
+                            <tr>
+                                <th colspan="8" style="width:100%; padding-left:10px; text-align:left;">
+                                    <span style="font-weight: normal;">Total Amount:</span><label data-bind="text: GSTTotalTaxAmt()" style="padding-left:3px;"></label>
+                                </th>
+                            </tr>
+                        </tfoot>*@
+                    </table>
+                </div>
+            </div>
+
+            <div id="itabs-1">
+                <span><b>RCM</b></span>      
+                <div style="width:100%; overflow:auto;">
+                    <table class="tableSmall table-bordered table-hover table-responsive mycolortable">
+                        <thead>
+                            <tr>
+                                <th style="width:10%; min-width:100px;">
+                                    Expsubcat Name
+                                </th>
+                                <th style="width:10%; min-width:130px;">
+                                    HSN Code
+                                </th>
+                                <th style="width:12%; min-width:80px;">
+                                    RCM Type
+                                </th>
+                                <th style="width:12%; min-width:120px;">
+                                    Taxable Amount
+                                </th>
+                                <th style="width:10%; min-width:100px;">
+                                    RCM %
+                                </th>
+                                <th style="width:10%; min-width:100px;">
+                                    RCM Rate
+                                </th>
+                                <th style="width:15%; min-width:100px;">
+                                    Rate Amount
+                                </th>
+                                <th style="width:10%; min-width:80px;">
+                                    Reverse Charge GL
+                                </th>
+                                <th style="width:13%; min-width:100px;">
+                                    Input Credit %
+                                </th>
+                                <th style="width:13%; min-width:100px;">
+                                    Input Credit Rate
+                                </th>
+                                <th style="width:13%; min-width:100px;">
+                                    Input Credit Amount
+                                </th>
+                                <th style="width:13%; min-width:100px;">
+                                    Input Credit GL
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: { data: RCMInvoiceTaxArray }">
+                            <tr>
+                                <td align="center"><span data-bind="text: Expsubcat_Name"></span></td>
+                                <td><span data-bind="text: HsnCode"></span></td>
+                                <td><span data-bind="text: DebitRCM_Type"></span></td>
+                                <td><span data-bind="text: Taxable_Amount"></span></td>
+                                <td><span data-bind="text: Taxgst_RCM_Display_Rate"></span></td>
+                                <td><span data-bind="text: debitrcm_rate"></span></td>
+                                <td align="right"><span data-bind="text: debitrcm_amount"></span></td>
+                                <td><span data-bind="text: debitrcm_reversechargegl"></span></td>
+                                <td align="right"><span data-bind="text: Taxgst_InputCredit_Display_Rate"></span></td>
+                                <td align="right"><span data-bind="text: debitrcm_InputCredit_Rate"></span></td>
+                                <td align="right"><span data-bind="text: debitrcm_InputCredit_Amount"></span></td>
+                                <td><span data-bind="text: debitrcm_inputcreditgl"></span></td>
+                            </tr>
+                        </tbody>
+                        @*<tfoot>
+                            <tr>
+                                <th colspan="12" style="width:100%; padding-left:10px; text-align:left;">
+                                    <span style="font-weight: normal;">Total Amount:</span><label data-bind="text: RCMTotalAmt()" style="padding-left:3px;"></label>
+                                </th>
+                            </tr>
+                        </tfoot>*@
+                    </table>
+                </div>
+            </div>
+            <div style="width:100%; text-align:center;">
+                <button type="button" title="Cancel" style="color:white; margin-top:10px; font-size: 12px;" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(4); }">
+                    <span style="color:white; font-size: 13px;" class="glyphicon glyphicon-remove-sign"></span>
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="display:none" id="WithholdTaxDialog">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:33%; padding:5px 10px;">
+                    <span>Tax Type</span>
+                    <br />
+                    <select id="ddlWHTaxType" @EnableData class="fstextbox required" data-bind="foreach: {data: WHTaxTypeArray}, event:{ change: $root.ChangeWHTaxType }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                    <input type="hidden" value="0" id="hfWHTaxgid" />
+                </td>
+                <td style="width:33%; padding:5px 10px;">
+                    <span>Tax Subtype</span>
+                    <br />
+                    <select id="ddlWHTaxSubType" @EnableData class="fstextbox required" data-bind="foreach: {data: WHTaxSubTypeArray}, event:{ change: $root.ChangeWHTaxSubType }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+
+
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Tax Rate(%)</span>
+                    <br />
+                    @*<input type="text"
+                        id="txtWHTaxRate" class="fstextbox required" maxlength="5" />*@
+                    <select id="txtWHTaxRate" @EnableData class="fstextbox required" data-bind="foreach: {data: TaxRateArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Taxable Amount</span>
+                    <br />
+                    <input type="text" @EnableData
+                           id="txtWHTaxableAmount"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Tax Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtWHTaxAmount"
+                           class="fstextbox"
+                           disabled="disabled" />
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Net Amount</span>
+                    <br />
+                    <input type="text" @EnableData
+                           id="txtWHNetAmount"
+                           class="fstextbox" />
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:20px 10px 5px; text-align:center;" colspan="2">
+                    @if (IsChecker == "N")
+                    {
+                        <button type="button" id="btnWHTaxSubmit" style="color:white;" class="btn btn-primary" data-bind="click: function() { $root.SetWithHoldTaxDetails(); }">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" title="Cancel" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(7); }">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="display:none" id="ShowDialogPayBank">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Pay Mode</span>
+                    <br />
+                    <select id="ddlPayMode1" class="fstextbox required" @EnableData data-bind="foreach: {data: PayModeCommonArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+
+                </td>
+                <td style="width:50%; padding:5px 10px;">
+                    <span id="lblPayableAt">Account No</span>
+                    <br />
+                    <input type="text" id="txtPayRefNo1" disabled="disabled" class="fstextbox required" />
+                </td>
+
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Beneficiary</span>
+                    <br />
+                    <table width="100%">
+                        <tr>
+                            <td style="width:85%; padding:0px;">
+                                <input type="text" @EnableData
+                                       id="txtPayBeneficiary1"
+                                       class="fstextbox required" />
+                            </td>
+                            <td style="width:15%; padding:0px 0px 0px 5px;">
+                                <span title="view" data-bind="click: function() { $root.FetchBenificiary(); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span style="font-size: 18px; color: #337ab7; margin-top: 6px;" class="glyphicon glyphicon-eye-open"> </span> </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Amount</span>
+                    <br />
+                    <input type="text"
+                           disabled="disabled"
+                           id="txtPaymentAmount1"
+                           class="fstextbox required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>Pay Bank</span>
+                    <br />
+                    <select id="ddlPayBank" class="fstextbox required" @EnableData data-bind="foreach: {data: PayBankArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;" colspan="2">
+                    <span>Description</span>
+                    <br />
+                    <textarea id="txtPayDescription1" @EnableData class="fstextbox required" cols="6" rows="3" style="height:100%;"></textarea>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                    <input type="hidden" data-bind="attr: {value: DefaultPayBank}" value="0" id="hfPayBandId" />
+                    @if (IsChecker == "N")
+                    {
+                        <button type="button" id="btnCreditLineSubmit1" data-bind="click: function() { $root.SetInvoiceCreditDetails(1); }" style="color:white; margin-top:10px;" class="btn btn-primary">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" style="color:white; margin-top:10px;" title="Cancel" name="Cancel" data-bind="click: function() { $root.CloseDetails(5); }" class="btn btn-warning">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="width:100%; display:none;" id="BenificiaryDialog">
+        <div class="table-responsive" style="height: 300px; overflow: auto;">
+            @*<table>
+                <tr>
+                    <td width="20%" style="padding: 0px 10px;">
+                        <span>Benificiary Name</span>
+                        <br />
+                        <input type="hidden" name="hdfPayBeneficiary" id="hdfPayBeneficiary" value="0" />
+                        <input type="text"
+                               id="txtPayBeneficiary"
+                               name="txtPayBeneficiary"
+                               value=""
+                               class="fstextbox" />
+                        </td>
+                    </tr>
+</table>*@
+            <table id="gvPouchInward" class="tableSmall table-bordered table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:40px;">
+                            #
+                        </th>
+                        <th style="width:25%; min-width:100px;">
+                            Account No
+                        </th>
+                        <th style="width:35%; min-width:150px;">
+                            Benificiary Name
+                        </th>
+                        <th style="width:25%; min-width:120px;">
+                            IFSC Code
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: {data: BenificiaryArray,afterRender: DatatableCall} ">
+                    <tr>
+
+                        <td align="center">
+                            <span data-bind="text: $index() + 1"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: AccountNo"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: BeneficiaryName"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: IFSCCode"></span>
+                        </td>
+                        <td align="center">
+                            <a style="cursor:pointer; color: #116BAC;" data-bind="click: $root.SelectBenificiary">Select</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+</div>
+        <div style="width:100%; text-align:center;">
+            <button type="button" style="color:white; margin-top:10px; font-size:12px;" title="Cancel" name="Cancel" data-bind="click: function() { $root.CloseDetails(12); }" class="btn btn-warning">
+                <span style="color:white; font-size:13px;" class="glyphicon glyphicon-remove-sign"></span>
+                Cancel
+            </button>
+
+        </div>
+    </div>
+    <!-- GSTTax -->
+    <div style="display:none" id="GSTDialog">
+        <input type="hidden" value="0" id="hfGSTInvoiceTaxGid" />
+
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width: 50%; padding: 14px 10px; padding-left: 16px;">
+                    <input type="checkbox" disabled="disabled" id="chkGSTgsnapplicability" name="chkGSTgsnapplicability" /> <span style="padding-left:10px;">GST Applicability</span>
+                </td>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>HSN Code</span>
+                    <br />
+                    @*<input type="text" @EnableData
+                        id="txtGSTHSNCode"
+                        class="fstextbox required" />*@
+
+                    <select id="ddlGSTHSNCode" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: GSTHSNCodeArray }, event:{ change: $root.HSNCodeSelectChanged }">
+                        <!-- ko if: $index() == 0 -->
+                        <option value="0">- Select One -</option>
+                        <!-- /ko -->
+                        <option data-bind="attr: {value: Id, title: Desc}, text: Text"></option>
+                    </select>
+
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="width:100%; padding:5px 10px;">
+                    <span>HSN Description</span>
+                    <br />
+                    <input type="text" disabled
+                           id="txtGSTHSNDesc"
+                           class="fstextbox" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>Tax Type</span>
+                    <br />
+                    <select id="ddlGSTTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: GSTTaxTypeArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="width:50%; padding:5px 10px;">
+                    <span>SubTax Type</span>
+                    <br />
+                    <select id="ddlGSTSubTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: GSTSubTaxTypeArray}, event:{ change: $root.GSTChangeSubTaxType }">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;display:none;" id="tdOtherTax">
+                    <span>Tax Rate(%)</span>
+                    <br />
+                    <select id="txtGSTTaxRate" disabled class="fstextbox required" data-bind="foreach: {data: TaxRateArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>
+                </td>
+                <td style="padding:5px 10px;display:none;" id="tdGST">
+                    <span>Tax Rate(%)</span>
+                    <br />
+                    <input type="text" disabled="disabled"
+                           id="txtGSTRate"
+                           class="fstextbox required" />
+                </td>
+                <td style="padding:5px 10px;">
+                    <span>Taxable Amount</span>
+                    <br />
+                    <input type="text" @EnableData
+                           id="txtGSTTaxableAmount"
+                           class="fstextbox required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <span>Tax Amount</span>
+                    <br />
+                    <input type="text" disabled="disabled"
+                           id="txtGSTTaxAmount"
+                           class="fstextbox" />
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                    @if (IsChecker == "N")
+                    {
+                        <button type="button" id="btnGSTTaxSubmit" style="color:white;" class="btn btn-primary" data-bind="click: function() { $root.SetGSTInvoiceTaxDetails(); }">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                    }
+                    <button type="button" title="Cancel" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(13); }">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+
+    <input type="hidden" value="0" id="hfECFId" />
+    <input type="hidden" value="0" id="hfSupplierId" />
+    <input type="hidden" value="0" id="hfInvId" />
+    <input type="hidden" value="0" id="hfBU" />
+    <input type="hidden" value="0" id="hfCC" />
+    <input type="hidden" value="0" id="hfEmpProductCode" />
+    <input type="hidden" value="0" id="hfEmpOUCode" />
+    <input type="hidden" value="" id="hfProductCodeText" />
+    <input type="hidden" value="" id="hfOUCodeText" />
+    <input type="hidden" value="0" id="hfISDedup" />
+    <input type="hidden" value="" id="hfIFSCCode" />
+    @*Ramya Aug*@
+    <input type="hidden" name="hdfEditViewGstChargedFlag" id="hdfEditViewGstChargedFlag" value="N" />
+</div>
+
+<script>
+    var UrlDet = "@Url.Action("GetSupplierInvoiceMaker", "AuditWorkTray")"
+    var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "Helper")"
+   // var UrlDef = "@pl.PrefixUrl"
+    var UrlDef =  "@Url.Action("", "")"
+</script>
+
+<script src="@Url.Content("~/Areas/FLEXISPEND/FS_UserScript/jsDSASupplier.js")" type="text/javascript"></script>

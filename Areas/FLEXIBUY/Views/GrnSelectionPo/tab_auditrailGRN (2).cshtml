@@ -1,0 +1,37 @@
+﻿@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+@{
+    GRNInward objquenuepar = new GRNInward();
+
+    CbfSumModel model = new CbfSumModel();
+    objquenuepar.gid = Convert.ToInt32(Session["parheadergid"].ToString());
+    objquenuepar.ref_flag = "12";
+    if (objquenuepar.gid != 0)
+    {
+        Model.auditTrailLst = model.PopulateAuditTrailGRN(objquenuepar);
+    }
+    objquenuepar.auditTrailLst = Model.auditTrailLst;
+    var auidtGrid = new WebGrid(source: Model.auditTrailLst, canPage: true, canSort: true, rowsPerPage: 10, ajaxUpdateContainerId: "auditTrail", ajaxUpdateCallback: "auditTrailLst()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+
+    <div>
+        @auidtGrid.GetHtml(
+                            htmlAttributes: new { id = "wgridDashboard" },
+                            tableStyle: "tableSmall table-bordered aligncenter",
+                            mode: WebGridPagerModes.All,
+    columns:
+    auidtGrid.Columns(
+    auidtGrid.Column(header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(
+    auidtGrid.TotalRowCount / auidtGrid.PageCount) / auidtGrid.RowsPerPage) * auidtGrid.RowsPerPage * auidtGrid.PageIndex)
+    , auidtGrid.Column("employee_code", objCmnFunctions.Sorter("employee_code", "Employee ID-Name", auidtGrid))   
+    , auidtGrid.Column("action_date", objCmnFunctions.Sorter("action_date", "Action Date", auidtGrid))
+    , auidtGrid.Column("queue_to_type", objCmnFunctions.Sorter("queue_to_type", "Approval Stage", auidtGrid))
+    , auidtGrid.Column("action_status", objCmnFunctions.Sorter("action_status", "Staus", auidtGrid))
+    , auidtGrid.Column("action_remarks", objCmnFunctions.Sorter("action_remarks", "Remarks", auidtGrid))
+    ))
+        <div class="borderStyle btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+        <label>Page: @(auidtGrid.PageIndex + 1) of @auidtGrid.PageCount</label>  <label> - Total No Of Records:@Model.auditTrailLst.Count</label>
+    </div>

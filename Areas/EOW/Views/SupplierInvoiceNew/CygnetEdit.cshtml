@@ -1,0 +1,84 @@
+﻿@model  IEnumerable<IEM.Areas.EOW.Models.CygnetSearchModel>
+@using IEM.Areas.EOW.Models
+
+<div id="divCygnetGrid" style="padding-right: 10px;">
+    @Html.Partial("CygnetGrid")
+</div>
+<div id="ForPartialViewcentral"></div>
+<script>
+    function InvoiceTypePOEdit(Cygnet_gid, Cygnet_InvoiceNo, InvoiceSupplier_gid, Cygnet_InvoiceType, PO_Nos) {
+        debugger;
+
+        $("#txtInvoiceNo").val(Cygnet_InvoiceNo);
+        $("#hdsupplier_gid").val(InvoiceSupplier_gid);
+        $("#hdCygnet_gid").val(Cygnet_gid);
+        $("#ddlClaimType").val(Cygnet_InvoiceType);
+        $("#txtponumber").val(PO_Nos);
+        $("tCygnetEdit").show();
+        $("#divCygnetGrid").hide();
+    }
+    var objDialogyCentral;
+    $(document).ready(function () {
+        $("tCygnetEdit").hide();
+        $("#divCygnetGrid").show();
+        objDialogyCentral = $("[id$='ForPartialViewcentral']");
+        objDialogyCentral.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+            width: 920,
+            height: 400
+        });
+    });
+    function PoSearch() {
+        var supp = $('#hdsupplier_gid').val();
+        var ddlClaimTypename = $("#ddlClaimType option:selected").text();
+        var ddlClaimTypeid = $("#ddlClaimType").val();
+        if (ddlClaimTypeid == "0" || ddlClaimTypename == "-- Select --") {
+            jAlert("Please Select Invoice Type", "Information");
+            return;
+        }
+        else if (ddlClaimTypeid == "P" || ddlClaimTypeid == "W") {
+            $.ajax({
+                url: '@Url.Action("posearchdetails", "Central")?id=' + supp + '&' + new Date().getTime(),
+                //data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    isSuccess = result;
+                    if (supp == null || supp == 0) {
+                        jAlert("You Can't Search PO/WO Number", "Information");
+                        return false;
+                    }
+                    else if (result == 0) {
+                        jAlert("This Supplier Don't Have PO/WO Number", "Information");
+                        return false;
+                    }
+                    else {
+                        var url = "@(Html.Raw(Url.Action("POSearch", "Central")))";
+                        posearchdetails.load(url + '?id=' + supp + '&claimType=' + ddlClaimTypeid);
+                        posearchdetails.dialog({
+                            title: 'PO  Search ', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+                        });
+                        posearchdetails.dialog("open");
+                    }
+                },
+            });
+        }
+    }
+    function InvoiceTypePOEdit(Cygnet_gid, Cygnet_InvoiceNo, InvoiceSupplier_gid, Cygnet_InvoiceType, PO_Nos) {
+        debugger;
+
+        $("#txtInvoiceNo").val(Cygnet_InvoiceNo);
+        $("#hdsupplier_gid").val(InvoiceSupplier_gid);
+        $("#hdCygnet_gid").val(Cygnet_gid);
+        $("#ddlClaimType").val(Cygnet_InvoiceType);
+        $("#txtponumber").val(PO_Nos);
+        $("tCygnetEdit").show();
+        $("#divCygnetGrid").hide();
+        objDialogyCentral.load('../SupplierInvoiceNew/CygnetEdit?Cygnet_gid=' + Cygnet_gid + '&' + new Date().getTime());
+        objDialogyCentral.dialog({ title: 'Edit Invoice', width: '1135', height: '350' });
+        objDialogyCentral.dialog("open");
+    }
+</script>

@@ -1,0 +1,102 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    int rowcount = 0;
+    int GID = Model._gid;
+    var grid = new WebGrid(source: Model._attach_list, canSort: false, canPage: false, ajaxUpdateContainerId: "toaattachgridaddview", ajaxUpdateCallback: "toaattachgridaddview");
+    CmnFunctions objCmn = new CmnFunctions();
+}
+<div>
+    <div id="toaattachmentgrid" style="font-size: 12px;">
+        <div class=" borderStyleNew" style="overflow-y:scroll;height:200px">
+            @grid.GetHtml(tableStyle: "tableSmall table-bordered ",
+                 htmlAttributes: new { id = "toaattachgridaddview" },
+
+        columns: grid.Columns(
+                 grid.Column("S.no", style: "MidColumn20Center col-lg-1", format: a => rowcount = rowcount + 1),
+                 grid.Column("attacheddate", "Attachment Date", style: "MidColumn20Center col-lg-1"),
+                 grid.Column("filename", "File name", style: "MidColumn20Center col-lg-3",
+        format: @<text>
+                    <a title='Click here to download' onclick="DownloadtoaAttachments('@item.filename')">
+                        @item.filename
+                    </a>
+        </text>),
+                                 grid.Column("description", "Description", style: "MidColumn20Center col-lg-3"),
+       grid.Column(header: "Action", canSort: false, style: "action",
+       format: @<text>
+        <a onclick="deleteAttofTOA(id)" id="@item.attachGid" title="Delete File"> <span class="glyphicon glyphicon-trash"> </span> </a>
+        @* <input type="button" value="Delete" class="glyphicon glyphicon-trash" onclick="deleteAttofTOA(id)" id="@item.attachGid" title="Delete" />*@
+    </text>)))
+            <div class=" btnCenter" align="center">
+                @if (ViewBag.Message != null)
+                {
+                    <b> @ViewBag.Message </b>
+                }
+            </div>
+        </div>
+
+        <span>  Total No Of Records:@Model._attach_list.Count</span>
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning" id="btntoabackView" onclick="backtotmsummary()" type="submit" name="command" value="Back"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+</div>
+
+<script>
+
+    if ('@ViewBag.viewmode' == "disabled") {
+        $("#addviewattachment").hide(0);
+        $("#toaattachgridaddview td:nth-child(5),#toaattachgridaddview th:nth-child(5)").hide(0);
+        //$("#btntoabackView").show(0);
+    }
+
+    function DownloadtoaAttachments(filename) {
+        $.ajax({
+            url: '@Url.Action("CheckFileExists", "AssetTransfer")?id=' + filename + '&' + new Date().getTime(),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (data == "0") {
+                    jAlert("File Not Found", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    location = "../AssetTransfer/DownloadDocument?id=" + filename + "&" + new Date().getTime();
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    }
+    function deleteAttofTOA(id) {
+        $.post('../AssetTransfer/Delete_attach?id=' + id,
+        function (data) {
+            if (data == 0) {
+                location = location.href;
+            }
+            else {
+                id = '@Model._gid';
+                $('#toaattachmentgrid').load('@Url.Action("toaAttachgrid", "AssetTransfer")?id=' + id + '&' + new Date().getTime());
+                jAlert("Deleted Successfully", "Message");
+            }
+        }, 'json');
+    }
+
+    function backtotmsummary() {        
+        window.parent.jQuery('#forAttachment').dialog('close');       
+    }
+</script>

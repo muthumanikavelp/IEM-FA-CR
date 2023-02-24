@@ -1,0 +1,73 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@using IEM.Common
+@model  IEnumerable<IEM.Areas.MASTERS.Models.BranchDataModel>
+@{
+    BranchModel objd = new BranchModel();
+    List<BranchDataModel> lstPayment = new List<BranchDataModel>();
+    lstPayment = (List<BranchDataModel>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.SelectBranch().ToList();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+    
+    ViewBag.Title = "Index";
+    WebGrid grid = new WebGrid(source: lstPayment, canPage: false, canSort: false);
+    int rowVal = 0;
+}
+
+    <table class="myTableStyleTabNew" align="left" style="width:100%">
+        <tr>
+            <td>
+                <div id="gridid">
+                    @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                "▼" : string.Empty);
+                        }
+                    }
+                    @grid.GetHtml(
+                    htmlAttributes: new { id = "gridBranchClassid" },
+                    tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+                    columns: grid.Columns
+                    (
+                    grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1, style: "size"),
+                    grid.Column("BranchCode", Sorter("BranchCode", "Branch Code", grid)),
+                    grid.Column("BranchName", Sorter("BranchName", "Branch Name", grid)),
+                    grid.Column("City", Sorter("City", "City", grid)),
+                    grid.Column("BranchTier", Sorter("BranchTier", "BranchTier", grid)),
+                    grid.Column("BranchIncharge", Sorter("BranchIncharge", "BranchIncharge", grid)),
+                    grid.Column("StartDate", Sorter("StartDate", "StartDate", grid)),
+                    grid.Column("ClosedDate", Sorter("ClosedDate", "Closed Date", grid)),
+                    grid.Column("ActiveStatus", Sorter("ActiveStatus", "Active Status", grid)),
+                    grid.Column("Branchfl", Sorter("Branch", "Branch", grid))
+                   )))
+                 
+                </div>
+            </td>
+        </tr>
+    </table>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#gridBranchClassid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+</script>
+<style>
+    .size {
+        width: 5px;
+    }
+</style>
+
+

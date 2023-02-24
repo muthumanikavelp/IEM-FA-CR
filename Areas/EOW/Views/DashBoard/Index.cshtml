@@ -1,0 +1,562 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/angular.min.js"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script type="text/javascript">
+    var currentTab = 0;
+    $(function () {
+        $("#tabsapprvallist").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">DashBoard</span>
+</div>
+<div class="well" style="padding: 1px 1px 0px 1px;font-size:11px;">
+    @*<div>
+        <a data-modal="" href="~/ForMail/sendusermailfs" id="DownloadTemplate">
+            <button id="DownloadTemplate" class="btn btn-primary" type="button"><span style="color:white !important;" class="glyphicon glyphicon-download"></span>Send Mail</button>
+        </a>
+    </div>*@
+    <div ng-app="myApp">
+        <div id="tabsapprvallist" style="font-size:12px; height: 750px;">
+            <ul>
+                <li><a href="#tabsapprvallist-1">My DashBoard &nbsp;&nbsp;<label id="myRequestscountG"><br /></label>&nbsp;</a></li>
+                <li><a href="#tabsapprvallist-2">My Requests &nbsp;[&nbsp;<label id="myRequestscount">0</label>&nbsp;]</a></li>
+                <li><a href="#tabsapprvallist-3">For My Approvals &nbsp;[&nbsp;<label id="myApprovalscount">0</label>&nbsp;] </a></li>
+                <li><a href="#tabsapprvallist-4"> Hold &nbsp;[&nbsp;<label id="myApprovalsholdcount">0</label>&nbsp;] </a></li>
+
+                @if (Session["loginraisemode"] == null)
+                {
+                    if (Session["centralmkerorchk"].ToString() == "CTChecker")
+                    {
+                        <li><a href="#tabsapprvallist-5">Central Team Checker &nbsp;[&nbsp;<label id="myApprovalscentralcount">0</label>&nbsp;] </a></li>
+                    }
+                    if (Session["centralmkerorchk"].ToString() == "CTMaker")
+                    {
+                        <li><a href="#tabsapprvallist-6">Central Team Maker &nbsp;[&nbsp;<label id="myApprovalscentralmkrcount">0</label>&nbsp;] </a></li>
+                    }
+                }
+            </ul>
+            <div id="tabsapprvallist-1" style="padding: 10px 4px 3px 15px">
+                <br />
+                @Html.Partial("myDocuments")
+                <br />
+                <br />
+                <div class="container">
+                    <table align="center">
+                        <tr>
+                            <td style="vertical-align:bottom;padding-right: 3px;">
+                                <a onclick="ShowUtilityPayments()" class="cursorpointer" style="text-decoration: none;" title="Click Here To Show Utility Payments"><span id="lblUtilityPayments" style="color: red; font-size: 17px;">Utility Payments [ @Session["UtilityPayments"] ]</span></a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="tabsapprvallist-2" style="padding: 10px 4px 3px 15px">
+                <br />
+                @Html.Partial("myWorkListSearchNew")
+            </div>
+            <div id="tabsapprvallist-3" style="padding: 10px 4px 3px 15px">
+                <br />
+                @Html.Partial("myWorkListSearchappNew")
+            </div>
+            <div id="tabsapprvallist-4" style="padding: 10px 4px 3px 15px">
+                <br />
+                @Html.Partial("HoldReport")
+            </div>
+            @if (Session["loginraisemode"] == null)
+            {
+                if (Session["centralmkerorchk"].ToString() == "CTChecker")
+                {
+                    <div id="tabsapprvallist-5" style="padding: 10px 4px 3px 15px">
+                        <br />
+                        @Html.Partial("myWorkListSearchCTChkr")
+                    </div>
+                }
+                if (Session["centralmkerorchk"].ToString() == "CTMaker")
+                {
+                    <div id="tabsapprvallist-6" style="padding: 10px 4px 3px 15px">
+                        <br />
+                        @Html.Partial("myWorkListSearchCTMkr")
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+<style>
+    .tablefix {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .thfix, .tdfix {
+        overflow: hidden;
+    }
+
+    .notactive {
+        text-decoration: none;
+        pointer-events: none;
+        cursor: default;
+        opacity: 0.1;
+    }
+</style>
+<div id="ForPartialViewraisetxt"></div>
+<div style="padding:2px;" id="ForPartialViewHoldRelease"></div>
+
+<script type="text/javascript">
+    var app = angular.module('myApp', ['ui.bootstrap']);
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        };
+    });
+
+    app.controller('PageCtrl', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+        $http.get("../DashBoard/ToGetMyDashboarddtils?" + new Date().getTime())
+     .then(function (response) {
+
+         ////---------------- MyRequest
+         $scope.itemsMyReq = response.data.lstMyRequesta;
+         $('#myRequestscount').text($scope.itemsMyReq.length);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage1 = 1;
+         $scope.totalItems1 = $scope.itemsMyReq.length;
+         $scope.entryLimit1 = 50;
+         $scope.noOfPages1 = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages1 = 5;
+         $scope.$watch('searchMyReq', function (newVal, oldVal) {
+             $scope.filtered1 = filterFilter($scope.itemsMyReq, newVal);
+             $scope.totalItems1 = $scope.filtered1.length;
+             $scope.noOfPages1 = Math.ceil($scope.totalItems1 / $scope.entryLimit1);
+             $scope.currentPage1 = 1;
+             $scope.noofsetpages1 = 5;
+         }, true);
+
+         ////---------------- My Approval Request
+         $scope.itemsMyAppReq = response.data.lstMyAppRequesta;
+         $('#myApprovalscount').text($scope.itemsMyAppReq.length);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage2 = 1;
+         $scope.totalItems2 = $scope.itemsMyAppReq.length;
+         $scope.entryLimit2 = 50;
+         $scope.noOfPages2 = Math.ceil($scope.totalItems2 / $scope.entryLimit2);
+         $scope.noofsetpages2 = 5;
+         $scope.$watch('searchMyAppReq', function (newVal, oldVal) {
+             $scope.filtered2 = filterFilter($scope.itemsMyAppReq, newVal);
+             $scope.totalItems2 = $scope.filtered2.length;
+             $scope.noOfPages2 = Math.ceil($scope.totalItems2 / $scope.entryLimit2);
+             $scope.currentPage2 = 1;
+             $scope.noofsetpages2 = 5;
+         }, true);
+
+
+         ////---------------- Central chkr
+         $scope.itemsCentralchkr = response.data.lstCentralchkra;
+         $('#myApprovalscentralcount').text($scope.itemsCentralchkr.length);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage3 = 1;
+         $scope.totalItems3 = $scope.itemsCentralchkr.length;
+         $scope.entryLimit3 = 50;
+         $scope.noOfPages3 = Math.ceil($scope.totalItems3 / $scope.entryLimit3);
+         $scope.noofsetpages3 = 5;
+         $scope.$watch('searchCentralchkr', function (newVal, oldVal) {
+             $scope.filtered3 = filterFilter($scope.itemsCentralchkr, newVal);
+             $scope.totalItems3 = $scope.filtered3.length;
+             $scope.noOfPages3 = Math.ceil($scope.totalItems3 / $scope.entryLimit3);
+             $scope.currentPage3 = 1;
+             $scope.noofsetpages3 = 5;
+         }, true);
+
+         ////---------------- Central mkar
+         $scope.itemsCentralmkar = response.data.lstCentralmkara;
+         $('#myApprovalscentralmkrcount').text($scope.itemsCentralmkar.length);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage4 = 1;
+         $scope.totalItems4 = $scope.itemsCentralmkar.length;
+         $scope.entryLimit4 = 50;
+         $scope.noOfPages4 = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages4 = 5;
+         $scope.$watch('searchCentralmka', function (newVal, oldVal) {
+             $scope.filtered4 = filterFilter($scope.itemsCentralmkar, newVal);
+             $scope.totalItems4 = $scope.filtered4.length;
+             $scope.noOfPages4 = Math.ceil($scope.totalItems4 / $scope.entryLimit4);
+             $scope.currentPage4 = 1;
+             $scope.noofsetpages4 = 5;
+         }, true);
+
+
+         ////---------------- ECF Hold List
+         $scope.itemsMyecfhold = response.data.lstecfholda;
+         $('#myApprovalsholdcount').text($scope.itemsMyecfhold.length);
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage5 = 1;
+         $scope.totalItems5 = $scope.itemsMyecfhold.length;
+         $scope.entryLimit5 = 50;
+         $scope.noOfPages5 = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages5 = 5;
+         $scope.$watch('searchMyecfhold', function (newVal, oldVal) {
+             $scope.filtered5 = filterFilter($scope.itemsMyecfhold, newVal);
+             $scope.totalItems5 = $scope.filtered5.length;
+             $scope.noOfPages5 = Math.ceil($scope.totalItems5 / $scope.entryLimit5);
+             $scope.currentPage5 = 1;
+             $scope.noofsetpages5 = 5;
+         }, true);
+
+
+     });
+    }]);
+
+</script>
+<script type="text/javascript">
+    var ForPartialViewraisetxt;
+    $(document).ready(function () {
+        ForPartialViewraisetxt = $("[id$='ForPartialViewraisetxt']");
+        ForPartialViewraisetxt.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'Add Employee ',
+            width: 950,
+            height: 590
+        });
+    });
+    $(document).ready(function () {
+        $("#txtdbdocdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+    });
+    function ShowUtilityPayments() {
+        location.href = '@Url.Action("MyDocDetails", "MyDashDocDetails")?queuefor=submitmode&requesttype=UtilityPayments&reqstatus=UtilityPayments';
+    }
+
+    function SelectDoc(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        var ecfstatusnew = row.find('td:eq(8)').text();
+        ecfstatusnew = ecfstatusnew.toString().trim();
+        var ecfnume = row.find('td:eq(10)').text();
+        ecfnume = ecfnume.toString().trim();
+        if (ecfstatusnew == "Paid" || ecfstatusnew == "EPU Rejected" || ecfstatusnew == "EPU Inprocess") {
+            var statustype = "";
+            if (ecfstatusnew == "EPU Inprocess") {
+                statustype = "0";
+                location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+            }
+            else if (ecfstatusnew == "EPU Rejected") {
+                statustype = "1";
+                location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+            }
+            else if (ecfstatusnew == "Paid") {
+                statustype = "2";
+                var ecfnumbers = row.find('td:eq(2)').text();
+                ecfnumbers = ecfnumbers.toString().trim();
+                if (ecfnumbers.charAt(0).trim() == "E" || ecfnumbers.charAt(0).trim() == "A") {
+                    location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+                }
+                else {
+                    jAlert("Migrated Claim details is for User information & cannot be viewed", "Message");
+                    return false;
+                }
+            }
+        }
+        else {
+            if (ecfstatusnew == "Draft") {
+                location.href = '@Url.Action("selectdatadraft", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+            }
+            else {
+                location.href = '@Url.Action("selectdata", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+            }
+        }
+    }
+    function ViewDoc(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        var ecfstatusnew = row.find('td:eq(8)').text();
+        ecfstatusnew = ecfstatusnew.toString().trim();
+        var ecfnume = row.find('td:eq(10)').text();
+        ecfnume = ecfnume.toString().trim();
+      
+        if (ecfstatusnew == "Paid" || ecfstatusnew == "EPU Rejected" || ecfstatusnew == "EPU Inprocess") {
+            var statustype = "";
+            if (ecfstatusnew == "EPU Inprocess") {
+                statustype = "0";
+                location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+            }
+            else if (ecfstatusnew == "EPU Rejected") {
+                statustype = "1";
+                location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+            }
+            else if (ecfstatusnew == "Paid") {
+                statustype = "2";
+              
+                var ecfnumbers = row.find('td:eq(2)').text();
+                ecfnumbers = ecfnumbers.toString().trim();
+              //  alert(ecfnumbers.charAt(0).trim());
+                if (ecfnumbers.charAt(0).trim() == "E" || ecfnumbers.charAt(0).trim() == "A") {
+                    location.href = '@Url.Action("FSDashboardLink", "MyDashDocdetails")?EcfGid=' + ecfnume + '&EcfStatus=' + statustype + '&' + new Date().getTime();
+                }
+                else {
+                    jAlert("Migrated Claim details is for User information & cannot be viewed", "Message");
+                    return false;
+                }
+            }
+        }
+        else {
+            location.href = '@Url.Action("Viewdata", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+        }
+    }
+    function PrintDoc(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(10)').text();
+        ecfnum = ecfnum.toString().trim();
+        var ecfstatusnew = row.find('td:eq(7)').text();
+        ecfstatusnew = ecfstatusnew.toString().trim();
+        if (ecfstatusnew == "General Claims" || ecfstatusnew == "Bulk Conveyance" || ecfstatusnew == "Travel Claim" || ecfstatusnew == "Petty Cash") {
+            var urlgen = '@Url.Action("Employeeindex", "Print")?ecfgid=' + ecfnum + '&' + new Date().getTime();
+            window.open(urlgen, "_blank");
+        }
+        else if (ecfstatusnew == "Regular Invoice" || ecfstatusnew == "DSA Suppliers") {
+            var urlgensupp = '@Url.Action("Index", "Print")?ecfgid=' + ecfnum + '&' + new Date().getTime();
+            window.open(urlgensupp, "_blank");
+        }
+        else if (ecfstatusnew == "Employee Advance" || ecfstatusnew == "Supplier Advance") {
+            var urlgenarf = '@Url.Action("Arfindex", "Print")?ecfgid=' + ecfnum + '&' + new Date().getTime();
+            window.open(urlgenarf, "_blank");
+        }
+    }
+
+    function SelectDocapp(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        var ecfstatus = row.find('td:eq(7)').text();
+        ecfstatusnew = ecfstatus.toString().trim();
+        if (ecfstatusnew == "Draft") {
+            location.href = '@Url.Action("selectdatadraft", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+        }
+        else if (ecfstatusnew == "Rejected") {
+            location.href = '@Url.Action("selectdata", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+        }
+        else {
+            location.href = '@Url.Action("Viewdata", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+        }
+    }
+    function Selectctchkr(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        location.href = '@Url.Action("Viewdata", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+    }
+    function Selectctmkr(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(2)').text();
+        ecfnum = ecfnum.toString().trim();
+
+        var ecfnumnew = row.find('td:eq(0)').text();
+        ecfnumnew = ecfnumnew.toString().trim();
+
+        var ecfstatus = row.find('td:eq(1)').text();
+        ecfstatusnew = ecfstatus.toString().trim();
+        if (ecfstatusnew == "CT Draft") {
+            location.href = '@Url.Action("selectctdraft", "DashBoard")?id=' + ecfnumnew + '&' + new Date().getTime();
+        }
+        else {
+            location.href = '@Url.Action("selectdata", "CentralMaker")?id=' + ecfnum + '&' + new Date().getTime();
+        }
+    }
+
+    function CtDraftDelete(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        jConfirm("Do you want to delete this ECF...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "noofperson": ecfnum }
+                $.post('../DashBoard/Deletectdraftecf', EmpExpensemodel,
+              function (data) {
+                  if (data == 0) {
+                      jAlert("Error.", "Error");
+                      return false;
+                  } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      location.href = '@Url.Action("index", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+                  }
+              }, 'json');
+            }
+        });
+    }
+
+
+    function RaiseTicketmyreq(element) {
+        var refflagname = "ECF";
+        var row = $(element).closest('tr');
+        var itemrefno = row.find('td:eq(2)').text();
+        itemrefno = itemrefno.toString().trim();
+        ForPartialViewraisetxt.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+        ForPartialViewraisetxt.dialog({
+            title: 'Raise Ticket',
+            width: 1100,
+            height: 500
+        });
+        ForPartialViewraisetxt.dialog("open");
+    }
+    function RaiseTicketmyapp(element) {
+
+        var refflagname = "ECF";
+        var row = $(element).closest('tr');
+        var itemrefno = row.find('td:eq(2)').text();
+        itemrefno = itemrefno.toString().trim();
+
+        ForPartialViewraisetxt.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+        ForPartialViewraisetxt.dialog({
+            title: 'Raise Ticket',
+            width: 1100,
+            height: 500
+        });
+        ForPartialViewraisetxt.dialog("open");
+    }
+
+    var objDialogyHoldRelease;
+    $(document).ready(function () {
+        objDialogyHoldRelease = $("[id$='ForPartialViewHoldRelease']");
+        objDialogyHoldRelease.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 500,
+            height: 500
+        });
+    });
+
+    function HoldRelease(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        var url = '@Url.Action("HoldReleaseRemark", "ECF")?id=' + ecfnum + '&' + new Date().getTime();
+        objDialogyHoldRelease.load(url);
+        objDialogyHoldRelease.dialog({ title: 'ECF Hold Release View', width: '500', height: '300' });
+        objDialogyHoldRelease.dialog("open");
+    }
+    function Cancel() {
+        window.parent.jQuery('#ForPartialViewHoldRelease').dialog('close');
+    }
+
+    $("#txtAmountr").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmountr").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmountr").val(replaceCommas(currentval));
+
+    });
+    $("#txtAmounta").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmounta").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmounta").val(replaceCommas(currentval));
+
+    });
+    $("#txtAmountc").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmountc").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmountc").val(replaceCommas(currentval));
+
+    });
+    $("#txtAmountm").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmountm").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmountm").val(replaceCommas(currentval));
+
+    });
+    $("#txtAmounth").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtAmounth").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtAmounth").val(replaceCommas(currentval));
+
+    });
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+</script>

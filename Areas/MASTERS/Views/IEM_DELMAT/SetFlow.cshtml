@@ -1,0 +1,263 @@
+﻿@using IEM.Areas.MASTERS.Models
+@using System.Dynamic
+@using System.IO
+@using System.Data
+
+@{
+    //if (Session["SlabGid"] != null)
+    //{
+    DataTable d = new DataTable();
+    IEM_MST_DELMAT Delmat = new IEM_MST_DELMAT();
+    List<iem_mst_delmat> lst = new List<iem_mst_delmat>();
+
+    d = Delmat.Getrows(Convert.ToString(Session["SlabGid"]));
+    d.Columns.Add("Action");
+    d.Rows.Add("No Record");
+
+
+    var result = new List<dynamic>();
+    foreach (DataRow row in d.Rows)
+    {
+        var obj = (IDictionary<string, object>)new ExpandoObject();
+        foreach (DataColumn col in d.Columns)
+        {
+            obj.Add(col.ColumnName, row[col.ColumnName]);
+        }
+
+        result.Add(obj);
+    }
+
+
+
+    var grid = new WebGrid(result,canPage:false,canSort:false);
+
+    <div class="well" style="padding:10px;">
+        @*<div style="padding-left:91%">*@
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+
+                <td style="width:50%; padding:0px 10px 0px 3px;">
+                    <b>
+                        <span style="color: rgb(52, 108, 196); font-weight:bold ;">Delmat Flow</span>
+                    </b>
+                </td>
+                <td style="width:50%; padding:0px 10px 0px 3px;text-align:right;">
+                    <button type="button" value="AddNew" onclick="NewTypedelflow()" class="btn btn-primary">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span> Add Flow</button>
+                    @*<input type="button" id="addNew" class="btn btn-primary" value="Add New" onclick="NewType()" />*@
+                    <input type="hidden" id="countvalue" />
+                    <input type="hidden" id="SlabGid" />
+                    <input type="hidden" id="SNo" />
+                    <input type="hidden" id="delmatgid">
+                    <input type="hidden" id="GID" />
+                </td>
+
+            </tr>
+
+        </table>
+        <div id="grid">
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+                   htmlAttributes: new { id = "wgrid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                       headerStyle: "head", alternatingRowStyle: "alt")
+            </div>
+        </div>
+    @*<div style="margin-top:5px;max-height: 320px;" id="grid" class="table-responsive">
+
+
+
+            @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+            }
+
+            @grid.GetHtml(
+                               tableStyle: "tableSmall table-bordered table-hover",
+                       htmlAttributes: new { id = "wgrid" },
+                       headerStyle: "head", alternatingRowStyle: "alt")
+            @*}
+
+
+
+        </div>*@
+
+    <table class="myTableStyleTabNew" style="width:100%; margin-top:10px;">
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center;">
+                <button type="button" class="btn btn-primary" id="_Submit" value="Submit">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px; "></span> Submit
+                </button>
+                @*<input type="button" class="btn btn-primary" id="_Submit" value="Submit" />*@
+
+
+                <button type="button" class="btn btn-warning" value="Cancel" id="_Cancel" onclick="cancel()">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+                @*<input type="button" class="btn btn-warning" value="Cancel" id="_Cancel" onclick="cancel()" />*@
+            </td>
+        </tr>
+    </table>
+
+</div>
+    //}
+}
+
+<div id="ForPartialViewfordelmatflow"></div>
+<div id="ForPartialViewexception"></div>
+
+<script type="text/javascript">
+
+</script>
+<script type="text/javascript">
+    
+
+    var objDialogfordelmatflow;
+    $(document).ready(function () {
+
+        //$('#wgrid tr th:nth-child(1)').addClass("nosort");
+        //$('#wgrid').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+
+        objDialogfordelmatflow = $("[id$='ForPartialViewfordelmatflow']");
+        objDialogfordelmatflow.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out'
+        });
+    });
+
+    function NewTypedelflow() {
+        objDialogfordelmatflow.load('../IEM_DELMAT/AddDelmatflow?' + new Date().getTime());
+        objDialogfordelmatflow.dialog({ title: 'Add New Delmat Flow' });
+        objDialogfordelmatflow.dialog("open");
+        return false;
+    }
+    function cancel() {
+        window.location = '../IEM_DELMAT/Main';
+    }
+
+
+
+</script>
+
+<script type="text/javascript">
+    var objDialogfroexcep;
+    $(document).ready(function () {
+        objDialogfroexcep = $("[id$='ForPartialViewexception']");
+        objDialogfroexcep.dialog({
+            autoOpen: false,
+            modal: true
+        });
+    });
+
+  
+
+
+</script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#_Submit').click(function () {
+            var title, titlevalue, flow, sno, addapproval, checkaddapproval, chkforslabrange, slabrange, check;
+            var addapp = "addapp";
+            var countvalue = $("#countvalue").val();
+            var salbrangegid = $("#SlabGid").val();
+            var delmatgid = $('#delmatgid').val();
+            var count = $('#SNo').val();
+            var GID = $('#GID').val();
+
+            $('#wgrid tr').each(function (i, row) {
+
+                var crow = $(this).closest('tr').find('td:eq(1)').text();
+
+                if (crow != "") {
+                    GID = $(this).closest('tr').find('td:eq(0)').text();
+                    var Sno = $(this).closest('tr').find('td:eq(1)').text();
+                    Sno = $.trim(Sno);
+                    title = $(this).closest('tr').find('td:eq(2)').text();
+                    titlevalue = $(this).closest('tr').find('td:eq(3)').text();
+
+                    var addapp = "#addapp" + Sno + ":checked";
+                    addapproval = $(addapp).val() ? true : false;
+                    checkaddapproval = addapproval;
+
+                    flow = $(this).closest('tr').find('td:eq(4)').text();
+
+                    var tabledatalength = $("#wgrid  th").length;
+                    tabledatalength = tabledatalength - 2;
+
+
+                    var slabrange = null;
+                    slabrange = [];
+                    for (var sl = 0; sl < countvalue; sl++) {
+                        check = "#Slabrange" + Sno + sl + ":checked";
+                        slabrange.push($(check).val() ? true : false);
+                    }
+                    var DelmatModel = {
+                        "Title": title, "TitleName": titlevalue, "AddApporoval": checkaddapproval, "Flow": flow,
+                        "delmat_gid": delmatgid, "slabrange_gid": salbrangegid, "lsselectedSlabrange": slabrange,
+                        "GID": GID
+                    };
+
+
+                    $.ajax({
+                        url: '../IEM_DELMAT/InsertDelmatFlow/',
+                        data: JSON.stringify(DelmatModel),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                            isSuccess = result;
+                            jAlert('Successfully Saved', "Information", function (r) {
+                                if (r = true) {
+                                   window.location = '../IEM_DELMAT/Main';
+                                }
+                            });
+                            //            location.reload();
+                            //            window.location = '../IEM_DELMAT/Main';
+
+                        },
+                        error: function (result) {
+
+                            isSuccess = result;
+                        }
+
+                    })
+                }
+
+
+            });
+        });
+    });
+</script>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //$('#wgrid th').each(function () {
+
+        //    if($(this).text().trim()=="Gid")
+        //    {
+        //        alert("working");
+        //        $(this).hide();
+        //    }
+
+        //});
+
+
+    });
+</script>

@@ -1,0 +1,193 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.DashBoard>
+@using IEM.Common
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+   
+    var grid = new WebGrid(Model, canSort: false, canPage: false);
+    
+    if (Session["message"] != string.Empty && Session["message"] != null && Session["message"] != "Rejected" && Session["Message"] != "Please check contracttodate")
+    {
+       
+        <script>jAlert('Successfully Submitted', "Message") </script>
+        Session["message"] = string.Empty;
+    }
+    else if (Session["message"] == "Rejected")
+    {
+        <script>jAlert('Successfully Rejected', "Message") </script>
+        Session["message"] = string.Empty;
+    }
+    else if (Session["Message"] == "Please check contracttodate")
+    {
+  
+        <script>jAlert("Please check contract to date","Message")</script>
+        Session["message"] = string.Empty;
+    }
+    
+    Session["ModificationQueueSearch"] = null;
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    .aligncenter td a, .aligncenter td span, .aligncenter td {
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .aligncenter td {
+        text-align: center;
+    }
+
+        .aligncenter td:nth-child(1) {
+            text-align: left;
+        }
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Dashboard</span>
+    <div style="text-align:right; margin-top:-20px;">
+        <button style="color:white;" type="button" id="btnRaisingRequest" name="btnRaisingRequest" value="Raising Request" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-thumbs-up"></span> Raising Request</button>
+    </div>
+</div>
+
+<div class="well">
+    <fieldset>
+        <legend>DOCUMENT SUMMARY</legend>
+        <center>
+            <table style="width:100%;" class="myTableStyleTabdashboard">
+                <tr>
+                    <td width="65%">
+                        <div id="wgDashboard">
+                            <center>
+                                <div class="table-responsive" style="margin-top:10px;">
+                                    @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridDashboard" },
+                        tableStyle: "tableSmall table-bordered aligncenter",
+                        columns:
+                grid.Columns(
+                grid.Column("_DashBoardRequestType", "Request Type"),
+                grid.Column("_DraftCount", "Draft",
+                format: @<text>
+                                            @if (item._DraftCount == 0)
+                                        {
+                                        <span>  @item._DraftCount</span>
+                                        }
+                                        else
+                                        {
+                                        <a title='view' onclick='ViewDashboardDetails("draft",this)'> @item._DraftCount </a>
+                                        }
+                </text>),
+                grid.Column("_InprocessCount", "Inprocess",
+                 format: @<text>
+                                            @if (item._InprocessCount == 0)
+                                        {
+                                        <span> @item._InprocessCount</span>
+                                        }
+                                        else
+                                        {
+                                        <a title='View' onclick='ViewDashboardDetails("inprocess",this)'> @item._InprocessCount </a>
+                                        }
+                </text>),
+                grid.Column("_ApprovedCount", "Approved",
+                  format: @<text>
+                                            @if (item._ApprovedCount == 0)
+                                        {
+                                        <span>  @item._ApprovedCount</span>
+                                        }
+                                        else
+                                        {
+                                        <a title='View' onclick='ViewDashboardDetails("approved",this)'> @item._ApprovedCount </a>
+                                        }
+
+                </text>),
+                grid.Column("_RejectedCount", "Rejected",
+                format: @<text>
+                                            @if (item._RejectedCount == 0)
+                                        {
+                                        <span> @item._RejectedCount</span>
+                                        }
+                                        else
+                                        {
+                                        <a title='View' onclick='ViewDashboardDetails("rejected",this)'> @item._RejectedCount </a>
+                                        }
+
+                </text>),
+                grid.Column("_WaitingForApprovalCount", "For My Approval",
+                 format: @<text>
+                                            @if (item._WaitingForApprovalCount == 0)
+                                        {
+                                        <span> @item._WaitingForApprovalCount</span>
+                                        }
+                                        else
+                                        {
+                                        <a title='View' onclick='ViewDashboardDetails("waitingforapproval",this)'> @item._WaitingForApprovalCount </a>
+                                        }
+
+                </text>)))
+                                </div>
+                            </center>
+                        </div>
+                    </td>
+                    <td width="35%">
+                        <div class="table-responsive" style="margin-top:10px;">
+                            @Html.Partial("StatusGridDetails")
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </fieldset>
+    <br />
+    <fieldset>
+        <legend>MY REQUEST</legend>
+        
+            <div class="table-responsive" style="margin-top:10px;">
+                @Html.Partial("MyRequestsGrid")
+            </div>
+        
+    </fieldset>
+    <br />
+    <fieldset>
+        <legend>FOR MY APPROVAL</legend>
+            <div class="table-responsive" style="margin-top:10px;">
+                @Html.Partial("MyApprovalsGrid")
+            </div>
+    </fieldset>
+</div>
+
+<script type="text/javascript">
+    function ViewDashboardDetails(requeststatus, element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var reqType = tds.eq(0).text();
+        if (reqType == 'ACTIVATION' || reqType == 'DEACTIVATION') {
+            if (reqType == 'ACTIVATION') {
+                location = "../SupplierActivationApprovalQueue/ActivationApprovalQueue?queuefor=view&requesttype=" + reqType + "&reqstatus=" + requeststatus;
+            } else if (reqType == 'DEACTIVATION') {
+                location = "../SupplierDeActivationApprovalQueue/SupplierDeActivationApproval?queuefor=view&requesttype=" + reqType + "&reqstatus=" + requeststatus;
+            }
+        }
+        else if (reqType == 'GSTMODIFICATION'){
+            if (requeststatus == "draft") {
+                location = "../GSTModification/Index?queuefor=submitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "inprocess" || requeststatus == "approved") {
+                location = "../GSTModification/Index?queuefor=view&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "rejected") {
+                location = "../GSTModification/Index?queuefor=resubmitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "waitingforapproval") {
+                location = "../GSTModification/Index?queuefor=approval&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            }
+        }
+        else {
+            if (requeststatus == "draft") {
+                location = "../Modification/Index?queuefor=submitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "inprocess" || requeststatus == "approved") {
+                location = "../Modification/Index?queuefor=view&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "rejected") {
+                location = "../Modification/Index?queuefor=resubmitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            } else if (requeststatus == "waitingforapproval") {
+                location = "../Modification/Index?queuefor=approval&requesttype=" + reqType + "&reqstatus=" + requeststatus + '&' + new Date().getTime();
+            }
+        }
+    }
+    $("#btnRaisingRequest").live('click', function () {
+        location = "../AsmsMain/Index?" + new Date().getTime();
+    });
+</script>

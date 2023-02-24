@@ -1,0 +1,361 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+
+@{
+
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.AssetParentList,
+                         canPage: false,
+                         canSort: false,                         
+                         ajaxUpdateContainerId: "grid"
+                       );
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+}
+
+
+<div id="dvAssetchild">
+
+    <table class="myTableStyleTabNew" style="margin-left:-03px;" align="center">
+        <tr>
+            <td>
+
+                <div>
+                    <span> Asset ID-To be Merged</span>
+                    <br />
+                    <input type="text"
+                           name="filter"
+                           id="txtchild"
+                           @*value="@ViewBag.filter"*@
+                           class="textboxStyleSearch" maxlength="20" />
+                </div>
+
+            </td>
+            <td>
+
+                <span> </span>
+                <br />
+                <button class="btn btn-primary" type="submit" id="command" name="command" onclick="SearchChild()" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+            </td>
+
+            <td>
+
+                <div class="input-append ">
+                    <span class="input-append">
+                        <button class="btn btn-primary" id="btnclearforecfcle" value="Clear" onclick="refserachChild()" name="command" type="button" onclick="reffffsuppseach()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                    </span>
+                </div>
+            </td>
+
+        </tr>
+
+    </table>
+
+@using (Html.BeginForm("GetCheckedId", "AssetMerge", FormMethod.Post))
+            {
+    <div style="margin-top:17px; height:250px;overflow:scroll;"  class="overflowx overflowy" >
+
+        @*HttpContext.Current.Session["AssetIdChecked"]*@
+
+        @grid.GetHtml(
+                        fillEmptyRows: false,
+                        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        htmlAttributes: new { id = "checkableGrid" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns(
+                                 grid.Column(header: "", format: item => rowVal = rowVal + 1),
+                                 grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),
+                                 grid.Column("AssetCode", obj.Sorter("AssetCode", "Asset Code", grid), style: "MidColumns10"),
+                                 grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Description", grid), style: "MidColumns10"),
+                                 grid.Column("AssetValue", obj.Sorter("AssetValue", "Asset Value", grid), style: "MidColumns10"),
+                                 grid.Column(format: @<text>
+           
+        @if (Convert.ToInt32(HttpContext.Current.Session["AssetIdChecked"]) == @item.AssetDetGid)
+        {
+
+            <input type="checkbox" value="@item.AssetDetGid" name="ids" disabled="disabled" />
+        }
+        else
+        {
+          <input type="checkbox" value="@item.AssetDetGid" name="ids" />
+            
+        }
+        
+        
+         </text>, header: "{checkall}")
+                                                                              
+
+
+                                             ))
+           
+        <div class="borderStyle btnCenter" align="center">
+            <b> @ViewBag.Message </b>
+        </div>
+
+      
+
+        @*<div>
+            <span> </span>
+            <br />
+            <button class="btn btn-primary" type="submit" name="command" onclick="Checkedid()" value="Merge"><span style="color:white;" class="glyphicon glyphicon-transfer"></span> Merge</button>
+        </div>*@
+            
+               
+            
+        
+
+        @*<div>
+            <input type="submit" value="Get Selected Record" onclick="Checkedid()"/>
+        </div>*@
+        <br />
+        <div class="myTableStyleTabNew">
+            <span>  Total No Of Records :@Model.AssetParentList.Count </span>
+        </div>
+
+    </div>
+
+    <table class="myTableStyleTabNew" align="left">
+        <tr>
+
+            <td class="form-group" nowrap="nowrap">
+
+                <div style="float:right;padding-right:20px;margin-top:5px;">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit" name="command" onclick="Checkedid()" value="Merge"><span style="color:white;" class="glyphicon glyphicon-link"></span> Merge</button>
+                    </span>
+                </div>
+            </td>
+
+            <td class="form-group" nowrap="nowrap">
+
+                <div style="float:right;padding-right:20px;margin-top:5px;">
+                    <span class="input-group-btn">
+                        <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel" onclick="BacktoSum()"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                    </span>
+                </div>
+            </td>
+
+
+
+        </tr>
+    </table>
+            }
+</div>
+
+<script>
+
+ 
+
+  $(document).ready(function () {
+
+  
+      $("#checkableGrid th").each(function () {
+
+          if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+              $(this).text('');
+              $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+              $(this).append("<span>Select All</span>");
+          }
+
+      });
+
+  });
+
+                       
+  //2nd click event for header checkbox for select /deselect all
+  $("#cbSelectAll").live("click", function () {
+      var ischecked = this.checked;
+      $('#checkableGrid').find("input:checkbox").each(function () {
+          this.checked = ischecked;
+          
+      });
+  });
+                       
+
+  //3rd click event for checkbox of each row
+  //$("input[name='ids']").click(function () {
+
+
+
+  //    var totalRows = $("#checkableGrid td :checkbox").length;
+      
+  //    var checked = $("#checkableGrid td :checkbox:checked").length;
+     
+  //    if (checked == totalRows) {
+  //        $("#checkableGrid").find("input:checkbox").each(function () {
+
+  //            this.checked = true;
+
+             
+  //        });
+  //    }
+  //    else {
+  //        $("#cbSelectAll").removeAttr("checked");
+  //    }
+  //});
+
+
+
+
+  //$("input[name='ids']").click(function () {
+     
+  //    var count = 0;
+  //    $("input[type='checkbox']:checked").each(
+  //       function () {
+
+            
+
+  //          // checkboxValues.push($(this).val())
+  //           checkboxValues[count] = $(this).val();
+  //           count++;
+  //           alert(checkboxValues);
+  //          // alert(TabIdFonctions);
+  //       });
+  //});
+                       
+ 
+
+  function SearchChild() {
+
+      
+      var AssetId = $('#txtchild').val();
+     // alert(AssetId.toString());
+      var command = $('#command').val();
+
+      var objownersearch =
+          {
+              "AssetId": AssetId,
+              "command": command
+          };
+
+      $.ajax({
+          type: 'POST',
+          url: '@Url.Action("AssetChild", "AssetMerge")',
+          data: objownersearch,
+              success: function (data) {
+
+              $("#dvAssetchild").empty().append(data);
+              $('#txtFilter').val('');
+
+          },
+          error: function () {
+          }
+      });
+  }
+  function refserachChild() {
+
+      $.ajax({
+          type: 'GET',
+          url: '@Url.Action("AssetChild", "AssetMerge")',
+          data: {},
+          success: function (data) {
+              $("#dvAssetchild").empty().append(data);
+              $('#txtFilter').val('');
+          },
+          error: function () {
+
+          }
+
+
+
+
+      });
+
+  }
+
+    function BacktoSum() {
+    
+           $.ajax({
+            url: '@Url.Action("BacktoSummary", "AssetMerge")',
+            datatype:'json',
+            data: {},
+            type: 'POST',
+            success: function (data) {
+               
+                if (data == "Success") {
+                 
+                            location = '@Url.Action("AssetMergeSummary", "AssetMerge")';
+                }
+                else {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            @*//location = '../AssetImpairments/AssetImpairmentsSummary';
+                            location = '@Url.Action("AssetImpairmentsSummary", "AssetImpairments")';*@
+
+                            }
+                    });
+
+                }
+               
+            },
+            error: function () {
+
+            }
+        });
+    }
+   
+
+
+    function Checkedid() {
+        
+    
+        var ParentId = '@HttpContext.Current.Session["AssetIdChecked"]';
+
+      //  alert(ParentId);
+
+        var ids;
+        $("#checkableGrid").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                ids = $(this).val() + "," + ids;
+            }
+        });
+
+        
+
+
+        $.ajax({
+            
+            url: '@Url.Action("GetCheckValues", "AssetMerge")?ids=' + ids,
+            datatype:'json',
+            data: {},
+           type: 'POST',
+            success: function (data) {
+                //alert(data);
+                if (data == "success") {
+                    jAlert("Successfully Merged!!", "Information", function (r) {
+                        if (r == true) {
+                            //location = '../AssetImpairments/AssetImpairmentsSummary';
+                            location = '@Url.Action("AssetMergeSummary", "AssetMerge")';
+
+                        }
+                    });
+                }
+                else {
+
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            @*//location = '../AssetImpairments/AssetImpairmentsSummary';
+                            location = '@Url.Action("AssetImpairmentsSummary", "AssetImpairments")';*@
+
+                            }
+                    });
+
+                }
+               
+            },
+            error: function () {
+
+            }
+        });
+
+    }
+
+
+
+    
+</script>

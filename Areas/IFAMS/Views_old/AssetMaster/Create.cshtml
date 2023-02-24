@@ -1,0 +1,181 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span> Category </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="category" maxlength="128" id="category" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+            <td>
+                <span> GL No  </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="gl" min="9" maxlength="16" id="gl" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>  Dep GL No   </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="depgl" min="9" maxlength="16" id="depgl" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+            <td>
+                <span> Dep Res GL No </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="resgl" min="9" maxlength="16" id="resgl" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span> Asset Clearance GL </span>
+                <br />
+                <div id="txtTypeName">
+                    <input name="resgl" min="9" maxlength="16" id="clearenceglid" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px;" />
+                </div>
+            </td>
+            @*<td>
+                <span>Asset Clearance GL</span>
+                <br />
+                <div id="txtDocGrpName">
+                    @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.ClearenceGlNo, "-----Select-----", new { @class = "textboxStyle", @style = "display: block;width:250px;margin-top: 4px;", @id = "clearenceglid", @Name = "SupplierType" })
+                </div>
+            </td>*@
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="text-align:center; width:100%;">
+
+                <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveDocGrpName()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GoToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#clearenceglid").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "../AssetMaster/GlNumberLoad",
+                    type: "POST",
+                    dataType: "json",
+                    data: { GlNumber: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.GLCode, value: item.GLCode };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+
+        $("#category").focus();
+        $("#category").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#gl,#depgl,#resgl").keypress(function (event) {
+            return isNumber(event, this);
+        });
+        $("#gl,#depgl,#resgl").change(function (event) {
+            return isNumber(event, this);
+        });
+
+        $("#category,#gl,#depgl,#resgl").keyup(function (e) {
+            var _data = $(this).val();
+            CheckFields();
+            $(this).removeClass('required').removeClass('valid');
+            if (_data.trim() != "")
+                $(this).addClass('valid');
+            else
+                $(this).addClass('required');
+        });
+        CheckFields();
+    });
+
+    function SaveDocGrpName() {
+        var resgl = $("#resgl").val();
+        var depgl = $("#depgl").val();
+        var gl = $("#gl").val();
+        var category = $("#category").val();
+        var assetclearenceid=$("#clearenceglid").val();
+        var model = {
+            "_toa_number": category.trim(),
+            "_AssetCatCode": gl.trim(),
+            "_tfr_status": depgl.trim(),
+            "_tfr_date": resgl.trim(),
+            "asset_clearence_gl":assetclearenceid
+        };
+        $.post('../AssetMaster/create', model,
+            function (data) {
+                if (data == null) {
+                    jAlert("Record Inserted Successfully!", "Message", function (r) {
+                        if (r == true) {
+                            location = '../AssetMaster/AssetMasterSummary';
+                        }
+                    });
+                }
+                else if (data == "Already Exist") {
+                    jAlert("Duplicate Record!", "Message", function (r) {
+                        if (r == true) { return false; }
+                    });
+                    return false;
+                } else {
+                    jAlert("unable to process your request. please try again later!", "Message", function (r) {
+                        if (r == true) { return false; }
+                    });
+                    return false;
+                }
+            }, 'json');
+    }
+
+    function GoToIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFields() {
+        var ErrCount = 0;
+        if ($("#category").val().trim() == "" || $("#category").val() == null) {
+            ErrCount = 1;
+        }
+        else if ($("#resgl").val().trim() == "" || $("#resgl").val() == null) {
+            ErrCount = 2;
+        }
+        else if ($("#gl").val().trim() == "" || $("#gl").val() == null) {
+            ErrCount = 3;
+        }
+        else if ($("#depgl").val().trim() == "" || $("#depgl").val() == null) {
+            ErrCount = 4;
+        }
+        else {
+            ErrCount = 0;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', true);
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>
+

@@ -1,0 +1,118 @@
+﻿@model  IEnumerable<IEM.Areas.FLEXIBUY.Models.partransfer>
+@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    WebGrid grid = new WebGrid(source: Model, rowsPerPage: 10, canPage: true, canSort: true, ajaxUpdateCallback: "grid", ajaxUpdateContainerId: "grid");
+    int rowNum = 0;
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">PAR Transfer Summary</span>
+</div>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:15%">
+                    <span>PAR Number</span>
+                    <br />
+                    <input type="text"
+                           name="txtparefno"
+                           value="@ViewBag.txtparno"
+                           class="textboxStyle"
+                           id="txtpar_refno"
+                           placeholder="Enter PAR NO" />
+                </td>
+                <td style="width:85%; vertical-align:bottom;">
+                    @*<button class="glyphicon glyphicon-search" id="searchid" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(255, 255, 255);" type="submit" name="command" title="Search" value="SEARCH"></button>*@
+                    <button onclick="PARType()" class="btn btn-primary" name="command" type="submit" value="SEARCH" id='btnsearch'><span class="glyphicon glyphicon-search cursorpointer" style="color:white;"></span> Search</button>
+                    <button id="btnrefresh" onclick="refresh()" name="command" value="refresh" class="btn btn-primary"><span class="glyphicon glyphicon-refresh cursorpointer" style="color:white;"></span> Refersh</button>
+                </td>
+            </tr>
+        </table>
+
+        <div id="gridContent" class="table-responsive" style="margin-top:10px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+        //Here I am going to add checkbox column
+        grid.Column("Slno", format: a => rowNum = rowNum + 1, style: "colSmallCenter"),
+        //grid.Column("SNo", format: a => rowNum = rowNum + 1),
+
+
+        //grid.Column("parheadergid", objCmnFunctions.Sorter("parheadergid", "PAR ID", grid), style: "MidColumn5"),
+        grid.Column("parheaderrefno", objCmnFunctions.Sorter("parheaderrefno", "PAR Refno", grid), style: "numcolumn"),
+     grid.Column("parheaderdate", objCmnFunctions.Sorter("parheaderdate", "PAR Date", grid), style: "colmediumCenter"),
+        grid.Column("parheaderdescription", objCmnFunctions.Sorter("parheaderdescription", "PAR Description", grid), style: "collargeBreak"),
+        //grid.Column("parheaderamount", objCmnFunctions.Sorter("parheaderamount", "PAR Amount", grid), style: "colamountlarge"),
+        grid.Column("parheaderamount", objCmnFunctions.Sorter("parheaderamount", "PAR Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.parheaderamount)))) </text>, canSort: true, style: "colamountlarge"),
+        //grid.Column("parutilizeramount", objCmnFunctions.Sorter("parutilizeramount", "Utilized Amount", grid), style: "colamountlarge"),
+        grid.Column("parutilizeramount", objCmnFunctions.Sorter("parutilizeramount", "Utilized Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.parutilizeramount)))) </text>, canSort: true, style: "colamountlarge"),
+        //grid.Column("parbalencedamount", objCmnFunctions.Sorter("parbalencedamount", "Balenced Amount", grid), style: "colamountlarge"),
+        grid.Column("parbalencedamount", objCmnFunctions.Sorter("parbalencedamount", "Balenced Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.parbalencedamount)))) </text>, canSort: true, style: "colamountlarge"),
+        grid.Column(header: "Select", canSort: false, style: "action",
+                     format: @<text>
+                    <input type="hidden" name="parheadergid" value="@item.parheadergid" />
+                    <input type="button" value="Select" class="btn btn-link prselect" onclick="partransferdetailsfunction(id)" id="@item.parheadergid" title="Select" />
+                    </text>)))
+            @*grid.Column(null,null,format: )*@
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        </div>
+        <div id="griddetailContent" class="table-responsive" style="height:500px; margin-top:15px;">
+            @if (ViewBag.process != "process")
+            {
+                @Html.Partial("pardetailstransfer");
+            }
+        </div>
+    </div>
+}
+
+<input hidden="hidden" id="paramount" />
+
+<div id="partransferamount"></div>
+
+<script type="text/javascript">
+    function PARType() {
+
+        location = "@Url.Action("partransfer", "partransfer")";
+    };
+    function refresh() {
+
+        $("#txtpar_refno").val('');
+
+        location = "@Url.Action("partransfer", "partransfer")";
+
+    }
+    function partransferdetailsfunction(id) {
+        $("#griddetailContent").load('@Url.Action("pardetailstransfer", "partransfer")?id=' + id + '&' + new Date().getTime());
+
+       
+    }
+    //$(document).ready(function () {
+
+    //    $("#grid td:nth-child(2),#grid th:nth-child(2)").hide();
+    //});
+
+
+</script>

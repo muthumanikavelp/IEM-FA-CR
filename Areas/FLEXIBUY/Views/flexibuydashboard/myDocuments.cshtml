@@ -1,0 +1,115 @@
+﻿@using IEM.Areas.FLEXIBUY.Models;
+@*@model IEnumerable<IEM.Areas.FLEXIBUY.Models.flexibuydashboard>*@
+@{  
+    prsummodel objd = new prsummodel();
+    List<flexibuydashboard> lstDashBoardd = new List<flexibuydashboard>();
+    string mydocNoRec = "";
+    lstDashBoardd = (List<flexibuydashboard>)TempData["SearchItems"];
+    if (lstDashBoardd == null)
+    {
+        //ViewBag.IsSearched = "no";
+        lstDashBoardd = objd.getdashboard().ToList();
+    }
+    if (lstDashBoardd.Count == 0)
+    {
+        mydocNoRec = "No Records Found";
+    }
+    var grid = new WebGrid(lstDashBoardd, canSort: false, canPage: false);
+    //var grid = new WebGrid(lstDashBoardd, canSort: false, canPage: false, ajaxUpdateContainerId: "wgDashboardMydoc", ajaxUpdateCallback: "DummyFunction2323()");
+}
+<div id="wgDashboardMydoc">
+        <div class="table-responsive" style="width:100%; margin-top:5px;">
+            @grid.GetHtml(
+            htmlAttributes: new { id = "wgDashboardMydoc" },
+            tableStyle: "tableSmall table-bordered table-hover",
+            mode: WebGridPagerModes.All,
+            columns:
+             grid.Columns(
+                      grid.Column("Requesttype", "Request Type", style: "collarge",
+                     
+             format: @<text>
+                            <span style="padding-left:10px !important;">@item.Requesttype</span>
+            </text>),
+                      grid.Column("draft", "Draft", style: "colmediumCenter",
+             format: @<text>
+                @if (item.draft == 0)
+                {
+                    <span>@item.draft</span>
+                }
+                else
+                {
+                    <a title='view' onclick='ViewDashboard("draft", this)'> @item.draft </a>
+                }
+            </text>),
+                               grid.Column("inprocess", "In Process", style: "colmediumCenter",
+             format:@<text>
+                    @if (item.inprocess == 0)
+                    {
+                        <span>@item.inprocess</span>
+                    }
+                    else
+                    {
+                        <a title='view' onclick='ViewDashboard("inprocess", this)'> @item.inprocess </a>
+                    }
+            </text>),
+                                   grid.Column("approval", "Approved", style: "colmediumCenter",
+             format:@<text>
+                    @if (item.approval == 0)
+                    {
+                        <span>@item.approval</span>
+                    }
+                    else
+                    {
+                        <a title='view' onclick='ViewDashboard("approval", this)'> @item.approval </a>
+                    }
+            </text>
+             ),
+                                   grid.Column("reject", "Rejected", style: "colmediumCenter",
+             format:@<text>
+                    @if (item.reject == 0)
+                    {
+                        <span>@item.reject</span>
+                    }
+                    else
+                    {
+                        <a title='view' onclick='ViewDashboard("reject", this)'> @item.reject </a>
+                    }
+            </text>),
+                                   grid.Column("formyapproval", "For MyApproval", style: "colmediumCenter",
+                 format:@<text>
+                    @if (item.formyapproval == 0)
+                    {
+                        <span>@item.formyapproval</span>
+                    }
+                    else
+                    {
+                        <a title='view' onclick='getformyapprovalsummary(this)'> @item.formyapproval </a>
+                    }
+                </text>)))
+        </div>
+        
+        @if (@mydocNoRec != null && @mydocNoRec != "")
+        {
+            <div class="gridMessage" style="width:100%">
+                @mydocNoRec
+            </div>
+        }
+</div>
+<script type="text/javascript">
+    function ViewDashboard(process, element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var type = $.trim(tds.eq(0).text());
+             
+        location = ('@Url.Action("myDocuments", "flexibuydashboard")?Type=' + type + '&' + 'Process=' + process + '&' + new Date().getTime());
+
+    }
+    function getformyapprovalsummary(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var type = $.trim(tds.eq(0).text());
+        location = ('@Url.Action("ForMyApprovalSummaryIndex", "flexibuydashboard")?type=' + type + '&' + new Date().getTime());
+    }
+</script>
+
+

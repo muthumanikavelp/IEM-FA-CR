@@ -1,0 +1,185 @@
+﻿@model IEM.Areas.EOW.Models.ECFDataModel
+@{
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span>Despatch Date</span>
+                <br />
+                <input type="text"
+                       name="DespatchDate"
+                       id="newtxtdesdate"
+                       @*value="@DateTime.Now.ToShortDateString()"*@
+                       class="textboxStyle required"
+                       @*onchange="checkdespatchdate()"*@
+                       style="width: 200px;" />
+            </td>
+
+            <td>
+                <span>Courier Name</span>
+                <br />
+                @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.Courier, "-----Select-----", new { @class = "form-control ", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "CourierId", @Name = "DocType" })
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>AWB No</span>
+                <br />
+                <input type="text"
+                       id="txtdesawb"
+                       name="AWBNo"
+                       value="@ViewBag.AWBNo"
+                       class="textboxStyle required"
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>Reason</span>
+                <br />
+                <input type="text"
+                       id="Reason"
+                       name="Reason"
+                       value="@ViewBag.Reason"
+                       class="textboxStyle required"
+                       style="width: 200px;"
+                       maxlength="32" />
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" disabled="disabled" class="btn btn-primary" value="Save" onclick="Savedespatch()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+}
+
+<div id="ForPartialViewcentral"></div>
+<script type="text/javascript">
+    $(document).ready(function()
+    {
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+  
+        $("#newtxtdesdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+            numberOfMonths: 1,
+        });
+    });
+    $(document).ready(function () {
+
+        $("#txtdesawb").keyup(function () {
+            var txtContractTo = $("#txtdesawb").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#txtdesawb").removeClass('required');
+                $("#txtdesawb").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#txtdesawb").removeClass('valid');
+                $("#txtdesawb").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+       
+        $("#txtinvoice, #txtraisercode").keypress(function (event) {
+            return isNumber(event);
+        });
+        $("#txtraisername").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#txtsuppliercode", "#txtSuppliername", "#txtDepartment", "#txtInvoiceNo", "#txtPONO").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#RecivedDateFrom", "#RecivedDateTo", "#txtInvoiceDate").keypress(function (event) {
+            return isDate(event);
+        });
+    function CheckFieldsHeader() {
+        var ecfno = $('#ECFNo').val();
+        var ecfdate = $('#txtecfdate').val();
+        var raiser = $('#txtdesraiser').val();
+        var supplier = $('#txtdessuplier').val();
+        var despacthdate = $('#newtxtdesdate').val();
+        var courier = $('#CourierId').val();
+        var awbno = $('#txtdesawb').val();
+        var ErrCount = 0;
+        if ($("#newtxtdesdate").val() == "" || $("#newtxtdesdate").val() == null) {
+            ErrCount = 3;
+        }
+        else if ($("#txtdesawb").val() == "" || $("#txtdesawb").val() == null) {
+            ErrCount = 6;
+        }
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+    function Savedespatch() {
+        var Ecfno = $("#ECFNo").val();
+        var Despatchdate = $("#newtxtdesdate").val();
+        var CourierName = $("#CourierId").val();
+        var AwbNo = $("#txtdesawb").val();
+        var Reason = $("#Reason").val();
+        var Student = {
+            "Despatchdate": Despatchdate,
+            "CourierName": CourierName,
+            "AWBNo": AwbNo,
+            "Reason": Reason,
+            "ECFNo": Ecfno
+        };
+        $.ajax({
+            url: '../ECF/DispatchUpdate',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                if (result != "Successfully Despatched") {
+                    $("#newtxtdesdate").datepicker("destroy");
+                    jAlert("Despatch Unsuccess!", "Information", function (r) {
+                        if (r == true) {
+                            $("#newtxtdesdate").datepicker("destroy");
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    jAlert(result, "Information", function (r) {
+                        if (r == true) {
+                            $("#newtxtdesdate").datepicker("destroy");
+                            location = '../ECF/DespatchIndex';
+                        }
+                    });
+                }
+
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#DespatchViewfornew').dialog('close');
+        objnewdespatch.remove();
+    }
+</script>

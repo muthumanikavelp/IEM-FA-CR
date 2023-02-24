@@ -1,0 +1,90 @@
+﻿@model  IEnumerable<IEM.Areas.EOW.Models.CygnetSearchModel>
+@using IEM.Areas.EOW.Models
+@{
+    ViewBag.Title = "Invoice Search";
+    CygnetDataModel objd = new CygnetDataModel();
+    CygnetSearchModel objcyg = new CygnetSearchModel();
+    List<CygnetSearchModel> lstTempInvoice = new List<CygnetSearchModel>();
+    lstTempInvoice = (List<CygnetSearchModel>)TempData["SearchItems"];
+
+    if (lstTempInvoice == null)
+    {
+        ViewBag.IsSearched = "no";
+        if (Session["invoiceGid"] != null)
+        {
+            lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+        }
+        else
+        {
+            lstTempInvoice = objd.SelectInvoiceSearch(objcyg).ToList();
+        }
+    }
+    if (lstTempInvoice.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+
+@{
+    var gridTempInvoice = new WebGrid(lstTempInvoice, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempPayment", ajaxUpdateCallback: "DummyFunction()");
+    int rowVal = 0;
+} 
+
+<div id="divInvoiceGrid" class="overflowy" style="max-height: 380px;">
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+            grid.SortDirection == SortDirection.Ascending ? "▲" :
+            "▼" : string.Empty);
+        }
+    }
+    @gridTempInvoice.GetHtml(
+             htmlAttributes: new { id = "wgTempInvoice" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+                columns:
+                            gridTempInvoice.Columns
+                    (
+                                 gridTempInvoice.Columns(
+                                 gridTempInvoice.Column(header: "Select", canSort: false, style: "action",
+                        format: @<text> 
+    <center>   <input type="checkbox" id="chkInvoice" name="chkInvoice" value="@item.Cygnet_gid" /> </center> 
+                        </text>),
+ @*gridTempInvoice.Column(header: "Action", canSort: false, style: "action",
+                    format: @<text>
+    <input type="hidden" id="hdCygnet_gid" name="hdCygnet_gid" value="@item.Cygnet_gid" />
+    <a title="Edit" style="text-decoration:none;"> <span class=" glyphicon glyphicon-edit" onclick="InvoiceTypePOEdit('@item.Cygnet_gid','@item.Cygnet_InvoiceNo','@item.InvoiceSupplier_gid','@item.Cygnet_InvoiceType','@item.PO_Nos')"></span></a>
+                    </text>),*@
+gridTempInvoice.Column("SlNo", style: "slno", format: item => rowVal = rowVal + 1),
+                        gridTempInvoice.Column("Cygnet_Supplier", Sorter("Cygnet_Supplier", "Supplier Code/Name", gridTempInvoice), style: "colmediumCenter"),
+gridTempInvoice.Column("Cygnet_InvoiceNo", Sorter("Cygnet_InvoiceNo", "Invoice No.", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_InvoiceDate", Sorter("Cygnet_InvoiceDate", "Invoice Date", gridTempInvoice), style: "colmediumBreak"),
+        gridTempInvoice.Column("Cygnet_InvoiceAmt", Sorter("Cygnet_InvoiceAmt", "Invoice Amount", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_TaxableAmt", Sorter("Cygnet_TaxableAmt", "Taxable Amount", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_CGSTAmt", Sorter("Cygnet_CGSTAmt", "CGST Amount", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_SGSTAmt", Sorter("Cygnet_SGSTAmt", "SGST Amount", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_IGSTAmt", Sorter("Cygnet_IGSTAmt", "IGST Amount", gridTempInvoice), style: "colmediumBreak"),
+        gridTempInvoice.Column("Cygnet_Provider", Sorter("Cygnet_Provider", "Provider Location", gridTempInvoice), style: "colmediumBreak"),
+        gridTempInvoice.Column("Cygnet_Provider_GSTN", Sorter("Cygnet_Provider_GSTN", "Provider GSTN", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_Receiver", Sorter("Cygnet_Receiver", "Receiver Location", gridTempInvoice), style: "colmediumCenter"),
+        gridTempInvoice.Column("Cygnet_Receiver_GSTN", Sorter("Cygnet_Receiver_GSTN", "Receiver GSTN", gridTempInvoice), style: "colmediumCenter")
+
+    )))
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="gridMessage" style="width:100%">
+            @ViewBag.Message
+        </div>
+    }
+    @*@if (ViewBag.Message == null)
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(gridTempInvoice.PageIndex + 1)</b> of <b>@gridTempInvoice.PageCount</b> - Total No Of Records: <b>@gridTempInvoice.TotalRowCount</b></div>
+    }*@
+</div>
+
+
+

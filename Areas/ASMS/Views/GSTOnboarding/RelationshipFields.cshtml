@@ -1,0 +1,202 @@
+﻿@using IEM.Areas.ASMS.Models
+@model IEM.Areas.ASMS.Models.SupOtherDetails
+@{
+
+}
+<div style="margin-top:10px;">
+    <div>
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:10%;">
+                    <span>Relation</span><br />
+                    <input type="radio" name="rblRelationflg" id="rblYesr" value="Yes" />&nbsp;Yes
+                    &nbsp;&nbsp;
+                    <input type="radio" name="rblRelationflg" id="rblNor" checked="checked" value="No">&nbsp;No
+                </td>
+                <td style="width:20%;">
+                    <input type="hidden" name="_RelationshipID" id="_RelationshipID" />
+                    <span>Relation Name</span><br />
+                    <input type="text" name="_RelationName" id="_RelationName" class="textboxStyle" />
+                </td>
+                <td style="width:20%;">
+                    <span>Relationship</span><br />
+                    <input type="text" name="_RelationshipName" id="_RelationshipName" class="textboxStyle" tabindex="3" />
+                </td>
+                <td style="vertical-align:bottom; width:30%;">
+                    <button onclick="SaveRelationshipDetails()" id="btnSaveRelationshipDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                    <button id="btnClearRelationshipDetails" onclick="ClearRelationshipDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var stylesSelect = $('#_RelationName');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#_RelationshipName');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#btnSaveRelationshipDetails');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#btnClearRelationshipDetails');
+        stylesSelect.attr('disabled', true);
+
+        $('input[type=radio][name=rblRelationflg]').change(function () {
+
+            if (this.value == 'Yes') {
+                $("#_RelationName").val('');
+                $("#_RelationshipName").val('');
+
+                var stylesSelect = $('#_RelationName');
+                stylesSelect.attr('disabled', false);
+
+                var stylesSelect = $('#_RelationshipName');
+                stylesSelect.attr('disabled', false);
+
+                var stylesSelect = $('#btnSaveRelationshipDetails');
+                stylesSelect.attr('disabled', false);
+
+                var stylesSelect = $('#btnClearRelationshipDetails');
+                stylesSelect.attr('disabled', false);
+
+                $("#_RelationName").addClass('required');
+                $("#_RelationshipName").addClass('required');
+            }
+            else {
+                $("#_RelationName").val('');
+                $("#_RelationshipName").val('');
+
+                var stylesSelect = $('#_RelationName');
+                stylesSelect.attr('disabled', true);
+
+                var stylesSelect = $('#_RelationshipName');
+                stylesSelect.attr('disabled', true);
+
+                var stylesSelect = $('#btnSaveRelationshipDetails');
+                stylesSelect.attr('disabled', true);
+
+                var stylesSelect = $('#btnClearRelationshipDetails');
+                stylesSelect.attr('disabled', true);
+
+                $("#_RelationName").removeClass('required');
+                $("#_RelationshipName").removeClass('required');
+
+                $("#_RelationName").removeClass('valid');
+                $("#_RelationshipName").removeClass('valid');
+
+            }
+        });
+
+    });
+    $(document).ready(function () {
+        $("#_RelationshipID").val("0");
+        $("#_RelationName").attr("maxlength", "128");
+        $("#_RelationshipName").attr("maxlength", "128");
+
+        $("#_RelationName").attr("tabindex", "1");
+        $("#_RelationshipName").attr("tabindex", "2");
+        $("#btnSaveRelationshipDetails").attr("tabindex", "3");
+
+        $("#_RelationName").addClass('required');
+        $("#_RelationshipName").addClass('required');
+
+        $("#_RelationName").keypress(function (event) {
+            return isAlphabetWithSingleQuote(event);
+        });
+        $("#_RelationshipName").keypress(function (event) {
+            return isAlphabet(event);
+        });
+
+        if ($("#_RelationName").val() != "" && $("#_RelationName").val() != null) {
+            $("#_RelationName").addClass('valid');
+            $("#_RelationName").removeClass('required');
+        }
+        else {
+            $("#_RelationName").addClass('required');
+            $("#_RelationName").removeClass('valid');
+        }
+        if ($("#_RelationshipName").val() != "" && $("#_RelationshipName").val() != null) {
+            $("#_RelationshipName").addClass('valid');
+            $("#_RelationshipName").removeClass('required');
+        }
+        else {
+            $("#_RelationshipName").addClass('required');
+            $("#_RelationshipName").removeClass('valid');
+        }
+    });
+    $("#_RelationName").keyup(function () {
+        IsMandatoryRelationshipDetails(this);
+    });
+    $("#_RelationshipName").keyup(function () {
+        IsMandatoryRelationshipDetails(this);
+    });
+    function IsMandatoryRelationshipDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    function SaveRelationshipDetails() {
+        var relation = $("#_RelationName").val();
+        var relationship = $("#_RelationshipName").val();
+        var ids = parseInt($("#_RelationshipID").val());
+        if ($.trim(relation) == "") {
+            jAlert("Please Enter Relation Name", "Error", function () {
+                $("#_RelationName").focus();
+            });
+            return false;
+        }
+        if ($.trim(relationship) == "") {
+            jAlert("Please Enter Relationship", "Error", function () {
+                $("#_RelationshipName").focus();
+            });
+            return false;
+        }
+        var objSupOthers = {
+            "_RelationshipID": ids,
+            "_RelationName": relation,
+            "_RelationshipName": relationship
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateRelationshipDetails", objSupOthers, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Successfully Inserted", "success");
+                    $("#_RelationName").val("");
+                    $("#_RelationshipName").val("");
+                    $("#wgRelationship").load("../onboarding/RelationshipDetails?" + new Date().getTime());
+                }
+            }, 'json');
+
+        }
+        else {
+            $.post("../Onboarding/EditRelationshipSave", objSupOthers, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    jAlert("Updated Successfully", "success");
+                    $("#_RelationName").val("");
+                    $("#_RelationshipName").val("");
+                    $("#wgRelationship").load("../onboarding/RelationshipDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearRelationshipDetails() {
+        $("#_RelationshipID").val("0");
+        $("#_RelationName").val("");
+        $("#_RelationshipName").val("");
+        $("#_RelationName").removeClass('valid');
+        $("#_RelationshipName").removeClass('valid');
+        $("#_RelationName").addClass('required');
+        $("#_RelationshipName").addClass('required');
+        $("#_RelationName").focus();
+    }
+</script>

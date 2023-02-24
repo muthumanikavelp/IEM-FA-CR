@@ -1,0 +1,104 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.CustomersModel>
+@{
+    SupDataModel objd = new SupDataModel();
+    List<CustomersModel> lst = new List<CustomersModel>();
+
+    lst = (List<CustomersModel>)TempData["CustomerSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetCustomer().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<div id="wgCustomer">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "wgCustomer", ajaxUpdateCallback: "DummyFunction()");
+        int rowcount = 0;
+    }
+
+    <div class="table-responsive" style=" width:100%;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridCustomer" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                                  grid.Column("_CustomerID", objCmnFunctions.Sorter("_CustomerID", "ID", grid), canSort: false, style: "slno"),
+                                  grid.Column("S.No", style: "slno", format: item => rowcount = rowcount + 1, canSort: false),
+                                  grid.Column("_CustomerName", objCmnFunctions.Sorter("_CustomerName", "Customer Name", grid)),
+                                  grid.Column("_CustomerServiceName", objCmnFunctions.Sorter("_CustomerServiceName", "Service Name", grid)),
+                                                    grid.Column("_CustomerAgeOfProduct", objCmnFunctions.Sorter("_CustomerAgeOfProduct", "Age of Product/Service (No.of Years)", grid)),
+                                  grid.Column("_CustomerContactPerson", objCmnFunctions.Sorter("_CustomerContactPerson", "Contact Person Name", grid)),
+                                  grid.Column("_CustomerMobileNo", objCmnFunctions.Sorter("_CustomerMobileNo", "Mobile No", grid)),
+                                  grid.Column("_CustomerPhoneNo", objCmnFunctions.Sorter("_CustomerPhoneNo", "Phone No", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='view' style='text-decoration:none;' onclick='ViewCustomer(" + item._CustomerID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    @if (ViewBag.PageMode != "3" && ViewBag.PageMode != "5")
+                    {
+                        @Html.Raw("<a title='Edit' style='text-decoration:none;' onclick='EditCustomer(" + item._CustomerID + ")' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                        @Html.Raw("<a title='Delete' style='text-decoration:none;' onclick='DeleteCustomer(" + item._CustomerID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                    }
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage" style="width:100%;">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>*@
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#wgridCustomer td:nth-child(1),#wgridCustomer th:nth-child(1)").hide();
+        $("#wgridCustomer td:nth-last-child(1)").show();
+    });
+    function DummyFunction() {
+        $("#wgridCustomer td:nth-child(1),#wgridCustomer th:nth-child(1)").hide();
+        $("#wgridCustomer td:nth-last-child(1)").show();
+    }
+    function SearchCustomer() {
+        var CustomerName = $("#_CustomerNameSearch").val();
+        var CustomerServiceName = $("#_CustomerServiceNameSearch").val();
+        var CustomerContactPerson = $("#_CustomerContactPersonSearch").val();
+        var CustomerMobileNo = $("#_CustomerMobileNoSearch").val();
+        var CustomerPhoneNo = $("#_CustomerPhoneNoSearch").val();
+        var customersmodelSearch = {
+            "_CustomerName": CustomerName,
+            "_CustomerServiceName": CustomerServiceName,
+            "_CustomerContactPerson": CustomerContactPerson,
+            "_CustomerMobileNo": CustomerMobileNo,
+            "_CustomerPhoneNo": CustomerPhoneNo
+        };
+        $.post('../Onboarding/SearchCustomer', customersmodelSearch,
+        function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#wgCustomer").load("../onboarding/customerdetails?" + new Date().getTime());
+
+            }
+        }, 'json');
+    }
+
+</script>

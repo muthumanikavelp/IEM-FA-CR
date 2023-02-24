@@ -1,0 +1,698 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using System.Web.Mvc;
+@{
+    var grid = new WebGrid(Model.lstproduct, canSort: true, canPage: false, ajaxUpdateContainerId: "gridCI", ajaxUpdateCallback: "Dummypr()", selectionFieldName: "SelectedRow");
+    ViewBag.Title = "ClonePro";
+    int rowNum = 0;
+}
+<script src="~/Script/jquery-1.10.2.js" type="text/javascript"></script>
+<script src="~/Script/jquery-ui.js" type="text/javascript"></script>
+
+
+<style>
+    cursor {
+        cursor: pointer;
+    }
+
+    panelwidth {
+        width: 100%;
+    }
+
+    .lblwth {
+        width: 170px;
+    }
+
+    .txtwth {
+        width: 150px;
+    }
+
+    #gridCI > thead > tr > th:nth-child(1), #gridCI > tbody > tr > td:nth-child(1) {
+        width: 50px;
+    }
+    #gridCI > thead > tr > th:nth-child(2), #gridCI > tbody > tr > td:nth-child(2) {
+        width: 190px;
+    }
+    #gridCI > thead > tr > th:nth-child(3), #gridCI > tbody > tr > td:nth-child(3) {
+        width: 150px;
+    }
+    #gridCI > thead > tr > th:nth-child(7), #gridCI > tbody > tr > td:nth-child(7) {
+        max-width: 90px;
+    }
+    #gridCI > thead > tr > th:nth-child(8), #gridCI > tbody > tr > td:nth-child(8) {
+        width: 110px;
+    }
+
+    #gridCI > thead > tr > th:nth-child(9), #gridCI > tbody > tr > td:nth-child(9) {
+        width: 70px;
+    }
+
+    #gridCI > tbody > tr > td:nth-child(2) > span > select, #gridCI > tbody > tr > td:nth-child(8) > span > select {
+        width: 100%;
+    }
+    #gridCI > tbody > tr > td:nth-child(3) > span > input, #gridCI > tbody > tr > td:nth-child(4) > span > input, #gridCI > tbody > tr > td:nth-child(5) > span > input, #gridCI > tbody > tr > td:nth-child(7) > span > input {
+        width: 100%;
+    }
+
+</style>
+
+
+
+<table class="myTableStyleTabNew" align="right">
+    <tr style="height:35px;">
+        <td style="vertical-align:bottom;">
+            <button type="button" id="AddCl" name="command" class="btn btn-primary add" style="padding: 3px 7px; font-size:12px;" value="Add New Row">
+                <span class="glyphicon glyphicon-plus" style="color:white;"> </span>Add NewRow
+            </button>
+        </td>
+    </tr>
+</table>
+<div id="grtCl">
+    <div id="divexampleCl" style="padding:10px; width:100%; height:200px; overflow:auto; margin-bottom: 2px;" class="panel panel-default">
+
+        @functions{
+            public static string sorter(string columnname, string columnheader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnheader, grid.SortColumn == columnname ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" : "▼" : string.Empty);
+            }
+        }
+        @grid.GetHtml(
+        tableStyle: "table",
+    htmlAttributes: new { id = "gridCI" },
+    columns:
+        grid.Columns(
+           grid.Column("Sl", format: a => rowNum = rowNum + 1),
+
+    grid.Column("productgroup", sorter("productgroup", "Product Group", grid), format: @<text>
+        <select name="productgroup1" id="productgroup1" disabled="disabled" style="width:100%;" class="display textboxStyle">
+            <option value="0">Select</option>
+            <optgroup label="@item.prodservgrp_Gid">
+                @{
+                    var childitemfilter = Model.ddlProductGroup.Where(m => m.Value == @item.prodservgrp_Gid);
+                    if (childitemfilter != null)
+                    {
+                        foreach (var citem in Model.ddlProductGroup)
+                        {
+                            string selectedValue = "";
+                            if (@item.prodservgrp_Gid == citem.Value)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+
+                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                        }
+                    }
+                }
+            </optgroup>
+        </select>
+
+
+
+        <select name="productgroup1" id="productgroup1_@rowNum" class="edit textboxStyle" style="width:100%;" disabled="disabled">
+            <option value="0">Select</option>
+            <optgroup label="@item.prodservgrp_gid">
+                @{
+                    var childitemfilter1 = Model.ddlProductGroup.Where(m => m.Value == @item.prodservgrp_Gid);
+                    if (childitemfilter1 != null)
+                    {
+                        foreach (var citem in Model.ddlProductGroup)
+                        {
+                            string selectedValue = "";
+                            if (@item.prodservgrp_Gid == citem.Value)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+
+                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                        }
+                    }
+                }
+            </optgroup>
+        </select>
+
+    </text> ),
+    grid.Column("product_Code", sorter("product_Code", "Product Code", grid),format: @<text><span class="display"><label id="lblproductcode_@rowNum">@item.product_Code</label></span><input type="text" style="width:100%;" id="txtproductcode_@rowNum" value="@item.product_Code" title="@item.product_Code" class="edit textboxStyle" readonly="readonly" /> </text>),
+    grid.Column("product_Name", sorter("product_Name", "Product Name", grid),format: @<text><span class="display"><label id="lblproductname_@rowNum">@item.product_Name</label></span><input type="text" style="width:100%;" id="txtproductname_@rowNum" value="@item.product_Name" class="edit textboxStyle" title="@item.product_Name" readonly="readonly" /></text>),
+        grid.Column("product_Description", sorter("product_Description", "Product Description", grid),format: @<text><span class="display"><label id="lbldescription_@rowNum">@item.product_description</label></span><input type="text" style="width:100%;" id="txtdescription_@rowNum" value="@item.product_Description" class="edit textboxStyle" title="@item.product_Description" /></text>),
+      grid.Column("product_gid",canSort:false,format: @<text><span class="display"><label id="lblproductgid_@rowNum">@item.product_gid</label></span></text>),
+    grid.Column("product_Qty", sorter("product_Qty", "Quantity", grid), format: @<text>
+            <span class="display"><label id="lblqty">@item.product_Qty</label></span>
+        <input type="text" id="txtqty_@rowNum" value="@item.product_Qty" style="width:100%;" class="edit textboxStyle" />
+    </text>),
+  grid.Column("product_Unit", sorter("product_Unit", "UOM", grid), format: @<text>
+        <select name="unit1" id="unit1" disabled="disabled" style="width:100%;" class="display textboxStyle">
+            <option value="0">Select</option>
+            <optgroup label="@item.productUnit_Gid">
+                @{
+                    var childitemfilter = Model.ddlUom.Where(m => m.Value == @item.productUnit_Gid);
+                    if (childitemfilter != null)
+                    {
+                        foreach (var citem in Model.ddlUom)
+                        {
+                            string selectedValue = "";
+                            if (@item.productUnit_Gid == citem.Value)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+
+                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                        }
+                    }
+                }
+            </optgroup>
+        </select>
+
+        <select name="unit1" id="unit1_@rowNum" style="width:100%;" class="edit textboxStyle">
+            <option value="0">Select</option>
+            <optgroup label="@item.productunit_gid">
+                @{
+                    var childitemfilter1 = Model.ddlUom.Where(m => m.Value == @item);
+                    if (childitemfilter1 != null)
+                    {
+                        foreach (var citem in Model.ddlUom)
+                        {
+                            string selectedValue = "";
+                            if (@item.productunit_gid == citem.Value)
+                            {
+                                selectedValue = "selected='selected'";
+                            }
+
+                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                        }
+                    }
+                }
+            </optgroup>
+        </select>
+
+
+
+</text>),
+
+    grid.Column(header: "Action", canSort: false,format: @<text>
+
+            <span class='glyphicon glyphicon-floppy-save edit save-btn ' style="cursor:pointer;"><label id="save" hidden="hidden">@rowNum</label></span>
+            <span class='glyphicon glyphicon-edit display edit-btn cursor' style="cursor:pointer;"><label id="edit" hidden="hidden">@rowNum</label> </span>
+            <span class='glyphicon glyphicon-trash display deleteclone-btn cursor' style="cursor:pointer;"><label id="delete" hidden="hidden">@rowNum</label> </span>
+            <span class='glyphicon glyphicon-remove edit cancel-btn cursor' style="cursor:pointer;"> <label id="cancel" hidden="hidden">@rowNum @item.Srno</label></span>
+
+    </text>)))
+    </div>
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+</div>
+
+<label id="paracl" style="display:none;"></label>
+<p id="addcl" style="display:none"></p>
+<input type="hidden" id="rowid" />
+
+
+
+<div id="ForPartialViewnew1Cl"></div>
+
+
+<script>
+
+    //$(document).ready(function () {
+
+    //    $("#Add").click(function () {
+
+
+    //        var existrow = $('.save').length;
+    //        debugger
+    //        if (existrow == 0) {
+    //            alert(existrow);
+    //            var index = $("#grid tbody tr").length + 1;
+
+    //            var productgroup = "productgroup_" + index;
+    //            var productcode = "product_Code" + index;
+    //            var productname = "product_Name" + index;
+    //            var description = "product_Description" + index;
+    //            var unit = "product_Unit" + index;
+    //            var qty = "product_Qty" + index;
+    //            var Save = "Save_" + index;
+    //            var Cancel = "Cancel_" + index;
+    //            alert(index);
+    //            $.ajax({
+    //                url: '/PrSummary/GetProductGroup1/',
+    //                data: '{}',
+    //                type: 'POST',
+    //                contentType: 'application/json; charset=utf-8',
+    //                success: function (data) {
+    //                    $("#" + productgroup + "").empty();
+    //                    $("#" + productgroup + "").append("<option value='Select' >Select</option>");
+    //                    for (var i = 0; i < data.length; i++) {
+    //                        $("#" + productgroup + "").append("<option value=" + data[i].productGroupGid + " >" + data[i].productGroupName + "</option>");
+
+    //                    }
+    //                },
+    //                error: function (result) {
+    //                    alert("Error");
+    //                }
+
+    //            });
+    //            $.ajax({
+    //                url: '/PrSummary/getuom1/',
+    //                data: '{}',
+    //                type: 'POST',
+    //                contentType: 'application/json; charset=utf-8',
+    //                success: function (data) {
+    //                    $("#" + unit + "").empty();
+    //                    $("#" + unit + "").append("<option value='Select' >Select</option>");
+    //                    for (var i = 0; i < data.length; i++) {
+    //                        $("#" + unit + "").append("<option value=" + data[i].uomGid + " >" + data[i].uomCode + "</option>");
+    //                    }
+    //                },
+    //                error: function (result) {
+    //                    alert("Error");
+    //                }
+
+    //            });
+    //            var newRow = '<tr class="alternate-row"><td></td><td><span> <select id="' + productgroup + '" title="' + index + '" name="txtstatus" onchange="getprogroup(this,title,value)" class="textboxStyle" style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+    //                '<td><span> <input id="' + productcode + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+    //                  '<td><span> <input id="' + productname + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+    //                  '<td><span> <input id="' + description + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+    //                  '<td><span><input id="' + qty + '" type="text" class="textboxStyle" /></span></td>' +
+    //                 '<td><span> <select id="' + unit + '" class="textboxStyle"  name="ddluom"  style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+    //                  '<td><a class="edit save-btn1" id=" ' + index + '" onclick="ClonePrSave(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><a class="edit cancel-btn" id="' + index + '" onclick="cancel()" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></a></td>' +
+
+
+    //        '</tr>';
+    //            $("#grid2 tbody").append(newRow);
+    //            $('#btnSave').removeAttr('disabled');
+    //        }
+    //        else {
+    //            alert("First Save Your Pervious record");
+    //        }
+    //    });
+
+    function EditPrSave(id) {
+        //alert('hai');
+        var tr = $(this).parents('tr:first');
+        var row = id;
+        var productgroup = $("#productgroup_" + row.trim() + "").val();
+        var product_code = $("#product_Code" + row.trim() + "").val();
+        var prodct_Name = $("#product_Name" + row.trim() + "").val();
+        var product_description = $("#product_Description" + row.trim() + "").val();
+        var product_unit = $("#product_Unit" + row.trim() + "").val();
+        var product_qty = $("#product_Qty" + row.trim() + "").val();
+        var product_gid = $("#productgid" + row.trim() + "").val();
+        //if (productgroup == null || productgroup == "" || productgroup == 0) {
+        //    jAlert("Please select product group!", "Error");
+        //    return false;
+        //}
+
+        if (product_unit == null || product_unit == "" || product_unit == 0) {
+            jAlert("Please select unit!", "Error");
+            return false;
+        }
+
+        if (isNaN(product_qty)) {
+            jAlert("Please Input Number!", "Error");
+            return false;
+
+        }
+        var objProduct =
+           {
+               "prodservgrp_Gid": productgroup,
+               "product_Code": product_code,
+               "product_Name": prodct_Name,
+               "product_Description": product_description,
+               "productUnit_Gid": product_unit,
+               "product_Qty": product_qty,
+               "product_gid": product_gid
+           };
+
+        $.post('@Url.Action("editsavepr", "PrSummary")?' + new Date().getTime(), objProduct,
+        function (data) {
+
+            $("#grtCl").load('@Url.Action("EditPro", "PrSummary")?' + new Date().getTime());
+            //  $("#grtCl").empty().append(data);
+        }, 'json');
+
+    }
+    function cancelt(element) {
+        //   alert("k");
+        var flag = confirm('Are you sure to cancel');
+        if (flag) {
+            $(element).parents("tr").remove();
+        }
+    }
+    $(document).ready(function () {
+        $("#gridCI td:nth-child(6),#gridCI th:nth-child(6)").hide();
+        //var rowcount = "0";
+        $("#AddCl").click(function () {
+
+            //  alert('hais');
+            var existrow = $('.save-btn1').length;
+            if (existrow == 0) {
+
+                //$.ajax({
+                //    url: '/PrSummary/Getrowcount/',
+                //    data: '{}',
+                //    type: 'POST',
+                //    contentType: 'application/json; charset=utf-8',
+                //    success: function (data) {
+                //        alert(data);
+                //        rowcount = data;
+                //    },
+                //    error: function (result) {
+                //        alert("Error");
+                //    }
+
+                //});
+
+
+                var index = $("#grid tbody tr").length + 1;
+
+                var productgroup = "productgroup_" + index;
+                var productcode = "product_Code" + index;
+                var productname = "product_Name" + index;
+                var description = "product_Description" + index;
+                var productgid = "productgid" + index;
+                var unit = "product_Unit" + index;
+                var qty = "product_Qty" + index;
+                var Save = "Save_" + index;
+                var Cancel = "Cancel_" + index;
+
+                $.ajax({
+                    url: '@Url.Action("GetProductGroup1", "PrSummary")?' + new Date().getTime(),
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#" + productgroup + "").empty();
+                            $("#" + productgroup + "").append("<option value='Select' >Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + productgroup + "").append("<option value=" + data[i].productGroupGid + " >" + data[i].productGroupName + "</option>");
+
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        alert("Error");
+                    }
+
+                });
+                $.ajax({
+                    url: '@Url.Action("getuom1", "PrSummary")?' + new Date().getTime(),
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#" + unit + "").empty();
+                            $("#" + unit + "").append("<option value='Select' >Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + unit + "").append("<option value=" + data[i].uomGid + " >" + data[i].uomCode + "</option>");
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        alert("Error");
+                    }
+
+                });
+                var newRow = '<tr class="alternate-row"><td></td><td><span> <select id="' + productgroup + '" title="' + index + '" name="txtstatus" onchange="getprogroup(this,title,value)" class="textboxStyle" style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                    '<td><span> <input id="' + productcode + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+                      '<td><span> <input id="' + productname + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+                      '<td><span> <input id="' + description + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+                       '<td style="display:none;"><span> <input id="' + productgid + '" class="textboxStyle" readonly="readonly" type="text" /></span></td>' +
+                     '<td><span><input id="' + qty + '" type="text" class="textboxStyle" /></span></td>' +
+                     '<td><span> <select id="' + unit + '" class="textboxStyle"  name="ddluom"  style="display:block">' + '<option value="select">select</option>' + '</select></span></td>' +
+                       '<td><a class="edit save-btn1" id=" ' + index + '" onclick="EditPrSave(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><a class="edit cancel-btn" id="' + index + '"  onclick="cancelt(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></a></td>' +
+
+
+            '</tr>';
+                $("#gridCI tbody").append(newRow);
+                $('#btnSave').removeAttr('disabled');
+            }
+            else {
+                alert("First Save Your Pervious record");
+            }
+        });
+
+        $('.edit').hide();
+
+
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+        //function cancel() {
+
+        //    var flag = confirm('Are you sure to cancel');
+        //    if (flag) {
+        //        $(this).parents("tr").remove();
+        //    }
+        //}
+
+        $('.cancel-btn').on('click', function () {
+            savedetails = 0;
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+
+
+        $('.deleteclone-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+
+            var product_code = $("#lblproductcode_" + row.trim() + "").text();
+
+
+            var product =
+           {
+               "srNo": row,
+               "product_Code": product_code
+           }
+            $.post('@Url.Action("clonedeletepr", "PrSummary")?' + new Date().getTime(), product,
+    function (data) {
+        if (data == 0) {
+            jAlert("Error Occured", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        else {
+            $("#grtCl").load('@Url.Action("ClonePro", "PrSummary")?' + new Date().getTime());
+            //  $("#grtCl").empty().append(data);
+        }
+    }, 'json');
+
+
+        });
+
+
+        $('.save-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+
+
+            var row = $(this).text();
+            var product_code = tr.find("#txtproductcode_" + row.trim() + "").val();
+            var product_group = tr.find("#productgroup1_" + row.trim() + "").val();
+            var qty = tr.find("#txtqty_" + row.trim() + "").val();
+            var unit = tr.find("#unit1_" + row.trim() + "").val();
+
+
+
+
+            if (unit == null || unit == "" || unit == 0) {
+                jAlert("Please select unit!", "Error");
+                return false;
+            }
+
+            if (isNaN(qty)) {
+                jAlert("Please Input Number!", "Error");
+                return false;
+
+            }
+            //alert('save');
+            var product =
+           {
+               "prodservgrp_Gid": product_group,
+               "product_Code": product_code,
+               "product_Qty": qty,
+               "productUnit_Gid": unit
+           };
+            $.post('@Url.Action("cloneupdatepr", "PrSummary")?' + new Date().getTime(), product,
+       function (data) {
+           if (data == 0) {
+               jAlert("Error Occured", "Error", function () {
+                   return false;
+               });
+               return false;
+           }
+           else {
+               //alert('ok');
+               $("#grtCl").load('@Url.Action("ClonePro", "PrSummary")?' + new Date().getTime());
+
+               // $("#grtCl").empty().append(data);
+           }
+       }, 'json');
+
+
+        });
+    });
+
+    var objDialog1;
+    function getprogroup(id, title, value) {
+        $(id).val();
+        $("#rowid").val(title);
+        if (value != "Select") {
+            if ($("#pp").val() == "") {
+                $('#pp').val('anu');
+
+                objDialog1 = $("[id$='ForPartialViewnew1Cl']");
+                objDialog1.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 600,
+                    height: 400
+                });
+            }
+
+            var goid = $('input[name=modenew]:checked').val();
+
+            if (goid == "Product") {
+                $("#ProductDetailgrid").fadeIn();
+                //$("#ServiceDetailgrid").fadeOut();
+            }
+            else {
+                $("#ServiceDetailgrid").fadeOut();
+                //$("#ProductDetailgrid").fadeOut();
+            }
+
+            var id1 = id.value;
+
+
+
+            objDialog1.load('@Url.Action("getprodlist", "PRRaiser")?id=' + id1 + '&' + new Date().getTime());
+            objDialog1.dialog({ title: 'Product List' });
+            objDialog1.dialog("open");
+        }
+
+    }
+
+
+    function ClonePrSave(id) {
+
+        var tr = $(this).parents('tr:first');
+        var row = id;
+        var productgroup = $("#productgroup_" + row.trim() + "").val();
+        var product_code = $("#product_Code" + row.trim() + "").val();
+        var prodct_Name = $("#product_Name" + row.trim() + "").val();
+        var product_description = $("#product_Description" + row.trim() + "").val();
+        var product_unit = $("#product_Unit" + row.trim() + "").val();
+
+        var product_qty = $("#product_Qty" + row.trim() + "").val();
+        var product_gid = $("#productgid" + row.trim() + "").val();
+        //if (productgroup == null || productgroup == "" || productgroup == 0) {
+        //    jAlert("Please select product group!", "Error");
+        //    return false;
+        //}
+
+        if (product_unit == null || product_unit == "" || product_unit == 0) {
+            jAlert("Please select unit!", "Error");
+            return false;
+        }
+
+        if (isNaN(product_qty)) {
+            jAlert("Please Input Number!", "Error");
+            return false;
+
+        }
+        var product =
+           {
+               "prodservgrp_Gid": productgroup,
+               "product_Code": product_code,
+               "product_Name": prodct_Name,
+               "product_Description": product_description,
+               "productUnit_Gid": product_unit,
+               "product_Qty": product_qty,
+               "product_gid": product_gid
+           }
+        $.post('@Url.Action("clonesavepr", "PrSummary")?' + new Date().getTime(), product,
+        function (data) {
+            if (data == 0) {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+                $("#grtCl").load('@Url.Action("ClonePro", "PrSummary")?' + new Date().getTime());
+            }
+        }, 'json');
+
+
+
+
+    };
+
+
+    function Dummypr() {
+
+
+        $('.edit').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+
+
+    }
+
+    $('.delete-btn').on('click', function () {
+
+        var tr = $(this).parents('tr:first');
+        var row = $(this).text();
+
+        var product_code = $("#lblproductcode_" + row.trim() + "").text();
+        var product_group = tr.find("#productgroup1_" + row.trim() + "").val();
+        var unit = tr.find("#unit1_" + row.trim() + "").val();
+
+
+        var product =
+       {
+           "srNo": row,
+           "product_Code": product_code
+       }
+
+        $.post('@Url.Action("editdeletepr", "PrSummary")?' + new Date().getTime(), product,
+   function (data) {
+
+       if (data == 0) {
+           jAlert("Error Occured", "Error", function () {
+               return false;
+           });
+           return false;
+       }
+       else {
+           $("#grtCl").load('@Url.Action("EditPro", "PrSummary")?' + new Date().getTime());
+       }
+   }, 'json');
+
+
+    });
+
+</script>
+

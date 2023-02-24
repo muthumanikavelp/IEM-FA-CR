@@ -1,0 +1,241 @@
+﻿@model IEnumerable<IEM.Areas.IFAMS.Models.AssetParentModel>
+@using IEM.Common
+@{
+    ViewBag.Title = "ApproveMerge";
+    var grid = new WebGrid(source: Model, canPage: false, canSort: false, ajaxUpdateContainerId: "grid123");
+    int id = @grid.PageIndex;
+    CmnFunctions obj = new CmnFunctions();
+    int rowVal = 0;
+    var generateid = @ViewBag.approveid;
+    Layout = null;   
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<style type="text/css">
+    .hide {display:none;
+           color:#ccc;
+    }
+</style>
+<b>
+    <span style="color: rgb(52, 108, 196);">Old Asset Details</span>
+</b>
+
+<div class="well" style="background-color:white;">
+    <div style="margin-top:17px;" class="overflowx overflowy">
+
+        @*HttpContext.Current.Session["AssetIdChecked"]*@
+
+        @grid.GetHtml(
+                        fillEmptyRows: false,
+                        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        htmlAttributes: new { id = "Approvegrid" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns(
+                                 grid.Column(header: "SNo", format: item => rowVal = rowVal + 1),
+                                 grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),                                
+                                 grid.Column("Location", obj.Sorter("Location", "AssetBranch", grid), style: "MidColumns10"),
+                                 grid.Column("AssetCatName", obj.Sorter("AssetCatName", "Asset Category Name", grid), style: "MidColumns10"),
+                                 grid.Column("AssetSubCode", obj.Sorter("AssetSubCode", "Asset Sub-Category Code", grid), style: "MidColumns10"),
+                                 grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Sub-Category Name", grid), style: "MidColumns10"),
+                                 grid.Column("MAssetValue", obj.Sorter("MAssetValue", "Asset Value", grid), style: "MidColumns10"),
+                                 grid.Column("rectifAmt", obj.Sorter("rectifAmt", "Rectifiaction Amount", grid), style: "MidColumns30"),
+                                 grid.Column("AssetDetGid", obj.Sorter("AssetDetGid", "AssetGid", grid),style:"hide")
+                                 //grid.Column(null,null, format: @<input type="hidden" name="IDHidden" id="assetdetgid" value="@item.AssetDetGid"/>)
+                                       //grid.Column("Title", "Title")));
+                                ))
+
+        <div class="table-bordered btnCenter" align="center">
+            <b> @ViewBag.Message </b>
+        </div>
+        <br />
+        @*<div class="myTableStyleTabNew">
+            <b><span>  Total No Of Records :@grid.TotalRowCount </span></b>
+        </div>*@
+        @*<div>
+            <span>Remarks</span><br/>
+          <textarea id="txtapporrrejectremarks" style="width:120px;height:120px;">
+          </textarea>
+        </div>*@
+        <div class="myTableStyleTabNew" align="left">
+            <span>Remarks</span>
+            <input type="text" autofocus="" id="txtmergeRemaks" name="spremarks" class=" textboxStyleSearch required" maxlength="256" width="150" height="100" onkeyup="RemarkRequired()" />
+        </div>
+    </div>
+
+</div>
+<table class="myTableStyleTabNew" align="center">
+    <tr>
+        <td class="form-group" nowrap="nowrap">
+            <div>
+                <span class="input-group-btn">
+                    <button class="btn btn-success" id="_approve" type="button" value="Approve" title="asdasd" onclick="Approveassetmerg()"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                </span>
+            </div>
+        </td>
+
+        <td class="form-group" nowrap="nowrap">
+            <div>
+                <span class="input-group-btn">
+                    <button class="btn btn-danger" id="_reject" type="button" value="Reject" onclick="Rejectassetmerge()"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                </span>
+            </div>
+        </td>
+
+        <td class="form-group" nowrap="nowrap">
+            <div>
+                <span class="input-group-btn">
+
+                    <button class="btn backbtn btn-warning" type="button" id="_back" value="cancel" onclick="goToIndex()"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                </span>
+            </div>
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function goToIndex()
+    {
+        window.parent.jQuery('#PartialViewforchecksum').dialog('close');
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+      
+        $("#_approve").attr('disabled', 'disabled');
+        $("#_reject").attr('disabled', 'disabled');
+        $('#Approvegrid th').each(function () {           
+            if ($(this).text().trim() == "AssetGid")
+                {                   
+                    $(this).hide();
+                }
+            });       
+   });
+    function Approveassetmerg()
+    {
+        var Remarks = $('#txtmergeRemaks').val();        
+        var getMergeassetgid = null;
+        getMergeassetgid = [];
+        //var getassetsubcode = null;
+        //getassetsubcode = [];
+        var getassetsubcode = "";
+        $('#Approvegrid tr').each(function () {
+           
+            var customerId = $(this).find("td").eq(8).html();            
+            if (customerId!="" && customerId!="" && customerId!=undefined)
+            {
+              
+               getMergeassetgid.push($(this).find("td").eq(8).html());
+            }            
+           
+        });
+        $('#Approvegrid tr').each(function () {
+           
+            var customerId1 = $(this).find("td").eq(4).html();
+            if (customerId1 != null) {
+                getassetsubcode=$(this).find("td").eq(4).html();
+            }
+        });
+        var DelmatModel = { "getassetsubcode": getassetsubcode, "getIds": getMergeassetgid, "Assetremarks": Remarks};
+        showProgress();
+        $.ajax({
+            url: '../AssetMerge/AssetcheckerMergedetails/',
+            data: JSON.stringify(DelmatModel),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                hideProgress();
+                if (result == "Successfully Approved Merge") {
+                    jAlert("Merge Approved succesfully !", "Information", function (r) {
+                        if (r = true) { window.location = '../AssetMerge/Assetcheckersummary'; }
+                    });
+                }
+                else {
+                    hideProgress();
+                    jAlert("Asset Not Merged !!!", "Information");
+                    return false;
+                }
+
+            },
+            error: function (result) {
+                hideProgress();
+                isSuccess = result;
+            }
+        })
+    }
+    function Rejectassetmerge()
+    {
+        var Remarks = $('#txtmergeRemaks').val();
+       // alert(Remarks);
+        var getMergeassetgid = null;
+        getMergeassetgid = [];
+        $('#Approvegrid tr').each(function () {
+
+            var customerId = $(this).find("td").eq(8).html();           
+            if (customerId != null && customerId!=="" && customerId!=undefined) {
+                getMergeassetgid.push($(this).find("td").eq(8).html());
+            }
+        });
+        var DelmatModel = { "getIds": getMergeassetgid, "Assetremarks": Remarks };
+        showProgress(); $.ajax({
+            url: '../AssetMerge/AssetrejectMergedetails/',
+            data: JSON.stringify(DelmatModel),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                // alert(result);
+                hideProgress();
+                if (result == "Successfully Reject Merge")
+                {
+                    jAlert("Rejected succesfully !", "Information", function (r) {
+                        if (r = true) { window.location = '../AssetMerge/Assetcheckersummary'; }
+                    });
+                }
+                else {
+                    hideProgress();
+                    jAlert("Asset Not !", "Information");
+                    return false;
+                }
+
+            },
+            error: function (result) {
+                hideProgress();
+                isSuccess = result;
+            }
+        })
+    }
+
+    function RemarkRequired() {
+
+        var remark = $("#txtmergeRemaks").val();
+        if (remark != "") {
+            $("#txtmergeRemaks").removeClass('required');
+            $("#txtmergeRemaks").addClass('valid');
+            Checkremark();
+        }
+        else {
+            $("#txtmergeRemaks").removeClass('valid');
+            $("#txtmergeRemaks").addClass('required');
+            Checkremark();
+        }
+    }
+
+    function Checkremark() {
+        //alert();
+        var Errorcount = 0;
+        if ($("#txtmergeRemaks").val() == "" || $("#txtmergeRemaks").val() == null) {
+
+            Errorcount = 1;
+        }
+        if (Errorcount == 0) {
+            $("#_approve").removeAttrs('disabled');
+            $("#_reject").removeAttrs('disabled');
+        }
+        else {
+            $("#_approve").attr('disabled', 'disabled');
+            $("#_reject").attr('disabled', 'disabled');
+        }
+    }
+
+    </script>
+

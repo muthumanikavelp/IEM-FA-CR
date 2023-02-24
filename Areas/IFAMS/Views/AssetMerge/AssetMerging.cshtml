@@ -1,0 +1,395 @@
+﻿@model IEnumerable<IEM.Areas.IFAMS.Models.AssetParentModel>
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@*@@model IEM.Areas.IFAMS.Models.AssetParentModel*@
+
+@{
+    ViewBag.Title = "AssetMerging";   
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(
+        //source: Model.AssetParentList,
+                      source: Model,
+                        canPage: false,
+                        canSort: false,
+                        ajaxUpdateContainerId: "Assetsearch"
+                      );
+}
+
+<b>
+    <span style="color: rgb(52, 108, 196);">Asset Merging</span>
+</b>
+@using (Html.BeginForm("AssetMerging", "AssetMerge",FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+<div class="well">
+    <div id="AssetMerge">
+       
+            <div>
+                <table class="myTableStyleTabNew" style="margin-left:10px;" width="85%">
+                    <tr>
+                        <td>
+
+                            <div>
+                                <span> Asset Code </span>
+                                <br />
+                                <input type="text"
+                                       name="txtgroupid"
+                                       id="txtgroupid"
+                                       value="@ViewBag.txtgroupid"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+
+
+                        </td>
+                        <td>
+
+                            <div>
+                                <span> Branch Location</span>
+                                <br />
+                                <input type="text"
+                                       name="txtbranchlocation"
+                                       id="txtbranchlocation"
+                                       value="@ViewBag.txtbranchlocation"
+                                       class="textboxStyleSearch" maxlength="20" />
+                            </div>
+
+
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            @*<button class="btn btn-primary" type="submit" name="command" onclick="SearchGroupAsset()" value="SEARCH" id="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>*@
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH" id="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                            <span> </span>
+                            <button id="btnmrgclear" onclick="ClearAssetSearch()" class="btn btn-primary" value="clear"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Clear</button>
+                            <span> </span>
+                            @if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                            <span> </span>
+                            @*<button class="btn btn-primary" type="submit" name="command" id="btnMerging" disabled="disabled" onclick="AssetMerging()" value="Merge"><span style="color:white;" class="glyphicon glyphicon-link"></span> Merge</button>*@
+                          
+                       
+                        <span> </span>
+<button class="btn btn-primary" type="button" name="command" id="btnMerging" value="Merge" onclick="AsseMer()"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Merge</button>
+</td>
+                        @*<td class="form-group" nowrap="nowrap">
+
+                            <div style="float:right;padding-right:20px;margin-top:5px;">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="submit" name="command" onclick="Checkedid()" value="Merge"><span style="color:white;" class="glyphicon glyphicon-link"></span> Merge</button>
+                                </span>
+                            </div>
+                        </td>*@
+                    </tr>
+
+                </table>
+            </div>
+            <table class="myTableStyleTabNew" align="center">
+                <tr></tr>
+            </table>
+
+       
+    </div>
+    <div>
+        @Html.Partial("MergeSearch")
+    </div>
+</div>
+}
+<div id="MergedAssetPartial"></div>
+
+<script type="text/javascript">
+
+  
+
+    $(document).ready(function () {
+
+
+        $("#checkableGrid th").each(function () {
+
+            if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                $(this).text('');
+                $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                $(this).append("Select All");
+            }
+
+        });
+
+
+        $("#cbSelectAll").live("click", function () {
+            var ischecked = this.checked;
+            $('#checkableGrid').find("input:checkbox").each(function () {
+                this.checked = ischecked;
+
+            });
+        });
+
+
+
+        //var ID = 1;
+
+        //    var html =
+        //        '<tr>' +
+        //        '<td>' + ID + '</td>' +
+        //        '<td><input type="button" class="BtnPlus" value="+" /></td>' +
+        //        '<td><input type="button" class="BtnMinus" value="-" /></td>' +
+        //        '</tr>'
+        //    $(html).appendTo($("#MergedRecords"))
+        //    ID++;
+
+        @*$("#txtgroupid").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("AutoAssetId", "AssetMerge")',
+                    type: "POST",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.AssetId, value: item.AssetId };
+                        }))
+
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });*@
+
+
+    });
+
+
+
+ 
+
+
+
+    $("#btnmrgclear").on('click', function () {
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("MergerSearchClear", "AssetMerge")',
+            data: {},
+            success: function (data) {
+
+                $("#MergeSearch").empty().append(data);
+
+
+                $("#checkableGrid th").each(function () {
+
+                    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                        $(this).text('');
+                        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                        $(this).append("Select All");
+                    }
+
+                });
+            },
+            error: function () {
+            }
+        });
+        $("#txtgroupid").val('');
+        $('#btnMerging').prop('disabled', true);
+
+    });
+
+    @*function SearchGroupAsset() {
+
+        var command = $("#SEARCH").val();
+        var AssetId = $("#txtgroupid").val();
+
+        var objownersearch =
+            {
+                "AssetId": AssetId,
+                "command": command
+            };
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("MergeSearchGroupId", "AssetMerge")?'+ new Date().getTime(),
+            data: objownersearch,
+            success: function (data) {
+
+                $("#MergeSearch").empty().append(data);
+
+                $('#btnMerging').prop('disabled', false);
+
+                $("#checkableGrid th").each(function () {
+
+                    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                        $(this).text('');
+                        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                        $(this).append("Select All");
+                    }
+
+                });
+
+            },
+            error: function () {
+            }
+
+        });
+    }*@
+
+
+
+
+    //Samsudeen modifucation
+
+    @*function AssetMerging() {
+        function splitasset() {
+            // alert('split');
+            location = '@Url.Action("SplitSummary", "AssetMerge")?' + new Date().getTime();
+
+        }
+    }*@
+
+
+    function AsseMer() {       
+        location = '@Url.Action("MergeSearch1", "AssetMerge")?' + new Date().getTime();
+      
+    }
+
+
+
+
+    
+    //XXavier funtion
+
+    @*function AssetMerging() {
+        
+    
+       
+        var ids;
+        $("#checkableGrid").find("input:checkbox").each(function () {
+            if (this.checked == true) {
+                ids = $(this).val() + "," + ids;
+            }
+        });
+
+        $.ajax({
+            
+            url: '@Url.Action("AssetGroupMerging", "AssetMerge")?ids=' + ids,
+            datatype:'json',
+            data: {},
+            type: 'POST',
+            success: function (data) {
+                
+                if (data == "Success") {
+                    Merging(ids);
+                    $("#MergedAssetPartial").dialog({
+                        autoOpen: false,
+                        modal: true,
+                        show: 'fade-in',
+                        close: 'fade-out',
+                        width: 1000,
+                        height: 450,
+                        resizable: false
+                    });
+                   
+                    $("#MergedAssetPartial").load('@Url.Action("MergedAsset", "AssetMerge")?'+new Date().getTime());
+                    $("#MergedAssetPartial").dialog({ title: 'Merged Summary' });
+                    $("#MergedAssetPartial").dialog("open");
+
+
+                }
+                else if(data=="PhysicalID is Refered"){
+                
+                    jConfirm("Physical ID is Refered, Are You Sure to Merge", "Information", function (r) {
+                        if (r == true) {
+                            $("#MergedAssetPartial").dialog({
+                                autoOpen: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+                                width: 1000,
+                                height: 450,
+                                resizable: false
+                            });
+                   
+                            $("#MergedAssetPartial").load('@Url.Action("MergedAsset", "AssetMerge")?'+new Date().getTime());
+                            $("#MergedAssetPartial").dialog({ title: 'Merged Summary' });
+                            $("#MergedAssetPartial").dialog("open");
+
+                            }
+                    });
+                
+                
+                }
+                else if (data == "Assets Cant be Merged") {
+
+                    jAlert(data, "Information");
+                }
+                else if (data == "Please Check Assets to Merge")
+                {
+
+                    jAlert(data, "Information");
+                }
+                else if(data=="Location Mismatch"){
+                
+                    jAlert("Location Mismatch,Assets cant be merged", "Information");
+                
+                }
+
+                else if (data == "Assetcode Mismatch") {
+
+                    jAlert("Asset Code Mismatch,Assets cant be merged", "Information");
+
+                }
+                else if (data == "Physical id Mismatch") {
+
+                    jAlert("Physical Id Mismatch,Assets cant be merged", "Information");
+
+                }
+                else if (data == "Capitalization Date Mismatch") {
+
+                    jAlert("Capitalization Date Mismatch,Assets cant be merged", "Information");
+
+                }
+            },
+            error: function () {
+
+            }
+        });
+
+    }*@
+
+    function Merging(ids) {
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("GetMergedAsset", "AssetMerge")?ids=' + ids + new Date().getTime(),
+            data: {},
+            success: function (data) {
+                if (data == "Successfully Merged") {
+                 
+                    
+                    jAlert(data, "Information");
+                }
+                else {
+                    jAlert("Error in Merging", "Information");
+
+                }
+               // $("#Mergeddata").empty().append(data);
+
+            },
+            error: function () {
+            }
+        });
+    }
+
+    function ClearAssetSearch()
+    {
+        $('#txtgroupid').text('');
+        $('#txtbranchlocation').text('');
+        location = "../AssetMerge/AssetMerging";
+    }
+    function Download() {
+ 
+        location = '@Url.Action("AssetMergeExceldownload", "AssetMerge")';
+    }
+</script>

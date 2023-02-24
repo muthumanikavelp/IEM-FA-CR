@@ -1,0 +1,362 @@
+﻿@model  IEM.Areas.EOW.Models.ApproverAction
+@{
+    if (Session["Ecfdeclaratonnote"] != null)
+    {
+        ViewBag.decnote = Session["Ecfdeclaratonnote"].ToString();
+        ViewBag.RequestType = Session["requesttype"].ToString();
+    }
+}
+<div class="container">
+    <table class="myTableStyleTab" style="width: 80%;">
+        <tr>
+            <td style="width: 40%;">Status Updation</td>
+            <td colspan="2">
+                <input type="radio" name="rblstatus" id="rblApprove" value="Approve" />&nbsp;<span style="color: green;font-size: 15px;" class="glyphicon glyphicon-thumbs-up"></span>&nbsp;Approve
+                &nbsp;&nbsp; <input type="radio" name="rblstatus" id="rblReject" value="Reject">&nbsp;<span style="color: red;font-size: 15px;" class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Reject
+                &nbsp;&nbsp;<input type="radio" name="rblstatus" id="rblHold" value="Hold">&nbsp;<span style="color: blue;font-size: 14px;" class="glyphicon glyphicon-header"></span>&nbsp;Hold
+                &nbsp;&nbsp;<input type="radio" name="rblstatus" id="rblconapp" value="Concurrent">&nbsp;<span style="color: #12D7EF;font-size: 15px;" class="glyphicon glyphicon-random"></span>&nbsp;Concurrent Approval
+                &nbsp;&nbsp; <a class="btn btn-info" style="color:black;font-size: small;height: 25px;padding: 3px 7px 4px 7px;" title="Raise Tickets" onclick="RaiseTicket()"> <b>?</b> </a>
+                <br />
+            </td>
+        </tr>
+
+        <tr id="conapp1">
+            <td>
+                Concurrent Approval To
+            </td>
+            <td>
+                @Html.TextBoxFor(model => model.Concurrentapprovalid, new { disable = true, @class = "textboxStyle ", @id = "txtConcurrentapproval" })
+                @Html.HiddenFor(model => model.Concurrentapproval, new { @id = "txtConcurrentapprovalid" })
+                <input type="hidden" id="cuncurntcode" />
+                <br />
+            </td>
+            <td>
+                <div id="dissearch" style="margin-left:-35px;">
+                    <a id="dissearch1" onclick="Concurrentapproval()"> <span class="glyphicon glyphicon-search"></span> </a>
+                </div>
+            </td>
+            @*<td>
+                    <table>
+                        <tr>
+
+                            <td></td>
+                        </tr>
+                    </table>
+                </td>*@
+
+        </tr>
+        @*<tr id="conapp2">
+                <td>Message To Concurrent Approval</td>
+                <td>
+                    @Html.TextBoxFor(model => model.msgConcurrentapproval, new { disable = true, @class = "textboxStyle ", @id = "txtmsgConcurrentapprovalm" })
+                </td>
+                <td></td>
+                <td></td>
+            </tr>*@
+    </table>
+    <table class="myTableStyleTab" style="width: 100%;">
+        <tr id="remarks">
+            <td>
+                <span><b>Remarks</b></span><br />
+                <textarea id="txtRejectholdId" style="resize:none ;width: 99%; height: 30px;" maxlength="250" class="textboxStyle"></textarea>
+            </td>
+        </tr>
+        <tr id="declar">
+            <td>
+                <table class="myTableStyleTab" style="margin-top:-2%;width: 100%;">
+                    <tr>
+                        <td colspan="2">
+                            <span><b>Declaration Note</b></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 1%;">&nbsp;&nbsp;<input type="checkbox" checked="checked" id="comfirm" /></td>
+                        <td style="width: 99%;" align="left">  &nbsp;&nbsp;<label id="lbldecnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 11px;" align="right" colspan="3">
+                <center>
+                    @*<input type="button" id="btnSubmitfinalman" class="btn btn-success" value="Submit" />
+                        &nbsp;&nbsp;
+                         <input type="button" id="btnCancelfinal" class="btn btn-warning" value="Cancel" onclick="SaveCanceldash()" />*@
+                    <button type="button" id="btnSubmitfinalman" class="btn btn-success" value="Submit"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                    &nbsp;&nbsp; <button type="button" id="btnCancelfinal" value="Cancel" class="btn btn-warning" onclick="SaveCanceldash()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </center>
+            </td>
+        </tr>
+    </table>
+</div>
+<br /><br />
+@*<div style="height:100px">
+        &nbsp;
+    </div>*@
+<div id="ForPartialViewEmployeeaddc"></div>
+<script>
+    $(document).ready(function () {
+        $("#conapp1").fadeOut();
+        //$("#conapp2").fadeOut();
+        $("#declar").fadeOut();
+        $("#remarks").fadeOut();
+    });
+    var objDialogEmployeeaddc;
+    $(document).ready(function () {
+        objDialogEmployeeaddc = $("[id$='ForPartialViewEmployeeaddc']");
+        objDialogEmployeeaddc.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'Add Employee ',
+            width: 950,
+            height: 590
+        });
+    });
+    function Concurrentapproval() {
+        var url = "@(Html.Raw(Url.Action("EmployeeSearch", "DashBoard")))";
+        objDialogEmployeeaddc.load(url + '?' + new Date().getTime());
+        objDialogEmployeeaddc.dialog({
+            title: 'Employee Search ', 'width': 830, show: 'fade-in', close: 'fade-out', modal: true, cache: false, autoOpen: false, 'height': 540
+        });
+        objDialogEmployeeaddc.dialog("open");
+    }
+
+    function SaveCanceldash() {
+        window.localStorage.previousurlflag = "-1";
+        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+        
+    }
+    $(document).ready(function () {
+        $("#btnSubmitfinalman").click(function () {
+            $('#btnSubmitfinalman').attr('disabled', true);
+            var status = $('#comfirm').is(':checked');
+            var Concurrentapproval = $("#txtConcurrentapprovalid").val();
+            var Concurrentapprovalcode = $("#cuncurntcode").val();
+            var ecfraisercode = $("#txtraisercode").text();
+            var msgConcurrentapproval = $("#txtRejectholdId").val();
+            var empRejecthold = $("#txtRejectholdId").val();
+            var rodio = $("input[name=rblstatus]:checked").val()
+            if (rodio == 'undefined' || rodio == null) {
+                $('#btnSubmitfinalman').attr('disabled', false);
+                jAlert("Please select the Status.", "Message");
+                //$("#rblstatus").focus();
+                return false;
+            }
+            else if (rodio == "Reject" || rodio == "Hold") {
+                if (empRejecthold.length < 1) {
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                    jAlert("Please Enter Remarks.", "Message");
+                    //$("#rblstatus").focus();
+                    return false;
+                }
+            }
+            else if (rodio == "Concurrent") {
+                if (Concurrentapproval == null || Concurrentapproval == "") {
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                    jAlert("Please Select Concurrent Approval.", "Message");
+                    //$("#rblstatus").focus();
+                    return false;
+                }
+                if (msgConcurrentapproval == null || msgConcurrentapproval == "") {
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                    jAlert("Please Enter Concurrent Approval Remarks.", "Message");
+                    $("#txtRejectholdId").focus();
+                    return false;
+                }
+                if (Concurrentapprovalcode == ecfraisercode) {
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                    jAlert("ECF Raiser and Concurrent Approver cannot be the same.", "Message");
+                    return false;
+                }
+            }
+            else if (rodio == "Approve") {
+                if (status == false) {
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                    jAlert("Please select the Declaration Note.", "Message");
+                    return false;
+                }
+            }
+            jConfirm("Do you want to Submit ...? ", "Message", function (u) {
+                if (u == true) {
+                    showProgress();
+                    var objcbf =
+                           {
+                               "status": rodio,
+                               "Rejecthold": empRejecthold,
+                               "Concurrent": Concurrentapproval,
+                               "Concurrentmsg": msgConcurrentapproval,
+                           };
+
+                    $.ajax({
+                        url: '@Url.Action("_Viewsubmit", "DashBoard")?' + new Date().getTime(),
+                        dataType: 'json',
+                        data: objcbf,
+                        success: function (msg) {
+                            if (msg != "Sucess") {
+                                hideProgress();
+                                jAlert(msg, "Message", function (u) {
+                                    if (u == true) {
+                                        $('#btnSubmitfinalman').attr('disabled', false);
+                                        return false;
+                                    }
+                                });
+                            }
+                            else {
+                                hideProgress();
+                                if (rodio == "Approve") {
+                                    rodio = "Approved";
+                                }
+                                if (rodio == "Reject") {
+                                    rodio = "Rejected";
+                                }
+                                if (rodio == "Concurrent") {
+                                    //rodio = "Concurrent Approval soughted";
+                                    rodio = "Sent for Concurrent approval";
+                                }
+                                @*jAlert(rodio + " Successfully", "Message", function (u) {
+                                    if (u == true) {
+                                        location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();
+                                    }
+                                });*@
+                                jConfirm(rodio + " Successfully! Do you want to Approve next item? ", "Message", function (u) {
+                                    if (u == true) {
+                                        showProgress();
+                                        $.ajax({
+                                            url: '../MyDashDocDetails/GetAutodisplayofNextItem',
+                                            dataType: 'json',
+                                            data: '',
+                                            type: "POST",
+                                            success: function (data, resultstatus) {
+                                                if (data == 0) {
+                                                    hideProgress();
+                                                    jAlert("No further Item's to Approve!", "Message");
+                                                    @*location.href = '@Url.Action("index", "DashBoard")';*@
+                                                    window.localStorage.previousurlflag = "-1";
+                                                    //location = ('../../Dashboard/Dashboard/Index');
+                                                    location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';                                                    
+                                                }
+                                                else if (resultstatus == "success") {
+                                                    location.href = '@Url.Action("Viewdata", "DashBoard")?id=' + data;
+                                                }
+                                                else {
+                                                    jAlert("Error.", resultstatus);
+                                                    return false;
+                                                }
+                                            },
+                                            error: function (result) {
+                                                jAlert("Error.", result);
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        debugger;
+                                        hideProgress();
+                                        //location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();
+
+                                        var reqType = '@ViewBag.RequestType';
+                                        if (reqType == 'EMPLOYEE CLAIMS') {
+                                            location.href = '@Url.Action("MyDocDetails", "MyDashDocDetails")?queuefor=submitmode&requesttype=' + reqType + "&reqstatus=forapproval";
+                                            //location = "../MyDashDocDetails/MyDocDetails?queuefor=submitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus;
+                                        }
+                                        else if (reqType == 'ADVANCE REQUEST') {
+                                            location.href = '@Url.Action("MyDocDetails", "MyDashDocDetails")?queuefor=submitmode&requesttype=' + reqType + "&reqstatus=forapproval";
+                                            //location = "../MyDashDocDetails/MyDocDetailsarf?queuefor=submitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus;
+                                        }
+                                        else if (reqType == 'SUPPLIER INVOICE') {
+                                            location.href = '@Url.Action("MyDocDetails", "MyDashDocDetails")?queuefor=submitmode&requesttype=' + reqType + "&reqstatus=forapproval";
+                                            //location = "../MyDashDocDetails/MyDocDetails?queuefor=submitmode&requesttype=" + reqType + "&reqstatus=" + requeststatus;
+                                        }
+                                        else
+                                        {
+                                            location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();
+                                        }
+                                    }
+                                });
+                            }
+                        },
+                        error: function () { hideProgress(); }
+                    });
+                }
+                else {
+                    hideProgress();
+                    $('#btnSubmitfinalman').attr('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+<script>
+    function RaiseTicket() {
+        var refflagname = "ECF";
+        var itemrefno = $("#txtecfno").val();
+        objDialogEmployeeaddc.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+        objDialogEmployeeaddc.dialog({
+            title: 'Raise Ticket',
+            width: 1100,
+            height: 500
+        });
+        objDialogEmployeeaddc.dialog("open");
+    }
+    $(document).ready(function () {
+
+        $('#dissearch').hide();
+
+        var stylesSelect = $('#txtConcurrentapproval');
+        stylesSelect.attr('disabled', true);
+
+        $('input[type=radio][name=rblstatus]').change(function () {
+            $('#btnSubmitfinalman').attr('disabled', false);
+            if (this.value == 'Approve') {
+
+                $("#conapp1").fadeOut();
+                //$("#conapp2").fadeOut();
+                $("#declar").fadeIn();
+                $("#remarks").fadeIn();
+
+                $('#dissearch').hide();
+                var stylesSelect = $('#txtConcurrentapproval');
+                stylesSelect.attr('disabled', true);
+
+                $('#txtConcurrentapproval').val('');
+                $('#txtRejectholdId').val('');
+                $('#txtRejectholdId').val('');
+            }
+            else if (this.value == 'Reject' || this.value == 'Hold') {
+
+                $("#conapp1").fadeOut();
+                //$("#conapp2").fadeOut();
+                $("#declar").fadeOut();
+                $("#remarks").fadeIn();
+                $('#dissearch').hide();
+                $('#txtRejectholdId').val('');
+
+                var stylesSelect = $('#txtConcurrentapproval');
+                stylesSelect.attr('disabled', true);
+                $('#txtConcurrentapproval').val('');
+
+                $('#txtRejectholdId').val('');
+
+
+            }
+            else if (this.value == 'Concurrent') {
+                $("#conapp1").fadeIn();
+                //$("#conapp2").fadeIn();
+                $("#declar").fadeOut();
+                $("#remarks").fadeIn();
+                $('#dissearch').show();
+                $('#txtRejectholdId').val('');
+
+                var stylesSelect = $('#txtConcurrentapproval');
+                stylesSelect.attr('disabled', false);
+
+                $('#txtConcurrentapproval').val('');
+                $('#txtRejectholdId').val('');
+            }
+        });
+    });
+
+</script>

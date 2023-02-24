@@ -1,0 +1,104 @@
+﻿@model  IEM.Areas.EOW.Models.TravelClassEntity
+@{
+    ViewBag.Title = "Index";
+
+}
+
+@using (Html.BeginForm())
+{
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td style="padding-left:24px">
+                <span>Travel Class</span>
+                <br />
+                <div>
+                    <input type="text"
+                           name="TravelClass"
+                           id="TravelClassIdEdit"
+                           value="@Model.TravelClass"
+                           class="textboxStyle valid"
+                           readonly="readonly"
+                           style="display: block;width:250px;height: 30px;"
+                           placeholder="Enter Mode Of Travel" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-left:24px">
+                <span>Mode Of Travel</span>
+                <br />
+                <div>
+                    <select name="TravelModeId" id="TravelModeIdView" disabled="disabled" class=" form-control" style="width:250px;margin-top: 5px;height:30px;">
+                        <option value="0">Select</option>
+                        @foreach (var pitem in Model.listofdata)
+                        {
+                            var childitemfilter = Model.listofdata.Where(m => m.Value == pitem.Value);
+                            if (childitemfilter != null)
+                            {
+                                foreach (var citem in childitemfilter)
+                                {
+                                    string selectedValue = "";
+                                    if (Model.TravelModeId.ToString() == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </td>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-danger" value="Delete" onclick="DeleteMode()"><span class="glyphicon glyphicon-trash" style="color:white;"></span>Delete</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Close" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove"></span>Close</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script>
+
+    function DeleteMode() {
+        var DocGrpID = $("#DocGrpID").val();
+        var DocGrpModel = {
+            "docGrpID": DocGrpID
+        };
+        jConfirm("Do you want to delete this Travel Class ? ", "Dlete Travel Class", function (j) {
+            if (j == true) {
+                $.post('../TravelClass/ModeDelete', DocGrpModel,
+                     function (data) {
+                         if (data == null) {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location = '../TravelClass/TravelIndex'; }
+                             });
+                         }
+                         else {
+                             jAlert("Can't Detele this Document Group ,Used in Document Name!!", "Information", function (r) {
+                                 if (r = true) { location = '../TravelClass/TravelIndex'; }
+                             });
+
+                         }
+                     }, 'json');
+            }
+            else { return false; }
+        });
+    }
+    function GotoIndex() 
+    {
+        window.parent.jQuery('#ForPartialViewMode').dialog('close');
+        location = '../TravelClass/TravelIndex';
+    }
+
+</script>

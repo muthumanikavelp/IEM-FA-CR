@@ -1,0 +1,260 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+<div id="c1">
+    @{
+        SupDataModel dm = new SupDataModel();
+        SupplierTaxDetails cd = new SupplierTaxDetails();
+
+        cd.lstTaxTypeName = new SelectList(dm.GetTaxType(), "_TaxTypeID", "_TaxTypeName");
+    }
+
+    <div style="padding:0;margin:0;" id="c2">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:18%;">
+                    <input type="hidden" id="SessionTaxGid" name="SessionTaxGid" />
+                    <span>Tax Type</span><br />
+                    @Html.DropDownListFor(j => j.selectedTaxTypeNameID, cd.lstTaxTypeName, "--select--", new { @class = "textboxStyle", @id = "selectedTaxTypeNameID" })
+                </td>
+                <td style="width:18%;">
+                    <span>Registration Number</span><br />
+                    <input type="text" name="_TaxRegNo" id="_TaxRegNo" class="textboxStyle" value="@cd._TaxRegNo" tabindex="2" />
+                </td>
+                <td style="width:18%;">
+                    <span>Rate</span><br />
+                    <input type="text" name="_TaxRate" id="_TaxRate" class="textboxStyle" value="@cd._TaxRate" tabindex="3" />
+                </td>
+
+                <td style="vertical-align:bottom; width:46%;">
+                    <button onclick="SaveTaxDetails()" id="btnSaveTaxDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                    <button id="btnClearTaxDetails" onclick="ClearTaxDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //Disable cut copy paste
+        //$('body').bind('cut copy paste', function (e) {
+        //    e.preventDefault();
+        //});
+
+        ////Disable mouse right click
+        //$("body").on("contextmenu", function (e) {
+        //    return false;
+        //});
+        $("#SessionTaxGid").val("0");
+       
+        $("#selectedTaxTypeNameID").chosen({});
+        $("#selectedTaxTypeNameID_chosen").css("width", "99%");
+
+        $("#_TaxRate").attr("maxlength", "19");
+        $("#_TaxRate").addClass('required');
+        $("#selectedTaxTypeNameID_chosen").addClass('required');
+        $("#_TaxRegNo").addClass('required');
+        $("#_TaxRegNo").css('text-transform', 'uppercase');
+        $("#_TaxRegNo").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#_TaxRate").keypress(function (event) {
+            return isAmount(event);
+        });
+
+        if ($("#selectedTaxTypeNameID").val().trim() != "") {
+            $("#selectedTaxTypeNameID_chosen").removeClass('required');
+            $("#selectedTaxTypeNameID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedTaxTypeNameID_chosen").removeClass('valid');
+            $("#selectedTaxTypeNameID_chosen").addClass('required');
+        }
+        if ($("#_TaxRegNo").val().trim() != "") {
+            $("#_TaxRegNo").removeClass('required');
+            $("#_TaxRegNo").addClass('valid');
+        }
+        else {
+            $("#_TaxRegNo").removeClass('valid');
+            $("#_TaxRegNo").addClass('required');
+        }
+        if ($("#_TaxRate").val().trim() != "") {
+            $("#_TaxRate").removeClass('required');
+            $("#_TaxRate").addClass('valid');
+        }
+        else {
+            $("#_TaxRate").removeClass('valid');
+            $("#_TaxRate").addClass('required');
+        }
+        $("#_TaxRegNo").keyup(function () {
+            IsMandatoryTaxdetails(this);
+        });
+        $("#_TaxRate").keyup(function () {
+            IsMandatoryTaxdetails(this);
+        });
+        $("#selectedTaxTypeNameID").change(function () {
+            //IsMandatoryTaxdetails(this);
+            var txtval = $("#selectedTaxTypeNameID").val();
+            if (txtval.trim() != "") {
+                $("#selectedTaxTypeNameID_chosen").removeClass('required');
+                $("#selectedTaxTypeNameID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedTaxTypeNameID_chosen").removeClass('valid');
+                $("#selectedTaxTypeNameID_chosen").addClass('required');
+            }
+        });
+    });
+    function IsMandatoryTaxdetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    $("#selectedTaxTypeNameID").on('change', function () {
+        var TaxType = $("#selectedTaxTypeNameID option:selected").text().toUpperCase();
+        $("#_TaxRegNo").val("");
+        $("#_TaxRegNo").removeClass('valid');
+        $("#_TaxRegNo").addClass('required');
+        if (TaxType == "TDS" || TaxType == "VAT") {
+            $("#_TaxRate").val("");
+            $("#_TaxRate").attr('disabled', 'disabled');
+            $("#_TaxRate").removeClass('required');
+            $("#_TaxRate").removeClass('valid');
+           
+        }
+        else {
+            $("#_TaxRate").val("");
+            $("#_TaxRate").removeAttr('disabled');
+            $("#_TaxRate").removeClass('valid');
+            $("#_TaxRate").addClass('required');
+        }
+        $("#_TaxRegNo").removeAttr('maxlength');
+        if (TaxType == "TDS") {
+            var SupPanNo1 = "";
+            var objSupHeader1 =
+           {
+               "_PanNo": SupPanNo1
+           };
+            //setTimeout(function () {
+            $.ajax({
+                url: '@Url.Action("GetSupplierPanNumber", "Onboarding")',
+                data: JSON.stringify(objSupHeader1),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $("#_TaxRegNo").val(data);
+                    if ($("#_TaxRegNo").val().trim() != "") {
+                        $("#_TaxRegNo").removeClass('required');
+                        $("#_TaxRegNo").addClass('valid');
+                    }
+                    else {
+                        $("#_TaxRegNo").removeClass('valid');
+                        $("#_TaxRegNo").addClass('required');
+                    }
+                },
+                error: function (result) {
+                    $("#_TaxRegNo").val("");
+                    if ($("#_TaxRegNo").val().trim() != "") {
+                        $("#_TaxRegNo").removeClass('required');
+                        $("#_TaxRegNo").addClass('valid');
+                    }
+                    else {
+                        $("#_TaxRegNo").removeClass('valid');
+                        $("#_TaxRegNo").addClass('required');
+                    }
+                }
+            });
+        }
+        else if (TaxType == "ST") {
+            $("#_TaxRegNo").attr("maxlength", "15");
+        }
+        else {
+            $("#_TaxRegNo").attr("maxlength", "16");
+        }
+    });
+   
+    function SaveTaxDetails() {
+        var TaxType = $("#selectedTaxTypeNameID").val();
+        var RegNo = $("#_TaxRegNo").val();
+        var Rate = $("#_TaxRate").val();
+        if ($.trim(TaxType) == "" || $.trim(TaxType) == "0" || $.trim(TaxType) == null) {
+            jAlert("Please Select Tax type", "Error", function () {
+                $("#selectedTaxTypeNameID").focus();
+            });
+            return false;
+        }
+        if ($.trim(RegNo) == "" || $.trim(RegNo) == null) {
+            jAlert("Please Enter Tax Registration Number", "Error", function () {
+                $("#_TaxRegNo").focus();
+            });
+            return false;
+        }
+        if ($.trim($("#selectedTaxTypeNameID option:selected").text().toUpperCase()) != "TDS"  &&  $.trim($("#selectedTaxTypeNameID option:selected").text().toUpperCase()) != "VAT") {
+            if ($.trim(Rate) == "" || $.trim(Rate) == null) {
+                jAlert("Please Enter Tax Rate", "Error", function () {
+                    $("#_TaxRate").focus();
+                });
+                return false;
+            }
+        }
+        if (RegNo != "") {
+            RegNo = RegNo.toUpperCase();
+        }
+       
+        var ids = parseInt($("#SessionTaxGid").val());
+        var objTaxDetails = {
+            "_TaxDetailsID": ids,
+            "_TaxRegNo": RegNo,
+            "_TaxRate": Rate,
+            "selectedTaxTypeNameID": TaxType
+        };
+
+        if (ids == 0) {
+            $.post("../Onboarding/CreateTaxDetails", objTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    ClearTaxDetails();
+                    jAlert("Successfully Inserted", "success");
+                    $("#SessionTaxGid").val("0");
+                    $("#ForTaxDetails").load("../onboarding/TaxDetailsIndex?" + new Date().getTime());
+                  
+                }
+            }, 'json');
+        }
+        else {
+            $.post("../Onboarding/EditTaxDetailsSave", objTaxDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    ClearTaxDetails();
+                    jAlert("Successfully Updated", "success");
+                    $("#SessionTaxGid").val("0");
+                    $("#ForTaxDetails").load("../onboarding/TaxDetailsIndex?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+    }
+    function ClearTaxDetails() {
+        $("#selectedTaxTypeNameID").val("").trigger("chosen:updated");
+        $("#_TaxRegNo").val("");
+        $("#_TaxRate").val("");
+        $("#selectedTaxTypeNameID").focus();
+        $("#_TaxRate").removeClass('valid');
+        $("#selectedTaxTypeNameID_chosen").removeClass('valid');
+        $("#_TaxRegNo").removeClass('valid');
+        $("#_TaxRate").addClass('required');
+        $("#selectedTaxTypeNameID_chosen").addClass('required');
+        $("#_TaxRegNo").addClass('required');
+
+    }
+    function SearchTaxDetails() {
+       
+    }
+</script>
+

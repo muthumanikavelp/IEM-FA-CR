@@ -1,0 +1,94 @@
+﻿<div id="potemplate">
+    <table style="margin-left:15px;">
+        <tr>
+            <td>
+                <span>Template Name</span>
+                <br />
+                <input type="text" class="textboxStyleMedium" id="txtTemplate" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Terms And Condtions</span>
+                <br />
+                <div>
+                    <textarea style="width:827px;height:344px;resize:none" id="txtTempContent" class="textareaStyle"></textarea>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div style="margin-left:668px;">
+                    <input type="button" class="btn btn-primary" value="Save" onclick="SaveTemplate()" />
+                    &nbsp;
+                    <input type="button" class="btn btn-warning" value="Cancel" onclick="TemplateClose()" />
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+    function SaveTemplate() {
+        var tempName = $("#txtTemplate").val();
+        var tempArea = $("#txtTempContent").val();
+        var objTemplate =
+        {
+            "templateName": tempName,
+            "templateContent": tempArea
+        };
+        $.post('../../poraiser/SavePoTemplate?' + new Date().getTime(), objTemplate,
+                            function (data) {
+                                if (data == 0) {
+
+                                    jAlert("Record Already exists", "Error");
+                                    return false;
+                                }
+                                else {
+                                    jAlert("Record Inserted Successfully", "Success", function (e) {
+                                        if (e == true) {
+                                            window.parent.jQuery('#ForPOTemplate').dialog('close');
+                                        }
+                                    });
+                                }
+                            }, 'json');
+        setTimeout(function () {
+            $.ajax({
+                url: '@Url.Action("GetTemplateList","poraiser")?' + new Date().getTime(),
+                data: '{}',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#templateGid").empty();
+                        $("#templateGid").append("<option value='Select'>Select</option>");
+                    }
+                    for (var i = 0; i < data.length; i++) {
+                        $("#templateGid").append("<option value=" + data[i].templateGid + " >" + data[i].tempName + "</option>");
+                    }
+
+                },
+                error: function (result) {
+                    alert("Error");
+                }
+            });
+        }, 50);
+    }
+    function TemplateClose() {
+        objTemplate.dialog('close');
+    }
+</script>

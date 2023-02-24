@@ -1,0 +1,836 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.poraiser
+@using IEM.Common;
+@{
+    ViewBag.Title = "poraiser";
+    WebGrid grid = new WebGrid(source: Model.objlist, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "poEditgrid1", ajaxUpdateCallback: "dummyfun()");
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+    var viewfor = (string)Session["viewfor"];
+    if (viewfor == "edit" || viewfor == "amend")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "checkercancel" || viewfor == "checker" || viewfor == "closure" || viewfor == "closurechecker" || viewfor=="delmat")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+}
+<input type="hidden" id="hid_cbfamount" value="@Model.cbfheadAmount" />
+<input type="hidden" id="hid_devamount" value="@Model.devamount" />
+<input type="hidden" id="hid_cbfqty" value="@Model.cbfdetailsQty" />
+
+<div id="poEditgrid1">
+    @if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete" || viewfor == "checkercancel" || viewfor == "checker" || viewfor == "closure" || viewfor == "closurechecker" || viewfor == "delmat")
+    {
+        <div class="container-fluid overflowx overflowy">
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover",
+        htmlAttributes: new { id = "podetailgrid1" },
+        columns: grid.Columns
+            (
+          grid.Column("Sl", format: a => rowNum = rowNum + 1, canSort: false),
+          grid.Column("cbfno", obj.Sorter("cbfno", "CBF Number", grid), canSort: false),
+          grid.Column("prodservicegid", obj.Sorter("prodservicegid", "prodservGid", grid), canSort: false),
+          grid.Column("uomgid", obj.Sorter("uomgid", "uom gid", grid), canSort: false),
+          grid.Column("prodservicegroup", obj.Sorter("prodservicegroup", "Product Group", grid), style: "MidColumn60", canSort: false),
+          grid.Column("prodservicecode", obj.Sorter("prodservicecode", "Product Code", grid), style: "MidColumn20", canSort: false),
+          grid.Column("prodservicename", obj.Sorter("prodservicename", "Product Name", grid), style: "MidColumn20", canSort: false),
+          grid.Column("prodservicedesc", obj.Sorter("prodservicedesc", "Product Description", grid), style: "MidColumn50", canSort: false),
+          grid.Column("units", obj.Sorter("units", "Units", grid), canSort: false),
+         grid.Column("quantity", obj.Sorter("quantity", "Quantity", grid),
+              format: @<text><span class="display" id="lblqty">@item.quantity</span>
+            <input type="hidden" name="hidpodetgidvalidation" id="hidpodetgidvalidation" value="@item.podetGid">
+            <input type="hidden" name="hidquantityvalidation" id="hidquantityvalidation" value="@item.quantity">
+            <input type="text"
+                   id="inqty_@item.podetGid" value="@item.quantity" name="@item.actQuantity"
+                   class="edit textboxStyle qty" href="@item.podetGid"
+                   onkeyup="Quantity(name, value, this)" onkeypress="return isNumber1(event,this);" style="width:100px" />
+            </text>,style:"MidColumn30 centerAlign",canSort:false),
+                            grid.Column("unitPrice", obj.Sorter("unitPrice", "Rate", grid), style: "rightAlign", canSort: false),
+                                          grid.Column("baseamount", obj.Sorter("baseamount", "Base Amount", grid), style: "MidColumn20 rightAlign", canSort: false),
+                                          grid.Column("discount", obj.Sorter("discount", "Discount", grid), style: "rightAlign", canSort: false),
+                                          grid.Column("tax1", obj.Sorter("tax1", "Taxes", grid), style: "rightAlign", canSort: false),
+                                          grid.Column("tax2", obj.Sorter("tax2", "Other ", grid), style: "rightAlign", canSort: false),
+       //   grid.Column("tax3", obj.Sorter("tax3", "Tax(%)-3", grid)),
+        //  grid.Column("poRemaingAmount", obj.Sorter("poRemaingAmount", "poRemaingAmount", grid), style: "MidColumn20"),
+                                          grid.Column("total", obj.Sorter("total", "Net Amount", grid), style: "MidColumn20 rightAlign", canSort: false),
+        grid.Column(header:"Shipment",canSort:false,style:"action",format:@<text>
+            <input type="button"
+                   id="@item.podetGid" value="Shipment"
+                   class="btn btn-link display Color" onclick="shipmentfun(id)"
+                   style="width:100px;margin-top: -9px;" />
+
+            <input type="button"
+                   id="@item.podetGid" value="Shipment"
+                   class="btn btn-link edit" disabled="disabled"
+                   style="width:100px;" /></text>)))
+        </div>
+        if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle">
+                @ViewBag.records
+            </div>
+        }
+    }
+    else
+    {
+        <div class="container-fluid overflowx overflowy">
+            @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover",
+        htmlAttributes: new { id = "podetailgrid" },
+        columns: grid.Columns
+            (
+          grid.Column("Sl", format: a => rowNum = rowNum + 1, canSort: false),
+          grid.Column("prodservicegid", obj.Sorter("prodservicegid", "prodservGid", grid), canSort: false),
+          grid.Column("uomgid", obj.Sorter("uomgid", "uom gid", grid), canSort: false),
+          grid.Column("prodservicegroup", obj.Sorter("prodservicegroup", "Product Group", grid), style: "MidColumn20", canSort: false),
+          grid.Column("prodservicecode", obj.Sorter("prodservicecode", "Product Code", grid), style: "MidColumn20", canSort: false),
+          grid.Column("prodservicename", obj.Sorter("prodservicename", "Product Name", grid), style: "MidColumn20", canSort: false),
+            //  grid.Column("poRemaingAmount", obj.Sorter("poRemaingAmount", "poRemaingAmount", grid), style: "MidColumn20"),
+          grid.Column("prodservicedesc", obj.Sorter("prodservicedesc", "Product Description", grid), canSort: false, style: "MidColumn50",
+         format: @<text><span class="display" id="lbldesc">@item.prodservicedesc</span>
+        <input type="text" id="indesc_@item.podetGid" value="@item.prodservicedesc" name="indesc"
+               class="edit MidColumn50 textboxStyleBig" style="width:100px" />
+        </text>),
+                       grid.Column("units", obj.Sorter("units", "Units", grid), canSort: false),
+           grid.Column("quantity", obj.Sorter("quantity", "Quantity", grid),
+              format: @<text><span class="display" id="lblqty">@item.quantity</span>
+
+            <input type="hidden" name="hidpodetgidvalidation1" id="hidpodetgidvalidation1" value="@item.podetGid">
+            <input type="hidden" name="hidquantityvalidation1" id="hidquantityvalidation1" value="@item.quantity">
+
+            <input type="text"
+                   id="inqty_@item.podetGid" value="@item.quantity" name="@item.actQuantity"
+                   class="edit textboxStyle qty" href="@item.podetGid"
+                   onkeyup="Quantity(name, value, this)" onkeypress="return isNumber1(event,this);" style="width:100px" />
+            </text>,style:"MidColumn30 centerAlign",canSort:false),
+
+                            grid.Column("unitPrice", obj.Sorter("unitPrice", "Rate", grid), canSort: false, style: "rightAlign",
+              format: @<text><span class="display" id="lblunit">@item.unitPrice</span>
+            <input type="text" id="inunit_@item.podetGid" name="inunit" onchange="unitprice(id, value,this)" onkeypress="return isNumber1(event,this);"
+                   href="@item.podetGid" value="@item.unitPrice" style="width:100px"
+                   class="edit textboxStyle" /> </text>),
+            grid.Column("baseamount", obj.Sorter("baseamount", "Base Amount", grid),
+              format:@<text><span class="display" id="lblunit">@item.baseamount</span>
+            <input type="text" value="@item.baseamount" style="width:100px" id="inbase_@item.podetGid" name="inbase"
+                   class="edit textboxStyle" href="@item.cbfdetailsgid" /> </text> ,style:"MidColumn20 rightAlign",canSort:false),
+              grid.Column("discount", obj.Sorter("discount", "Discount", grid),
+              format:@<text><span class="display" id="lbldiscount">@item.discount</span>
+            <input type="text" style="width:100px" id="indis_@item.podetGid" name="indis"
+                   class="edit textboxStyle" value="@item.discount" href="@item.podetGid" onkeyup="discount(id,value,this)" onkeypress="return isNumber(event);" />  </text>,style:"MidColumn20 rightAlign",canSort:false),
+              
+             grid.Column("tax1", obj.Sorter("tax1", "Taxes", grid),
+             format: @<text><span class="display" id="lbltax1">@item.tax1</span><input type="text" style="width:100px" id="intax1_@item.podetGid" name="intax1"
+                                                                                       class="edit textboxStyle" href="@item.podetGid" value="@item.tax1" onkeyup="tax1(id,value,this)" onkeypress="return isNumber(event);" /></text>,style:"MidColumn20 rightAlign",canSort:false),
+              grid.Column("tax2", obj.Sorter("tax2", "Other Charges", grid),
+              format:@<text><span class="display" id="lbltax2">@item.tax2</span><input type="text" style="width:100px" id="intax2_@item.podetGid" name="intax2"
+                                                                                       class="edit textboxStyle" value="@item.tax2" href="@item.podetGid" onkeyup="tax2(id,value,this)" onkeypress="return isNumber(event);" /></text>,style:"MidColumn20 rightAlign",canSort:false),
+              grid.Column("total", obj.Sorter("total", "Net Amount", grid),
+              format:@<text><span class="display" id="lblamount">@item.total</span>
+            <input type="text" id="intotal_@item.podetGid" name="intotal" href="@item.podetGid"
+                   value="@item.total" style="width:100px" class="edit textboxStyle" />
+            </text>,style:"MidColumn20 rightAlign",canSort:false),
+        grid.Column(header:"Shipment",canSort:false,style:"action",format:@<text>
+                <input type="button"
+                       id="@item.podetGid" value="Shipment"
+                       class="btn btn-link display Color" onclick="shipmentfun(id)"
+                       style="width:100px;margin-top: -9px;" />
+
+                <input type="button"
+                       id="@item.podetGid" value="Shipment"
+                       class="btn btn-link edit" disabled="disabled"
+                       style="width:100px;" /></text>),
+                 grid.Column(header: "Action", canSort: false, style: "action MidColumn30",
+            format: @<text>
+
+                    @*<span class="glyphicon glyphicon-floppy-open  display-mode add-btn"><label id="sdf34" hidden="hidden"> @rowNum</label></span>*@
+                    <a><span class='glyphicon glyphicon-floppy-save edit save-btn Color'><label id="sdf34" hidden="hidden"> @item.podetGid</label></span></a>
+                    <a><span class='glyphicon glyphicon-edit display edit-btn Color'><label id="sdf67" hidden="hidden"> @rowNum</label> </span></a>
+                    <a><span class='glyphicon glyphicon-trash display deletepo-btn Color'><label id="sdf67" hidden="hidden"> @item.podetGid</label> </span></a>
+                    <a><span class='glyphicon glyphicon-remove edit cancel-btn Color'> <label id="sdf000-" hidden="hidden"> @rowNum</label></span></a>
+
+            </text>)))
+            <div style="margin-left: 146%;">
+                <table>
+                    <tr style="white-space:nowrap">
+                        <td>
+                            <span><b>Total Amount : </b></span>
+                        </td>
+                        <td>
+                            &nbsp;&nbsp;
+                        </td>
+                        <td>
+                            <span id="grandtotal"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    }
+    @if (@ViewBag.records != null || @ViewBag.records == "")
+    { <div class="borderStyle btnCenter">
+        @ViewBag.records
+    </div>
+    }
+
+    <input type="hidden" id="hid_unitprice" />
+    <input type="hidden" id="hid_baseamount" />
+</div>
+<script>
+    $("#podetailgrid td:nth-child(2),#podetailgrid th:nth-child(2)").hide();
+    $("#podetailgrid td:nth-child(3),#podetailgrid th:nth-child(3)").hide();
+  //  $("#podetailgrid td:nth-child(7),#podetailgrid th:nth-child(7)").hide();
+
+    var tr = $("#podetailgrid").find('tr');
+    $("#podetailgrid tr .Color").click(function () {
+        $('#podetailgrid').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+
+    $("#podetailgrid1 td:nth-child(3),#podetailgrid1 th:nth-child(3)").hide();
+    $("#podetailgrid1 td:nth-child(4),#podetailgrid1 th:nth-child(4)").hide();
+    //  $("#podetailgrid td:nth-child(7),#podetailgrid th:nth-child(7)").hide();
+
+    var tr = $("#podetailgrid1").find('tr');
+    $("#podetailgrid1 tr .Color").click(function () {
+        $('#podetailgrid1').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    $(document).ready(function () {
+        var add = 0;
+        $("#podetailgrid td").find("#lblamount").each(function add1() {
+
+            add += parseFloat($(this).text());
+        });
+        $("#grandtotal").val(add);
+        var flag = 0;
+        $('.edit').hide();
+        //var tr = $(this).parents('tr:first');
+        //var unitprice = tr.find('td:eq(9)').text();
+        $('.edit-btn').on('click', function () {
+            if (flag == 0) {
+                flag = 1;
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+                var unitprice = tr.find('td:eq(9)').text();
+                var baseamount = tr.find('td:eq(11)').text();
+                $("#hid_unitprice").val(unitprice);
+                $("#hid_baseamount").val(baseamount);
+            }
+        });
+        $('.cancel-btn').on('click', function () {
+            flag = 0;
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+        $('#grandtotal').text(add);
+        //$('[name="indis"]').attr("maxlength", "2");
+       // $('[name="indis"]').val("");
+        //$('[name="intax1"]').attr("maxlength", "2");
+       // $('[name="intax1"]').val("");
+        //$('[name="intax2"]').attr("maxlength", "2");
+       // $('[name="intax2"]').val("");
+        //$('[name="intax3"]').attr("maxlength", "2");
+       // $('[name="intax3"]').val("");
+        $('[name="intotal"]').attr("disabled", "disabled");
+        //$('[name="intotal"]').val("");
+        $('[name="inbase"]').attr("disabled", "disabled");
+        //$('[name="inunit"]').val("");
+        //$('[name="inbase"]').val("");
+        $('.save-btn').on('click', function () {
+
+            var flag = 0;
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var description = tr.find("#indesc_" + row.trim() + "").val();
+            var qty = tr.find("#inqty_" + row.trim() + "").val();
+            var unit = tr.find("#inunit_" + row.trim() + "").val();
+            var discount = tr.find("#indis_" + row.trim() + "").val();
+            var baseamount = tr.find("#inbase_" + row.trim() + "").val();
+            var tax1 = tr.find("#intax1_" + row.trim() + "").val();
+            var tax2 = tr.find("#intax2_" + row.trim() + "").val();
+          //  var tax3 = tr.find("#intax3_" + row.trim() + "").val();
+            var total = tr.find("#intotal_" + row.trim() + "").val();
+            var grandtotal = $("#grandtotal").text();
+            if (qty == null || qty == "") {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            else if (unit == null || unit == "") {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+            else if (total == null || total == "") {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+
+            else {
+                $('.edit').hide();
+                var objraiser =
+                {
+                    "podetGid": row,
+                    "quantity": qty,
+                    "prodservicedesc": description,
+                    "unitprice": unit,
+                    "discount": discount,
+                    "total": total,
+                    "tax1": tax1,
+                    "tax2": tax2,
+                   // "tax3": tax3,
+                    "baseamount": baseamount,
+                    "grandtotal": grandtotal,
+                    "editFlag": flag
+                };
+                $.ajax({
+                    url:'@Url.Action("PoDetailTempSave", "PoRaiserEdit")?' + new Date().getTime(),
+                    type: 'POST',
+                    data: objraiser,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#poEditgrid1").empty().append(data);
+                            window.parent.jQuery("#Forshipment").dialog('close');
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            }
+
+        });
+    });
+
+    function dummyfun()
+    {
+
+            var add = 0;
+            $("#podetailgrid td").find("#lblamount").each(function add1() {
+
+                add += parseFloat($(this).text());
+            });
+            $("#grandtotal").val(add);
+            var flag = 0;
+            $('.edit').hide();
+            //var tr = $(this).parents('tr:first');
+            //var unitprice = tr.find('td:eq(9)').text();
+            $('.edit-btn').on('click', function () {
+                if (flag == 0) {
+                    flag = 1;
+                    var tr = $(this).parents('tr:first');
+                    tr.find('.edit, .display').toggle();
+                    var unitprice = tr.find('td:eq(9)').text();
+                    var baseamount = tr.find('td:eq(11)').text();
+                    $("#hid_unitprice").val(unitprice);
+                    $("#hid_baseamount").val(baseamount);
+                }
+            });
+            $('.cancel-btn').on('click', function () {
+                flag = 0;
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+            });
+            $('#grandtotal').text(add.toFixed(2));
+            $('[name="indis"]').attr("maxlength", "2");
+            // $('[name="indis"]').val("");
+            $('[name="intax1"]').attr("maxlength", "2");
+            // $('[name="intax1"]').val("");
+            $('[name="intax2"]').attr("maxlength", "2");
+            // $('[name="intax2"]').val("");
+          //  $('[name="intax3"]').attr("maxlength", "2");
+            // $('[name="intax3"]').val("");
+            $('[name="intotal"]').attr("disabled", "disabled");
+            //$('[name="intotal"]').val("");
+            $('[name="inbase"]').attr("disabled", "disabled");
+            //$('[name="inunit"]').val("");
+            //$('[name="inbase"]').val("");
+            $('.save-btn').on('click', function () {
+
+                var flag = 0;
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var description = tr.find("#indesc_" + row.trim() + "").val();
+                var qty = tr.find("#inqty_" + row.trim() + "").val();
+                var unit = tr.find("#inunit_" + row.trim() + "").val();
+                var discount = tr.find("#indis_" + row.trim() + "").val();
+                var baseamount = tr.find("#inbase_" + row.trim() + "").val();
+                var tax1 = tr.find("#intax1_" + row.trim() + "").val();
+                var tax2 = tr.find("#intax2_" + row.trim() + "").val();
+                //var tax3 = tr.find("#intax3_" + row.trim() + "").val();
+                var total = tr.find("#intotal_" + row.trim() + "").val();
+                var grandtotal = $("#grandtotal").text();
+                if (qty == null || qty == "") {
+                    jAlert("Please Enter Qty.", "Error");
+                    return false;
+                }
+                else if (unit == null || unit == "") {
+                    jAlert("Please Enter Unit Amount.", "Error");
+                    return false;
+                }
+                else if (total == null || total == "") {
+                    jAlert("Total Amount Should Not Be Null", "Error");
+                    return false;
+                }
+
+                else {
+                    $('.edit').hide();
+                    var objraiser =
+                    {
+                        "podetGid": row,
+                        "quantity": qty,
+                        "prodservicedesc": description,
+                        "unitprice": unit,
+                        "discount": discount,
+                        "total": total,
+                        "tax1": tax1,
+                        "tax2": tax2,
+                        //"tax3": tax3,
+                        "baseamount": baseamount,
+                        "grandtotal": grandtotal,
+                        "editFlag": flag
+                    };
+                    $.ajax({
+                        url: '@Url.Action("PoDetailTempSave", "PoRaiserEdit")',
+                        type: 'POST',
+                        data: objraiser,
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error");
+                                return false;
+                            }
+                            else {
+                                $("#poEditgrid1").empty().append(data);
+                                window.parent.jQuery("#Forshipment").dialog('close');
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+                    });
+                }
+
+            });
+    }
+    $('.deletepo-btn').on('click', function () {
+
+        var tr = $(this).parents('tr:first');
+        var row = $(this).text();
+        var objraiser =
+            {
+                "podetGid": row
+            }
+        $.ajax({
+            url: '@Url.Action("PoDelete","PoRaiserEdit")?' + new Date().getTime(),
+            type: 'POST',
+            data: objraiser,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#poEditgrid1").empty().append(data);
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+    });
+    function Quantity(name, value, element) {
+        var id1 = $(element).attr('href');
+        var cbfdetailsQty = $("#hid_cbfqty").val();
+        if (parseInt(value) > parseInt(cbfdetailsQty)) {
+            jAlert("Should Not Be greater than Unit Quantity\n Maximum Quantity is '" + cbfdetailsQty + "'", "Error");
+            $(element).val(cbfdetailsQty);
+            $(element).focus();
+            return false;
+        }
+        if (parseInt(value) == 0) {
+            jAlert("Quantity cannot be zero", "Error", function (e) {
+                $(element).val(name);
+            });
+            return false;
+        }
+        else {
+            var actTotal = (value * $('#inunit_' + id1 + '').val());
+            $('#inbase_' + id1 + '').val(actTotal);
+            var discount = $('#indis_' + id1 + '').val();
+            var discountamount = ((discount) );
+            var tax1 = $('#intax1_' + id1 + '').val();
+            var tax1amount = ((tax1 ) );
+            var tax2 = $('#intax2_' + id1 + '').val();
+            var tax2amount = ((tax2 ) );
+            //var tax3 = $('#intax3_' + id1 + '').val();
+            //var tax3amount = ((tax3 ) );
+            var baseamount = $('#inbase_' + id1 + '').val();
+            //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount) - parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+            var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount) - parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount)))));
+            $('#intotal_' + id1 + '').val(totalamount);
+
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += parseFloat($(this).val());
+
+            });
+            //var baseamount=0;
+            //$("#podetailgrid td").find("input[name=inbase]:text").each(function add1() {
+            //    baseamount += Number($(this).val());
+            //});
+            //if(add<=baseamount+
+            $("#grandtotal").text(add);
+        }
+    }
+
+    function unitprice(id, value, element) {
+        if (parseFloat(value) <= parseFloat(0)) {
+            var id1 = $(element).attr('href');
+            jAlert("Unitprice cannot be zero or empty", "Error");
+            var unitPrice = $("#hid_unitprice").val();
+            $('#inunit_' + id1 + '').val(unitPrice);
+            var actTotal = parseFloat(unitPrice * $('#inqty_' + id1 + '').val());
+            $('#inbase_' + id1 + '').val(actTotal);
+          //  return false;
+        }
+        else {
+            var id1 = $(element).attr('href');
+            var actTotal = (value * $('#inqty_' + id1 + '').val());
+            $('#inbase_' + id1 + '').val(actTotal);
+            var discount = $('#indis_' + id1 + '').val();
+            var discountamount = ((discount) );
+            var tax1 = $('#intax1_' + id1 + '').val();
+            var tax2 = $('#intax2_' + id1 + '').val();
+            //var tax3 = $('#intax3_' + id1 + '').val();
+            var tax1amount = ((tax1 ) );
+            var tax2amount = ((tax2 ) );
+            //var tax3amount = ((tax3 / 100) * ($('#inbase_' + id1 + '').val()));
+            var baseamount = $('#inbase_' + id1 + '').val();
+            //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount)))).toFixed(2);
+            var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount))));
+            var cbfamount = $("#hid_cbfamount").val();
+            var devamount = $("#hid_devamount").val();
+            var cbftotamount = parseFloat(cbfamount);
+            //var tr = $(element).closest('tr');
+            //var remainingamount = tr.find("td:eq(7)").text();
+            //var podetailstotal = tr.find("td:eq(8)").text();
+            //var cbftotamount = parseFloat(remainingamount) + parseFloat(podetailstotal);
+            $('#intotal_' + id1 + '').val(totalamount);
+
+
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+            var totAmt = add;
+            // alert(totAmt);
+            //var totAmount = parseFloat(cbfamount) - parseFloat(totalamount);
+            if (parseInt(totAmt) > parseInt(cbftotamount)) {
+                jAlert("Total Amount Exceeds the PO Amount '" + cbftotamount + "'", "Error");
+                var unitPrice = $("#hid_unitprice").val();
+                $('#inunit_' + id1 + '').val(unitPrice);
+                var qty = parseFloat($('#inqty_' + id1 + '').val());
+                var baseAmount = parseFloat(parseFloat($('#inunit_' + id1 + '').val()) * parseFloat($('#inqty_' + id1 + '').val()))
+                $('#inbase_' + id1 + '').val(baseAmount);
+                //var baseAmount = $("#hid_baseamount").val();
+                //$('#inbase_' + id1 + '').val(baseAmount);
+                var discount = $('#indis_' + id1 + '').val();
+                var discountamount = ((discount ));
+                //var totalamount = ((parseFloat(baseAmount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+                var totalamount = ((parseFloat(baseAmount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount)))));
+                $('#intotal_' + id1 + '').val(totalamount);
+
+                var add = 0;
+                $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                    add += Number($(this).val());
+                });
+                $("#grandtotal").text(add);
+                return false;
+            }
+            $('#intotal_' + id1 + '').val(totalamount);
+
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+
+            $("#grandtotal").text(add);
+            if (totalamount <= parseInt(0)) {
+                jAlert("Total amount should not be zero or Negative values", "Error");
+                $('#intotal_' + id1 + '').val("");
+                $("#grandtotal").text("");
+                $(this).val("");
+                $(this).focus();
+                return false;
+            }
+        }
+    }
+
+    function discount(id, value, element) {
+        var id1 = $(element).attr('href');
+        var discountamount = ((parseInt(value) ) )
+        var tax1 = $('#intax1_' + id1 + '').val();
+        var tax2 = $('#intax2_' + id1 + '').val();
+        //var tax3 = $('#intax3_' + id1 + '').val();
+        var tax1amount = ((tax1 ) );
+        var tax2amount = ((tax2 ) );
+        //var tax3amount = ((tax3 / 100) * ($('#inbase_' + id1 + '').val()));
+        var baseamount = $('#inbase_' + id1 + '').val();
+        //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount)))).toFixed(2);
+        var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount))));
+        var cbfamount = $("#hid_cbfamount").val();
+        var devamount = $("#hid_devamount").val();
+        var cbftotamount = parseFloat(cbfamount);
+        //var tr = $(element).closest('tr');
+        //var remainingamount = tr.find("td:eq(7)").text();
+        //var podetailstotal = tr.find("td:eq(8)").text();
+        //var cbftotamount = parseFloat(remainingamount) + parseFloat(podetailstotal);
+        $('#intotal_' + id1 + '').val(totalamount);
+
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        var totAmt = add;
+
+        //var totAmount = parseFloat(cbfamount) - parseFloat(totalamount);
+        if (parseInt(totAmt) > parseInt(cbftotamount)) {
+            jAlert("Total Amount Exceeds the PO Amount '" + cbftotamount + "'", "Error");
+            $('#indis_' + id1 + '').val(0);
+            //var totalamount = ((parseFloat(baseamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+            var totalamount = ((parseFloat(baseamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount)))));
+            $('#intotal_' + id1 + '').val(totalamount);
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+            $("#grandtotal").text(add);
+            return false;
+        }
+
+        $('#intotal_' + id1 + '').val(totalamount);
+        var total = $('#intotal_' + id1 + '').val();
+
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+
+            add += Number($(this).val());
+        });
+        $("#grandtotal").text(add);
+        if (totalamount <= parseInt(0)) {
+            jAlert("Total amount should not be zero or Negative values", "Error");
+            $('#intotal_' + id1 + '').val("");
+            $("#grandtotal").text("");
+            $(this).val("");
+            $(this).focus();
+            return false;
+        }
+    }
+    function tax1(id, value, element) {
+        var id1 = $(element).attr('href');
+        var tax1amount = ((value ) );
+        var discount = $('#indis_' + id1 + '').val();
+        var discountamount = ((discount ) );
+        var tax2 = $('#intax2_' + id1 + '').val();
+        var tax2amount = ((tax2 ) );
+        //var tax3 = $('#intax3_' + id1 + '').val();
+        //var tax3amount = ((tax3 / 100) * ($('#inbase_' + id1 + '').val()));
+        var baseamount = $('#inbase_' + id1 + '').val();
+        //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+        var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount)))));
+        var cbfamount = $("#hid_cbfamount").val();
+        var devamount = $("#hid_devamount").val();
+        var cbftotamount = parseFloat(cbfamount);
+        var totAmount = parseFloat(cbfamount) - parseFloat(totAmt);
+        //var tr = $(element).closest('tr');
+        //var remainingamount = tr.find('td:eq(6)').text();
+        //var podetailstotal = tr.find('td:eq(16)').text();
+        //var cbftotamount = parseFloat(remainingamount) + parseFloat(podetailstotal);
+        $('#intotal_' + id1 + '').val(totalamount);
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        var totAmt = add;
+
+        if (parseInt(totAmt) > parseInt(cbftotamount)) {
+            jAlert("Total Amount Exceeds the PO Amount '" + cbftotamount + "'", "Error");
+            $('#intax1_' + id1 + '').val(0);
+            //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat(parseFloat(tax2amount) + parseFloat(tax3amount)))).toFixed(2);
+            var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat(parseFloat(tax2amount))));
+            $('#intotal_' + id1 + '').val(totalamount);
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+            $("#grandtotal").text(add);
+            return false;
+        }
+
+
+        $('#intotal_' + id1 + '').val(totalamount);
+        var total = $('#intotal_' + id1 + '').val();
+
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+
+        $("#grandtotal").text(add.toFixed(2));
+
+        if (totalamount <= parseInt(0)) {
+            jAlert("Total cannnot be zero or Negative values", "Error");
+            $('#intotal_' + id1 + '').val("");
+            $("#grandtotal").text("");
+            $(this).val("");
+            $(this).focus();
+            return false;
+        }
+    }
+    function tax2(id, value, element) {
+        var id1 = $(element).attr('href');
+        var tax2amount = ((value ) )
+        var discount = $('#indis_' + id1 + '').val();
+        var discountamount = ((discount ) );
+        var tax1 = $('#intax1_' + id1 + '').val();
+        var tax1amount = ((tax1) );
+        //var tax3 = $('#intax3_' + id1 + '').val();
+        //var tax3amount = ((tax3 / 100) * ($('#inbase_' + id1 + '').val()));
+        var baseamount = $('#inbase_' + id1 + '').val();
+        //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+        var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount)))));
+        var cbfamount = $("#hid_cbfamount").val();
+        var devamount = $("#hid_devamount").val();
+        var cbftotamount = parseFloat(cbfamount);
+        $('#intotal_' + id1 + '').val(totalamount);
+        //var tr = $(element).closest('tr');
+        //var remainingamount = tr.find('td:eq(6)').text();
+        //var podetailstotal = tr.find('td:eq(16)').text();
+        //var cbftotamount = parseFloat(remainingamount) + parseFloat(podetailstotal);
+
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        var totAmt = add;
+        //  var totAmount = parseFloat(cbfamount) - parseFloat(totalamount);
+
+        if (parseInt(totAmt) > parseInt(cbftotamount)) {
+            jAlert("Total Amount Exceeds the PO Amount '" + cbftotamount + "'", "Error");
+            $('#intax2_' + id1 + '').val(0);
+            //var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax3amount))))).toFixed(2);
+            var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount)))));
+            $('#intotal_' + id1 + '').val(totalamount);
+            var add = 0;
+            $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+                add += Number($(this).val());
+            });
+            $("#grandtotal").text(add);
+            return false;
+        }
+
+        $('#intotal_' + id1 + '').val(totalamount);
+        var total = $('#intotal_' + id1 + '').val();
+        var add = 0;
+        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+            add += Number($(this).val());
+        });
+        $("#grandtotal").text(add.toFixed(2));
+        if (totalamount <= parseInt(0)) {
+            jAlert("Total cannnot be zero or Negative values", "Error");
+            $('#intotal_' + id1 + '').val("");
+            $("#grandtotal").text("");
+            $(this).val("");
+            $(this).focus();
+            return false;
+        }
+    }
+    //function tax3(id, value, element) {
+    //    var id1 = $(element).attr('href');
+    //    var tax3amount = ((value / 100) * ($('#inbase_' + id1 + '').val()))
+    //    var discount = $('#indis_' + id1 + '').val();
+    //    var discountamount = ((discount / 100) * ($('#inbase_' + id1 + '').val()));
+    //    var tax2 = $('#intax2_' + id1 + '').val();
+    //    var tax2amount = ((tax2 / 100) * ($('#inbase_' + id1 + '').val()));
+    //    var tax1 = $('#intax1_' + id1 + '').val();
+    //    var tax1amount = ((tax1 / 100) * ($('#inbase_' + id1 + '').val()));
+    //    //var total = $('#inbase_' + id1 + '').val();
+    //    var baseamount = $('#inbase_' + id1 + '').val();
+    //    var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount) + parseFloat(tax3amount))))).toFixed(2);
+
+    //    var cbfamount = $("#hid_cbfamount").val();
+    //    var devamount = $("#hid_devamount").val();
+    //    var cbftotamount = parseFloat(cbfamount);
+    //    //var tr = $(element).closest('tr');
+    //    //var remainingamount = tr.find('td:eq(6)').text();
+    //    //var podetailstotal = tr.find('td:eq(16)').text();
+    //    //var cbftotamount = parseFloat(remainingamount) + parseFloat(podetailstotal);
+    //    $('#intotal_' + id1 + '').val(totalamount);
+
+    //    var add = 0;
+
+    //    $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+    //        add += Number($(this).val());
+    //    });
+    //    var totAmt = add;
+
+    //    //var totAmount = parseFloat(cbfamount) - parseFloat(totalamount);
+    //    if (parseInt(totAmt) > parseInt(cbftotamount)) {
+    //        jAlert("Total Amount Exceeds the PO Amount '" + cbftotamount + "'", "Error");
+    //        $('#intax3_' + id1 + '').val(0);
+    //        var totalamount = ((parseFloat(baseamount) - parseFloat(discountamount)) + (parseFloat((parseFloat(tax1amount) + parseFloat(tax2amount))))).toFixed(2);
+    //        $('#intotal_' + id1 + '').val(totalamount);
+    //        var add = 0;
+    //        $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+    //            add += Number($(this).val());
+    //        });
+    //        $("#grandtotal").text(add.toFixed(2));
+    //        return false;
+    //    }
+
+    //    $('#intotal_' + id1 + '').val(totalamount);
+    //    var total = $('#intotal_' + id1 + '').val();
+    //    var add = 0;
+    //    $("#podetailgrid td").find("input[name=intotal]:text").each(function add1() {
+    //        add += Number($(this).val());
+    //    });
+    //    $("#grandtotal").text(add.toFixed(2));
+    //    if (totalamount <= parseInt(0)) {
+    //        jAlert("Total cannnot be zero or Negative values", "Error");
+    //        $('#intotal_' + id1 + '').val("");
+    //        $("#grandtotal").text("");
+    //        $(this).val("");
+    //        $(this).focus();
+    //        return false;
+    //    }
+    //}
+
+    var objShip;
+    function shipmentfun(id) {
+      //  alert(id);
+        var quantity = $("#inqty_" + id + '').val();
+        $("#shippedqty").val(quantity);
+
+        if ($('#ss').val() == "") {
+            $("#ss").val("asd");
+            objShip = $("[id$='Forshipment']");
+            objShip.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                show: 'fade-in',
+                close: 'fade-out',
+                resizable:false
+            });
+        }
+        objShip.load('@Url.Action("shipmentdetails", "AssetCapitalizationMakerDetails")?poDetGid=' + id + '&' + new Date().getTime());
+        objShip.dialog({ title: 'Shipment Details', width: '1184', height: '670' });
+        objShip.dialog("open");
+    }
+</script>

@@ -1,0 +1,165 @@
+﻿@model IEM.Areas.ASMS.Models.ClientDetails
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+
+}
+
+<div id="editclient">
+
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="display:none;">
+                    <span>Client ID</span><br />
+                    <input name="_ClientIDEdit" class="textboxStyle" id="_ClientIDEdit" title="Client ID" type="text" value="@Model._ClientID" />
+                </td>
+                <td style="width:100%;">
+                    <span>Client Name</span><br />
+                    <input name="_ClientNameEdit" class="textboxStyle valid" id="_ClientNameEdit" title="Client Name" type="text" value="@Model._ClientName" @ViewBag.viewmode />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100%;">
+                    <span>Address</span> <br />
+                    <textarea name="_ClientAddressEdit" class="textareaStyle" id="_ClientAddressEdit" title="Address">@Model._ClientAddress</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align:right; padding-top:10px;">
+                    <a name="btnUpdateClient" id="btnUpdateClient" class="btn btn-primary" onclick="UpdateClient()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                    <a id="btnDeleteEditClient" name="btnDeleteEditClient" class="btn btn-danger" onclick="DeleteEditClient()" style="color:white;"> <span style="color:white !important;" class="glyphicon glyphicon-trash"></span> Delete</a>
+                    <a id="btnCloseEditClient" name="btnCloseEditClient" class="btn btn-warning" style="color:white;"><span style="color:white!important;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+                    <a id="btnCloseEditClient1" name="btnCloseEditClient1" class="btn btn-warning" style="color:white;"><span style="color:white!important;" class="glyphicon glyphicon-remove-sign"></span> Close</a>
+                  
+                </td>
+            </tr>
+        </table>
+    }
+    @*<div>
+            @Html.ActionLink("Close","Index")
+        </div>*@
+
+    <script type="text/javascript">
+      
+            var custpagemode;
+            function DisableClientEditDetails() {
+                $("#_ClientNameEdit").attr("disabled", "disabled");
+                $("#_ClientAddressEdit").attr("disabled", "disabled");
+               
+            }
+            $(document).ready(function () {
+                custpagemode = '@ViewBag.viewfor';
+                if ($.trim(custpagemode) == "edit") {
+                    $("#btnDeleteEditClient").css("display", "none");
+                    $("#btnCloseEditClient1").css("display", "none");
+                }
+                else if ($.trim(custpagemode) == "view") {
+                    $("#btnUpdateClient").css("display", "none");
+                    $("#btnCloseEditClient").css("display", "none");
+                    $("#btnDeleteEditClient").css("display", "none");
+                    DisableClientEditDetails();
+                }
+                else if ($.trim(custpagemode) == "delete") {
+                    $("#btnUpdateClient").css("display", "none");
+                    $("#btnCloseEditClient1").css("display", "none");
+                    DisableClientEditDetails();
+                }
+                if ($.trim($("#_ClientNameEdit").val()) != "") {
+                    $("#_ClientNameEdit").removeClass('required');
+                    $("#_ClientNameEdit").addClass('valid');
+                }
+                else {
+                    $("#_ClientNameEdit").removeClass('valid');
+                    $("#_ClientNameEdit").addClass('required');
+                }
+                $("#_ClientNameEdit").keyup(function () {
+                    var ClientNameEdit = $("#_ClientNameEdit").val();
+                    if (ClientNameEdit.trim() != "") {
+                        $("#_ClientNameEdit").removeClass('required');
+                        $("#_ClientNameEdit").addClass('valid');
+                    }
+                    else {
+                        $("#_ClientNameEdit").removeClass('valid');
+                        $("#_ClientNameEdit").addClass('required');
+                    }
+                });
+                $("#_ClientNameEdit").keypress(function (event) {
+                    return isAlphaNumeric(event);
+                });
+              
+                $("#_ClientAddressEdit").keypress(function (event) {
+                    return isExceptTwoSplChars(event);
+                });
+               
+                $("#_ClientNameEdit").attr("maxlength", "128");
+               
+                $("#_ClientAddressEdit").attr("maxlength", "256");
+              
+            });
+           
+
+        function UpdateClient() { 
+            var ClientId = $("#_ClientIDEdit").val();
+            var ClientName = $("#_ClientNameEdit").val();
+            var ClientAddress = $("#_ClientAddressEdit").val();
+            if (ClientName == null || ClientName == "") {
+                jAlert("Please Enter Client Name.", "Error", function () {
+                    $("#_ClientNameEdit").focus();
+                });
+               
+                return false;
+            }
+            var objClientDetails = {
+                "_ClientID": ClientId,
+                "_ClientName": ClientName,
+                "_ClientAddress": ClientAddress
+                
+            };
+            $.post('../Onboarding/EditClient', objClientDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgClient").load("../onboarding/ClientDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+
+        }
+        function DeleteEditClient(){
+            jConfirm("Do you want to delete Client: ", Title_3, function (e) {
+                if (e == true) {
+                    var id = $("#_ClientIDEdit").val();
+                    var objClientDetails = { "_ClientID": id }
+                    $.post('../Onboarding/DeleteClient', objClientDetails,
+                         function (data) {
+                             if (data == 0) { location = location.href; } else {
+                                 $("#wgClient").load("../onboarding/ClientDetails?" + new Date().getTime());
+                                     window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                             }
+                         }, 'json');
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $("#btnCloseEditClient,#btnCloseEditClient1").live('click',function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

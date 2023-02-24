@@ -1,0 +1,91 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.ClientDetails>
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<ClientDetails> lst = new List<ClientDetails>();
+
+    lst = (List<ClientDetails>)TempData["ClientSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetClient().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+}
+<div id="wgClient">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "wgClient", ajaxUpdateCallback: "DummyFunction7()");
+        int rowcount = 0;
+    }
+    <div class="table-responsive" style="margin-top:10px; width:100%;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridClient" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_ClientID", objCmnFunctions.Sorter("_ClientID", "ID", grid), canSort: false),
+                grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                         grid.Column("_ClientName", objCmnFunctions.Sorter("_ClientName", "Customer Name", grid)),
+                grid.Column("_ClientAddress", objCmnFunctions.Sorter("_ClientAddress", "Address", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='view' onclick='ViewClient(" + item._ClientID + ")' > <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                    @if (ViewBag.PageMode != "12" && ViewBag.PageMode != "3" && ViewBag.PageMode != "5")
+                    {
+                        @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditClient(" + item._ClientID + ")' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                        @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteClient(" + item._ClientID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+                    }
+                </text>)))
+
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage" style="width:100%;">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+</div>
+    <script>
+        $(document).ready(function () {
+            $("#wgridClient td:nth-child(1),#wgridClient th:nth-child(1)").hide();
+            $("#wgridClient td:nth-last-child(1)").show();
+        });
+        function DummyFunction7() {
+            $("#wgridClient td:nth-child(1),#wgridClient th:nth-child(1)").hide();
+            $("#wgridClient td:nth-last-child(1)").show();
+        }
+        function SearchClient() {
+            var ClientName = $("#_ClientNameSearch").val();
+            var ClientAddress = $("#_ClientAddressSearch").val();
+            var objClientDetails = {
+                "_ClientName": ClientName,
+                "_ClientAddress": ClientAddress
+            };
+            $.post('../GSTOnboarding/SearchClient', objClientDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgClient").load("../GSTOnboarding/ClientDetails?" + new Date().getTime());
+                }
+            }, 'json');
+        }
+
+    </script>
+

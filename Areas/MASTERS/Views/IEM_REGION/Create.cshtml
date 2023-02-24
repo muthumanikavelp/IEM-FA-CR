@@ -1,0 +1,109 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_region
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">               
+                    <span> Region Name</span>
+                    <br />
+                <input name="CategoryName" class="fstextbox required"  maxlength="80" id="_RegionName"
+                       type="text" data-val="true" value="" />
+               
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center ;">
+                <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()"
+                        style="margin-top:10px;  color:white;">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                </button>
+             
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+                
+            </td>
+        </tr>
+    </table>
+}
+        <script type="text/javascript">
+            $(document).ready(function () {
+
+                $("#_RegionName").focus();
+                $("#_RegionName").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                });
+                $("#_RegionName").keyup(function () {
+                    var txtSupplierName = $("#_RegionName").val();
+                    if (txtSupplierName.trim() != "") {
+                        $("#_RegionName").removeClass('required');
+                        $("#_RegionName").addClass('valid');
+                        CheckFieldsHeader();
+                    }
+                    else {
+                        $("#_RegionName").removeClass('valid');
+                        $("#_RegionName").addClass('required');
+                        CheckFieldsHeader();
+                    }
+                });
+            });
+        </script>
+
+        <script type="text/javascript">
+            function SAVE() {
+                var region_name = $("#_RegionName").val().trim();
+                if (region_name == "") {                    
+                    jAlert("Please Enter Region Name", "Information", function (r) {
+                        if (r == true) {
+                            $("#_RegionName").focus();
+                            return false;
+                        }
+                    });
+                }
+                else {
+                    var CategoryModel = { "region_name": region_name };
+                    $.post('../IEM_REGION/CreateRegion', CategoryModel,
+                        function (data) {
+                            if (data != "success") {
+                                jAlert(data, "Information", function (r) {
+                                    if (r == true) {
+                                        return false;
+                                    }
+                                });
+                            }
+                            else {
+                                jAlert("Record inserted successfully !", "Information", function (r) {
+                                    if (r == true) {
+                                        window.parent.jQuery('#ForPartialView').dialog('close');
+                                        location = '../IEM_REGION/Index';
+                                    }
+                                });
+
+
+                            }
+                        }
+                    , 'json');
+                }
+            }
+            function GotoIndex() {
+                window.parent.jQuery('#ForPartialView').dialog('close');
+            }
+
+            function CheckFieldsHeader() {
+
+                var ErrCount = 0;
+                if ($("#_RegionName").val().trim() == "" || $("#_RegionName").val() == null) {
+                    ErrCount = 1;
+                }
+                if (ErrCount == 0) {
+                    $("#_save").removeAttr('disabled');
+                }
+                else {
+                    $("#_save").attr('disabled', 'disabled');
+                }
+            }
+
+        </script>
+

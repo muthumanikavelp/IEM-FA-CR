@@ -1,0 +1,173 @@
+﻿@model IEM.Areas.IFAMS.Models.GroupModel
+@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@{
+    ViewBag.Title = "GMSummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.GModel,
+                         canPage: true,
+                         rowsPerPage: 20,
+                         canSort: true,
+                         ajaxUpdateContainerId: "groupViewGridM",
+                          ajaxUpdateCallback: "groupViewGridM"
+                       );
+}
+
+<b>
+    <span style="color: rgb(52, 108, 196);"> Asset Grouping - Maker</span>
+</b>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+
+            <div class="col-sm-6">
+
+                <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                    <tr>
+                        <td>
+                            <div>
+                                <span> Group Id </span>
+                                <br />
+                                <input type="text"
+                                       name="GroupId"
+                                       id="txtGroupId"
+                                       value="@ViewBag.GroupId"
+                                       class="textboxStyleSearch" maxlength="6" />
+                            </div>
+                        </td>
+
+                        <td >
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search "></span> Search</button>
+
+                        </td>
+                        <td>
+
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="submit"><span style="color:white;" onclick="refreshpage()" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                        <td>
+
+                            <span> </span>
+                            
+                            <br />@if (@grid.TotalRowCount != 0)
+                            {
+                                <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="myTableStyleTabNew " style="float:right;margin-right:4px">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:8px;">
+                            <span> </span>
+                            <br />
+
+                            <button class="btn btn-primary" type="button" id="gengrpId" onclick="NewGroup()" name="command" value="gengrpId"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Group</button>
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:17px;" class="overflowx overflowy">
+            @grid.GetHtml(
+      htmlAttributes: new { id = "groupViewGridM" },
+                fillEmptyRows: false,
+                tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                mode: WebGridPagerModes.All,
+                columns: grid.Columns(
+                        grid.Column(style: "col-lg-1", header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage) * grid.RowsPerPage * grid.PageIndex),
+                        grid.Column("_group_id", obj.Sorter("_group_id", " Group ID", grid), style: "col-lg-3 MidColumn20Center"),
+                        grid.Column("_asset_count", obj.Sorter("_asset_count", " Asset Count", grid), style: "col-lg-3 MidColumn20Center"),                        
+                        grid.Column(header: "Action", canSort: false, style: "action",format: @<text>
+                       <a onclick='EditDetail( @item._group_id )' title='View Group'> <span class='glyphicon glyphicon-edit'> </span> </a>
+                       <a onclick='ViewDetails( @item._group_id )' title='Add Asset to Group'> <span  id='Color' class='glyphicon glyphicon-eye-open'> </span> </a>
+                        </text>)))
+            @if (ViewBag.Message != null)
+            {  <div class="borderStyle" align="center">
+                <b> @ViewBag.Message </b>
+            </div>
+            }
+        </div>
+        <br />
+        <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@Model.GModel.Count()</span>
+
+
+        <div id="PartialView"></div>
+    </div>
+}
+<script>
+    var tr = $("#groupViewGridM").find('tr');
+    $("#groupViewGridM tr #Color").click(function () {
+        $('#groupViewGridM').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#CEECF5');
+    });
+
+
+    var objDialog;
+    objDialog = $("[id$='PartialView']");    
+    function NewGroup() {
+        //objDialog.dialog({
+        //    autoOpen: false,
+        //    modal: true,
+        //    show: 'fade-in',
+        //    close: 'fade-out',
+        //    width: 850,
+        //    height: 450,
+        //    resizable: false,
+        //    cache: false
+        //});
+        //objDialog.load('../AssetGrouping/CreateGroupnew/?' + new Date().getTime());
+        //objDialog.dialog({ title: 'Create Asset Group' });
+        //objDialog.dialog("open");
+       
+            location = '@Url.Action("CreateGroupnew", "AssetGrouping")?' + new Date().getTime();
+
+       
+    }
+    function EditDetail(grpid) {
+        //objDialog.dialog({
+        //    autoOpen: false,
+        //    modal: true,
+        //    show: 'fade-in',
+        //    close: 'fade-out',
+        //    width: 1000,
+        //    height: 550,
+        //    resizable: false,
+        //    cache: false
+        //});
+        //objDialog.load('../AssetGrouping/CreateGroup/?grpid=' + grpid + '&listfor=add&' + new Date().getTime());
+        //objDialog.dialog({ title: 'Add Asset To Group' });
+        //objDialog.dialog("open");
+        location = '@Url.Action("EditCreateGroupnew", "AssetGrouping")?grpid=' + grpid +'&'+ new Date().getTime();
+    }
+    function ViewDetails(id) {
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 900,
+            height: 550,
+            resizable: false,
+            cache: false
+        });
+        objDialog.load('../AssetGrouping/GroupView/?id=' + id +'&'+ new Date().getTime());
+        objDialog.dialog({ title: 'View Asset Group' });
+        objDialog.dialog("open");
+    }
+    function Download() {
+        
+        location = '@Url.Action("AssetGroupingExceldownload", "AssetGrouping")';
+    }
+   
+</script>

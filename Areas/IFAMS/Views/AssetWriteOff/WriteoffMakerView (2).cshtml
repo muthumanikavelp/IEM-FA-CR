@@ -1,0 +1,391 @@
+﻿@model IEM.Areas.IFAMS.Models.WriteOffModel
+@{
+    string wrtNum = (string)Session["WriteoffNo"];
+    Session["WriteoffNo"] = "";
+    string wrtStat = (string)Session["WrtStatus"];
+    Session["WrtStatus"] = "";
+}
+<div>
+    <div class="myTableStyleTabNew" style="font-size: 12px;">
+        Write Off Number :
+        <span>
+            <label id="lblno">
+                @wrtNum
+            </label>
+        </span>
+    </div>
+    <label id="status" hidden="hidden">@wrtStat</label>
+
+    <div id="tabauditTrial" style="font-size: 12px;">
+        <ul>
+            <li><a href="#tabs-2" onclick="showbut()">Details [<label id="tab1Id">@Model.WModel.Count()</label>]</a></li>
+            <li><a href="#tabs-1" onclick="hidebut()">Audit Trail [<label id="tab2Id"></label>]</a></li>
+        </ul>
+        <div id="tabs-1">
+            <div style="overflow-y:scroll; height:200px">
+                @Html.Partial("WOAAuditTrail")
+            </div>
+        </div>
+        <div id="tabs-2">
+            <div style="overflow-y:scroll; height:200px;border-radius: 5px;
+    opacity: 50;
+    border: 2px solid #ada8a8">
+                @{
+                    var grid = new WebGrid(
+                        source: Model.WModel, canPage: false, canSort: false,
+                        ajaxUpdateContainerId: "wgridWOAdetails"
+                        , ajaxUpdateCallback: "wgridWOAdetails"
+                        );
+                        @grid.GetHtml(
+                    htmlAttributes: new { id = "wgridWOAdetails" },
+                    fillEmptyRows: false,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                    columns: grid.Columns(
+                         grid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                            + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage)
+                            * grid.RowsPerPage * grid.PageIndex),
+                         grid.Column("_asset_id", "Asset ID", style: "MidColumn50"),
+                         grid.Column("_AssetCatCode", "Category", style: "MidColumn50"),
+                         grid.Column("_AssetCode", "Sub-Category Code", style: "MidColumn30"),
+                         grid.Column("_AssetDesp", "Sub-Category", style: "MidColumn50"),
+                         grid.Column("_loc", "Branch", style: "MidColumn20"),
+                                //grid.Column("_fccc", "BS Code", style: "MidColumn20"),
+                         grid.Column("queue_from", "CC Code", style: "MidColumn20"),
+                                //grid.Column("_AssetDesp", "Depreciation Till Date", style: "MidColumn20Center"),
+                         grid.Column("_wdv_value", "WDV", style: "MidColumn20Center"),
+                         grid.Column("_rectif_amount", "Rectification Amount", style: "MidColumn20Center"),
+                         grid.Column("_asset_value", "Asset Value", style: "MidColumn20"),
+                         grid.Column("_woa_reason", "Reason", style: "MidColumn50")
+                                //   ,grid.Column("_gid", "")
+                             ))
+                }
+                <div class="table-bordered btnCenter" align="center">
+                    <b> @ViewBag.Message </b>
+                </div>
+            </div>
+            <div class="table-bordered btnCenter">
+                <span></span>
+            </div>
+            @*<div class=" myTableStyleTabNew">
+                    <span>  Total No Of Records : </span>
+                </div>*@
+        </div>
+    </div>
+    @if (ViewBag.viewfor != "checkerView")
+    {
+        <br />
+    }
+    @if (ViewBag.viewfor == "checkerView")
+    {
+        <div class="myTableStyleTabNew" align="left">
+            <span>Remarks</span>
+            <input type="text" autofocus="" id="txtRemaks" name="remarks" onkeyup="check()" class=" textboxStyleSearch required" maxlength="256" width="150px" height="100px" />
+        </div>
+    }
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td class="form-group" nowrap="nowrap">
+                @using (Html.BeginForm())
+                {
+                    if (ViewBag.viewfor == "view")
+                    {
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary ststus" type="submit" name="command" value="submit"><span style="color:white" class="glyphicon glyphicon-ok"></span> Submit</button>
+                            </span>
+                        </div>
+                    }
+                }
+            </td>
+            <td class="form-group" nowrap="nowrap">
+                @if (ViewBag.viewfor == "abort")
+                {
+                    <div style="float:right;padding-right:20px;">
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger btndanger" type="submit" name="command" value="abort"><span style="color:white" class="glyphicon glyphicon-trash"></span> Delete</button>
+                        </span>
+                    </div>
+                }
+            </td>
+            @using (Html.BeginForm())
+            {
+                if (ViewBag.viewfor == "checkerView")
+                {
+                    <td class="form-group" nowrap="nowrap">
+
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btnApprove btn-success" type="submit" name="command" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="form-group" nowrap="nowrap">
+
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btnReject btn-danger" type="submit" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                            </span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" id="BtnClearremarks" type="button" name="command" value="Remove"><span style="color:white" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                            </span>
+                        </div>
+                    </td>
+
+                }
+            }
+            <td class="form-group" nowrap="nowrap">
+                <div style="float:right;padding-right:20px;">
+                    <span class="input-group-btn">
+                        <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    $('#BtnClearremarks').on("click", function () {
+        $('#txtRemaks').val("");
+        $('.btnReject').attr("disabled", true);
+
+    });
+
+    function check() {
+        var txtRemaks = $('#txtRemaks').val();
+        if (txtRemaks.trim() != "") {
+            $('.btnReject').removeAttr('disabled');
+            $('#txtRemaks').removeClass('required');
+            $('#txtRemaks').addClass('valid');
+
+        }
+        else {
+            $('.btnReject').attr("disabled", true);
+            $('#txtRemaks').removeClass('valid');
+            $('#txtRemaks').addClass('required');
+        }
+    }
+    //$("#wgridWOAdetails td:nth-child(10),#wgridWOAdetails th:nth-child(10)").hide();
+
+    $(document).ready(function () {
+        $('.btnReject').attr("disabled", true);
+        var stid = $("#status").text();
+        if (stid == "DRAFT") {
+        }
+        else {
+
+            $('.ststus').hide();
+            $('.btndanger').hide();
+
+        }
+        var a = '@ViewBag.viewfor';
+        $('#backbtn').click(function () {
+
+            var model =
+           {
+               "_gid": '@Session["woagid"]'
+           };
+            $.ajax({
+                url: '@Url.Action("updatelogeddetials", "AssetWriteOff")?' + new Date().getTime(),
+                data: JSON.stringify(model),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    if (a == 'checkerView') {
+
+                        location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime()
+                    }
+                    else {
+                        location = '@Url.Action("WMSummary", "AssetWriteOff")?' + new Date().getTime()
+                    }
+                },
+                error: function (result) {
+                }
+            });
+
+        });
+        var currentTab4 = 0;
+        $(function () {
+            $("#tabauditTrial").tabs({
+                select: function (e, i) {
+                    currentTab4 = i.index;
+                }
+            });
+        });
+       
+        if (a == 'checkerView') {
+            $("#wgridWOAdetails td:nth-child(9),#wgridWOAdetails th:nth-child(9)").show();
+        } else {
+            $("#wgridWOAdetails td:nth-child(9),#wgridWOAdetails th:nth-child(9)").hide();
+        }
+        $(".backbtn").click(function () {
+            if (a == 'checkerView') {
+                @*location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime()*@
+                $('#wcSummaryGrid').find('tr').css('background', 'none');
+                $('#wmSummaryGrid').find('tr').css('background', 'none');
+                objForCheckerView.remove();
+
+            }
+            else {
+                @*location = '@Url.Action("WMSummary", "AssetWriteOff")?' + new Date().getTime()*@
+                $('#wcSummaryGrid').find('tr').css('background', 'none');
+                $('#wmSummaryGrid').find('tr').css('background', 'none');
+                objwoaattach.remove();
+
+            }
+        });
+    });
+    var id = $("#status").text();
+
+    $(".btndanger").click(function () {
+        var id = '@wrtNum';
+        //alert(id);
+        jConfirm("Are you sure to delete this Write Off of asset", "Inforamtion", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('../AssetWriteOff/WriteoffMakerView?id=' + id + '&command=abort&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   hideProgress();
+                   location = location.href;
+               }
+               else {
+                   hideProgress();
+                   window.parent.jQuery('#woaattach').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+
+                   //jAlert("Write Off deleted sucessfully", "Inforamtion");
+                   jAlert("Write Off deleted sucessfully", "Inforamtion", function (t) {
+                       if (t == true) {
+                           location = '@Url.Action("WMSummary", "AssetWriteOff")?' + new Date().getTime();
+                       }
+                   });
+               }
+           }, 'json');
+            }
+        });
+    });
+
+    $(function () {
+
+
+    });
+
+    $('.ststus').on("click", function () {
+        var no = '@wrtNum';
+        //alert(id);
+        showProgress();
+        $.post('../AssetWriteOff/WriteoffMakerView?id=' + no + '&command=submit&' + new Date().getTime(),
+   function (data) {
+       if (data == 0) {
+           hideProgress();
+           location = location.href;
+       }
+       else {
+           hideProgress();
+           window.parent.jQuery('#woaattach').dialog('close');
+           $('#gridId').find('tr').css('background', 'none');
+           @*location = '@Url.Action("WMSummary", "AssetWriteOff")?' + new Date().getTime();
+           jAlert("Submited to checker sucessfully", "Inforamtion");*@
+
+           jAlert("Submited to checker sucessfully", "Inforamtion", function (t) {
+               if (t == true) {
+                   location = '@Url.Action("WMSummary", "AssetWriteOff")?' + new Date().getTime();
+               }
+           });
+       }
+   }, 'json');
+
+
+    });
+    $('.btnReject').on("click", function () {
+        var no = '@wrtNum';
+        var txtRemaks = $('#txtRemaks').val();
+        jConfirm("Are you sure to Reject this Write Off of asset", "Inforamtion", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('../AssetWriteOff/WriteoffMakerView?id=' + no + '&command=Reject&remarks=' + txtRemaks + '&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   hideProgress();
+                   location = location.href;
+               }
+               else {
+                   hideProgress();
+                   window.parent.jQuery('#woaattach').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   @*location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime();
+                   jAlert("Transfer rejected sucessfully", "Inforamtion");*@
+
+                   jAlert("WriteOff rejected sucessfully", "Inforamtion", function (t) {
+                       if (t == true) {
+                           location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime();
+                       }
+                   });
+               }
+           }, 'json');
+            }
+        });
+
+
+    });
+    $('.btnApprove').on("click", function () {
+        var no = '@wrtNum';
+        //alert($('#txtRemaks').val());
+        var txtRemaks = $('#txtRemaks').val();
+        jConfirm("Are you sure to Approve this Write Off of asset", "Inforamtion", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('../AssetWriteOff/WriteoffMakerView?id=' + no + '&command=Approve&remarks=' + txtRemaks + '&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   hideProgress();
+                   location = location.href;
+               }
+               else {
+                   hideProgress();
+                   window.parent.jQuery('#woaattach').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   @*location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime();
+                   jAlert("WriteOff approved sucessfully", "Inforamtion");*@
+
+                   jAlert("WriteOff approved sucessfully", "Inforamtion", function (t) {
+                       if (t == true) {
+                           location = '@Url.Action("WCSummary", "AssetWriteOff")?' + new Date().getTime();
+                       }
+                   });
+               }
+           }, 'json');
+            }
+        });
+    });
+    $(".ui-icon-closethick").click(function () {
+        $('#wcSummaryGrid').find('tr').css('background', 'none');
+        $('#wmSummaryGrid').find('tr').css('background', 'none');
+    });
+    function hidebut() {
+
+        $(".ststus").hide();
+        $(".btnApprove").hide();
+        $(".btnReject").hide();
+        $(".btndanger").hide();
+    }
+
+    function showbut() {
+        var stid = $("#status").text();
+        if (stid == "DRAFT") {
+            $(".btndanger").show();
+            $(".ststus").show();
+        }
+
+        $(".btnApprove").show();
+        $(".btnReject").show();
+
+    }
+</script>
+

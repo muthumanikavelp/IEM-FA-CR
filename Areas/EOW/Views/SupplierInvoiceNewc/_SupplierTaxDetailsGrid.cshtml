@@ -1,0 +1,152 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.sinvotax>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<sinvotax> lstPayment = new List<sinvotax>();
+    lstPayment = (List<sinvotax>)TempData["SearchItems"];
+    decimal remamount = 0;
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.GetSupplierTax(Session["invoiceGid"].ToString()).ToList();
+        for (int tr = 0; lstPayment.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lstPayment[tr].Intax_Taxamt.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lstPayment[tr].Intax_Taxamt.ToString());
+            }
+        }
+        ViewBag.NoRecordstolp = "total";
+        Session["invoiceTaxamnt"] = remamount.ToString();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+    if (Session["Supplierpaydebitedit"] != null)
+    {
+        ViewBag.Msgt = "Edit";
+    }
+    else
+    {
+        ViewBag.Msgt = "";
+    }
+}
+
+<div id="wgempTaxsupplier">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempTaxsupplier", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+                        htmlAttributes: new { id = "wgempTaxsupplier" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(
+                //gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                  gridPayment.Column("Intax_Tax", objCmnFunctions.Sorter("Intax_Tax", "Tax", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column("TaxSubTypeName", objCmnFunctions.Sorter("TaxSubTypeName", "Tax Sub Type", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column("Intax_Rate", objCmnFunctions.Sorter("Intax_Rate", "Rate ( % )", gridPayment), canSort: false, style: "collargeBreak"),
+                //gridPayment.Column("Intax_Taxableamt", objCmnFunctions.Sorter("Intax_Taxableamt", "Taxable Amount", gridPayment), canSort: false, style: "collargeBreak"),
+                //gridPayment.Column("Intax_Taxamt", objCmnFunctions.Sorter("Intax_Taxamt", "Tax Amount", gridPayment), canSort: false, style: "collargeBreak"),
+                                   gridPayment.Column(header: "Intax_Taxableamt",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                                                   objCmnFunctions.GetINRAmount(Convert.ToString(@item.Intax_Taxableamt)
+                        ))) </text>, style: "colamountlarge"),
+                                                                                   gridPayment.Column(header: "Intax_Taxamt",
+                        format: @<text>
+                                                                                    @Html.Raw(String.Format("{0:#,##}",
+                                                                   objCmnFunctions.GetINRAmount(Convert.ToString(@item.Intax_Taxamt)
+                        ))) </text>, style: "colamountlarge"),
+                                           gridPayment.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                            @if (ViewBag.Msgt == "Edit")
+                                            {
+                                                @Html.Raw("<a title='view' onclick='EmpTaxView(" + item.TaxgId + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                                @Html.Raw("<a title='Edit' onclick='EmpTaxEdit(" + item.TaxgId + ")' > <span id='id' class='glyphicon glyphicon-edit'> </span> </a>")
+                                                @Html.Raw("<a title='Delete' onclick='EmpTaxDelete(" + item.TaxgId + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                                @*<a title='view' onclick='EmpTaxView(" + item.TaxgId + ")' > <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>
+                                                    <a title='Edit' onclick='EmpTaxEdit(id,name)' id="@item.TaxgId" name="@item.TaxSubTypeID"> <span id='id' class='glyphicon glyphicon-edit'> </span> </a>
+                                                    <a title='Delete' onclick='EmpTaxDelete(" + item.TaxgId + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>*@
+                                            }
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ))
+
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundPayment </b>
+                </center>
+            </div>
+        }
+    </div>
+
+    @if (@ViewBag.NoRecordstolp == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <div align="right">
+                            <span id="supplierpaymentdfr">
+                                Total Tax Amount : <b>
+                                    <label style="display:none" id="suppliertaxd">
+                                        @Session["invoiceTaxamnt"]
+                                    </label>
+                                    <label id="suppliertaxx">
+                                        @objCmnFunctions.GetINRAmount(@Session["invoiceTaxamnt"].ToString())
+                                    </label>
+                                </b>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //var Ecfamountvalmain = $("#txtInvoiceamount").val();
+        //var Ecfrowtolamt = $("#suppliertaxd").text();
+
+        var Ecfamountvalmain = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var Ecfrowtolamt = $("#suppliertaxd").text().replace(/,/g, "");
+
+        var val1 = parseFloat(Ecfamountvalmain);
+        var val2 = parseFloat(Ecfrowtolamt);
+        if (val1 == val2) {
+            var stylesSelect = $('#btntaxdinvo');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            if (val2 != "0") {
+                var stylesSelect = $('#btntaxdinvo');
+                stylesSelect.attr('disabled', false);
+            }
+        }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgempTaxsupplier tr #id").click(function () {
+            $('#wgempTaxsupplier').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

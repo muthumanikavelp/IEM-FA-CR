@@ -1,0 +1,105 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SupActivity>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgContactPersonsearchList", ajaxUpdateCallback: "DummyFunction45()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgContactPersonsearchList">
+    <center>
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:200px;">
+                    <span>Contact Person Name</span>
+                    <input type="text" name="txtContactPersonNameSearch" id="txtContactPersonNameSearch" class="textboxStyle" value=@ViewBag.SearchEmpName />
+                </td>
+                <td style="vertical-align:bottom;">
+                    <button onclick="SearchContactPersonName()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                    <button onclick="RefreshContactPersonName()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Refresh</button>
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" style="margin-top:10px;">
+            @grid.GetHtml(
+                htmlAttributes: new { id = "wgridContactPersonsearchList" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("_ContactPerson", objCmnFunctions.Sorter("_ContactPerson", "ID", grid)),
+            grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_ContactPersonName", objCmnFunctions.Sorter("_ContactPersonName", "Contact Person Name", grid)),
+            grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a onclick="SelectContactPersonName(this)"><span class="btn btn-link">Select</span></a>
+                </text>)))
+        </div>
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">
+                Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b>
+            </div>
+        }
+        @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <div>
+            <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+        </div>*@
+    </center>
+</div>
+
+<script type="text/javascript">
+    var contactperson_name;
+    function SearchContactPersonName() {
+        var ContactPersonName = $("#txtContactPersonNameSearch").val();
+        contactperson_name = ContactPersonName;
+        var ObjSearchContactPersonName = {
+            "_ContactPersonName": ContactPersonName
+        };
+        $.post('../Onboarding/SearchContactPersonName', ObjSearchContactPersonName,
+        function (data) {
+            $("#wgContactPersonsearchList").load('../Onboarding/SearchContactPersonName?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtSupplierNameSearch").val(contactperson_name);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshContactPersonName() {
+        $("#txtContactPersonNameSearch").val("");
+        var ContactPersonName = $("#txtContactPersonNameSearch").val();
+        var ObjSearchContactPersonName = {
+            "_ContactPersonName": ContactPersonName
+        };
+        $.post('../Onboarding/SearchContactPersonName', ObjSearchContactPersonName,
+        function (data) {
+            $("#wgContactPersonsearchList").load('../onboarding/SearchContactPersonName?listfor=refresh&' + new Date().getTime());
+
+        }, 'json');
+    }
+    $(document).ready(function () {
+        $("#wgridContactPersonsearchList td:nth-child(1),#wgridContactPersonsearchList th:nth-child(1)").hide();
+        $("#wgridContactPersonsearchList td:nth-last-child(1)").show();
+    });
+    function DummyFunction45() {
+        $("#wgridContactPersonsearchList td:nth-child(1),#wgridContactPersonsearchList th:nth-child(1)").hide();
+        $("#wgridContactPersonsearchList td:nth-last-child(1)").show();
+    }
+
+</script>

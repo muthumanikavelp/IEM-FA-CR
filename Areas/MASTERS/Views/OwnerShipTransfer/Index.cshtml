@@ -1,0 +1,509 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+
+
+<script type="text/javascript">
+</script>
+
+
+<script type="text/javascript">
+    var app = angular.module('testapp', ['ui.bootstrap']);
+    app.service("ownershipservice", function ($http) {
+        this.GetEcfSubDocType = function () {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetEcfSubDocType", "OwnerShipTransfer")',
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetEmployeeQueue = function (transfertype, emptoid, reftype, subdoctype, ecfstatus) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetEmployeeQueue", "OwnerShipTransfer")?transfertype=' + transfertype + '&emptoid=' + emptoid + '&reftype=' + reftype + '&subdoctype=' + subdoctype + '&ecfstatus=' + ecfstatus,
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetQueueDetailsBySubDoc = function (transfertype, emptoid, reftype, subdoctype) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetEmployeeQueue", "OwnerShipTransfer")?transfertype=' + transfertype + '&emptoid=' + emptoid + '&reftype=' + reftype + '&subdoctype=' + subdoctype,
+                dataType: "json"
+            });
+            return response;
+        }
+        this.UpdateOwnerShip = function (transfertype, emptoid, reftype, Data) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("UpdateOwnerShip", "OwnerShipTransfer")?transfertype=' + transfertype + '&emptoid=' + emptoid + '&reftype=' + reftype + '&Data=' + Data,
+                dataType: "json"
+            });
+            return response;
+        }
+        this.reset = function () {
+
+        }
+    });
+    app.controller('testcontroller', function ($scope, ownershipservice, filterFilter) {
+
+        var getData = ownershipservice.GetEcfSubDocType();
+        var Data0 = "";
+        $scope.EcfSubDocType = null;
+        $scope.forminput = {};
+        getData.then(function (response) {
+            var ErrorMsg = response.data.ErrorMsg;
+            if (ErrorMsg == "1") {
+                jAlert("Error While Fetching EcfSubDoc", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+
+                if (response.data.data0 != null && response.data.data0 != "" && response.data.data0 != "0") {
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.EcfSubDocType = Data0;
+                }
+
+            }
+        }, function () {
+            alert('Error');
+        });
+
+
+        $scope.GetQueueDetails = function () {
+
+            var transfertype = $("#ddltransfertype").val();
+            var ownerto = $("#hfVendorName").val();
+            var reftype = $("#ddlreftype").val();
+            var subdoctype = $("#ddlsubdoc").val();
+            var ecfstatus = $("#ddlstatus").val();
+            var getQueue = ownershipservice.GetEmployeeQueue(transfertype, ownerto, reftype, subdoctype, ecfstatus);
+            var Data1 = "";
+
+            $scope.EmployeeQueue = null;
+            if (ownerto == "") {
+                jAlert("Please Select OwnerShip To", "Message", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+
+
+                getQueue.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Fetching Data", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+
+                        if (response.data.data1 != null && response.data.data1 != "" && response.data.data1 != "0") {
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.EmployeeQueue = Data1;
+                            $scope.totalItems1 = $scope.EmployeeQueue.length;
+                            $scope.search = {};
+                            $scope.resetFilters = function () {
+                                $scope.search = {};
+                            };
+                            $scope.currentPage1 = 1;
+
+                            $scope.entryLimit1 = 20;
+                            $scope.noOfPages1 = Math.ceil($scope.totalItems1 / $scope.entryLimit1);
+                            $scope.noofsetpages1 = 5;
+                            $scope.$watch('searchMyReq', function (newVal, oldVal) {
+                                $scope.filtered1 = filterFilter($scope.EmployeeQueue, newVal);
+                                $scope.totalItems1 = $scope.filtered1.length;
+                                $scope.noOfPages1 = Math.ceil($scope.totalItems1 / $scope.entryLimit1);
+                                $scope.currentPage1 = 1;
+                                $scope.noofsetpages1 = 5;
+
+                            }, true);
+
+
+                        }
+                        else {
+
+                            jAlert("No Records Found", "Message", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+
+                    }
+                }, function () {
+                    alert('Error');
+                });
+            }
+
+        }
+        $scope.GetQueueDetailsBySubDoc = function () {
+            var transfertype = $("#ddltransfertype").val();
+            var ownerto = $("#hfVendorName").val();
+            var reftype = $("#ddlreftype").val();
+            var subdoctype = $("#ddlsubdoc").val();
+            var getQueue1 = ownershipservice.GetQueueDetailsBySubDoc(transfertype, ownerto, reftype, subdoctype);
+            var Data1 = "";
+            $scope.EmployeeQueue = null;
+            if (ownerto == "") {
+                jAlert("Please Select OwnerShip To", "Message", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+
+                getQueue1.then(function (response) {
+                    var ErrorMsg1 = response.data.ErrorMsg;
+
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Fetching Data", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+
+                        if (response.data.data1 != null && response.data.data1 != "" && response.data.data1 != "0") {
+                            Data1 = JSON.parse(response.data.data1);
+                            $scope.EmployeeQueue = Data1;
+                            $scope.totalItems1 = $scope.EmployeeQueue.length;
+                            $scope.search = {};
+                            $scope.resetFilters = function () {
+                                $scope.search = {};
+                            };
+                            $scope.currentPage1 = 1;
+
+                            $scope.entryLimit1 = 20;
+                            $scope.noOfPages1 = Math.ceil($scope.totalItems1 / $scope.entryLimit1);
+                            $scope.noofsetpages1 = 5;
+                            $scope.$watch('searchMyReq', function (newVal, oldVal) {
+                                $scope.filtered1 = filterFilter($scope.EmployeeQueue, newVal);
+                                $scope.totalItems1 = $scope.filtered1.length;
+                                $scope.noOfPages1 = Math.ceil($scope.totalItems1 / $scope.entryLimit1);
+                                $scope.currentPage1 = 1;
+                                $scope.noofsetpages1 = 5;
+                            }, true);
+                        }
+
+                    }
+                }, function () {
+                    alert('Error');
+                });
+            }
+
+        }
+        $scope.UpdateOwnerShip = function () {
+            showProgress();
+            var array = new Array();
+            $('#tblOwner input:checkbox:checked').each(function (index) {
+                if ($(this).attr('id') != 'allChecked') {
+                    array[index] = $(this).attr('id');
+                }
+            });
+
+            var giddata = "";
+            $.each(array, function (index) {
+                var a = undefined;
+                var b = array[index];
+                if (b != a) {
+                    giddata += array[index] + ',';
+                }
+            });
+
+            var Data = {
+                GidData: giddata
+            };
+            var transfertype = $("#ddltransfertype").val();
+            var ownerto = $("#hfVendorName").val();
+            var reftype = $("#ddlreftype").val();
+            var subdoctype = $("#ddlsubdoc").val();
+
+            var UpdateOwner = ownershipservice.UpdateOwnerShip(transfertype, ownerto, reftype, JSON.stringify(Data));
+            UpdateOwner.then(function (response) {
+                var ErrorMsg = response.data.ErrorMsg;
+                if (ErrorMsg == "1") {
+                    jAlert("Error", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+
+                    if (ErrorMsg == "0") {
+                        hideProgress();
+                        jAlert("Please Select Atleast One", "Message", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        hideProgress();
+                        jAlert("Moved Successfully", "Message", function () {
+                        });
+                        $scope.GetQueueDetails();
+                    }
+
+
+                }
+            }, function () {
+                alert('Error');
+            });
+        }
+
+        $scope.clearMe = function () {
+            $scope.EmployeeQueue = null;
+        };
+
+
+    });
+
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+
+    $(document).ready(function () {
+        $("#txtEmployeeName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetEmployeesAutoComplete", "OwnerShipTransfer")',
+                    data: "{ 'txt' : '" + $("#txtEmployeeName").val() + "'}",
+                    dataType: "json",
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return {
+                                label: item.split('~')[1],
+                                val: item.split('~')[0]
+                            }
+                        }))
+                    },
+                    error: function (response) {
+                        alert(response.error.toString())
+                    },
+                    failure: function (response) {
+                    }
+                });
+            },
+            select: function (e, i) {
+                $("#hfVendorName").val(i.item.val);
+                $("#txtEmployeeName").val(i.item.label);
+            },
+            minLength: 1
+        });
+
+    });
+
+
+    $(document).ready(function () {
+        $('#tblOwnerf').DataTable({
+            "order": [[2, "desc"]]
+        });
+
+
+        $('#allChecked').click(function () {
+            //$(cells).find(':checkbox').prop('checked', $(this).is(':checked'));
+            $(this).closest('table').find('td input:checkbox').prop('checked', this.checked);
+            //$('#tblOwner input:checkbox:not(:checked)').each(function (index) {
+            //    if ($(this).attr('id') != 'allChecked') {
+            //        $(this).attr('checked', true);
+            //    }
+            //});
+
+        });
+
+
+
+        $('#ddlreftype').change(function () {
+            var reftype = $("#ddlreftype").val();
+            if (reftype == "1") {
+                $("#tdSub").removeAttr("style");
+                $("#tdSub1").removeAttr("style");
+
+            }
+            else {
+                $("#tdSub").attr("style", "visibility:hidden");
+                $("#tdSub1").attr("style", "visibility:hidden");
+            }
+        });
+
+    });
+
+</script>
+
+
+
+
+
+
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">OwnerShip change</span>
+</div>
+
+<div ng-app="testapp" ng-controller="testcontroller" class="well">
+
+    <table class="" style="width:100%;">
+        <tr style="width:100%;">
+            <td>
+                <span>Transfer Type</span><br />
+                <select style="width:auto;" ng-change="clearMe()" ng-model="current" id="ddltransfertype" class="textboxStyle required">
+                    <option value="1">Transfer Of Ownership</option>
+                    <option value="2">Pending For Approval </option>
+
+                </select>
+            </td>
+
+            <td>
+                <span>Ref Flag Type</span><br />
+                <select style="width:auto;" id="ddlreftype" class="textboxStyle required">
+                    <option value="0">Select</option>
+                    <option value="1">ECF/ARF</option>
+                    <option value="2">CBF </option>
+                    <option value="5">PR</option>
+                    <option value="8">PO</option>
+                    <option value="10">WO</option>
+                </select>
+            </td>
+            <td id="tdSub" style="visibility:hidden;">
+                <span>Ecf Sub type</span><br />
+                <select id="ddlsubdoc" name="ddlsubdoc" style="width:auto;" class="textboxStyle required">
+                    <option ng-repeat="sub in EcfSubDocType" value="{{sub.Value}}">{{sub.Text}}</option>
+
+                </select>
+
+
+            </td>
+            <td id="tdSub1" style="visibility:hidden;">
+                <span>Ecf Status</span><br />
+                <select style="width:auto;" id="ddlstatus" class="textboxStyle required">
+                    <option value="0">Approved</option>
+                    <option value="1">Others</option>
+                </select>
+            </td>
+            <td>
+                <span>OwnerShip To</span><br />
+
+                <input type="text"
+                       name="txtEmployeeName"
+                       id="txtEmployeeName"
+                       class="fstextbox disableView required"
+                       style="width:200px" />
+
+                <input type="hidden" id="hfVendorName" />
+            </td>
+
+            <td>
+
+                <button class="btn btn-primary" id="btnsearch" type="button" ng-click="GetQueueDetails()">Search<span class="glyphicon glyphicon-search cursorpointer"></span></button>
+            </td>
+
+        </tr>
+
+    </table>
+
+    <div>
+        <div style="float:right; margin:auto;">
+            <input type="text" placeholder="Search" class="form-control" ng-model="searchMyReq">
+        </div>
+        <table id="tblOwner" class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+            <thead>
+                <tr>
+                    <th width="100px">
+                        <input id="allChecked" type="checkbox" />
+                    </th>
+                    <th width="100px">
+                        <a href="" ng-click="columnToOrder='number';reverse=!reverse">  S.NO</a>
+                    </th>
+                    <th>
+                        <a href="" ng-click="columnToOrder='number';reverse=!reverse"> Ref Number</a>
+
+
+                    </th>
+
+                    <th>
+                        <a href="" ng-click="columnToOrder='raiser';reverse=!reverse"> Raiser</a>
+
+                    </th>
+                    <th>
+                        <a href="" ng-click="columnToOrder='status';reverse=!reverse"> Status</a>
+
+                    </th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-show="filtered1.length!=0" ng-model="currentPage1" ng-repeat="emp in filtered1 = EmployeeQueue|orderBy:columnToOrder:reverse| filter:searchMyReq | startFrom:(currentPage1-1)*entryLimit1 | limitTo:entryLimit1">
+
+                    <td align="center" scope="row">
+                        <input type="checkbox" id="{{emp.gid}}" class="chcktbl" />
+                    </td>
+
+                    <td scope="row">
+                        {{$index+1}}
+                    </td>
+
+                    <td>
+                        {{emp.number}}
+                    </td>
+
+
+                    <td>
+                        {{emp.raiser}}
+                    </td>
+                    <td>
+                        {{emp.status}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div ng-show="filtered1.length > 0">
+            <button class="btn btn-success" accesskey="r" id="btnRunAmort" type="button" ng-click="UpdateOwnerShip()" style="margin-top:20px;  color:white;">
+                <span style="color:white;" class="glyphicon glyphicon-play"></span>
+                Move
+            </button>
+        </div>
+        <div ng-show="filtered1.length>0">
+            <table style="width:100%;">
+                <tr>
+                    <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems1}}  of {{filtered1.length}}</div></td>
+                    <td align="right">
+                        <pagination total-items="totalItems1"
+                                    ng-model="currentPage1"
+                                    page="currentPage1"
+                                    max-size="noofsetpages1"
+                                    boundary-links="true"
+                                    items-per-page="entryLimit1" class="pagination-sm" style="cursor:pointer;font-size:14px;">
+                        </pagination>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+</div>
+
+
+

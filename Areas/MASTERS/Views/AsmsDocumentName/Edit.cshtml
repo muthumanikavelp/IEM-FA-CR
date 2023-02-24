@@ -1,0 +1,498 @@
+﻿@model IEM.Areas.MASTERS.Models.DocNameModel
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td colspan="2" style="display:none;">
+                <input name="DocNameID" id="DocNameIDn" type="text" data-val="true" value="@Model.docNameID" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <span> Document Name </span>
+                <br />
+                <input name="DocNameeName" id="DocNameNamen" maxlength="100" @ViewBag.viewmode type="text" data-val="true" value="@Model.docNameName" class="textboxStyle valid " style="display: block;width:250px;" />
+            </td>
+            <td style="width:50%;">
+                <span>Document Group</span>
+                <br />
+                @if (@ViewBag.viewmode == "disabled")
+                {
+                    @Html.DropDownListFor(m => m.docGrpID, Model.docGrpModel, new { @class = "form-control valid ", @style = "display: block; width:250px;", @id = "DocGrpIDn", @disabled = "", @onchange = "change()" })
+                }
+                else
+                {
+                    @Html.DropDownListFor(m => m.docGrpID, Model.docGrpModel, new { @class = "textboxStyle chosen-select", @style = "display: block;", @id = "DocGrpIDn", @onchange = "change()" })
+
+                }
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <span>Document Frequency</span>
+                <br />
+                @if (@ViewBag.viewmode == "disabled")
+                {
+                    @Html.DropDownListFor(m => m.frqID, Model.FrqModel, new { @class = "form-control valid", @id = "ddldocFrqID", @disabled = "", @style = "display: block;width:250px;" })
+                }
+                else
+                {
+                    @Html.DropDownListFor(m => m.frqID, Model.FrqModel, new { @class = "textboxStyle chosen-select", @id = "ddldocFrqID", @style = "display: block;" })
+                }
+            </td>
+
+            <td style="width:50%;">
+                <span> Frequency </span>
+                <br />
+                @if (@ViewBag.viewmode == "disabled")
+                {
+                    @Html.DropDownListFor(m => m.docFrqID, Model.docFrqModel, new { @class = "form-control valid ", @style = "display: block;width:250px;", @id = "DocFrqIDn", @disabled = "", @onchange = "changee()" })
+                }
+                else
+                {
+                    @Html.DropDownListFor(m => m.docFrqID, Model.docFrqModel, new { @class = "textboxStyle chosen-select", @style = "display: block;", @id = "DocFrqIDn", @onchange = "changee()" })
+                }
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <div id="txtDocNameName">
+                    <br />
+                    @if (@Model.manOpt == "O")
+                    {
+                        <div>
+                            <input type="radio" id="radioDocMan" @ViewBag.viewmode value="Mandatory" name="Radio" />   Mandatory
+                            <input type="radio" id="radioDocOpt" @ViewBag.viewmode value="Optional" name="Radio" checked="checked" /> Optional
+                        </div>
+
+                    }
+                    else
+                    {
+                        <div>
+                            <input type="radio" id="radioDocMan" @ViewBag.viewmode value="Mandatory" name="Radio" checked="checked" />  Mandatory
+                            <input type="radio" id="radioDocOpt" @ViewBag.viewmode value="Optional" name="Radio" />  Optional
+                        </div>
+                    }
+
+                </div>
+            </td>
+            <td style="width:50%;">
+                @if (@Model.manOpt == "O")
+                {
+                    <div id="checkDocName">
+                        <br />
+
+                        <input name="DocNameManCheck" @ViewBag.viewmode disabled="" id="DocNameManCheck" value="" onchange="chk()" type="checkbox" /> Mandatory with Lead Time
+                    </div>
+                }
+                else
+                {
+                    <div id="checkDocName">
+                        <br />
+                        <input name="DocNameManCheck" @ViewBag.viewmode id="DocNameManCheck" value="" onchange="chk()" type="checkbox" /> Mandatory with Lead Time &nbsp;
+                    </div>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <div id="txtManDays">
+                    <span>Lead Time (Days) </span>
+                    <br />
+                    <input name="DocManDays" placeholder="Number, Greater than Zero(0)" id="DocNameManDays" @ViewBag.viewmode maxlength="5" type="text" data-val="true" value="@Model.manDays" class="textboxStyle valid " /> 
+                </div>
+            </td>
+            <td style="width:50%; text-align:right;">
+                @if (@ViewBag.viewmode == "")
+                {
+                    <button id="btnsave" type="button" disabled="disabled" class="btn btn-primary" value="Save" onclick="Update()" style="margin-top:20px;"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                }
+                @if (@ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" class="btn btn-danger" value="Delete" onclick="Delete()" style="margin-top:20px;"><span class="glyphicon glyphicon-trash" style="color:white;"></span> Delete</button>
+                }
+
+                @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="goToIndex()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                }
+                else if (@ViewBag.viewmode == "disabled")
+                {
+                    <button type="button" class="btn btn-warning" value="Close" onclick="goToIndex()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Close</button>
+                }
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    var mandays;
+
+    $(document).ready(function () {
+
+        $("#DocGrpIDn,#ddldocFrqID,#DocFrqIDn").chosen({});
+
+        $("#DocGrpIDn_chosen,#DocFrqIDn_chosen,#ddldocFrqID_chosen").addClass("mychosen").css('width', '100%');
+
+        $("#DocGrpIDn_chosen,#DocFrqIDn_chosen,#ddldocFrqID_chosen").removeClass('valid').removeClass('required');
+        $("#DocGrpIDn_chosen,#ddldocFrqID_chosen").addClass('valid');
+
+        if ($("#ddldocFrqID").val() == "1") {
+            //document.getElementById("DocFrqIDn").disabled = false;
+            IsDiableFrequency(false);
+            $("#DocFrqIDn_chosen").addClass('valid');
+        }
+        else {
+            $("#DocFrqIDn_chosen").removeClass('valid');
+            //document.getElementById("DocFrqIDn").disabled = true;
+            IsDiableFrequency(true);
+        }
+
+        if ($("#radioDocMan").val() != "Mandatory") {
+            CheckFields();
+            $('#DocNameManCheck').prop('disabled', true);
+            $('input:checkbox[name=DocNameManCheck]').attr('disabled', true);
+        }
+
+        $("#DocNameNamen").focus();
+
+        $("#DocNameNamen").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#DocNameManDays").keypress(function (event) {
+            return isNumber(event, this);
+        });
+
+        //if (document.getElementById("ddldocFrqID").disabled == true) {
+        //    document.getElementById("DocFrqIDn").disabled = true;
+        //}
+
+        if ( '@viewfor' == "view" ||  '@viewfor' == "delete") {
+            IsDiableFrequency(true);
+        }
+    });
+    $("#DocFrqIDn").ready(function () {
+        if (($("#DocFrqIDn").val() == "0" || $("#DocFrqIDn").val() == "") && $("#ddldocFrqID").val() == "1") {
+
+            $("#DocFrqIDn_chosen").removeClass('valid');
+            $("#DocFrqIDn_chosen").addClass('required');
+        }
+        else if ($('#DocFrqIDn').attr('disabled')) {
+            $("#DocFrqIDn_chosen").removeClass('valid').removeClass('required');
+        }
+    });
+
+    $('input:radio[name=Radio]').change(function () {
+        if ($(this).val() != "Mandatory") {
+            CheckFields();
+            $('#DocNameManCheck').prop('disabled', true);
+            $('input:checkbox[name=DocNameManCheck]').attr('disabled', true);
+        }
+        else {
+            CheckFields();
+            $('#DocNameManCheck').prop('disabled', false);
+            $('input:checkbox[name=DocNameManCheck]').attr('checked', false);
+            CheckFields();
+        }
+        if ($(this).val() == "Optional") {
+            CheckFields();
+            $('#DocNameManCheck').prop('disabled', true);
+            $('input:checkbox[name=DocNameManCheck]').attr('disabled', true);
+            $('input:checkbox[name=DocNameManCheck]').attr('checked', false);
+            CheckFields();
+            $("#txtManDays").hide();
+        }
+    });
+
+    function change() {
+        $("#DocGrpIDn_chosen").removeClass('valid').removeClass('required');
+        if ($("#DocGrpIDn").val() == 0)
+            $("#DocGrpIDn_chosen").addClass('required');
+        else
+            $("#DocGrpIDn_chosen").addClass('valid');
+        CheckFields();
+    }
+
+    function changee() {
+        if ($("#DocFrqIDn").val() == 0) {
+            CheckFields();
+            $("#DocFrqIDn_chosen").removeClass('valid');
+            $("#DocFrqIDn_chosen").addClass('required');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            //alert($("#DocFrqIDn").val());
+            //$("#DocFrqIDn").val(0);
+            $("#DocFrqIDn_chosen").removeClass('required');
+            $("#DocFrqIDn_chosen").addClass('valid');
+
+            CheckFields();
+        }
+    }
+    $("#ddldocFrqID").change(function () {
+        if ($("#ddldocFrqID").val() == 0) {
+            CheckFields();
+            $("#DocFrqIDn").val(0);
+            $("#DocFrqIDn_chosen").removeClass('required');
+            $("#DocFrqIDn_chosen").removeClass('valid');
+            $("#ddldocFrqID_chosen").removeClass('valid');
+            $("#ddldocFrqID_chosen").addClass('required');
+            IsDiableFrequency(true);
+            //document.getElementById("DocFrqIDn").disabled = true;
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            if ($("#ddldocFrqID").val() == "1") {
+                //document.getElementById("DocFrqIDn").disabled = false;
+                IsDiableFrequency(false);
+                $("#DocFrqIDn_chosen").addClass('required');
+            }
+            else {
+                //document.getElementById("DocFrqIDn").disabled = true;
+                IsDiableFrequency(true);
+                $("#DocFrqIDn").val("0").trigger("chosen:updated");
+                $("#DocFrqIDn_chosen").removeClass('valid');
+                $("#DocFrqIDn_chosen").removeClass('required');
+            }
+            $("#ddldocFrqID_chosen").removeClass('required');
+            $("#ddldocFrqID_chosen").addClass('valid');
+            CheckFields();
+        }
+    });
+
+    $("#DocNameNamen").keyup(function () {
+        var txtSupplierName = $("#DocNameNamen").val();
+        if (txtSupplierName.trim() != "") {
+            $("#DocNameNamen").removeClass('required');
+            $("#DocNameNamen").addClass('valid');
+            CheckFields();
+        }
+        else {
+            $("#DocNameNamen").removeClass('valid');
+            $("#DocNameNamen").addClass('required');
+            CheckFields();
+        }
+    });
+
+    $("#DocNameManDays").keyup(function () {
+        var txtSupplierName = $("#DocNameManDays").val();
+        if (txtSupplierName.trim() != "") {
+            CheckFields();
+            $("#DocNameManDays").removeClass('required');
+            $("#DocNameManDays").addClass('valid');
+        }
+        else {
+            CheckFields();
+            $("#DocNameManDays").removeClass('valid');
+            $("#DocNameManDays").addClass('required');
+        }
+    });
+
+    if ($("#DocNameManDays").val() == 0) {
+        CheckFields();
+        $('input:checkbox[name=DocNameManCheck]').attr('checked', false);
+        CheckFields();
+        $("#txtManDays").hide();
+    }
+
+    else {
+        CheckFields();
+        $('input:checkbox[name=DocNameManCheck]').attr('checked', true);
+        CheckFields();
+        $("#txtManDays").show();
+    }
+
+    function chk() {
+        if ($("#DocNameManCheck").is(':checked')) {
+            CheckFields();
+            $("#txtManDays").show();
+        }
+        else {
+            CheckFields();
+            $("#txtManDays").hide();
+        }
+    }
+
+    function Update() {
+
+        var DocNameName = $("#DocNameNamen").val();
+        var DocNameID = $("#DocNameIDn").val();
+        var DocFrqID = $("#DocFrqIDn").val();
+        var DocGrpID = $("#DocGrpIDn").val();
+        var frqID = $("#ddldocFrqID").val();
+        var mandays;
+        var man;
+        if ($("#ddldocFrqID").val() == "1") {
+            DocFrqID = $("#DocFrqIDn").val();
+        }
+        else {
+            DocFrqID = 0;
+        }
+        if ($("input[name=Radio]:checked").val() == "Mandatory") {
+            man = "M"
+        }
+        else {
+            man = "O"
+            mandays = 0;
+        }
+
+        if ($("#DocNameManCheck").is(':checked')) {
+
+            if ($("#DocNameManDays").val() > 0) {
+                mandays = $("#DocNameManDays").val();
+            }
+            else {
+                jAlert("No. of Days must be greater than Zero(0)", "Information", function (r) {
+                    if (r == true) {
+                        $("#DocNameManDays").focus();
+                        return false;
+                    }
+                });
+                return false;
+            }
+        }
+
+        var DocNameModel = {
+            "docNameID": DocNameID
+    , "docNameName": DocNameName.trim()
+    , "docFrqID": DocFrqID
+    , "manOpt": man
+    , "docGrpID": DocGrpID
+    , "frqID": frqID
+    , "manDays": mandays
+        };
+
+        $.post('../AsmsDocumentName/Edit', DocNameModel,
+        function (data) {
+            if (data == null) {
+                jAlert("Record Updated Successfully!!", "Information", function (r) {
+                    if (r == true) {
+                        location = '../AsmsDocumentName/Index';
+                    }
+                });
+
+            }
+            else {
+                jAlert("Duplicate Record!", "Information", function (r) {
+                    if (r == true) {
+                        return false;
+                    }
+                }); return false;
+            }
+        }, 'json');
+
+    }
+
+
+    function Delete() {
+        var DocNameID = $("#DocNameIDn").val();
+        var DocNameModel = {
+            "docNameID": DocNameID
+        };
+        jConfirm("Do you want to delete this Document Name  ? ", "Delete Document Name", function (r) {
+            if (r == true) {
+                $.post('../AsmsDocumentName/Delete', DocNameModel,
+                     function (data) {
+                         if (data == 0) {
+                             location = location.href;
+                         }
+                         else {
+                             if (data.serviceID != 0) {
+                                 jAlert("Already Used this Document Name,You cannot able to delete!.", "Message");
+                                 return false;
+                             }
+                             else {
+                                 jAlert("Record Deleted Successfully!!!", "Information", function (t) {
+                                     if (t == true) { location = '../AsmsDocumentName/Index'; }
+                                 });
+                             }
+
+                         }
+                     }, 'json');
+            }
+            else { return false; }
+        });
+    }
+
+
+    //$(".ui-icon-closethick").click(function () {
+    //    $('#gridId').find('tr').css('background', 'none');
+    //});
+    function goToIndex() {
+        //$('#gridId').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFields() {
+        var ErrCount = 0;
+        if ($("#DocNameNamen").val() == "" || $("#DocNameNamen").val() == null) {
+            ErrCount = 1;
+        }
+        else if ($("#DocGrpIDn").val() == "--Select Group--" || $("#DocGrpIDn").val() == 0) {
+            ErrCount = 3;
+        }
+        else if (!$('input:radio[name=Radio]').val()) {
+            $('input:radio[name=Radio]').focus();
+            ErrCount = 4;
+        }
+        else if ($("#DocNameManCheck").is(':checked')) {
+            if ($("#DocNameManDays").val() == "" || $("#DocNameManDays").val() == null || $("#DocNameManDays").val() == 0) {
+
+                $("#DocNameManDays").removeClass('valid').removeClass('required');
+                $("#DocNameManDays").addClass('required');
+
+                ErrCount = 5;
+            }
+        }
+        else if ($("#ddldocFrqID").val() == "--Select Frequency--" || $("#ddldocFrqID").val() == 0) { ErrCount = 2; }
+        else if ($("#ddldocFrqID").val() == "1") {
+            if ($("#DocFrqIDn").val() == "--Select Frequency-Month--" || $("#DocFrqIDn").val() == 0) {
+                ErrCount = 2;
+            }
+        }
+        else {
+            ErrCount = 0;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', true);
+        }
+    }
+    function IsDiableFrequency(value) {
+        if (value == true) {
+            $('#DocFrqIDn').data('chosen').search_field_disabled();
+            $('#DocFrqIDn').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#DocFrqIDn').removeAttr('disabled');
+            $('#DocFrqIDn').trigger("chosen:updated");
+        }
+    }
+</script>
+
+

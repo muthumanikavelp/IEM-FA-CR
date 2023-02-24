@@ -1,0 +1,196 @@
+﻿@model  IEnumerable<IEM.Areas.FLEXIBUY.Models.pardetailtransfer>
+@using IEM.Areas.FLEXIBUY.Models
+@using IEM.Common
+
+@{
+    WebGrid grid = new WebGrid(source: Model, canPage: true, canSort: false, ajaxUpdateContainerId: "griddetails", ajaxUpdateCallback: "griddetails");
+    int rowNum = 0;
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+
+
+<div id="pardetails">
+    <div class="pageHeadingLayout">
+        <span class="pageHeading">PAR Detail Transfer Summary</span>
+    </div>
+
+    <div class="table-responsive" style="height:300px;">
+        @if (ViewBag.process != "process")
+        {
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+                     tableStyle: "table table-bordered table-hover table-responsive",
+                    htmlAttributes: new { id = "griddetails" },
+                    columns: grid.Columns
+                        (
+                //Here I am going to add checkbox column
+                         grid.Column("Slno", format: a => rowNum = rowNum + 1, style: "slnosmall"),
+                //grid.Column("SNo", format: a => rowNum = rowNum + 1),
+                    grid.Column("pardetails_parhead_gid", objCmnFunctions.Sorter("pardetails_parhead_gid", "PAR Header ID", grid), format: @<text><span id="lblpardetailheadid">@item.pardetails_parhead_gid</span></text> ),
+                    //grid.Column("pardetails_parhead_gid", objCmnFunctions.Sorter("pardetails_parhead_gid", "PAR Header ID", grid), style: "MidColumn5"),
+                    grid.Column("pardetailsgid", objCmnFunctions.Sorter("pardetailsgid", "PAR Detail ID", grid), style: "slnosmall"),
+                                     grid.Column("pardetailsexpensetype", objCmnFunctions.Sorter("pardetailsexpensetype", "CAPEX/OPEX", grid), style: "numcolumn"),
+                                     grid.Column("pardetails_yearfrom", objCmnFunctions.Sorter("pardetails_yearfrom", "Year From", grid), style: "numcolumn"),
+                                     grid.Column("pardetails_yearto", objCmnFunctions.Sorter("pardetails_yearto", "Year To", grid), style: "numcolumn"),
+                                     grid.Column("pardetailsrequestfor", objCmnFunctions.Sorter("pardetailsrequestfor", "Request For", grid), style: "numcolumn"),
+                                     grid.Column("pardetails_desc", objCmnFunctions.Sorter("pardetails_desc", "Line Description", grid), style: "collargeBreak"),
+                                     //grid.Column("pardetailslineamount", objCmnFunctions.Sorter("pardetailslineamount", "Line Amount", grid), style: "colamountlarge"),
+                                     grid.Column("pardetailslineamount", objCmnFunctions.Sorter("pardetailslineamount", "Line Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.pardetailslineamount)))) </text>, canSort: true, style: "colamountlarge"),
+                                     //grid.Column("pardetailsutilizedamount", objCmnFunctions.Sorter("pardetailsutilizedamount", "Utilized Amount", grid), style: "colamountlarge"),
+                                     grid.Column("pardetailsutilizedamount", objCmnFunctions.Sorter("pardetailsutilizedamount", "Utilized Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.pardetailsutilizedamount)))) </text>, canSort: true, style: "colamountlarge"),
+                                     //grid.Column("pardetailstransferinamount", objCmnFunctions.Sorter("pardetailstransferinamount", "Transfer In", grid), style: "colamountlarge"),
+                                     grid.Column("pardetailstransferinamount", objCmnFunctions.Sorter("pardetailstransferinamount", "Transfer In", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.pardetailstransferinamount)))) </text>, canSort: true, style: "colamountlarge"),
+                                     //grid.Column("pardetailstransferoutamount", objCmnFunctions.Sorter("pardetailstransferoutamount", "Transfer Out", grid), style: "colamountlarge"),
+                                     grid.Column("pardetailstransferoutamount", objCmnFunctions.Sorter("pardetailstransferoutamount", "Transfer Out", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.pardetailstransferoutamount)))) </text>, canSort: true, style: "colamountlarge"),
+                                     //grid.Column("pardetailsbalencedamount", objCmnFunctions.Sorter("pardetailsbalencedamount", "Balance Amount", grid), style: "colamountlarge"),
+                                     grid.Column("pardetailsbalencedamount", objCmnFunctions.Sorter("pardetailsbalencedamount", "Balance Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", objCmnFunctions.GetINRAmount(Convert.ToString(@item.pardetailsbalencedamount)))) </text>, canSort: true, style: "colamountlarge"),
+                                     grid.Column(header: "Select", canSort: false, style: "action",
+                    format: @<text>
+                        <input type="button" value="Select" class="btn btn-link prselect" onclick=" partransferamount(id)" id="@item.pardetailsgid" title="Select" />
+                        <input type="hidden" id="Transferinamount_@item.pardetailsgid" name="Transfer In" value="@item.pardetailstransferinamount" />
+                        <input type="hidden" id="Transferoutamount_@item.pardetailsgid" name="Transfer Out" value="@item.pardetailstransferoutamount" />
+                        <input type="hidden" id="Balencedamount_@item.pardetailsgid" name="Balence Amount" value="@item.pardetailsbalencedamount" />
+                    </text>)))
+        }
+        </div>
+    <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:100%; vertical-align:bottom; text-align:right;">
+                    <button type="button" id="btnupdatetransferamount" name="command" class="btn btn-success" onclick="updatetransferamount()" value="Submit">
+                        <span class="glyphicon glyphicon-thumbs-up" style="color:white;"></span> update
+                    </button>
+                    <button type="button" id="btnrevert" class="btn btn-danger" value="Delete" onclick="transferamountrevert()">
+                        <span style="color:white;" class="glyphicon glyphicon-thumbs-down"></span> Revert
+                    </button>
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Cancel" onclick="transferamountmainclose()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button>
+                </td>
+            </tr>
+            <tr style="display:none;">
+                <td>
+                    <input type="text"
+                           name="txtbalanceamnt"
+                           class="textboxStyle "
+                           style="display:block"
+                           id="txtbalanceamnt" />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+
+    });
+    $(document).ready(function () {
+        $("#griddetails td:nth-child(2),#griddetails th:nth-child(2)").hide();
+        $("#griddetails td:nth-child(3),#griddetails th:nth-child(3)").hide();
+    });
+
+    var objdialogtransferamount;
+    function partransferamount(id) {
+        var test;
+        var transferindetailsamount;
+        //sessionStorage["transferoutamount"] = null;
+        //sessionStorage["transferinamount"] = null;
+        //sessionStorage["Balencedamount"] = null;
+        var Transferinamount = $("#Transferinamount_" + id + "").val();
+        var Transferoutamount = $("#Transferoutamount_" + id + "").val();
+        var Balenceamount = $("#Balencedamount_" + id + "").val();
+
+        if (Transferoutamount == "" || Transferoutamount == null || parseInt(Transferoutamount) == 0) {
+            Transferoutamount = sessionStorage["Transferoutamountamountdetails"];
+            transferindetailsamount = 0;
+        }
+        $("#txtbalanceamnt").val(Balenceamount);
+        $("#txtountamnt").val(Transferoutamount);
+        $("#txtinamnt").val(Transferinamount);
+        
+        //sessionStorage["Balencedamount"] = Balenceamount;
+        //sessionStorage["Transferoutamountamountdetails"] = Transferoutamount
+        //sessionStorage["Transferinamountamountdetails"] = Transferinamount;      
+
+        if ($('#paramount').val() == "") {
+            $('#paramount').val('anu');
+            objdialogtransferamount = $("[id$='partransferamount']");
+            objdialogtransferamount.dialog({
+                autoOpen: false,
+                modal: true,
+                cache: false,
+                width: 500,
+                height: 250
+            });
+        }
+
+        var url = "@Url.Action("Transferamount", "partransfer")?id=" + id;
+
+        objdialogtransferamount.load(url);
+        objdialogtransferamount.dialog({ title: 'Transfer Amount' });
+        objdialogtransferamount.dialog("open");
+    }
+
+
+    function transferamountrevert() {
+
+        var viewfor = "revert";
+
+        var objtranferdetailsamount = {}
+
+        $.ajax({
+            url: '@Url.Action("pardetailsapprover", "partransfer")?viewfor=' + viewfor + '&' + new Date().getTime(),
+            type: 'POST',
+            data: objtranferdetailsamount,
+            success: function (data) {
+                $("#pardetails").empty().append(data);
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+
+
+
+    }
+
+    function transferamountmainclose() {
+
+        document.getElementById('pardetails').style.display = 'none'
+        @*location = '@Url.Action("Index", "partransfer")'*@
+
+    }
+
+    function updatetransferamount() {
+
+        var viewfor = "update";
+
+        var objtranferdetailsamount = {}
+
+        $.ajax({
+            url: '@Url.Action("pardetailsapprover", "partransfer")?viewfor=' + viewfor,
+            type: 'POST',
+            data: objtranferdetailsamount,
+            success: function (data) {
+                $("#pardetails").empty().append(data);
+                jAlert("Updated Successfully");
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+    }
+
+</script>

@@ -1,0 +1,185 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_courier
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;display:none;">
+                <input name="CategoryID" id="_Couriergid" type="text"
+                        placeholder="Category ID" data-val="true" value="@Model.courier_gid" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span> Courier Name </span>
+                    <br />
+                <input name="CategoryeName" id="_EditCouriername" maxlength="80"  type="text"
+                       class="fstextbox valid" data-val="true" value="@Model.courier_name" @ViewBag.viewmode />
+                
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center;">
+              
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"
+                                style="margin-top:10px;  color:white;">
+                            <span class="glyphicon glyphicon-floppy-disk" style="color:white; font-size:12px;"></span> Save
+                        </button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()" style="margin-top:10px;  color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                        </button>
+                    }
+             
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                        </button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                        </button>
+                    }
+               
+            </td>
+        </tr>
+    </table>
+
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#_EditCouriername").focus();
+        $("#_EditCouriername").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_EditCouriername").keyup(function () {
+            var txtSupplierName = $("#_EditCouriername").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_EditCouriername").removeClass('required');
+                $("#_EditCouriername").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {               
+                $("#_EditCouriername").removeClass('valid');
+                $("#_EditCouriername").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    function Update() {
+       
+        var couriername = $("#_EditCouriername").val().trim();
+        var couriergid = $("#_Couriergid").val();
+
+        if (couriername == "") {
+            jAlert("Please Enter Courier Name !", "Information", function (r) {
+                if (r == true) {
+                    return false;
+                }
+            });
+        }
+        else {
+            var CategoryModel = { "courier_gid": couriergid, "courier_name": couriername };
+            $.post('../IEM_COURIER/UpdateCourierDetails', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record Updated Successfully !", "Information", function (r) {
+                            if (r == true) {
+                                window.parent.jQuery('#ForPartialView').dialog('close');
+                                location = '../IEM_COURIER/Index';
+                            }
+                        });
+                        
+                    }
+                }
+
+            , 'json');
+        }
+    }
+    function DeleteType() {
+        var couriergid = $("#_Couriergid").val();
+        jConfirm("Do you want to delete this Courier ? ", "Delete Courier", function (j) {
+            if (j == true) {
+                var model = { "courier_gid": couriergid }
+                $.post('../IEM_COURIER/DeleteCourier', model,
+                     function (data) {
+                         if (data = "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 window.parent.jQuery('#ForPartialView').dialog('close');
+                                 if (r = true) { location = '../IEM_COURIER/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+    }
+    $(".ui-icon-closethick").click(function () {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+       // $('#gridcourier').find('tr').css('background', 'none');
+    });
+
+    function goToIndex() {
+
+        window.parent.jQuery('#ForPartialView').dialog('close');
+        //$('#gridcourier').find('tr').css('background', 'none');
+           // window.parent.jQuery('#ForPartialView').dialog('close');          
+    }
+
+        function CheckFieldsHeader() {
+            var valu = $('#_EditCouriername').val();           
+            var ErrCount = 0;
+            if ($("#_EditCouriername").val().trim() == "" || $("#_EditCouriername").val() == null)
+            {
+                ErrCount = 1;
+            }
+            if (ErrCount == 0) {               
+                $("#_save").removeAttr('disabled');
+            }
+            else {               
+                $("#_save").attr('disabled', 'disabled');
+            }
+        }
+    
+</script>

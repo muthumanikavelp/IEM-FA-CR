@@ -1,0 +1,352 @@
+﻿@model IEM.Areas.ASMS.Models.SupplierTaxDetails
+@using IEM.Areas.ASMS.Models
+@using IEM.Common
+
+@{
+    SupDataModel dm = new SupDataModel();
+    SupplierTaxDetails objTaxAttachment = new SupplierTaxDetails();
+    objTaxAttachment.lstTaxDocumentName = new SelectList(dm.GetDocumentNameAll(), "_DocumentNameID", "_DocumentName");
+}
+<script></script>
+<div id="createtaxattachment">
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:50%;">
+                <input type="hidden" name="_TaxAttachmentID" id="_TaxAttachmentID" />
+                <span>Document Name</span><br />
+                @Html.DropDownListFor(n => n.selectedTaxDocumentNameID, objTaxAttachment.lstTaxDocumentName, "-- Select --", new { @class = "fstextbox", @id = "selectedTaxDocumentNameID" })
+            </td>
+            <td style="width:50%;">
+                <input type="hidden" name="_TdsAttachmentID" id="_TdsAttachmentID" />
+                <span>Document Group</span><br />
+                @Html.DropDownListFor(n => n.selectedTaxDocumentGroupID, Enumerable.Empty<SelectListItem>(), "-- Select --", new { @class = "fstextbox", @id = "selectedTaxDocumentGroupID" })
+            </td>
+        </tr>
+        <tr>
+            @*<td style="vertical-align:top;">
+                    <span>Document Date</span> <br />
+                    <input name="_TaxAttachmentDate" class="textboxStyle" id="_TaxAttachmentDate" title="Document Date" type="text" />
+                </td>*@
+            <td style="vertical-align:top; width:50%;">
+                <span>Select File</span><br />
+                <form id="theuploadform2">
+                    <input type="file" name="UploadFile" id="txtUploadTaxAttachmentFile" class="txtUploadTaxAttachmentFile" />
+                </form>
+            </td>
+            <td style="width:50%;">
+                <span>File Name</span> <br />
+                <input name="_TaxAttachmentFileName" disabled id="_TaxAttachmentFileName" class="textboxStyle" title="File Name" type="text" />
+            </td>
+            </tr>
+        <tr>
+            <td style="width:50%;">
+                <span>Description</span> <br />
+                <textarea name="_TaxAttachmentDescription" id="_TaxAttachmentDescription" class="textareaStyle" title="Description" />
+            </td>
+            <td style="text-align:left; vertical-align:bottom;width:50%;">
+                <button name="btnSaveTaxAttachment" id="btnSaveTaxAttachment" class="btn btn-primary" onclick="SaveTaxAttachment()"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                <button id="btnClearTaxAttachment" name="btnClearTaxAttachment" class="btn btn-primary" onclick="ClearTaxAttachmentFields()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+            </td>
+        </tr>
+    </table>
+    
+    <script type="text/javascript">
+
+        function SaveTaxAttachment() {
+            var TaxAttachDocGroupID = $("#selectedTaxDocumentGroupID").val();
+            var TaxAttachDocNameID = $("#selectedTaxDocumentNameID").val();
+            // var AttachDate = $("#_TaxAttachmentDate").val();
+            var AttachFileName = $("#_TaxAttachmentFileName").val();
+            var AttachDescription = $("#_TaxAttachmentDescription").val();
+            var ids = parseInt($("#_TaxAttachmentID").val());
+            if ($.trim(TaxAttachDocGroupID) == "" || $.trim(TaxAttachDocGroupID) == "0") {
+                jAlert("Please Select Document Group", "Error", function () {
+                    $("#selectedTaxDocumentGroupID").focus();
+                });
+                return false;
+            }
+            if ($.trim(TaxAttachDocNameID) == "" || $.trim(TaxAttachDocNameID) == "0") {
+                jAlert("Please Select Document Name", "Error", function () {
+                    $("#selectedTaxDocumentNameID").focus();
+                });
+                return false;
+            }
+
+            if ($.trim(AttachFileName) == "" || $.trim(AttachFileName) == null) {
+                jAlert("Please Select Valid File", "Error", function () {
+                });
+                return false;
+            }
+
+            var objTaxAttachment = {
+                "selectedTaxDocumentGroupID": TaxAttachDocGroupID,
+                "selectedTaxDocumentNameID": TaxAttachDocNameID,
+                // "_TaxAttachmentDate": AttachDate,
+                "_TaxAttachmentActualFileName": AttachFileName,
+                "_TaxAttachmentDescription": AttachDescription
+            };
+
+            $.post('../Onboarding/CreateTaxAttachment', objTaxAttachment,
+       function (data) {
+           //if (data == 0) { location = location.href; } else {
+           //    ClearSupAttachmentFields();
+           //    $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+           //    jAlert("Successfully Inserted", "Success");
+           //}
+
+           if (data == "Y") {
+               ClearSupAttachmentFields();
+               $("#wgSupAttachment").load("../Onboarding/SupAttachmentDetails?" + new Date().getTime());
+               jAlert("Successfully Inserted", "Success");
+           }
+           //else if (data == "N") {
+           //    jAlert("Invalid File format !", "Alert");
+           //}  
+           else {
+               jAlert("Invalid File format !", "Alert");
+           }
+       }, 'json');
+
+        }
+        function ClearTaxAttachmentFields() {
+            $("#txtUploadTaxAttachmentFile").val("");
+            //$("#selectedTaxDocumentGroupID").val("").trigger('chosen:updated');
+            $("#selectedTaxDocumentNameID").val("").trigger('chosen:updated');
+
+            $("#selectedTaxDocumentGroupID").empty();
+            $("#selectedTaxDocumentGroupID").append("<option value='0' >--Select--</option>");
+            $('#selectedTaxDocumentGroupID').trigger("chosen:updated");
+
+            $("#_TaxAttachmentFileName").val("");
+            $("#_TaxAttachmentDescription").val("");
+            $("#selectedTaxDocumentGroupID").focus();
+
+            $("#selectedTaxDocumentGroupID_chosen").removeClass('valid');
+            $("#selectedTaxDocumentNameID_chosen").removeClass('valid');
+            //  $("#_TaxAttachmentDescription").removeClass('valid');
+            $("#selectedTaxDocumentGroupID_chosen").addClass('required');
+            $("#selectedTaxDocumentNameID_chosen").addClass('required');
+            //   $("#_TaxAttachmentDescription").addClass('required');
+
+        }
+    </script>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#_TaxAttachmentID").val("0");
+
+        $("#selectedTaxDocumentNameID,#selectedTaxDocumentGroupID").chosen({});
+        $("#selectedTaxDocumentNameID_chosen,#selectedTaxDocumentGroupID_chosen").css("width", "99%");
+
+        $("#_TaxAttachmentDescription").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#selectedTaxDocumentGroupID_chosen").addClass('required');
+        $("#selectedTaxDocumentNameID_chosen").addClass('required');
+        //  $("#_TaxAttachmentDescription").addClass('required');
+
+        $("#_TaxAttachmentDescription").attr("maxlength", "128");
+        $(".txtUploadTaxAttachmentFile").on('change', function (e) {
+
+            //Pandiaraj 12-02-2020 
+            var fileSize = Attachment_size();
+            var f = this.files[0];
+            //here I CHECK if the FILE SIZE is bigger than 8 MB (numbers below are in bytes)
+            if (f.size > fileSize || f.fileSize > fileSize) {
+                jAlert("Allowed file size exceeded. (Max: 8 MB)", "Warning");
+                this.value = null;
+                $('.txtUploadTaxAttachmentFile').val('');
+            }
+            //Pandiaraj 12-02-2020
+
+
+            var iframe2 = $('<iframe name="postiframe2" id="postiframe2" style="display: none"></iframe>');
+
+            $("body").append(iframe2);
+            var form2 = $('#theuploadform2');
+            //--Pandiaraj 11-11-2019
+            var Attach_list = Attachment_list();
+            var Attachment_fomat = Attached_fileformat();
+            form2.attr("action", "../Onboarding/UploadedFiles/?uploadfor=TA" + '&attach=' + Attach_list + '&attaching_format=' + Attachment_fomat);
+            form2.attr("method", "post");
+
+            form2.attr("encoding", "multipart/form-data");
+            form2.attr("enctype", "multipart/form-data");
+
+            form2.attr("target", "postiframe2");
+            form2.attr("file", $('#txtUploadTaxAttachmentFile').val());
+
+            var fname = $('#txtUploadTaxAttachmentFile').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#_TaxAttachmentFileName").val(fname);
+            form2.submit();
+            return false;
+            //var files = e.target.files;
+
+            //if (files.length > 0) {
+
+            //    if (window.FormData !== undefined) {
+            //        var data = new FormData();
+            //        for (var x = 0; x < files.length; x++) {
+
+            //            data.append("temp_" + x, files[x]);
+            //        }
+            //        var fname = $("#_TaxAttachmentFileName").val();
+
+            //        $.ajax({
+            //            type: "POST",
+            //            url: '../Onboarding/UploadedFiles/?fname=' + fname + '&uploadfor=TA',
+            //            contentType: false,
+            //            processData: false,
+            //            data: data,
+            //            success: function (result) {
+
+            //                $("#_TaxAttachmentFileName").val(result);
+            //            },
+            //            error: function (xhr, status, p3, p4) {
+            //                var err = "Error " + " " + status + " " + p3 + " " + p4;
+            //                if (xhr.responseText && xhr.responseText[0] == "{")
+            //                    err = JSON.parse(xhr.responseText).Message;
+            //                console.log(err);
+            //            }
+            //        });
+            //    } else {
+            //        jAlert("This browser doesn't support HTML5 file uploads!", "Warning");
+            //    }
+            //}
+            //// }
+
+        });
+
+
+    });
+    $("#selectedTaxDocumentGroupID").change(function () {
+        //IsMandatoryTaxAttachment(this);
+        var txtval = $("#selectedTaxDocumentGroupID").val();
+        if (txtval.trim() != "" && txtval.trim() != "0") {
+            $("#selectedTaxDocumentGroupID_chosen").removeClass('required');
+            $("#selectedTaxDocumentGroupID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedTaxDocumentGroupID_chosen").removeClass('valid');
+            $("#selectedTaxDocumentGroupID_chosen").addClass('required');
+        }
+    });
+    $("#selectedTaxDocumentNameID").change(function () {
+        //IsMandatoryTaxAttachment(this);
+        var txtval = $("#selectedTaxDocumentNameID").val();
+        if (txtval.trim() != "" && txtval.trim() != "0") {
+            $("#selectedTaxDocumentNameID_chosen").removeClass('required');
+            $("#selectedTaxDocumentNameID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedTaxDocumentNameID_chosen").removeClass('valid');
+            $("#selectedTaxDocumentNameID_chosen").addClass('required');
+        }
+    });
+    //$("#_TaxAttachmentDescription").keyup(function () {
+    //    IsMandatoryTaxAttachment(this);
+    //});
+    function IsMandatoryTaxAttachment(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+
+    function IsDiableTaxDocumentGroup(value) {
+        if (value == true) {
+            $('#selectedTaxDocumentGroupID').data('chosen').search_field_disabled();
+            $('#selectedTaxDocumentGroupID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedTaxDocumentGroupID').removeAttr('disabled');
+            $('#selectedTaxDocumentGroupID').trigger("chosen:updated");
+        }
+    }
+    @*$("#selectedTaxDocumentGroupID").change(function () {
+        var DocGroupID = $(this).val();
+
+        var objSupAttachment =
+       {
+           "selectedDocumentGroupID": DocGroupID
+       };
+        $.ajax({
+            url: '@Url.Action("GetDocumentName", "Onboarding")',
+            data: JSON.stringify(objSupAttachment),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedTaxDocumentNameID").empty();
+                if (data.length > 0) {
+                    $("#selectedTaxDocumentNameID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        $('#selectedTaxDocumentNameID').attr('disabled', false);
+                        $("#selectedTaxDocumentNameID").append("<option value=" + data[i]._DocumentNameID + " >" + data[i]._DocumentName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedTaxDocumentNameID").append("<option value='0' >--Select--</option>");
+                    $('#selectedTaxDocumentNameID').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });*@
+    $("#selectedTaxDocumentNameID").change(function () {
+        var DocGroupID = $(this).val();
+
+        var objSupAttachment =
+       {
+           "selectedDocumentNameID": DocGroupID
+       };
+        $.ajax({
+            url: '@Url.Action("GetDocumentGroupByID", "Onboarding")',
+            data: JSON.stringify(objSupAttachment),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedTaxDocumentGroupID").empty();
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        IsDiableTaxDocumentGroup(false);
+                        $("#selectedTaxDocumentGroupID").append("<option value=" + data[i]._DocumentGroupID + " >" + data[i]._DocumentGroupName + "</option>");
+                    }
+                    var txtval = $("#selectedTaxDocumentGroupID").val();
+                    if (txtval.trim() != "" && txtval.trim() != "0") {
+                        $("#selectedTaxDocumentGroupID_chosen").removeClass('required');
+                        $("#selectedTaxDocumentGroupID_chosen").addClass('valid');
+                    }
+                    else {
+                        $("#selectedTaxDocumentGroupID_chosen").removeClass('valid');
+                        $("#selectedTaxDocumentGroupID_chosen").addClass('required');
+                    }
+                }
+                if (data.length == 0) {
+                    $("#selectedTaxDocumentGroupID").append("<option value='0' >--Select--</option>");
+                    
+                    IsDiableTaxDocumentGroup(true);
+                    $("#selectedTaxDocumentGroupID_chosen").removeClass('valid');
+                    $("#selectedTaxDocumentGroupID_chosen").addClass('required');
+                }
+                $('#selectedTaxDocumentGroupID').trigger("chosen:updated");
+            },
+            error: function (result) {
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });
+
+</script>

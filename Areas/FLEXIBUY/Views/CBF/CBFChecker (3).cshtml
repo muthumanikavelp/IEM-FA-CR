@@ -1,0 +1,1237 @@
+﻿@{
+    ViewBag.Title = "CBFChecker";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var _currDTTab = 0;
+    $(function () {
+
+        $("#Maintabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+        $("#Maintabs").css("display", "");
+    });
+</script>
+
+<div style="padding-top:10px;">
+
+</div>
+@if (ViewBag.Access == 2)
+{
+    <span class="pageHeading">CBF Checker</span>
+}
+else if (ViewBag.Access == 3)
+{
+    <span class="pageHeading">CBF Supervisor</span>
+}
+else if (ViewBag.Access == 4)
+{
+    <span class="pageHeading">CBF Delmat</span>
+}
+else if (ViewBag.Access == 5)
+{
+    <span class="pageHeading">CBF Cancellation Maker</span>
+}
+else if (ViewBag.Access == 6)
+{
+    <span class="pageHeading">CBF Cancellation Checker</span>
+}
+else if (ViewBag.Access == 7)
+{
+    <span class="pageHeading">CBF Closurer Maker</span>
+}
+else if (ViewBag.Access == 8)
+{
+    <span class="pageHeading">CBF Closurer Checker</span>
+}
+else if (ViewBag.Access == 9)
+{
+    <span class="pageHeading">CBF Reopen Maker</span>
+}
+else if (ViewBag.Access == 10)
+{
+    <span class="pageHeading">CBF Reopen Checker</span>
+}
+
+<div class="well" style="padding:10px;">
+
+    <div id="Maintabs" style="min-height :300px;font-size:12px; display:none;">
+        <ul>
+            <li><a href="#tabs-1">CBF Header</a></li>
+            <li><a href="#tabs-2">CBF Details</a></li>
+            <li><a href="#tabs-3">Attachment</a></li>
+            <li style="display:none;" class="hideStatus"><a href="#tabs-4">Audit Trail</a></li>
+        </ul>
+        <div>
+            <div id="tabs-1">
+                <div style="min-height :400px;">
+                    <table class="myTableStyleTab" style="width:100%;">
+                        <tr>
+                            <td style="padding:10px 5px 10px 0px; width:16%;">
+
+                                <span>Raiser Name</span>
+                                <br />
+                                <input type="text"
+                                       class="fstextbox"
+                                       disabled="disabled"
+                                       id="txtRaiserName"
+                                       value="@Session["employee_name"]" />
+                            </td>
+                            <td style="padding:10px 5px; width:16%;">
+                                <span>Raiser Code</span>
+                                <br />
+                                <input type="text"
+                                       class="fstextbox"
+                                       disabled="disabled"
+                                       id="txtRaiserCode"
+                                       value="@Session["employee_code"]" />
+                            </td>
+                            <td style="padding:10px 5px; width:16%;">
+                                <span>CBF Number</span>
+                                <br />
+                                <input type="text" class="fstextbox" disabled="disabled" id="txtCBFNo" />
+                            </td>
+                            <td style="padding:10px 5px; width:16%;">
+                                <span>CBF Date</span>
+                                <br />
+                                <input type="text" class="fstextbox valid" disabled="disabled" value='@DateTime.Now.ToString("dd'/'MM'/'yyyy")' id="txtCBFDate" />
+                            </td>
+                            <td style="padding:10px 5px; width:16%;">
+                                <span>CBF End Date</span>
+                                <br />
+                                <input type="text" class="fstextbox disableStatus required" id="txtCBFEndDate" />
+                            </td>
+                            <td style="padding:10px 0px 10px 5px; width:16%;">
+                                <span>CBF Amount</span>
+                                <br />
+                                <input type="text" class="fstextbox" id="txtCBFAmount" disabled="disabled" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px 5px 10px 0px;">
+                                <span>Deviation Amount</span>
+                                <br />
+                                <input type="text" class="fstextbox disableStatus NumberValidation" maxlength="8" id=" txtdeviationamount" />
+                            </td>
+                            <td style="padding:10px 5px;">
+                                <span>Project Owner</span>
+                                <br />
+                                <div>
+                                    <select id="ddlProjectOwner" class="fstextbox disableStatus required" data-bind="foreach: {data: ProjectOwnerArray}">
+                                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td style="padding:10px 5px;">
+                                <span>Branch Name</span>
+                                <br />
+                                <input type="text" class="fstextbox disableStatus required" id="txtBranchName" />
+                                <input type="hidden" value="0" id="hfBranchName" />
+                            </td>
+                            <td style="padding:10px 5px;">
+                                <span>Request by</span>
+                                <br />
+                                <select id="ddlRequestBy" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: RequestByArray}">
+                                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                </select>
+                            </td>
+                            <td style="padding:10px 0px 10px 5px;" colspan="2">
+                                <table style="width:100%;">
+                                    <tr>
+                                        <td style="padding-right:5px; width:29%">
+                                            <span>CBF Mode</span>
+                                            <br />
+                                            <div style="margin-top:5px;">
+                                                <input type="radio" id="rdoPAR" name="CBFMode" value="PAR" checked="checked" />
+                                                PAR
+                                                <input type="radio" id="rdoPR" name="CBFMode" value="PR" />
+                                                PR
+                                            </div>
+                                        </td>
+                                        <td style="padding-right:5px; width:31%">
+                                            <span>Budgeted</span>
+                                            <br />
+                                            <div style="margin-top:5px;">
+                                                <input type="radio" class="disableStatus" id="rdoBudgetedYes" name="Budgeted" value="Y" checked="checked" />
+                                                Yes
+                                                <input type="radio" class="disableStatus" id="rdoBudgetedNo" name="Budgeted" value="N" />
+                                                No
+                                            </div>
+                                        </td>
+                                        <td style="padding-right:5px; width:40%">
+                                            <span>CBF Approval</span>
+                                            <br />
+                                            <div style="margin-top:5px;">
+                                                <input type="radio" id="rdoRegular" class="disableStatus" name="CBFApproval" value="R" checked="checked" />
+                                                Regular
+                                                <input type="radio" id="rdoLater" class="disableStatus" name="CBFApproval" value="L" />
+                                                Later
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px 5px 10px 0px;">
+                                <span>Branch Type</span>
+                                <br />
+                                <div style="margin-top:5px;">
+                                    <input type="radio" id="rdoSingle" class="disableStatus" name="BranchType" value="Y" checked="checked" />
+                                    Single
+                                    <input type="radio" id="rdoMutiple" class="disableStatus" name="BranchType" value="N" />
+                                    Multiple
+                                </div>
+                            </td>
+                            <td style="padding:10px 5px;">
+                                <span>Budget SPOC</span>
+                                <br />
+                                <select id="ddlBudgetSPOC" class="fstextbox disableStatus required" data-bind="foreach: {data: BudgetSpocArray}">
+                                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                                </select>
+                            </td>
+                            <td colspan="4" style="padding:10px 0px 10px 5px;">
+                                <table style="width:100%;">
+                                    <tr>
+                                        <td class="visblePAR" style="width:25%; padding: 0px 5px 0px 0px; position:relative;">
+                                            <span>PAR Header</span>
+                                            <br />
+                                            <input type="text" class="fstextbox required" id="txtPARHeader" disabled="disabled" />
+                                            <input type="hidden" value="0" id="hfPARHeader" />
+                                            <a data-bind="click: function() { $root.PARPRHeaderSelect(); }" style="position:absolute; right:15px; bottom:3px; z-index:0;" class="InlineIconStyle"><span class="glyphicon glyphicon-search cursorpointer"></span></a>
+                                        </td>
+                                        <td style="width:75%; padding:0px 0px 0px 5px;">
+                                            <span>Description</span>
+                                            <br />
+                                            <input type="text" class="fstextbox disableStatus required" id="txtDescription" maxlength="264" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px 5px 10px 0px;" colspan="3">
+                                <span>Justification</span>
+                                <br />
+                                <input type="text" class="fstextbox disableStatus required" id="txtJustification" maxlength="264" />
+                            </td>
+                            <td style="padding:10px 0px 10px 5px; text-align:right;" colspan="3">
+                                <button class="btn btn-primary viewStatus" data-bind="click: function() { $root.SetCBFHeader();}" title="Proceed CBF" value="Proceed CBF">
+                                    <span class="glyphicon glyphicon-save" style="color:white; margin-right:5px;"> </span>Proceed CBF
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="tabs-2">
+                <div style="min-height:450px; overflow-y:auto;">
+                    <div style="display:none;">
+                        <div class="visblePR" style="width:100%; margin-bottom:15px; display:none;">
+                            <span class="pageHeading" style="font-size:13px;">PR Header</span>
+                            <table class="myTableStyleTab viewStatus" style="width:100%; border-top: 1px solid #ccc;">
+                                <tr>
+                                    <td style="padding:10px 5px 10px 0px; width:20%;">
+                                        <span>PR Date</span>
+                                        <br />
+                                        <input type="text" class="fstextbox fsDatepicker" id="txtPRDate" />
+                                    </td>
+                                    <td style="padding:10px 5px; width:20%;">
+                                        <span>PR No</span>
+                                        <br />
+                                        <input type="text" class="fstextbox" id="txtPRNo" />
+                                    </td>
+
+                                    <td style="padding:10px 0px 10px 5px; width:20%;">
+                                        <button data-bind="click: function() { $root.PRSearch(1); }" class="btn btn-primary" style="font-size:12px;" type="button" name="command" title="Search" value="SEARCH">
+                                            <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                                        </button>
+                                        <button data-bind="click: function() { $root.PRSearch(0); }" type="button" class="btn btn-primary" style="font-size:12px;" value="Cancel">
+                                            <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                                        </button>
+                                    </td>
+                                    <td style="padding:10px 5px; width:40%;"></td>
+                                </tr>
+
+                            </table>
+                            <div class="table-responsive" style="max-height: 180px; overflow: auto;">
+                                <table id="PRHeaderGrid" class="tableSmall table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:4%; min-width:30px;">
+                                                #
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                PR Date
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                PR No
+                                            </th>
+                                            <th style="width:20%; min-width:150px;">
+                                                Branch
+                                            </th>
+                                            <th style="width:16%; min-width:120px;">
+                                                Department
+                                            </th>
+                                            <th style="width:20%; min-width:150px;">
+                                                Description
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Requested By
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Source
+                                            </th>
+                                            <th style="width:8%; min-width:60px;" class="viewStatus">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: CBFPRHeaderArray, afterRender: PRHeaderBind}">
+                                        <tr data-bind="attr:{id: 'PRHeader' + PRHeaderGId}">
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Date"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: PRHeaderRefNo"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: BranchName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: EmpDeptName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: Description"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ReqForName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: 'IEM'"></span>
+                                            </td>
+                                            <td align="center" class="viewStatus">
+                                                <a style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.PRSelect(PRHeaderGId);}">Select</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <span class="pageHeading" style="font-size:13px;">PR Details</span>
+
+                            <div class="table-responsive" style="overflow: auto;">
+                                <table id="PRDetailsGrid" class="tableSmall table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:4%; min-width:30px;">
+                                                #
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Product Group
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Product Code
+                                            </th>
+                                            <th style="width:15%; min-width:150px;">
+                                                Product Name
+                                            </th>
+                                            <th style="width:20%; min-width:150px;">
+                                                Product Description
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                UOM
+                                            </th>
+                                            <th style="width:8%; min-width:80px;">
+                                                Qty
+                                            </th>
+                                            <th style="width:8%; min-width:100px;">
+                                                Rate
+                                            </th>
+                                            <th style="width:8%; min-width:120px;">
+                                                Cost Estimation
+                                            </th>
+                                            <th style="width:6%; min-width:60px;" class="viewStatus">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: {data: CBFPRDetailsArray, afterRender: PRHeaderBind}">
+                                        <tr data-bind="attr:{id: 'PRDetails' + PRDetailGId}">
+                                            <td align="center">
+                                                <span data-bind="text: $index() + 1"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ProductGroupName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ProductCode"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ProductName"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: ProductDescription"></span>
+                                            </td>
+                                            <td>
+                                                <span data-bind="text: UOMCode"></span>
+                                            </td>
+                                            <td align="center">
+                                                <span data-bind="text: Qty"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: InputRate"></span>
+                                            </td>
+                                            <td align="right">
+                                                <span data-bind="text: CostEstimation"></span>
+                                            </td>
+                                            <td align="center" class="viewStatus">
+                                                <input type="checkbox" data-bind="attr:{id: 'rdoPRDetails' + PRDetailGId}, click: $root.PRDetailsSelect" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                        <div class="visblePAR" style="max-height:250px; overflow-y:auto; margin-bottom:15px;">
+                            <span class="pageHeading" style="font-size:13px;">PAR Details</span>
+                            <table id="ParDetailsGrid" class="tableSmall table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width:2%; min-width:30px;">
+                                            #
+                                        </th>
+                                        <th style="width:8%; min-width:80px;">
+                                            Capex/Opex
+                                        </th>
+                                        <th style="width:8%; min-width:70px;">
+                                            Dept
+                                        </th>
+                                        <th style="width:5%; min-width:70px;">
+                                            Budgeted
+                                        </th>
+                                        <th style="width:15%; min-width:150px;">
+                                            Description
+                                        </th>
+                                        <th style="width:8%; min-width:80px;">
+                                            Year
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            B/Fwd Amount
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            Line Amount
+                                        </th>
+                                        <th style="width:8%; min-width:110px;">
+                                            Utilized Amount
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            C/fwd Amount
+                                        </th>
+                                        <th style="width:8%; min-width:100px;">
+                                            Balance
+                                        </th>
+                                        <th style="width:8%; min-width:80px;">
+                                            Attachment
+                                        </th>
+                                        <th style="width:6%; min-width:60px;" class="viewStatus">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody data-bind="foreach: {data: CBFPARDetailsArray, afterRender: PRHeaderBind}">
+                                    <tr data-bind="attr:{id: 'ParDetails' + PARDetailGId}">
+                                        <td align="center">
+                                            <span data-bind="text: $index() + 1"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ExpenseType"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: ReqForName"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: IsBudgeted"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Description"></span>
+                                        </td>
+                                        <td>
+                                            <span data-bind="text: Year"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: TransferOutAmount"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: Amount"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: UntilizedAmount"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: TransferInAmount"></span>
+                                        </td>
+                                        <td align="right">
+                                            <span data-bind="text: BalancedAmount"></span>
+                                        </td>
+                                        <td align="center">
+                                            <a style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.PARDetailsBOQ(PARDetailGId);}">View BOQ</a>
+                                        </td>
+                                        <td align="center" class="viewStatus">
+                                            <a style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.PARDetailsSelect(PARDetailGId);}">Select</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="width:100%;" class="row">
+                        <div style="width:50%; text-align:left;" class="col-md-6">
+                            <span class="pageHeading" style="font-size:13px; ">CBF Details</span>
+                        </div>
+                        <div style="width:50%; text-align:right;" class="col-md-6">
+                            <button onclick="AddCBFDetails();" style="margin-right:-30px;" class="btn btn-primary visblePAR viewStatus" title="Add CBF Deatails" value="Add CBF Deatails">
+                                <span class="glyphicon glyphicon-plus" style="color:white; margin-right:5px; font-size:13px;"> </span>Add CBF Deatails
+                            </button>
+                        </div>
+                    </div>
+                    <div style="max-height:250px; overflow-y:auto; ">
+                        <table class="tableSmall table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:2%; min-width:30px;">
+                                        #
+                                    </th>
+                                    <th style="width:8%; min-width:150px;">
+                                        Product Group
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Product Code
+                                    </th>
+                                    <th style="width:10%; min-width:150px;">
+                                        Product Name
+                                    </th>
+                                    <th style="width:13%; min-width:150px;">
+                                        Product Description
+                                    </th>
+                                    <th style="width:4%; min-width:80px;">
+                                        UOM
+                                    </th>
+                                    <th style="width:4%; min-width:60px;">
+                                        Qty
+                                    </th>
+                                    <th style="width:6%; min-width:90px;">
+                                        Unit Amount
+                                    </th>
+                                    <th style="width:7%; min-width:100px;">
+                                        Total
+                                    </th>
+                                    <th style="width:13%; min-width:150px;" class="visblePAR">
+                                        Remarks
+                                    </th>
+                                    <th style="width:8%; min-width:120px;">
+                                        GL Code
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Cost Centre
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Budget Line
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        BOQ
+                                    </th>
+                                    <th style="width:5%; min-width:120px;">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: {data: CBFDetailsArray, afterRender: StylesTypeCall}">
+                                <tr>
+                                    <td align="center">
+                                        <span data-bind="text: $index() + 1"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductGroup"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductCode"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductDescription"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: UOMCode"></span>
+                                    </td>
+                                    <td align="center">
+                                        <span data-bind="text: Qty"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: UnitPrice"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: TotalAmount"></span>
+                                    </td>
+                                    <td class="visblePAR">
+                                        <span data-bind="text: Remarks"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ChartOfAcc"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: FccCode"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: BudgetLine"></span>
+                                    </td>
+                                    <td align="center">
+                                        <a class="changeAttach" style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.CBFDetailsBOQ(CBFDetailGId); }">Add BOQ</a>
+                                    </td>
+                                    <td align="center">
+                                        <span title="view" style="margin-left:3px; margin-right:3px; cursor:pointer" data-bind="click: function() { $root.EditCBFDetails($index(), 0); }"> <span id="id" class="glyphicon glyphicon-eye-open"> </span> </span>
+                                        <span title="Edit" class="viewStatus" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.EditCBFDetails($index(), 1); }"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                        <span title="Delete" class="viewStatus" style="margin-left:3px; margin-right:3px; cursor:pointer;" data-bind="click: function() { $root.DeleteCBFDetails(CBFDetailGId);}"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="15" style="text-align:left; background-color: #fff;">
+                                        <span style="font-weight:bold;">
+                                            Total Amount:
+                                            <span id="lblTotalAmount" style="margin-left:5px; color:#1C4ACB;"></span>
+                                            @*<input type="text" class="fstextbox" id="lblTotalAmount" disabled="disabled" />*@
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="tabs-3">
+                <div style="height:320px; overflow-y:auto;">
+                    <table class="myTableStyleTab">
+                        <tr>
+                            <td style="padding:5px; width:15%;">
+                                <span>Document Date</span> <br>
+                                <input type="text" name="Cbf_AttachDate" id="txtCBFDocDate" value="@DateTime.Now.ToString("dd'/'MM'/'yyyy")" disabled="disabled" maxlength="10" title="Document Date" class="fstextbox">
+                            </td>
+                            <td style="padding:5px; width:30%;">
+                                <span>File Name</span><br>
+                                <form id="frmDeactivation">
+                                    <input class="txtUploadSupAttachmentFile fstextbox" id="txtCBFUploadFile" name="txtCBFUploadFile" type="file" value="" style="border:0px;">
+                                </form>
+                            </td>
+                            <td style="padding:5px; width:35%;">
+                                <span>Description</span> <br>
+                                <input id="txtCBFAttachDescription" class="fstextbox" title="Description" type="text">
+                            </td>
+                            <td style="width:20%; padding:5px;">
+                                <button class="btn btn-primary" data-bind="click: function() { $root.SetCBFAttachment(); }" style="font-size:12px;" type="button" title="Save">
+                                    <span class="glyphicon glyphicon-save" style="color:white;"> </span>Save
+                                </button>
+                                <button class="btn btn-primary" data-bind="click: function() { $root.ClearCBFAttachment(); }" style="font-size:12px;" type="button" title="Clear">
+                                    <span class="glyphicon glyphicon-remove-sign" style="color:white;"> </span>Clear
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                    <table class="tableSmall table-bordered table-hover" style="margin-top:10px;">
+                        <thead>
+                            <tr>
+                                <th style="width:5%; min-width:40px;">
+                                    #
+                                </th>
+                                <th style="width:10%; min-width:120px;">
+                                    Attachment Date
+                                </th>
+                                <th style="width:25%; min-width:100px;">
+                                    File Name
+                                </th>
+                                <th style="width:50%; min-width:150px;">
+                                    Description
+                                </th>
+                                <th style="width:5%; min-width:50px;">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: {data: CBFAttachmentArray, afterRender: PRHeaderBind}">
+                            <tr>
+                                <td align="center">
+                                    <span data-bind="text: $index() + 1"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Date"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: FileName"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Description"></span>
+                                </td>
+                                <td align="center">
+                                    <span title="view" data-bind="click: function() { $root.AttachmentDownLoad(AttachmentGId, FileName); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                                    <span title="Delete" class="viewStatus" data-bind="click: function() { $root.DeleteCBFAttachment(AttachmentGId); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="tabs-4">
+                <div style="height:320px; overflow-y:auto;">
+                    <table class="tableSmall table-bordered table-hover" style="margin-top:10px;">
+                        <thead>
+                            <tr>
+                                <th style="width:5%; min-width:40px;">
+                                    #
+                                </th>
+                                <th style="width:20%; min-width:150px;">
+                                    Employee Name
+                                </th>
+                                <th style="width:15%; min-width:120px;">
+                                    Action Date
+                                </th>
+                                <th style="width:20%; min-width:150px;">
+                                    Approval Stage
+                                </th>
+                                <th style="width:10%; min-width:150px;">
+                                    Status
+                                </th>
+                                <th style="width:30%; min-width:200px;">
+                                    Remarks
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: {data: CBFAuditTrailArray}">
+                            <tr>
+                                <td align="center">
+                                    <span data-bind="text: $index() + 1"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: EmployeeName"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: ActionDate"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Approval"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Status"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Remarks"></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="width:100%; text-align:center; margin-top:20px;">
+        @if (ViewBag.Access == 7 || ViewBag.Access == 8)
+        {
+            <table class="myTableStyleTab" style="width:100%;">
+                <tr>
+                    <td style="padding:10px 5px; width:20%;"></td>
+                    <td style="padding:10px 5px; width:20%;">
+
+                        <span>CBF Amount</span>
+                        <br />
+                        <input type="text"
+                               class="fstextbox"
+                               disabled="disabled"
+                               id="txtCloseCBFAmount" />
+                    </td>
+                    <td style="padding:10px 5px; width:20%;">
+                        <span>Utilized Amount</span>
+                        <br />
+                        <input type="text"
+                               class="fstextbox"
+                               disabled="disabled"
+                               id="txtCloseUtiAmount" />
+                    </td>
+                    <td style="padding:10px 5px; width:20%;">
+                        <span>Balanced Amount</span>
+                        <br />
+                        <input type="text"
+                               class="fstextbox"
+                               disabled="disabled"
+                               id="txtCloseBalanceAmount" />
+                    </td>
+                    <td style="padding:10px 5px; width:20%;"></td>
+
+                </tr>
+            </table>
+        }
+        <center>
+            @if (ViewBag.Access == 6)
+            {
+                <table class="myTableStyleTab" style="width:100%;">
+                    <tr>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Cancellation Maker Remarks</span><br />
+                            <textarea class="fstextbox" style="display:block; width:100%; height:100px;" maxlength="264" disabled="disabled" id="txtCancelRemarks"></textarea>
+                        </td>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Cancellation Checker Remarks</span><br />
+                            <textarea class="fstextbox required" style="display:block; width:100%; height:100px;" maxlength="264" id="txtApproveRemarks"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            }
+            else if (ViewBag.Access == 8)
+            {
+                <table class="myTableStyleTab" style="width:100%;">
+                    <tr>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Closurer Maker Remarks</span><br />
+                            <textarea class="fstextbox" style="display:block; width:100%; height:100px;" maxlength="264" disabled="disabled" id="txtCloserRemarks"></textarea>
+                        </td>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Closurer Checker Remarks</span><br />
+                            <textarea class="fstextbox required" style="display:block; width:100%; height:100px;" maxlength="264" id="txtApproveRemarks"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            }
+            else if (ViewBag.Access == 10)
+            {
+                <table class="myTableStyleTab" style="width:100%;">
+                    <tr>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Reopen Maker Remarks</span><br />
+                            <textarea class="fstextbox" style="display:block; width:100%; height:100px;" maxlength="264" disabled="disabled" id="txtReopenRemarks"></textarea>
+                        </td>
+                        <td style="padding:10px 5px; width:50%;">
+                            <span>Reopen Checker Remarks</span><br />
+                            <textarea class="fstextbox required" style="display:block; width:100%; height:100px;" maxlength="264" id="txtApproveRemarks"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            }
+            else
+            {
+                <span>Remarks</span><br />
+                <textarea class="fstextbox required" style="display:block; width:500px; height:100px;" maxlength="264" id="txtApproveRemarks"></textarea>
+            }
+        </center>
+        <br />
+        @if (ViewBag.Access != 5 && ViewBag.Access != 7 && ViewBag.Access != 9)
+        {
+            <button type="button" class="btn btn-success" data-bind="click: function() { $root.ApproveCBF(0); }" style="font-size:13px;" value="Submit">
+                <span class="glyphicon glyphicon-thumbs-up" style="color:white; font-size: 14px; margin-right: 5px;"></span> Approve
+            </button>
+            <button type="button" class="btn btn-danger" data-bind="click: function() { $root.ApproveCBF(1); }" style="font-size:13px;" value="Delete">
+                <span style="color:white; font-size: 14px; margin-right: 5px;" class="glyphicon glyphicon-thumbs-down"></span> Reject
+            </button>
+            <button data-bind="click: function() { $root.SubmitCBF(); }" class="btn btn-success viewStatus" style="font-size:13px;" type="button" title="Save">
+                <span class="glyphicon glyphicon-floppy-saved" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Submit
+            </button>
+            <button class="btn btn-warning" style="font-size:12px;" onclick="ApprovalClose()" type="button" title="Clear">
+                <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+            </button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-success" data-bind="click: function() { $root.ApproveCBF(0); }" style="font-size:13px;" value="Submit">
+                <span class="glyphicon glyphicon-thumbs-up" style="color:white; font-size: 14px; margin-right: 5px;"></span> Submit
+            </button>
+            <button class="btn btn-warning" style="font-size:12px;" onclick="CancelClose()" type="button" title="Clear">
+                <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+            </button>
+        }
+
+    </div>
+</div>
+
+<div style="width:100%; display:none;" id="PARHeaderDialog">
+    <table class="myTableStyleTab viewStatus" id="tblDiv" style="width:100%;">
+        <tr>
+            <td style="padding:10px 5px 10px 0px; width:25%;">
+                <span>PAR Date</span>
+                <br />
+                <input type="text" class="fstextbox fsDatepicker" id="txtPARDate" />
+            </td>
+            <td style="padding:10px 5px; width:25%;">
+                <span>PAR No</span>
+                <br />
+                <input type="text" class="fstextbox" id="txtPARNo" />
+            </td>
+            <td style="padding:10px 5px; width:25%;">
+                <span>PAR Amount</span>
+                <br />
+                <input type="text" class="fstextbox" id="txtPARAmount" />
+            </td>
+            <td style="padding:10px 0px 10px 5px; width:25%; text-align:right;">
+                <button data-bind="click: function() { $root.PARSearch(1); }" class="btn btn-primary" style="font-size:12px;" type="button" name="command" title="Search" value="SEARCH">
+                    <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                </button>
+                <button data-bind="click: function() { $root.PARSearch(0); }" type="button" class="btn btn-primary" style="font-size:12px;" value="Cancel">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                </button>
+
+            </td>
+        </tr>
+
+    </table>
+    <div class="table-responsive" style="height: 280px; overflow: auto;">
+        <table class="tableSmall table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:40px;">
+                        #
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        PAR Date
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        PAR No
+                    </th>
+                    <th style="width:5%; min-width:100px;">
+                        Is Budgeted
+                    </th>
+                    <th style="width:30%; min-width:150px;">
+                        PAR Description
+                    </th>
+                    <th style="width:10%; min-width:100px;">
+                        PAR Amount
+                    </th>
+                    <th style="width:10%; min-width:120px;">
+                        Utilized Amount
+                    </th>
+                    <th style="width:10%; min-width:120px;">
+                        Balance Amount
+                    </th>
+                    <th style="width:10%; min-width:100px;" class="viewStatus">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: {data: CBFPARHeaderArray, afterRender: PRHeaderBind}">
+                <tr>
+                    <td align="center">
+                        <span data-bind="text: $index() + 1"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: PARDate"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: PARRefNo"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: PARIsBudgeted"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: PARDesc"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: PARAmount"></span>
+                    </td>
+                    <td align="center">
+                        <span data-bind="text: CBFUtilizedamount"></span>
+                    </td>
+                    <td align="right">
+                        <span data-bind="text: CBFBalancedamount"></span>
+                    </td>
+                    <td align="center" class="viewStatus">
+                        <a style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.PARSelect(PARId, PARRefNo); }">Select</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="width:100%; text-align:center;">
+        <button type="button" data-bind="click: function() { $root.CloseDetails(0); }" style="color:white; margin-top:10px; font-size:12px;" title="Cancel" name="Cancel" class="btn btn-warning">
+            <span style="color:white; font-size:13px;" class="glyphicon glyphicon-remove-sign"></span>
+            Cancel
+        </button>
+    </div>
+</div>
+
+<div style="display:none" id="CBFDetailsDialog">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:33%; padding:5px 10px;">
+                <span>Product Group</span>
+                <br />
+                <select id="ddlProductGroup" class="fstextbox disableStatus required" data-bind="foreach: {data: ProductCategoryArray}, event:{ change: $root.ChangeProductGroup }">
+                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                </select>
+            </td>
+            <td style="width:33%; padding:5px 10px;">
+                <span>Product Name</span>
+                <br />
+                <select id="ddlProductName" class="fstextbox disableStatus required" data-bind="options: ProductNameArray, optionsText: 'Combo', optionsValue:'Id', value:0, event:{ change: $root.ChangeProductName }"></select>
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Product Description</span>
+                <br />
+                <input type="text"
+                       id="txtProductDesc"
+                       class="fstextbox disableStatus required" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:0px; padding-right:3px;">
+                            <span>UOM</span>
+                            <br />
+                            <select id="ddlUOM" class="fstextbox disableStatus required" data-bind="foreach: {data: UOMArray}">
+                                <option data-bind="attr: {value: Id}, text: Combo"></option>
+                            </select>
+                        </td>
+                        <td style="width:50%; padding:0px; padding-left:3px;">
+                            <span>Quantity</span>
+                            <br />
+                            <input type="text"
+                                   id="txtQty"
+                                   class="fstextbox disableStatus OnlyNumeric required EnterValidation" />
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Unit Amount</span>
+                <br />
+                <input type="text"
+                       id="txtUnitAmount"
+                       class="fstextbox disableStatus NumberValidation required EnterValidation" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Total Amount</span>
+                <br />
+                <input type="text"
+                       id="txtTotalAmount" disabled="disabled"
+                       class="fstextbox" />
+            </td>
+        </tr>
+        <tr>
+
+            <td style="padding:5px 10px;" colspan="2">
+                <span>Remarks</span>
+                <br />
+                <input type="text"
+                       id="txtRemarks"
+                       class="fstextbox disableStatus required EnterValidation" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>GL Code</span>
+                <br />
+                @*<input type="text"
+                        id="txtChartOfAccount"
+                        class="fstextbox disableStatus OnlyNumeric required" />*@
+                <input type="text"
+                       id="txtChartOfAccount"
+                       disabled="disabled"
+                       class="fstextbox OnlyNumeric required" />
+            </td>
+        </tr>
+        <tr>
+
+            <td style="padding:5px 10px;" colspan="2">
+                <span>Cost Centre</span>
+                <br />
+                <input type="text"
+                       id="txtFCCC"
+                       class="fstextbox disableStatus" />
+                <input type="hidden" value="" id="hfFCCC" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Budget Line</span>
+                <br />
+                <input type="text"
+                       id="txtBudgetLine"
+                       class="fstextbox disableStatus OnlyNumeric required EnterValidation" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px 10px 5px; text-align:center;" colspan="3">
+                <input type="hidden" value="0" id="hfCBFDetailsId" />
+                <input type="hidden" value="0" id="hfPARPRDetailGId" />
+                <button  data-bind="click: function() { $root.SetCBFDetails(); }" type="button"  style="color:white; margin-top:10px;" id="btnCBFDetailsSubmit" class="btn btn-primary">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                    Submit
+                </button>
+                <button data-bind="click: function() { $root.CloseDetails(1); }" type="button" title="Cancel" style="color:white; margin-top:10px;" name="Cancel" class="btn btn-warning">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                    Cancel
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:100%; display:none;" id="PARDetailsAttachment">
+    <div class="table-responsive" style="height: 300px; overflow: auto;">
+        <table class="tableSmall table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:40px;">
+                        #
+                    </th>
+                    <th style="width:10%; min-width:120px;">
+                        Attachment Date
+                    </th>
+                    <th style="width:25%; min-width:100px;">
+                        File Name
+                    </th>
+                    <th style="width:50%; min-width:150px;">
+                        Description
+                    </th>
+                    <th style="width:5%; min-width:50px;">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: {data: PARAttachmentArray}">
+                <tr>
+                    <td align="center">
+                        <span data-bind="text: $index() + 1"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Date"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: FileName"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Description"></span>
+                    </td>
+                    <td align="center">
+                        <span title="view" data-bind="click: function() { $root.PARAttachmentDownLoad(FileName); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="width:100%; text-align:center;">
+        <button type="button" data-bind="click: function() { $root.CloseDetails(2); }" style="color:white; margin-top:10px; font-size:12px;" title="Cancel" name="Cancel" class="btn btn-warning">
+            <span style="color:white; font-size:13px;" class="glyphicon glyphicon-remove-sign"></span>
+            Cancel
+        </button>
+    </div>
+</div>
+
+<div style="width:100%; display:none;" id="CBFDetailsAttachment">
+    <div class="table-responsive" style="height: 350px; overflow: auto;">
+        <table class="myTableStyleTab viewStatus">
+            <tr>
+                <td style="padding:5px; width:15%;">
+                    <span>Document Date</span> <br>
+                    <input type="text" id="txtCBFDDocDate" value="@DateTime.Now.ToString("dd'/'MM'/'yyyy")" disabled="disabled" maxlength="10" title="Document Date" class="fstextbox">
+                </td>
+                <td style="padding:5px; width:30%;">
+                    <span>File Name</span><br>
+                    <form id="frmDeactivation1">
+                        <input class="txtUploadDAttachment fstextbox" id="txtCBFDUploadFile" name="txtCBFDUploadFile" type="file" value="" style="border:0px;">
+                    </form>
+                </td>
+                <td style="padding:5px; width:35%;">
+                    <span>Description</span> <br>
+                    <input id="txtCBFDAttachDescription" class="fstextbox" title="Description" type="text">
+                </td>
+                <td style="width:20%; padding:5px;">
+                    <input type="hidden" value="0" id="hfCBFAttachDetailsId" />
+                    <button data-bind="click: function() { $root.SetCBFDetailsAttachment(); }" class="btn btn-primary" style="font-size:12px;" type="button" title="Save">
+                        <span class="glyphicon glyphicon-save" style="color:white;"> </span>Save
+                    </button>
+                    <button data-bind="click: function() { $root.ClearCBFDetailsAttachment(); }" class="btn btn-primary" style="font-size:12px;" type="button" title="Clear">
+                        <span class="glyphicon glyphicon-remove-sign" style="color:white;"> </span>Clear
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <table class="tableSmall table-bordered table-hover" style="margin-top:10px;">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:40px;">
+                        #
+                    </th>
+                    <th style="width:10%; min-width:120px;">
+                        Attachment Date
+                    </th>
+                    <th style="width:25%; min-width:100px;">
+                        File Name
+                    </th>
+                    <th style="width:50%; min-width:150px;">
+                        Description
+                    </th>
+                    <th style="width:5%; min-width:70px;">
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: {data: CBFDetailsAttachmentArray, afterRender: PRHeaderBind}">
+                <tr>
+                    <td align="center">
+                        <span data-bind="text: $index() + 1"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Date"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: FileName"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Description"></span>
+                    </td>
+                    <td align="center">
+                        <span title="view" data-bind="click: function() { $root.AttachmentDownLoad(AttachmentGId, FileName); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-eye-open"> </span> </span>
+                        <span title="Delete" class="viewStatus" data-bind="click: function() { $root.DeleteCBFDetailsAttachment(AttachmentGId); }" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="width:100%; text-align:center;">
+        <button type="button" data-bind="click: function() { $root.CloseDetails(3); }" style="color:white; margin-top:10px; font-size:12px;" title="Cancel" name="Cancel" class="btn btn-warning">
+            <span style="color:white; font-size:13px;" class="glyphicon glyphicon-remove-sign"></span>
+            Cancel
+        </button>
+    </div>
+</div>
+
+<input type="hidden" value="0" id="hfPRHeader" />
+<input type="hidden" value="@ViewBag.CBFId" id="hfCBFId" />
+<input type="hidden" value="@ViewBag.Access" id="hfType" />
+<input type="hidden" value="0" id="hfStatus" />
+<input type="hidden" value="1" id="hfViewMode" />
+
+<script>
+    var UrlDet = "@Url.Action("GetCBFPARHeader", "CBF")"
+    var UrlHelper = "@Url.Action("GetProjectOwner", "FBHelper")"
+    var UrlReturn = "@Url.Action("Index", "FlexiBuyDashBoard")"
+
+    function ApprovalClose() {
+        location = '@Url.Action("Index", "FlexiBuyDashBoard")';
+    }
+
+    function CancelClose() {
+        location = '@Url.Action("CbfSummaryindex", "CbfSummary")';
+    }
+
+</script>
+<script src="@Url.Content("~/Areas/FLEXIBUY/FS_UserScript/jsCBF.js")" type="text/javascript"></script>

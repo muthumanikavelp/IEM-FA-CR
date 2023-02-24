@@ -1,0 +1,672 @@
+﻿@model IEM.Areas.ASMS.Models.SEModel
+@using IEM.Common;
+@using IEM.Areas.ASMS.Models
+@using IEM.Areas.MASTERS.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    CmnFunctions cmn = new CmnFunctions();
+    Asms_DataModel ist = new Asms_DataModel();
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Evaluation</span>
+</div>
+<style>
+    .redradio {
+        color: red;
+    }
+
+    .tabl {
+        min-width: 1050px;
+        font: normal 16px/150% Arial, Helvetica, sans-serif;
+        background: #fff;
+        overflow: hidden;
+        border: 1px none #337ab7;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+        height: 50px;
+        text-wrap: none;
+        word-break: keep-all;
+        overflow: scroll;
+    }
+
+        .tabl td, .tab th {
+            padding: 3px 3px;
+            text-wrap: none;
+            word-break: keep-all;
+        }
+
+        .tabl thead th {
+            background-color: #337ab7;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: bold;
+            border-left: 1px solid #fff;
+            text-wrap: none;
+            word-break: keep-all;
+            text-align: center;
+        }
+
+        .tabl th a {
+            color: white;
+            text-wrap: none;
+            word-break: keep-all;
+        }
+
+        .tabl thead th:first-child {
+            border: none;
+            text-wrap: none;
+            word-break: keep-all;
+        }
+
+        .tabl tbody td {
+            color: black;
+            border-left: 1px solid #E1EEF4;
+            font-size: 12px;
+            font-weight: normal;
+            word-break: break-all;
+            text-wrap: normal;
+            word-wrap: break-word;
+        }
+
+        .tabl tbody .alt td {
+            background: #E1EEF4;
+            color: #00496B;
+        }
+
+        .tabl tbody td:first-child {
+            border-left: none;
+        }
+
+        .tabl tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tabl tfoot td {
+            border-top: 1px solid #006699;
+            background: #E1EEF4;
+        }
+
+        .tabl tfoot td {
+            padding: 0;
+            font-size: 12px;
+        }
+
+        .tabl tfoot td {
+            padding: 2px;
+        }
+
+        .tabl tfoot td {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-align: right;
+        }
+
+            .tabl tfoot td a {
+                display: inline;
+            }
+
+        .tabl tfoot a {
+            text-decoration: none;
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 1px;
+            color: #FFFFFF;
+            border: 1px solid #006699;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+            background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );
+            background: -moz-linear-gradient( center top, #006699 5%, #00557F 100% );
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#00557F');
+            background-color: #006699;
+        }
+
+            .tabl tfoot a.active, .tabl tfoot a:hover {
+                text-decoration: none;
+                border-color: #006699;
+                color: #FFFFFF;
+                background: none;
+                background-color: #00557F;
+            }
+</style>
+
+<div class="well">
+    <div class="panel panel-body">
+        <table class="myTableStyleTabNew" width="100%" style="margin-top:10px;">
+            <tr>
+                <td style="width:60%">
+                    <span> Supplier Name </span>
+                    <br />
+                    <input type="text" id="txtFilter" disabled="disabled" value="@Model.seSupName" class="textboxStyle" />
+                    <input type="text" id="txtSupCode" hidden="hidden" value="@Model.seSupID" />
+                </td>
+                <td style="width:20%"></td>
+                <td style="width:20%;">
+                    <span>Assessment Year</span>
+                    <br />
+                    <input type="text" id="txtSeYear" disabled="disabled" value="@Model.seYear" class="textboxStyle " />
+                </td>
+            </tr>
+        </table>
+        <table class="myTableStyleTabNew" width="100%" style="margin-top:10px;">
+            <tr>
+                <td align="left" style="width:99%; padding:10px;color:Background;font-size:medium;" class="panel panel-default">Note :</td>
+            </tr>
+            <tr>
+                <td class="panel panel-default">
+                    <ul>
+                        <li>Every RM has  to complete supplier assessment in the system.</li>
+                        <li>This section contains multiple choice  question divided into categories.</li>
+                        <li>The RM has to complete questionnaire in one go and there is no option to draft the work.</li>
+                        <li>Rating: Excellent (9 to 10), Good (6 to 8), Average (3 to 5) Poor (<=2)</li>
+                        <li>Results: (a) 61 – 70 = Excellent (b) 51 – 60 = Good (c) 41 – 50 = Average (d) < 40 = Poor</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="margin-top:5px;" class="table-responsive">
+        <table class="tableSmall table-bordered" width="100%">
+            <thead>
+                <tr style="height:80%">
+                    <th style="width:15%;">
+                        Category
+                    </th>
+                    <th style="width:80%;">
+                        <table style="width:100%;">
+                            <thead>
+                                <tr style="height:80%">
+                                    <th style="width:36%; ">
+                                        Parameter
+                                    </th>
+                                    <th style="width:40%; border-left: 1px solid #DDD;">
+                                        Rating
+                                    </th>
+                                    <th style="width:10%; border-left: 1px solid #DDD;">
+                                        Score
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < @Model.seCatModelList.Count(); i++)
+                {
+                    <tr>
+                        <td style="word-break:break-all;word-wrap:break-word;width:15%;">
+                            @Model.seCatModelList[i].seCategoryName
+                        </td>
+                        <td style="width:80%;">
+                            <table style="border:none;width:100%;">
+                                <tbody>
+                                    @{
+                    for (int a = 0; a < @Model.seSubcatModelList.Count; a++)
+                    {
+                        if (@Model.seCatModelList[i].seCategoryName == @Model.seSubcatModelList[a].seCategoryName)
+                        {
+                            <tr style="border:none; border:1px solid rgb(221, 221, 221);">
+                                <td style="width:36%; border:1px solid rgb(221, 221, 221);">
+                                    @Model.seSubcatModelList[a].seSubCategoryName
+
+                                </td>
+                                <td style="width:40%;  border:1px solid rgb(221, 221, 221); ">
+                                    <table style="width:100%; ">
+                                        <tbody>
+                                            @if (@Model.seSubcatModelList[a].seRateName == "10")
+                                            {
+                                                for (int r = 0; r < @Model.seRatList1.Count(); r++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            @{
+                                                    SEModel objModel = new SEModel();
+                                                    ASMSDataModel dm = new ASMSDataModel();
+                                                    objModel.seChildRateName = dm.GetChildRate(@Model.seSubcatModelList[a].seSubCategoryID, @Model.seRatList1[r].seRateID);
+                                                    ViewBag.ChildName = objModel.seChildRateName;
+                                                            }
+                                                            <div id="divradio1_@a">
+                                                                <input type="radio" id="radio1" value=@Model.seRatList1[r].seRateName name="@a" onchange="radio1(value,name)" />
+                                                                @Model.seRatList1[r].seRateName -  @ViewBag.ChildName
+
+                                                                <input type="text" id="rad_@a" hidden="" />
+                                                            </div>
+
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                for (int r = 0; r < @Model.seRateList6.Count(); r++)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <div id="divradio6_@a">
+                                                                <input type="radio" id="radio6" value="@Model.seRateList6[r].seRateName" name="@a" onchange="radio6(value, name)" />
+                                                                @Model.seRateList6[r].seRateName
+                                                                <input type="text" id="rad6_@a" hidden="" />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td id="check" style="width:10%; border:1px solid rgb(221, 221, 221);">
+                                    @*<div id="divScoreID" hidden="hidden">*@
+                                    @if (@Model.seSubcatModelList[a].seRateName == "10")
+                                    {
+                                        <input id="txtRating1_@a" maxlength="2" onkeyup="calc(id,this)" type="text" value="0" class="textboxStyleBig required" />
+                                        <br />  <br />  <span id="span1_@a" hidden="hidden">Range:</span><label id="txtrate1_@a" />
+                                    }
+                                    else
+                                    {
+                                        <input id="txtRating6_@a" maxlength="2" onkeyup="calc(id,this)" type="text" value="0" class="textboxStyleBig required" />
+                                        <br /> <br />
+                                        <span id="span6_@a" hidden="hidden">Range:</span><label id="txtrate6_@a" />
+                                    }
+                                    @*</div>*@
+                                </td>
+                            </tr>
+                        }
+
+                    }
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div id="EmpViewID"></div>
+
+    <table class="myTableStyleTabNew" style="margin-top:10px;" width="90%" align="center">
+        <tr>
+            <td style="width:25%;">
+                <span>Overall Score</span>
+                <br />
+                <div id="Score">
+                    <input name="Score" id="txtScore" disabled="disabled" maxlength="1024" type="text" data-val="true" value="" class="textboxStyleBig required" style="display: block;" />
+                </div>
+            </td>
+            <td style="width:25%;">
+                <span> Overall Rating </span>
+                <br />
+                <div id="Rating">
+                    <input name="Rating" id="txtRating" disabled="disabled" maxlength="1024" type="text" data-val="true" value="" class="textboxStyleBig required" style="display: block;" />
+                </div>
+            </td>
+            <td colspan="2" style="width:50%;">
+                <span> Overall Comments(Reviewer) </span>
+                <br />
+                <div id="Comments">
+                    <input name="Comments" id="txtComments" maxlength="1024" type="text" data-val="true" value="" class="textboxStyleBig required" style="display: block;" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:25%;">
+                <span>Code of the reviewer </span>
+                <br />
+                <div id="reviewer">
+                    <input name="reviewer" id="txtReviewercode" maxlength="1024" disabled="disabled" type="text" data-val="true" value="@Model.seReviewerCode" class="textboxStyleBig " style="display: block;" />
+                </div>
+            </td>
+            <td style="width:25%;">
+                <span>Name of the reviewer </span>
+                <br />
+                <div id="reviewercode">
+                    <input name="reviewer" id="txtReviewername" maxlength="1024" disabled="disabled" type="text" data-val="true" value="@Model.seReviewerName" class="textboxStyleBig " style="display: block;" />
+                </div>
+            </td>
+            <td style="width:25%;">
+                <span>Code of the Supervisor</span><br />
+                <input type="hidden" id="txtseProcurementid" name="SessionOwnerGid" value="@Model.seProcurementID" />
+                <input type="text" class="textboxStyleBig " disabled name="txtseProcurementcode" id="txtseProcurementcode" value="@Model.seProcurementCode" />
+            </td>
+            <td style="width:25%;">
+                <span>Name of the Supervisor</span><br />
+                <input type="text" class="textboxStyleBig " disabled name="txtseProcurementname" id="txtseProcurementname" value="@Model.seProcurementName" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="width:100%; text-align:center;">
+                <button type="button" id="btnsave" disabled="" class="btn btn-success" value="Submit" onclick="Save()" style="margin-top:10px;"><span class="glyphicon glyphicon-ok" style="color:white;"></span> Submit</button>
+                <button type="button" class="btn btn-primary" value="Clear" onclick="ClearAll()" style="margin-top:10px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Clear</button>
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        CheckFields();
+        $("#txtComments").keypress(function (event) {
+            return isAlphaNumeric(event, this);
+        });
+    });
+
+    function calc(id, element) {
+
+        CheckFields();
+        var valrate = 0;
+        var rate = 0;
+        var rating = 0;
+        for (var a = 0; a < '@Model.seSubcatModelList.Count'; a++) {
+
+            if (!isNaN($("#txtRating1_" + a + "").val())) {
+                rate += parseInt($("#txtRating1_" + a + "").val());
+                $("#txtRating1_" + a + "").addClass('valid');
+            }
+            if (!isNaN($("#txtRating6_" + a + "").val())) {
+                rate += parseInt($("#txtRating6_" + a + "").val());
+                $("#txtRating6_" + a + "").addClass('valid');
+            }
+            if (isNaN($("#txtRating6_" + a + "").val()) || isNaN($("#txtRating1_" + a + "").val())) {
+                rate += 0;
+            }
+            if (!isNaN(rate)) {
+                document.getElementById('txtScore').value = rate;
+            }
+            if ($("#rad_" + a + "").val() == 10) {
+                if ($("#txtRating1_" + a + "").val() > 10 || $("#txtRating1_" + a + "").val() < 9) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+            if ($("#rad_" + a + "").val() == 8) {
+                if ($("#txtRating1_" + a + "").val() > 8 || $("#txtRating1_" + a + "").val() < 6) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+            if ($("#rad_" + a + "").val() == 5) {
+                if ($("#txtRating1_" + a + "").val() > 5 || $("#txtRating1_" + a + "").val() < 3) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+            if ($("#rad_" + a + "").val() == 2) {
+                if ($("#txtRating1_" + a + "").val() > 2) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+            if ($("#rad6_" + a + "").val() == 10) {
+                if ($("#txtRating6_" + a + "").val() > 10 || $("#txtRating6_" + a + "").val() < 9) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+            if ($("#rad6_" + a + "").val() == 8) {
+
+                if ($("#txtRating6_" + a + "").val() > 8 || $("#txtRating6_" + a + "").val() < 7) {
+                    $("#txtRating6_" + a + "").val("");
+                }
+            }
+            if ($("#rad6_" + a + "").val() == 6) {
+
+                if ($("#txtRating6_" + a + "").val() > 6 || $("#txtRating6_" + a + "").val() < 5) {
+                    $("#txtRating6_" + a + "").val("");
+                }
+            }
+            if ($("#rad6_" + a + "").val() == 4) {
+
+                if ($("#txtRating6_" + a + "").val() > 4 || $("#txtRating6_" + a + "").val() < 3) {
+                    $("#txtRating6_" + a + "").val("");
+                }
+            }
+            if ($("#rad6_" + a + "").val() == 2) {
+                if ($("#txtRating1_" + a + "").val() > 2) {
+                    $("#txtRating1_" + a + "").val("");
+                }
+            }
+        }
+        //   alert(rate);
+        rating = rate;
+
+        if (parseInt(rating) <= 70 && parseInt(rating) >= 61) {
+            $("#txtRating").val("Excellent")
+        }
+        else if (parseFloat(rating) <= 60 && parseInt(rating) >= 51) {
+            $("#txtRating").val("Good")
+        }
+        else if (parseInt(rating) <= 50 && parseInt(rating) >= 41) {
+            $("#txtRating").val("Average")
+        }
+        else if (parseInt(rating) <= 40) {
+            $("#txtRating").val("Poor")
+        }
+
+        if ($("#txtRating").val() != null) {
+            $("#txtRating").removeClass('required');
+            $("#txtRating").addClass('valid');
+        }
+        else {
+            $("#txtRating").removeClass('valid');
+            $("#txtRating").addClass('required');
+        }
+
+        if ($("#txtScore").val() != null) {
+            $("#txtScore").removeClass('required');
+            $("#txtScore").addClass('valid');
+        }
+        else {
+            $("#txtScore").removeClass('valid');
+            $("#txtScore").addClass('required');
+        }
+        CheckFields();
+    }
+
+    $("#txtSeYear").change(function () {
+
+        if ($("#txtSeYear").val() != 0) {
+            CheckFields();
+            $("#txtSeYear").removeClass('required');
+            $("#txtSeYear").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtSeYear").removeClass('valid');
+            $("#txtSeYear").addClass('required');
+            CheckFields();
+        }
+    });
+
+    $("#txtProcurement").change(function () {
+        if ($("#txtProcurement").val() != null) {
+            $("#txtProcurement").removeClass('required');
+            $("#txtProcurement").addClass('valid');
+        }
+        else {
+            $("#txtProcurement").removeClass('valid');
+            $("#txtProcurement").addClass('required');
+        }
+    });
+
+    $("#txtComments").keyup(function () {
+        if ($("#txtComments").val() == null || $("#txtComments").val() == "") {
+            CheckFields();
+            $("#txtComments").removeClass('valid');
+            $("#txtComments").addClass('required');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#txtComments").removeClass('required');
+            $("#txtComments").addClass('valid');
+            CheckFields();
+        }
+    });
+
+    function radio1(value, name) {
+        $("#rad_" + name + "").val(0);
+        $("#txtRating1_" + name + "").val(0);
+        $("#divradio1_" + name + "").removeClass('redradio');
+        var rate = 0;
+        //document.getElementById("txtRating1_" + name + "").hidden = false;
+        $("#span1_" + name + "").show();
+        $("#txtRating1_" + name + "").keypress(function (event) {
+            return isNumber(event, this);
+        });
+
+        if (value == "Very") {
+            $("#txtrate1_" + name + "").text("9 to 10");
+            $("#rad_" + name + "").val(10);
+
+        }
+        else if (value == 'Good') {
+            $("#txtrate1_" + name + "").text("6 to 8");
+            $("#rad_" + name + "").val(8);
+        }
+        else if (value == 'Average') {
+            $("#txtrate1_" + name + "").text("3 to 5");
+            $("#rad_" + name + "").val(5);
+        }
+        else if (value == 'Poor') {
+            $("#txtrate1_" + name + "").text("2 and below ");
+            $("#rad_" + name + "").val(2);
+        }
+        $("#txtRating1_" + name + "").addClass('required');
+    }
+
+    function radio6(value, name) {
+        $("#rad6_" + name + "").val(0);
+        $("#txtRating6_" + name + "").val(0);
+        $("#divradio6_" + name + "").removeClass('redradio');
+        //document.getElementById("txtRating6_" + name + "").hidden = false;
+        document.getElementById("span6_" + name + "").hidden = false;
+        $("#txtRating6_" + name + "").keypress(function (event) {
+            return isNumber(event, this);
+        });
+        $("#txtRating6_" + name + "").change(function () {
+            if (isDecimal($("#txtRating6_" + name + "").val()) == false) {
+                $("#txtRating6_" + name + "").focus();
+                return false;
+            }
+        });
+        var rate = 0;
+        if (value == "Very good") {
+            $("#txtrate6_" + name + "").text("9 to 10");
+            $("#rad6_" + name + "").val(10);
+        }
+        else if (value == 'Good') {
+            $("#txtrate6_" + name + "").text("7 to 8");
+            $("#rad6_" + name + "").val(8);
+        }
+        else if (value == 'Average') {
+            $("#txtrate6_" + name + "").text("5 to 6");
+            $("#rad6_" + name + "").val(6);
+        }
+        else if (value == 'Satisfactory') {
+            $("#txtrate6_" + name + "").text("3 to 4");
+            $("#rad6_" + name + "").val(4);
+        }
+        else if (value == 'Poor') {
+            $("#txtrate6_" + name + "").text("2 and below");
+            $("#rad6_" + name + "").val(2);
+        }
+        $("#txtRating6_" + name + "").addClass('required');
+    }
+
+
+    function GotoIndex() {
+        location = "../Index"
+    }
+
+    function ClearAll() {
+        var seSupID = $("#txtSupCode").val();
+        var seYear = $("#txtSeYear").val();
+        location = "../Evaluation/?id=" + seSupID + "&year=" + seYear;
+    }
+
+
+    function Save() {
+        var seYear = $("#txtSeYear").val();
+        var seOverallScore = $("#txtScore").val();
+        var seComments = $("#txtComments").val();
+        var seOverallRating = $("#txtRating").val();
+        var seReviewer = $("#txtReviewer").val();
+        var seProcurement = $("#txtseProcurementid").val();
+        var seSupID = $("#txtSupCode").val();
+        var b = true;
+        for (var a = 0; a < '@Model.seSubcatModelList.Count'; a++) {
+            if (!$("input[name=" + a + "]:checked").val()) {
+                b = false;
+                $("#divradio1_" + a + "").addClass('redradio');
+                $("#divradio6_" + a + "").addClass('redradio');
+                $("#tbl_" + a + "").addClass('redradio');
+            }
+            else {
+                $("#divradio1_" + a + "").removeClass('redradio');
+                $("#divradio6_" + a + "").removeClass('redradio');
+            }
+        }
+        for (var c = 0; c < '@Model.seSubcatModelList.Count'; c++) {
+            if ($("#txtRating1_" + c + "").val() == 0) {
+                $("#txtRating1_" + c + "").addClass('required');
+                jAlert("Answer all the Questions , answers mustn't be zero", "Information");
+                b = false;
+                return false;
+            }
+        }
+        if (b == false) {
+            jAlert("Answer all the Questions");
+            return false;
+        }
+        var model = {
+            "seYear": seYear,
+            "seOverallScore": seOverallScore,
+            "seReviewerComments": seComments,
+            "seOverAllRating": seOverallRating,
+            "seReviewerName": seReviewer,
+            "seProcurement": seProcurement,
+            "seSupID": seSupID,
+        };
+        $.post('../Evaluation', model,
+             function (data) {
+                 if (data == null) {
+                     jAlert("Supplier Evaluated Successfully!", "Information", function (r) {
+                         if (r == true) { location = '../Index'; }
+                     });
+                 }
+                 else {
+                     jAlert("Supplier Evaluated Successfully!", "Information", function (r) {
+                         if (r == true) { location = '../Index'; }
+                     });
+                 }
+             }, 'json');
+    }
+
+    function CheckFields() {
+        var ErrCount = 0;
+        for (var a = 0; a < '@Model.seSubcatModelList.Count'; a++) {
+            if (!$("input[name=" + a + "]:checked").val()) {
+
+            }
+        }
+        if ($("#txtComments").val().trim() == "" || $("#txtComments").val() == null) {
+            ErrCount = 1;
+        }
+        else if ($("#txtSeYear").val() == "--Select Year--" || $("#txtSeYear").val() == 0) {
+            ErrCount = 2;
+        }
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', true);
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+
+
+</script>

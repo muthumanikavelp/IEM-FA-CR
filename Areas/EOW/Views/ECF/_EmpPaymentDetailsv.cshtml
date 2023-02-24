@@ -1,0 +1,82 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Payment>
+@{
+    decimal remamountp = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_Payment> lstPayment = new List<EOW_Payment>();
+    lstPayment = (List<EOW_Payment>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        //lstPayment = objd.GetEmployeeePayment(Session["QEcfGid"].ToString(), Session["QinvoiceGid"].ToString()).ToList();
+        lstPayment = objd.GetEmployeeePayment(Session["QEcfGid"].ToString(), "0").ToList();
+        for (int tr = 0; lstPayment.Count > tr; tr++)
+        {
+            if (remamountp == 0)
+            {
+                remamountp = Convert.ToDecimal(lstPayment[tr].PaymentAmount.ToString());
+            }
+            else
+            {
+                remamountp = remamountp + Convert.ToDecimal(lstPayment[tr].PaymentAmount.ToString());
+            }
+        }
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempPaymentv">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: false, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempPaymentv", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+                                 htmlAttributes: new { id = "wgriPaymentv" },
+                                                   tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(
+                //gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                                   gridPayment.Column("PaymentModeName", objCmnFunctions.Sorter("PaymentModeName", "Payment Mode", gridPayment), canSort: false, style: "collargeBreak"),
+                                                                     gridPayment.Column("RefNoName", objCmnFunctions.Sorter("RefNoName", "Ref No / Bank Account Number", gridPayment), canSort: false, style: "collargeBreak"),
+                                                            gridPayment.Column("Beneficiary", objCmnFunctions.Sorter("Beneficiary", "Beneficiary", gridPayment), canSort: false, style: "collargeBreak"),
+                                                            gridPayment.Column("Description", objCmnFunctions.Sorter("Description", "Description", gridPayment), canSort: false, style: "collargeBreak"),
+                                                            gridPayment.Column(header: "Amount",
+                        format: @<text>
+                                                                @Html.Raw(String.Format("{0:#,##}",
+                                        objCmnFunctions.GetINRAmount(Convert.ToString(@item.PaymentAmount)
+                        ))) </text>, style: "colamountlarge")))
+
+    </div>
+    @if (@ViewBag.NoRecordsPayment == "NoRecords")
+    {
+        <div class="gridMessage" style="width:100%">
+            @ViewBag.NoRecordsFoundPayment
+        </div>
+    }
+    else
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="left">
+                        @*&nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@gridTravelmode.TotalRowCount</label>*@
+                    </td>
+                    <td align="right">
+                        <span> Total Payment Amount : <b> <label id="lblpayamtgg">@objCmnFunctions.GetINRAmount(remamountp.ToString())</label>  </b></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+
+</div>

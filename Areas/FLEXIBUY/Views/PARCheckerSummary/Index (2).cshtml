@@ -1,0 +1,194 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "cbfsummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(Model.ListParHeader, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridContent", selectionFieldName: "SelectedRow");
+
+    int rowNum = 0;
+    int id = @grid.PageIndex;
+
+}
+<head>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <style>
+        .tblstyle tr td {
+            padding: 10px;
+        }
+    </style>
+</head>
+<div class="well">
+  
+     <span style="color:rgb(52,108,196);">  PAR Checker Summary</span>
+    @using (Html.BeginForm())
+    {
+        <div class="panel panel-default">
+            <table class="myTableStyleTabNew tblstyle" align="center">
+                <tr>
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>PAR No</span><br />
+                            <input type="text"
+                                   name="txtparno"
+                                   value="@ViewBag.txtparno"
+                                   class="textboxStyle"
+                                   style="display:block"
+                                   placeholder="Enter PAR No" />
+                        </div>
+                    </td>
+
+                    <td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>PAR Date</span><br />
+                            <input type="text"
+                                   id="txtpardate"
+                                   name="txtpardate"
+                                   value="@ViewBag.txtpardate"
+                                   class="textboxStyle"
+                                   style="display:block"
+                                   placeholder="Enter PAR Date" />
+                        </div>
+                    </td>
+                    @*<td nowrap="nowrap" style="padding:10px;">
+                        <div>
+                            <span>Status</span><br />
+                            <select name="txtstatus" id="ddlstatus" class="textboxStyle">
+                                <option value="0">Select</option>
+                                @foreach (var pitem in Model.statuslist)
+                                {
+                                    var childitemfilter = Model.statuslist.Where(m => m.Value == pitem.Value);
+                                    if (childitemfilter != null)
+                                    {
+                                        foreach (var citem in childitemfilter)
+                                        {
+                                            string selectedValue = "";
+                                            if (@Model.statusgid == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+
+                        </div>
+                    </td>*@
+                    <td style="padding-top:30px;">
+                        
+                            <span >
+                                <button id="searchid" class="btn btn-primary" name="command" type="submit" value="SEARCH">
+                                    <span class="glyphicon glyphicon-search " style="color:white;"></span>Search
+                                </button>
+                                @*<button  id="searchid" class="btn btn-primary"  type="submit" name="command" title="Search" value="SEARCH">
+                                    <span class="glyphicon glyphicon-search" style="color:white;">Search</span>
+                                </button>*@
+                            </span>
+                        
+                    </td>
+                    <td style="padding-top:30px;">
+                        <div>
+                            <span>
+                                <button id="searchid" class="btn btn-primary" name="command" type="submit" title="Search" value="CLEAR">
+                                    <span class="glyphicon glyphicon-remove-circle " style="color:white;"></span>Clear
+                                </button>
+                                @*<button id="searchid" class="btn btn-primary" type="submit" name="command" title="Search" value="CLEAR">
+                                    <span class="glyphicon glyphicon-remove-circle" style="color:white;">Clear</span>
+                                </button>*@
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        if (ViewBag.Message != null)
+        {
+            <div align="center">
+                <label class="control-label">@ViewBag.Message</label>
+            </div>
+        }
+        if (@ViewBag.Error != null)
+        {
+            <div align="center">
+                <label>@ViewBag.Error</label>
+            </div>
+        }
+
+        <div>
+            <div id="gridContent">
+                @functions {
+                    public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                    {
+                        return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                    }
+                }
+
+                @grid.GetHtml(
+                            tableStyle: "tableSmall table-bordered",
+                            htmlAttributes: new { id = "grid" },
+                            mode: WebGridPagerModes.All,
+                            columns: grid.Columns
+                            (
+                         grid.Column("Sl", format: a => rowNum = rowNum + 1),
+                             grid.Column("ParNo", Sorter("ParNo", "PAR No", grid), style: "MidColumn25"),
+                    grid.Column("ParDate", Sorter("ParDate", "PAR Date", grid), style: "MidColumn25"),
+                       grid.Column("pardescription", Sorter("pardescription", "Description", grid),style:"MidColumn50"),
+                            grid.Column(header: "Action", canSort: false, style: "action",
+                            format: @<text>
+                                <input class="btn btn-link" name="command" onclick="parChecker(id)" id="@item.ParHeader_Gid" value="Review" title="Review" type="button" />
+
+
+                            </text>)))
+            </div>
+            <div class="borderStyle">
+                @ViewBag.NoRecordsFound
+            </div>
+        </div>
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@grid.TotalRowCount</label>
+        // }
+        @Html.HiddenFor(x => x.des, new { id = "page" })
+
+
+        @*@section Scripts {
+            @Scripts.Render("~/bundles/jqueryval")
+
+            @Scripts.Render("~/bundles/jqueryui")
+            @Styles.Render("~/Content/themes/base/css")*@
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('tfoot a').click(function () {
+
+                        $('form').attr('action', $(this).attr('href')).submit();
+
+                        return false;
+                    });
+                    //$('th a, tfoot a').click(function () {
+                    //    $('form').attr('action', $(this).attr('href')).submit();
+                    //    return false;
+                    //});
+                    $("#txtpardate").datepicker({
+                        dateFormat: 'dd-mm-yy'
+                    });
+
+                });
+
+
+                if ('@ViewBag.status' != null) {
+                    var selectedvalue = '@ViewBag.status';
+                    $('#txtstatus').val(selectedvalue);
+                }
+                function parChecker(id) {
+                    var viewfor = "checker";
+                    location = '../ParRaiserEdit/ParRaiserEditIndex?parheadgid=' + id + '&viewfor=' + viewfor;
+                }
+
+            </script>
+    }
+</div>

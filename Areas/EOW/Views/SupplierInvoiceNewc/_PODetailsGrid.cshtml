@@ -1,0 +1,161 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_PO>
+@{
+    decimal remamount = 0;
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_PO> lstPayment = new List<EOW_PO>();
+    lstPayment = (List<EOW_PO>)TempData["SearchItems"];
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.Getpodetailsgrid(null, null, Session["EcfGid"].ToString(), Session["invoiceGid"].ToString(), "S").ToList();
+        for (int tr = 0; lstPayment.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lstPayment[tr].POMapAmount.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lstPayment[tr].POMapAmount.ToString());
+            }
+        }
+        ViewBag.NoRecordstolp = "total";
+        Session["invoicePOMapAmount"] = remamount.ToString();
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempposupplier">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempposupplier", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+                                                            htmlAttributes: new { id = "wgempposupplier" },
+                                                   tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(
+                //gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                  gridPayment.Column("PONo", objCmnFunctions.Sorter("PONo", "PO No", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column("POdate", objCmnFunctions.Sorter("POdate", "PO Date", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column("POStatus", objCmnFunctions.Sorter("POStatus", "PO Status", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column(header: "Mapping", canSort: false, style: "collargeBreak",
+                format: @<text>
+                                    <input type="hidden" id="tlblPONo_@item.POGid" name="EmployeeId" value="@item.POMapAmount" />
+                                    @Html.Raw("<a title='Mapping' onclick='pomapping(" + item.POGid + ")' > <span id='id' >Mapping </span> </a>")
+                </text>),
+             gridPayment.Column(header: "Action", canSort: false,
+                format: @<text>
+                @if (Session["Supplierpaydebitedit"].ToString() == "Edit")
+                {
+                    @Html.Raw("<a title='Delete' onclick='EmppoDelete(" + item.POGid + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                }
+                </text>)))
+
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundPayment </b>
+                </center>
+            </div>
+        }
+    </div>
+    @if (@ViewBag.NoRecordstolp == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="left">
+                        Total No Of Records: <b> <label id="hdtolpogridcount">@gridPayment.TotalRowCount</label></b>
+                    </td>
+                    <td align="right">
+                        <div align="right">
+                            <span id="supplierpaymentdfr">
+                                Total PO Mapped Amount : <b>
+                                    <label style="display:none" id="supplierpomapamt">
+                                        @Session["invoicePOMapAmount"]
+                                    </label>
+                                    <label id="supplierpoamaed">
+                                        @objCmnFunctions.GetINRAmount(@Session["invoicePOMapAmount"].ToString())
+                                    </label>
+                                </b>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //var Ecfamountvalmain = $("#txtInvoiceamount").val();
+        //var Ecfrowtolamt = $("#supplierpomapamt").text();
+
+        var Ecfamountvalmain = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var Ecfrowtolamt = $("#supplierpomapamt").text().replace(/,/g, "");
+
+        var val1 = parseFloat(Ecfamountvalmain);
+        var val2 = parseFloat(Ecfrowtolamt);
+        if (val1 == val2) {
+            var stylesSelect = $('#btntaxdinvopo');
+            stylesSelect.attr('disabled', true);
+        }
+        else {
+            if (val2 != "0") {
+                var stylesSelect = $('#btntaxdinvopo');
+                stylesSelect.attr('disabled', false);
+            }
+        }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#wgempposupplier tr #id").click(function () {
+            $('#wgempposupplier').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>
+<script type="text/javascript">
+    var ForPartialViewpomap;
+    function pomapping(id) {
+        var url = '@Url.Action("_Pomappingdetail", "SupplierInvoiceNewc")?id=' + id + '&' + new Date().getTime();
+        ForPartialViewpomap.load(url);
+        ForPartialViewpomap.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1170,
+            height: 644,
+            title: 'Po Mapping'
+        });
+        ForPartialViewpomap.dialog("open");
+    }
+    function GotoIndexAttachmentVsu() {
+        var potolafnmts = $("#potolafnmts").text();
+        var POgid = $('#po_ggid').val();
+        ForPartialViewpomap.dialog("close");
+        window.parent.jQuery('#ForPartialViewpomap').dialog('close');
+        var url = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNewc")?values=' + potolafnmts + '&valuesid=' + POgid + '&' + new Date().getTime();
+        $("#wgempposupplier").load(url);
+        var urldebit = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNewc")?' + new Date().getTime();
+        $("#wgTravelmodeotab2").load(urldebit);
+    }
+
+</script>

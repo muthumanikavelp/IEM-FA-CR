@@ -1,0 +1,181 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    ViewBag.Title = "Index";
+
+}
+<div id="createsupattachment" class="borderstyle panel panel-default">
+
+    <table class="myTableStyleTab" style="width:100%;">
+        <tr>
+            <td style="width:15%; padding: 10px;">
+                <span>Document Date</span> <br />
+                <input type="text" name="Cbf_AttachDate" id="_AttachDate" value="@System.DateTime.Now.ToShortDateString()" disabled="disabled" maxlength="10" title="Document Date" class="textboxStyle"  style="width:100%;"/>
+            </td>
+            <td style="width:25%; padding: 10px;">
+                <span>Select File</span><br />
+                <form id="frmDeactivation">
+                    @Html.TextBoxFor(m => m.boqfile, new { @id = "txtUploadFile", type = "file", @class = "txtUploadSupAttachmentFile textboxStyle", @style = "width:100%;" })
+                </form>
+            </td>
+            <td style="width:15%; padding: 10px;">
+                <span>File Name</span> <br />
+                <input name="_AttachedFileName" readonly="readonly" id="_AttachedFileName" class="textboxStyle" title="File Name" type="text" value="@Model.attachment1" style="width:100%;" />
+            </td>
+            <td style="width:30%; padding: 10px;">
+                <span>Description</span> <br />
+                <input name="_AttachDescription" id="_AttachDescription" class="textboxStyle" title="Description" type="text" value="@Model.des" style="width:100%;" />
+            </td>
+            <td style="width:15%; padding: 10px; text-align:left;">
+                <input type="button" name="btnSaveSupAttachment" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="SaveSupAttachment()" />
+                <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+            </td>
+        </tr>
+    </table>
+</div>
+<div>
+    @Html.Partial("boqattachgrid")
+</div>
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    function back() {
+        window.parent.jQuery('#boqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+    }
+    //$(document).ready(function () {
+    //    var pickerOpts = {   
+    //        dateFormat: "dd-mm-yy"
+          
+    //    };
+    //    $('#_AttachDate').datepicker(pickerOpts);
+      
+    //});
+    //$('#txtUploadFile').on('change', function (e) {
+    //    var files = e.target.files;
+    //    if (files.length > 0) {
+    //        if (window.FormData !== undefined) {
+    //            var data = new FormData();
+    //            for (var x = 0; x < files.length; x++) {
+                  
+    //                data.append("temp_" + x, files[x]);
+    //            }
+    //            var fname = $("#_AttachedFileName").val();
+    //            $.ajax({
+    //                type: "POST",
+    //                url: '../CbfRaiser/UploadedFiles/?fname=' + fname,
+    //                contentType: false,
+    //                processData: false,
+    //                data: data,
+    //                success: function (result) {
+
+    //                    $("#_AttachedFileName").val(result);
+    //                },
+    //                error: function (xhr, status, p3, p4) {
+    //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+    //                    if (xhr.responseText && xhr.responseText[0] == "{")
+    //                        err = JSON.parse(xhr.responseText).Message;
+    //                    console.log(err);
+    //                }
+    //            });
+    //        } else {
+    //            jAlert("This browser doesn't support HTML5 file uploads!");
+    //        }
+    //    }
+    //});
+    function SaveSupAttachment() {
+        var AttachDate = $("#_AttachDate").val();
+        var AttachFileName = $("#_AttachedFileName").val();
+        var AttachDescription = $("#_AttachDescription").val();
+        var attachmodel = {
+            "attachment1": AttachFileName,
+            "des": AttachDescription,
+            "attachmentdate": AttachDate
+        };
+
+        if (AttachDate == null || AttachDate == "" || AttachDate == 0) {
+            jAlert("Please Select Attachment Date.", "Error");
+            return false;
+        }
+
+        if (AttachFileName == null || AttachFileName == "" || AttachFileName == 0) {
+            jAlert("Please Select Attachmnet.", "Error");
+            return false;
+        }
+        if (AttachDescription == null || AttachDescription == "" || AttachDescription == 0) {
+            jAlert("Please Enter Descritption.", "Error");
+            return false;
+        }
+        $("#txtUploadFile").val("");
+        $("#_AttachedFileName").val("");
+        $("#_AttachDescription").val("");
+        $.post('../ParRaiser/BoqAttachgrid?' + new Date().getTime(), attachmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else {
+                $('#gridattachment').load('../ParRaiser/BoqAttachgrid?' + new Date().getTime());
+
+                jAlert("Inserted Successfully", "Message");
+              //  $('#gridattachment').load('../ParRaiser/BoqAttachgrid?' + new Date().getTime());
+
+
+            }
+
+        }, 'json');
+        refresh();
+    }
+
+    var jqXHRData;
+
+    $(document).ready(function () {
+
+
+        initAutoFileUpload();
+
+
+    });
+    function initAutoFileUpload() {
+        'use strict';
+
+        $('#txtUploadFile').fileupload({
+          
+            autoUpload: true,
+            url: '../ParRaiser/UploadedFiles?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+                        if (data.isUploaded) {
+
+                        }
+                        else {
+                            
+                        }
+                        //  $("#gridattachment").load('../PRRaiser/PRattachgrid?' + new Date().getTime());
+
+                        $("#_AttachedFileName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            jAlert(textStatus + errorThrown + data,"Error");
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    alert(data.files[0].error);
+                }
+            }
+        });
+    }
+</script>

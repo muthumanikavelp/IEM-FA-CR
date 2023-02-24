@@ -1,0 +1,126 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+        Session["ViewBag"] = "";
+    }
+    else if (viewfor == "view" || viewfor == "cancel" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        Session["ViewBag"] = "disabled";
+    }
+}
+<div id="createsupattachment" class="borderstyle panel panel-default">
+
+    <table class="myTableStyleTabNew" align="center" id="hidetis">
+        <tr>
+            <td>
+                <span>Document Date</span> <br />
+                <input type="text" id="id_attachDate" value="@System.DateTime.Now.ToShortDateString()" maxlength="10"
+                       title="Document Date" class="textboxStyle" />
+            </td>
+            <td>
+                <span>Select File</span><br />
+                <form id="frmDeactivation">
+                    @Html.TextBoxFor(m => m.boqfile, new { @id = "txtUploadBoq", type = "file", @class = "txtUploadSupAttachmentFile" })
+                </form>
+            </td>
+
+            <td>
+                <span>File Name</span> <br />
+                <input name="_AttachName" readonly="readonly" id="_AttachName" class="textboxStyle" title="File Name" type="text" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span>Description</span> <br />
+                <input name="_AttachDescription" id="_AttachDescription1" class="textboxStyle" title="Description" type="text" />
+            </td>
+            <td style="padding:20px">
+                <input type="button" name="btnSaveSupAttachment" id="btnSaveSupAttachment" class="btn btn-primary" value="Save" onclick="Saveparattachment()" />
+                &nbsp;&nbsp; &nbsp;
+                <input type="button" class="btn btn-primary" id="btnclear" onclick="refresh()" name="command" value="Clear" />
+                &nbsp;&nbsp; &nbsp;
+                <input type="button" class="btn btn-primary" id="btnback" onclick="back()" name="command" value="Back" />
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+<script src="~/Addons/file-upload/jquery.fileupload.js"></script>
+<script src="~/Addons/file-upload/jquery.fileupload-ui.js"></script>
+<script src="~/Addons/file-upload/jquery.iframe-transport.js"></script>
+<script>
+    function back() {
+        window.parent.jQuery('#boqattachment').dialog('close');
+    }
+    function refresh() {
+        $("#txtUploadBoq").val("");
+        $("#_AttachName").val("");
+        $("#_AttachDescription1").val("");
+    }
+
+    function Saveparattachment() {
+        var AttachDate = $("#id_attachDate").val();
+        var AttachFileName = $("#_AttachName").val();
+        var AttachDescription = $("#_AttachDescription1").val();
+        var attachmodel = {
+            "_CBFAttachmentFileName": AttachFileName,
+            "_CBFAttachmentDescription": AttachDescription,
+            "_CBFAttachmentDate": AttachDate
+        };
+        $.post('../ParRaiser/CreatePARAttachment', attachmodel,
+              function (data) {
+                  if (data ==0) {
+                      jAlert('Error', "Error", function (r) {
+                          if (r == true) {
+                              return false;
+                          }
+                      });
+                      return false;
+                  }
+                  else {
+                      jAlert('Inserted successfully', "Success", function (r) {
+                          if (r == true) {
+                              $('#wgridPARAttachment').load('../ParRaiser/PARAttachmentDetails?' + new Date().getTime());
+                          }
+                      });
+                  }
+              }
+         , 'json');
+        refresh();
+
+    }
+    var jqXHRData;
+    $(document).ready(function () {
+        initAutoFileUpload();
+    });
+    function initAutoFileUpload() {
+        'use strict';
+        $('#txtUploadBoq').fileupload({
+            autoUpload: true,
+            url: '@Url.Action("UploadedFiles", "ParRaiser")?' + new Date().getTime(),
+            dataType: 'json',
+            add: function (e, data) {
+                var jqXHR = data.submit()
+                    .success(function (data, textStatus, jqXHR) {
+
+                        $("#_AttachName").val(data.message);
+                    })
+                    .error(function (data, textStatus, errorThrown) {
+                        if (typeof (data) != 'undefined' || typeof (textStatus) != 'undefined' || typeof (errorThrown) != 'undefined') {
+                            jAlert(textStatus + errorThrown + data, "Error");
+                        }
+                    });
+            },
+            fail: function (event, data) {
+                if (data.files[0].error) {
+                    jAlert(data.files[0].error, "ERROR");
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,559 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+@{
+    ViewBag.Title = "Maker";
+    string trfNo = (string)Session["TransferNo"];
+    Session["TransferNo"] = "";
+    string trfStt = (string)Session["Status"];
+    Session["Status"] = "";
+}
+
+<div>
+    <div class="myTableStyleTabNew" style="font-size: 12px;">
+        Transfer Number :
+        <span>
+            <label id="lblsnonew22">
+                @trfNo
+            </label>
+        </span>
+    </div>
+    <label id="status" hidden="hidden">@trfStt</label>
+
+    <div id="tabaudit" style="font-size: 12px;">
+        <ul>
+            <li><a href="#tabs-1" onclick="showbut()">Details [<label id="idtab1">@Model.TModel.Count()</label>]</a></li>
+            <li><a href="#tabs-2" onclick="hidebut()">Audit Trail [<label id="idtab2"></label>]</a></li>
+        </ul>
+        <div id="tabs-1">
+            <div style="overflow-y:scroll; height:200px; border-radius: 5px;
+    opacity: 50;
+    border: 2px solid #ada8a8">
+                @{
+                    var grid = new WebGrid(
+                        source: Model.TModel, canPage: false, canSort: false,
+                        ajaxUpdateContainerId: "wgridTOAdetails"
+                        , ajaxUpdateCallback: "wgridTOAdetails"
+                        );
+                        @grid.GetHtml(
+                    htmlAttributes: new { id = "wgridTOAdetails" },
+                    fillEmptyRows: false,
+                    tableStyle: "tableSmall table-bordered aligncenter",
+                    columns: grid.Columns(
+                grid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1
+                            + Math.Round(Convert.ToDouble(grid.TotalRowCount / grid.PageCount) / grid.RowsPerPage)
+                            * grid.RowsPerPage * grid.PageIndex),
+                grid.Column("_asset_id", "Asset ID", style: "MidColumn50"),
+                grid.Column("_AssetCatCode", "Category", style: "MidColumn50"),
+                grid.Column("_AssetCode", "Sub-Category Code", style: "MidColumn30"),
+                grid.Column("_AssetDesp", "Sub-Category", style: "MidColumn50"),
+                grid.Column("_loc_from", "Old Branch", style: "MidColumn20"),
+                grid.Column("_loc_to", "New Branch ", style: "MidColumn20"),
+                grid.Column("_tfr_date", "Date", style: "MidColumn20"),
+                grid.Column("_tfr_reason", "Reason", style: "MidColumn50"),
+                                //grid.Column("_fccc", "BS Code", style: "MidColumn20"),
+                grid.Column("queue_from", "CC Code", style: "MidColumn20"),
+                 grid.Column("rectiAmt", "Rectification Amount", style: "MidColumn30"),
+                grid.Column("_new_asset_id", "New Asset ID", style: "MidColumn50")
+                @*, format:@<text>
+                        <span class="displaytmv ">
+                            <span style="word-wrap: break-word; width:120px;" id="lblfccc">@item._fccc</span>
+                        </span>
+                        <input type="text" id="fc" onkeypress="return isNumber1(event, this);" readonly="readonly" onchange="change(id,value)" value="@item._fccc" style="width:100px" class="edittmv textboxStyleMedium" />
+
+                        <span class="glyphicon glyphicon-search edittmv searchpop pntrStyle" id="@item._asset_id" onclick="NewSearch(id)">
+                        </span>
+                    </text> ),*@
+                        @*grid.Column(header: "Action", style: "action dt", format: @<text>
+                                    @Html.Raw("<a data-modal='' style='cursor: pointer;' title='Edit'> <span class='displaytmv  edit-btntmv glyphicon glyphicon-edit'> </span> </a>")
+                                    @Html.Raw("<a data-modal='' style='cursor: pointer;' title='Save'> <span class=' edittmv save-btntmv glyphicon glyphicon-save'> </span> </a>")
+                                    @Html.Raw("<a data-modal='' style='cursor: pointer;' title='Cancel'> <span class=' edittmv cancel-btntmv glyphicon glyphicon-remove'> </span> </a>")
+                            </text>),*@
+
+))
+                }
+
+                <div class="table-bordered " align="center">
+                    <b> @ViewBag.Message </b>
+                </div>
+                <br />
+                @*<div class="myTableStyleTabNew">
+                        <span>  Total No Of Records : @Model.TModel.Count()</span>
+                    </div>*@
+
+            </div>
+        </div>
+
+        <div id="tabs-2">
+            <div style="overflow-y:scroll; height:200px">
+                @Html.Partial("TOAAuditTrial")
+            </div>
+        </div>
+
+    </div>
+    @if (ViewBag.viewfor != "checkerView")
+    {
+        <br />
+    }
+    @if (ViewBag.viewfor == "checkerView")
+    {
+        <div class="myTableStyleTabNew" align="left">
+            <span>Remarks</span>
+            <input type="text" autofocus="" id="txtRemaks" name="remarks" onkeyup="check()" class=" textboxStyleSearch required" maxlength="256" width="150px" height="100px" />
+        </div>
+    }
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td class="form-group" nowrap="nowrap">
+                @using (Html.BeginForm())
+                {
+                    if (ViewBag.viewfor == "view")
+                    {
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary ststus" type="submit" name="command" value="submit"><span style="color:white" class="glyphicon glyphicon-ok"></span> Submit</button>
+                            </span>
+                        </div>
+
+                    }
+                }
+            </td>
+            <td class="form-group" nowrap="nowrap">
+                @if (ViewBag.viewfor == "abort")
+                {
+                    <div style="float:right;padding-right:20px;">
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger btndanger" type="submit" name="command" value="abort"><span style="color:white" class="glyphicon glyphicon-trash"></span> Delete</button>
+                        </span>
+                    </div>
+                }
+            </td>
+            @using (Html.BeginForm())
+            {
+                if (ViewBag.viewfor == "checkerView")
+                {
+                    <td class="form-group" nowrap="nowrap">
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btnApprove btn-success" type="submit" name="command" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="form-group" nowrap="nowrap">
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btnReject btn-danger" type="submit" disabled="disabled" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                            </span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div style="float:right;padding-right:20px;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" id="BtnClearremarks" type="button" name="command" value="Remove"><span style="color:white" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+                            </span>
+                        </div>
+                    </td>
+                }
+            }
+            <td class="form-group" nowrap="nowrap">
+                <div style="float:right;padding-right:20px;">
+                    <span class="input-group-btn">
+                        <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+<script>
+
+  //  $('#idtab1').text('@Model.TModel.Count()')
+    $('#BtnClearremarks').on("click", function () {
+        $('#txtRemaks').val("");
+        $('.btnReject').attr("disabled", true);
+    });
+
+    function check() {
+        var txtRemaks = $('#txtRemaks').val();
+        if (txtRemaks.trim() != "") {
+            $('.btnReject').removeAttr('disabled');
+            $('#txtRemaks').removeClass('required');
+            $('#txtRemaks').addClass('valid');
+        }
+        else {
+            $('.btnReject').attr("disabled", true);
+            $('#txtRemaks').removeClass('valid');
+            $('#txtRemaks').addClass('required');
+        }
+    }
+    // $("#wgridTOAdetails td:nth-child(10),#wgridTOAdetails th:nth-child(10)").hide();
+    function NewSearch(id) {
+        forficcsearch.load('../AssetTransfer/FCCCSearch?id=' + id);
+        forficcsearch.dialog({ title: 'Select FCCC Code', width: '1000', height: '500', resizable: false });
+        forficcsearch.dialog("open");
+
+    }
+    function change(id, value) {
+        var lsFccc = $('#' + id + '').val()
+
+        $.post(
+            '@Url.Action("fcccsearchtext", "AssetTransfer")?lsFccc=' + lsFccc + ' & ' + new Date().getTime(),
+              function (data) {
+                  if (data == "") {
+                      jAlert("Fccc Code Mismatch,Please Enter Correct Correct Fccc Code", "Error");
+                      $('#' + id + '').val(data)
+                  }
+                  else {
+                      $('#' + id + '').val(data)
+                  }
+
+              }
+         , 'json');
+    }
+    $(document).ready(function () {
+
+        var a = '@ViewBag.viewfor';
+       
+        $('#backbtn').click(function () {
+
+            var model =
+           {
+               "_gid": '@Session["gid"]'
+           };
+            $.ajax({
+                url: '@Url.Action("updatelogeddetials", "AssetTransfer")?' + new Date().getTime(),
+                data: JSON.stringify(model),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    $('#gridId').find('tr').css('background', 'none');
+                    if (a == 'checkerView') {
+
+                        location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime();
+                    }
+                    else {
+                        location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime();
+
+                    }
+                },
+                error: function (result) {
+
+                }
+            });
+
+        });
+
+        if (a != "checkerView") {
+            $("#wgridTOAdetails td:nth-child(11),#wgridTOAdetails th:nth-child(11)").hide();
+        }
+        else {
+            $("#wgridTOAdetails td:nth-child(11),#wgridTOAdetails th:nth-child(11)").show();
+        }
+        if ('@trfStt' == "APPROVED") {
+            $("#wgridTOAdetails td:nth-child(12),#wgridTOAdetails th:nth-child(12)").show();
+        }
+        else { $("#wgridTOAdetails td:nth-child(12),#wgridTOAdetails th:nth-child(12)").hide(); }
+
+        if ($('#hidden').val() == "") {
+            $('#hidden').val(id);
+            // alert();
+        }
+        var currentTab4 = 0;
+        $(function () {
+            $("#tabaudit").tabs({
+                select: function (e, i) {
+                    currentTab4 = i.index;
+                }
+            });
+        });
+
+        $(".backbtn").click(function () {
+            $('#gridId').find('tr').css('background', 'none');
+            if (a == 'checkerView') {
+                $('#TCgridId').find('tr').css('background', 'none');
+                $('#TMgridId').find('tr').css('background', 'none');
+                window.parent.jQuery('#forAttachment').dialog('close');
+                //objforAttachment.remove();
+                @*location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime()*@
+            }
+            else {
+                $('#TCgridId').find('tr').css('background', 'none');
+                $('#TMgridId').find('tr').css('background', 'none');
+                window.parent.jQuery('#forAttachment').dialog('close');
+                //objforAttachment.remove();
+                @*location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime()*@
+            }
+        });
+    });
+    var id = $("#status").text();
+
+
+    $(".btndanger").click(function () {
+        var id = '@trfNo';
+        jConfirm("Are you sure to delete this transfer of asset", "Inforamtion", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('../AssetTransfer/TransferMakerView?id=' + id + '&command=abort&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   hideProgress();
+                   location = location.href;
+               }
+               else if (data.Maker != "Success") {
+                   hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("Unauthorized User!", function (t) {
+                       if (t == true) { location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime(); }
+                   });
+               }
+               else {
+                   hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("Tansfer deleted sucessfully", "Inforamtion", function (t) {
+                       if (t == true) { location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime(); }
+                   });
+               }
+           }, 'json');
+            }
+        });
+    });
+    $(function () {
+        // $("#wgridTOAdetails td:nth-child(2),#wgridTOAdetails th:nth-child(2)").hide();
+        $('.edittmv').hide();
+        $('.edit-btntmv, .cancel-btntmv').on("click", function () {
+            var id = $("#lblsnonew2").text();
+            var tr = $(this).parents('tr:first');
+            tr.find('.edittmv, .displaytmv').toggle();
+            //   $("#wgridTOAdetails td:nth-child(2),#wgridTOAdetails th:nth-child(2)").hide();
+        });
+
+        $('.save-btntmv').on("click", function () {
+            var tr = $(this).parents('tr:first');
+            var fc = tr.find("#fc").val();
+            var id = tr.find("#lblsnonew2").text();
+            var isSuccess = -1;
+            var model =
+            {
+                "_fccc": fc,
+                "_asset_id": id
+            };
+            $.ajax({
+                url: '@Url.Action("SaveData","AssetTransfer")',
+                data: JSON.stringify(model),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    // alert(result);
+                    isSuccess = result;
+                },
+                error: function (result) {
+
+                    isSuccess = result;
+                }
+            }).done(function () {
+                if (isSuccess == "1") {
+                    tr.find('.edittmv, .displaytmv').toggle();
+                    jAlert("Successfully Saved", "Inforamtion", function (t) {
+                        if (t == true) {
+                            $("#lblfccc").text(fc);
+                        }
+                    });
+                    return false;
+                }
+                else {
+                    jAlert("Error. Please, check the data", "Inforamtion");
+                }
+            });
+        });
+    });
+    //  $("#wgridTOAdetails td:nth-child(2),#wgridTOAdetails th:nth-child(2)").hide();
+    $(function () {
+        if (id != "DRAFT") {
+
+            $('.edit-btntmv').show();
+            $('.ststus').hide();
+            $('.btndanger').hide();
+            //   $("#wgridTOAdetails td:nth-child(9),#wgridTOAdetails th:nth-child(9)").hide();
+            $('.edit-btntmv').on("hover", function () {
+                $('.edit-btntmv').show();
+                $('.save-btntmv,.cancel-btntmv').hide();
+            });
+            $('.edit-btntmv').on("click", function () {
+                $('.edit-btntmv').show();
+                $('.save-btntmv,.cancel-btntmv').hide();
+            });
+        }
+
+    });
+
+    $('.ststus').on("click", function () {
+        var id = '@trfNo';
+        var txtRemaks = $('#txtRemaks').val();
+        showProgress();
+        $.post('../AssetTransfer/TransferMakerView?id=' + id + '&command=submit&' + new Date().getTime(),
+    function (data) {
+        if (data == 0) {
+            hideProgress();
+            location = location.href;
+        }
+        else if (data.Maker != "Success") {
+            hideProgress();
+            window.parent.jQuery('#forAttachment').dialog('close');
+            $('#gridId').find('tr').css('background', 'none');
+            jAlert("Unauthorized User!", "Inforamtion", function (t) {
+                if (t == true) {
+
+                    location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime();
+                }
+            });
+        }
+        else {
+            hideProgress();
+            window.parent.jQuery('#forAttachment').dialog('close');
+            $('#gridId').find('tr').css('background', 'none');
+            jAlert("Submited to checker sucessfully", "Inforamtion", function (t) {
+                if (t == true) {
+                  
+                    location = '@Url.Action("TMSummary", "AssetTransfer")?' + new Date().getTime();
+                }
+            });
+
+        }
+    }, 'json');
+
+
+    });
+
+    $('.btnApprove').on("click", function () {
+        var id = '@trfNo';
+        var txtRemaks = $('#txtRemaks').val();
+        jConfirm("Are you sure to Approve this transfer of asset", "Inforamtion", function (t) {
+            if (t == true) {
+
+                showProgress();
+                $.post('../AssetTransfer/TransferMakerView?id=' + id + '&command=Approve&remarks=' + txtRemaks + '&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   location = location.href;
+                  hideProgress();
+               }
+               else if (data.Checker != "Success") {
+                   hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("UnAuthorized User!", "Inforamtion", function (t) {
+                       if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                   });
+               }
+              /* else {
+                   hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("Transfer approved sucessfully", "Inforamtion", function (t) {
+                       if (t == true) { location = 'Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                       });*/
+                   else {
+                   if (data.command == "success") {
+                           hideProgress();
+                           window.parent.jQuery('#forAttachment').dialog('close');
+                           $('#gridId').find('tr').css('background', 'none');
+                           jAlert("Transfer approved sucessfully", "Inforamtion", function (t) {
+                               if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                           });
+                       }
+
+                   else {
+                       hideProgress();
+                       window.parent.jQuery('#forAttachment').dialog('close');
+                       $('#gridId').find('tr').css('background', 'none');
+                       jAlert("Transfer Not Approved." + data, "Inforamtion", function (t) {
+                           if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                       });
+                   }
+
+
+               }
+           }, 'json');
+            }
+        });
+    });
+
+    $('.btnReject').on("click", function () {
+        var id = '@trfNo';
+        var txtRemaks = $('#txtRemaks').val();
+
+        jConfirm("Are you sure to Reject this transfer of asset", "Inforamtion", function (t) {
+            if (t == true) {
+                showProgress();
+                $.post('../AssetTransfer/TransferMakerView?id=' + id + '&command=Reject&remarks=' + txtRemaks + '&' + new Date().getTime(),
+           function (data) {
+               if (data == 0) {
+                   hideProgress();
+                   location = location.href;
+               }
+               else if (data.Checker != "Success") {
+                   hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("UnAuthorized User!", "Inforamtion", function (t) {
+                       if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                   });
+               }
+               else {
+                  /* hideProgress();
+                   window.parent.jQuery('#forAttachment').dialog('close');
+                   $('#gridId').find('tr').css('background', 'none');
+                   jAlert("Transfer rejected sucessfully", "Inforamtion", function (t) {
+                       if (t == true) { location = 'Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                   });*/
+                   if (data.command == "success") {
+                       hideProgress();
+                       window.parent.jQuery('#forAttachment').dialog('close');
+                       $('#gridId').find('tr').css('background', 'none');
+                       jAlert("Transfer rejected sucessfully", "Inforamtion", function (t) {
+                           if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                       });
+                   }
+                   else {
+                       hideProgress();
+                       window.parent.jQuery('#forAttachment').dialog('close');
+                       $('#gridId').find('tr').css('background', 'none');
+                       jAlert("Transfer rejection Fail", "Inforamtion", function (t) {
+                           if (t == true) { location = '@Url.Action("TCSummary", "AssetTransfer")?' + new Date().getTime(); }
+                       });
+                   }
+               }
+           }, 'json');
+
+            }
+        });
+    });
+
+
+    function hidebut() {
+
+        $(".ststus").hide();
+        $(".btnApprove").hide();
+        $(".btnReject").hide();
+        $(".btndanger").hide();
+    }
+
+    function showbut() {
+        if (id == "DRAFT") {
+            $(".ststus").show();
+            $(".btndanger").hide();
+        }
+        $(".btnApprove").show();
+        $(".btnReject").show();
+
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#TMgridId').find('tr').css('background', 'none');
+        $('#TCgridId').find('tr').css('background', 'none');
+    });
+</script>

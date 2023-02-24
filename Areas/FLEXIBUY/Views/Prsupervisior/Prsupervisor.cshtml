@@ -1,0 +1,172 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Common
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "Prsupervisor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lstprSum, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+    int rowNum = 0;
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+<head>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <style>
+        .tblstyle tr td {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+
+<b>
+    <span style="color: rgb(52, 108, 196);">PR Supervisor</span>
+</b>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="well">
+        <div class="panel panel-default">
+            <table class="myTableStyleTabNew" align="center">
+                <tr>
+                    
+                    
+                    <td nowrap="nowrap" style="padding:20px;">
+                        <div>
+                            <span>PR Supervisior Ref No</span>
+                            <br />
+
+                            <input type="text"
+                                   name="txtprrefno"
+                                   value="@ViewBag.txtprrefno"
+                                   class="textboxStyle "
+                                   style="display:block"
+                                   placeholder="Enter PR Supervisor Ref No" />
+                        </div>
+                    </td>
+                  
+                    <td nowrap="nowrap" style="padding:20px;">
+                        <div>
+                            <span>PR Supervisior Date</span>
+                            <br />
+                        </div>
+
+                        <div>
+                            <input type="text"
+                                   name="txtprdate"
+                                   id="txtprdate"
+                                   value="@ViewBag.txtprdate"
+                                   class="textboxStyle "
+                                   style="display:block"
+                                   maxlength="10"
+                                   placeholder="Enter PR Supervisor Date" />
+                        </div>
+                    </td>
+                    <td nowrap="nowrap" style="padding:20px;">
+                        <div>
+                            <span> Branch</span>
+                            <br>
+                        </div>
+
+                        <div>
+
+                            @Html.DropDownList("dropBranch", Model.ddlBranch, "--Select Branch--", new { @class = "textboxStyle ", @id = "dropBranch" })
+
+                        </div>
+                    </td>
+
+                    <td style="padding-top:40px;">
+                        <div>
+                            <span >
+                                @*<button class="glyphicon glyphicon-search" id="searchid" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(255, 255, 255);" type="submit" name="command" title="Search" value="SEARCH"></button>*@
+                                @*<button class="glyphicon glyphicon-search" onclick="Type()" style="margin-top:17px; border:none;box-shadow: none;font-size: 1.9em;background-color:rgb(245, 245, 245);" name="command" type="submit" value="SEARCH" id='btnsearch'></button>*@
+
+                                @*<button onclick="Type()" class="btn btn-primary" name="command" type="submit" value="SEARCH" id='btnsearch'><span class="glyphicon glyphicon-search" style="color:white;">Search</span></button>*@
+                                <button class="btn btn-primary" name="command" type="submit" value="SEARCH" id='btnsearch'><span class="glyphicon glyphicon-search" style="color:white;"></span>Search</button>
+                            </span>
+                        </div>
+                    </td>
+                    <td style="padding-top:40px;">
+                        @*<button class="glyphicon glyphicon-refresh cursorpointer" onclick="refresh()" style="margin-top:17px; border:none;box-shadow: none;font-size: 1.9em;background-color:rgb(245, 245, 245);" name="command" type="submit" value="Refresh" id='btnrefresh'></button>*@
+                        <button id="btnrefresh" onclick="refresh()" class="btn btn-primary"><span class="glyphicon glyphicon-refresh cursorpointer" style="color:white;"></span>Refersh</button>
+
+
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+
+        @*@functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }*@
+
+        @grid.GetHtml(
+         tableStyle: "table table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+        //Here I am going to add checkbox column
+            grid.Column("Sl", format: a => rowNum = rowNum + 1, style: "MidColumn5"),
+        //grid.Column("SNo", format: a => rowNum = rowNum + 1),
+           grid.Column("prRefNo", objCmnFunctions.Sorter("prRefNo", "PR Ref No.", grid), style: "MidColumn5"),
+             grid.Column("prDate", objCmnFunctions.Sorter("prDate", "PR Date", grid), style: "MidColumn5"),
+             grid.Column("prBranch", objCmnFunctions.Sorter("prBranch", "Branch", grid), style: "MidColumn20"),
+           grid.Column("prDesc", objCmnFunctions.Sorter("prDesc", "Description", grid), style: "MidColumn50"),
+                     grid.Column("prReqFor", objCmnFunctions.Sorter("prReqFor", "Request by", grid), style: "MidColumn10"),
+                   grid.Column("prStatus", objCmnFunctions.Sorter("prStatus", "Status", grid), style: "MidColumn20"),
+
+               grid.Column(header: "Action", canSort: false, style: "col-sm-1",
+                     format: @<text>
+
+
+                @*@Html.Raw("<a data-modal='' href='../PrSummary/ViewPRDetails/" + item.prRefNo + "' id='" + item.prRefNo + "' title='Detail'>  <span name='command' class='glyphicon glyphicon-eye-open'></span> </a>")
+                    @Html.Raw("<a data-modal='' href='../PrSummary/DeletePRDetails/" + item.prRefNo + "' id='" + item.prRefNo + "' title='Delete'>  <span name='command' class='glyphicon glyphicon-trash'></span> </a>")
+                    @Html.Raw("<a data-modal='' href='../PrSummary/CancelPRDetails/" + item.prRefNo + "' id='" + item.prRefNo + "' title='Cancel'> <span name='command' class='glyphicon glyphicon-remove' ></span></a>")
+                    @Html.Raw("<a data-modal='' href='../PrSummary/EditPRDetails/" + item.prRefNo + "' id='" + item.prRefNo + "' title='Edit'> <span name='command' class='glyphicon glyphicon-edit'></span></a>")
+                    @Html.Raw("<a data-modal='' href='../PrSummary/ClonePRDetails/" + item.prRefNo + "' id='" + item.prRefNo + "' title='Clone'> <span name='command' class=' glyphicon glyphicon-copyright-mark'></span> </a>")*@
+
+                @Html.Raw("<a data-modal='' href='../Prsupervisior/index/" + item.prgid + "' id='" + @item.prgid + "' title='Review'>Review <span value='Review' name='command' class='btn btn-link'></span>   </a>")
+
+
+
+                    </text>)))
+
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+    </div>
+}
+
+<script type="text/javascript">
+
+    function Type() {
+
+        // location = "@Url.Action("Prsupervisor", "Prsupervisor")";
+        $.post('@Url.Action("Prsupervisor", "Prsupervisior")');
+    };
+
+    function refresh() {
+
+        location = "@Url.Action("Prsupervisor", "Prsupervisior")";
+
+    }
+
+    function dateformat() {
+        dateformat: 'dd/mm/yy';
+    }
+    $("#txtprdate").datepicker({
+
+        dateFormat: 'dd/mm/yy',
+        maxDate: new Date()
+    });
+</script>

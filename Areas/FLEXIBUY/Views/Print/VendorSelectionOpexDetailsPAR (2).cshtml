@@ -1,0 +1,765 @@
+﻿@{
+    ViewBag.Title = "ApproversDocs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<span class="pageHeading">Vendor Selection Opex</span>
+<div ng-app="VSPARApp">
+    <div class="well" ng-controller="VSPARController" style="padding-bottom:50px;">
+
+        <div style="width:100%; margin-bottom:20px;" class="panel panel-info">
+            <span>OBF Header</span><br />
+            <hr />
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td>
+                        <input type="hidden" ng-model="PARGid" name="txtprgid" value="@ViewBag.docgid" />
+                        <input type="hidden" ng-model="OBFGid" />
+                        <span>OBF Number</span><br />
+                        <input type="text" ng-model="OBFNumber" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>OBF Date</span><br />
+                        <input type="text" ng-model="OBFDate" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>OBF Amount</span><br />
+                        <input type="text" ng-model="OBFAmount" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                   
+                    <td>
+                        <span>OBF Mode</span><br />
+                        <input type="text" ng-model="OBFMode" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="disableheaddiv">
+                        <span>Reqeuest For</span>
+                        <br />
+                        <input type="radio" ng-model="OBFRequestFor" value="PIP">
+                        PIP
+                        &nbsp;
+                        <input type="radio" ng-model="OBFRequestFor" value="IT">
+                        IT
+                    </td>
+                    <td class="disableheaddiv">
+                        <span>Type</span>
+                        <br />
+                        <input type="radio" ng-disabled="OBFRequestFor=='PIP'" ng-model="OBFITType" value="A">
+                        Application
+                        &nbsp;
+                        <input type="radio" ng-disabled="OBFRequestFor=='PIP'" ng-model="OBFITType" value="I">
+                        Infrastructure
+                    </td>
+                    <td colspan="2">
+                        <span>Justification</span><br />
+                        <input type="text" ng-model="OBFJustification" class="textboxStyle100" />
+                    </td>
+                    
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span>Description</span><br />
+                        <input type="text" ng-model="OBFDescription" class="textboxStyle100" />
+                    </td>
+                    <td colspan="2" style="text-align:right;" class="disableheaddiv">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="GenerateOBFDetails()">
+                            <span class="glyphicon glyphicon-edit" style="color:white;"></span>
+                            Proceed
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br />
+        <div style="width:100%;padding-bottom:20px;">
+            <div style="width:45%;float:left;">
+                Search&nbsp;
+                <input type="text" ng-model="searchVSPR.$" style="width:80%;" placeholder="Enter Search Criteria..." />
+            </div>
+            <div style="width:45%;float:right;vertical-align:bottom">
+                Items Per Page &nbsp;&nbsp;
+                <select ng-model="PerPageItems">
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+
+            </div>
+        </div>
+        <br />
+        <div style="width:100%;overflow-x:scroll;" id="divData">
+            <div style="width:110%;">
+                <table class="tableSmall table-bordered table-hover table-responsive" id="tblExpp">
+                    <thead>
+                        <tr class="SortText">
+                            <th style="width:3%;">
+                                S.No
+                            </th>
+                            <th style="width:7%;" class="cursorpointer" ng-click="SortVSData('ProdserviceCode')">
+                                Product Code
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='ProdserviceCode'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;" class="cursorpointer" ng-click="SortVSData('ProdserviceName')">
+                                Product Name
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='ProdserviceName'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:15%;" class="cursorpointer" ng-click="SortVSData('ProdDesc')">
+                                Product Desc
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='ProdDesc'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortVSData('UnitPrice')">
+                                Unit Price
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='UnitPrice'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:5%;" class="cursorpointer" ng-click="SortVSData('Qty')">
+                                Qty
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='Qty'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortVSData('TotalAmount')">
+                                Total
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='TotalAmount'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;" class="cursorpointer" ng-click="SortVSData('BudgetLine')">
+                                Budget Line
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='BudgetLine'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:5%;" class="cursorpointer" ng-click="SortVSData('CC')">
+                                CC
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='CC'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:20%;" class="cursorpointer" ng-click="SortVSData('SupplierName')">
+                                Supplier Name
+                                <span class="glyphicon sort-icon" ng-show="sortKey=='SupplierName'" ng-class="{'glyphicon glyphicon-chevron-up':reverse,'glyphicon glyphicon-chevron-down':!reverse}"></span>
+                            </th>
+                            <th style="width:10%;">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody ng-show="FilteredItemsQ > 0" ng-repeat="myapproval in myapprovals |orderBy:sortKey:reverse | filter:searchVSPR:strict | Pagestart:(currentPage-1)*PerPageItems | limitTo:PerPageItems">
+                        <tr>
+                            <td style="width:3%;" align="center">
+                                {{$index+1}}
+                            </td>
+                            <td style="width:7%;">
+                                {{myapproval.ProdserviceCode}}
+                            </td>
+                            <td style="width:15%;">
+                                {{myapproval.ProdserviceName}}
+                            </td>
+                            <td style="width:15%;">
+                                {{myapproval.ProdDesc}}
+                            </td>
+                            <td style="width:10%;">
+                                {{myapproval.UnitPrice}}
+                            </td>
+                            <td style="width:5%;">
+                                {{myapproval.Qty}}
+                            </td>
+                            <td style="width:10%;">
+                                {{myapproval.TotalAmount}}
+                            </td>
+                            <td style="width:10%;">
+                                {{myapproval.BudgetLine}}
+                            </td>
+                            <td style="width:5%;">
+                                {{myapproval.CC}}
+                            </td>
+                            <td style="width:20%;">
+                                {{myapproval.SupplierName}}
+                            </td>
+                            <td style="width:10%;" align="center">
+                                <a ng-click="EditOBFDetails(myapproval.OBFDetailsGid)" title="Edit">
+                                    <span class="glyphicon glyphicon-edit"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-show="FilteredItemsQ < 1">
+                        <tr>
+                            <td colspan="11" style="text-align:center">
+                                No Records Found
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div style="width:100%;">
+            <div ng-show="FilteredItemsQ > PerPageItems" style="float:left;margin:0;padding:0;max-height:50px;">
+                <pagination page="currentPage" style="cursor:pointer;" boundary-links="true" class="pagination-sm" min-size="1" max-size="maxSize" total-items="FilteredItemsQ"
+                            num-pages="noofpages" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" ng-model="currentPage" items-per-page="PerPageItems"></pagination>
+
+            </div>
+            <div style="float:right;color:navy">
+                Pages {{currentPage}} / {{noofpages}} | Total Records : {{FilteredItemsQ}}
+            </div>
+        </div>
+        <div style="display:none;" id="divVSPR">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+                    <td colspan="3">
+                        <span>Product / Service</span>
+                        <br />
+                        <input type="radio"  ng-model="OBFProdServiceFlag" ng-change="getParentProduct()" value="P">
+                        Product
+                        &nbsp;
+                        <input type="radio" ng-model="OBFProdServiceFlag" ng-change="getParentProduct()" value="S">
+                        Service
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="hidden" ng-model="OBFDetailGidEdit" />
+                        <span>Product Group</span><br />
+                        <select ng-model="ChildProductGroupGid" id="ddlParentProductGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                ng-change="getChildProduct()"
+                                ng-options="prod.ChildProductGroupGid as prod.ChildProductGroup for prod in productlistgroup"></select>
+                    </td>
+                    <td>
+                        <span>Product Name</span><br />
+                        <select ng-model="ChildProductGid" id="ddlChildProductGid" style="min-width:100%;max-width:100%;" class="textboxStyle100"
+                                ng-options="prod.ChildProductGid as prod.ChildProductName for prod in productlist"></select>
+                    </td>
+                    <td>
+                        <span>Description</span><br />
+                        <input type="text" ng-model="ProdDesc" class="textboxStyle100" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>Unit Price</span><br />
+                        <input type="text" ng-model="UnitPrice" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>Qty</span><br />
+                        <input type="text" ng-model="Qty" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>Total Amount</span><br />
+                        <input type="text" ng-model="TotalAmount" disabled="disabled" class="textboxStyle100" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>Budget Line</span><br />
+                        <input type="text" ng-model="BudgetLine" onkeypress="return isNumberKey(event)" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>CC</span><br />
+                        <input type="hidden" name="txtcc" />
+                        <input type="text" ng-model="CC" id="ddlCC" class="textboxStyle100" />
+                    </td>
+                    <td>
+                        <span>Supplier Name</span><br />
+                        <input type="hidden" name="txtVendorNameCustomGid" />
+                        <input type="text" ng-model="SupplierName" id="ddlVendorNameWO" class="textboxStyle100" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align:right;">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="SaveOBFDetails()">
+                            <span class="glyphicon glyphicon-floppy-save" style="color:white;"></span>
+                            Save
+                        </button>
+                        <button type="button" class="btn btn-sm btn-warning" ng-click="CloseChildDialog()">
+                            <span class="glyphicon glyphicon-remove-sign" style="color:white;"></span>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <br />
+        <div style="width:100%;text-align:center;">
+            <button type="button" class="btn btn-sm btn-success" ng-click="SubmitOBFDetails()">
+                <span class="glyphicon glyphicon-ok" style="color:white;"></span>
+                Submit
+            </button>
+
+        </div>
+    </div>
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        objADDWOParent = $("[id$='divVSPR']");
+        objADDWOParent.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 780,
+            cache: false,
+            async: false,
+            height: 400,
+            duration: 300
+            //  resizable:false
+        });
+
+
+        $("#ddlVendorNameWO").keyup(function (e) {
+            if (e.which != 13) {
+                $("[name=txtVendorNameCustomGid]").val("0");
+            }
+
+            $("#ddlVendorNameWO").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetVendorNameAutoComplete", "WONew")?' + new Date().getTime(),
+                        data: "{ 'searchtext' : '" + $("#ddlVendorNameWO").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }));
+                        },
+                        error: function (response) {
+                        },
+                        failure: function (response) {
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("[name=txtVendorNameCustomGid]").val(i.item.val);
+                    $("#ddlVendorNameWO").val(i.item.label);
+                },
+                minLength: 1
+            });
+
+        });
+
+        $("#ddlCC").keyup(function (e) {
+            if (e.which != 13) {
+                $("[name=txtcc]").val("0");
+            }
+
+            $("#ddlCC").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("GetCCAutoComplete", "Print")?' + new Date().getTime(),
+                        data: "{ 'searchtext' : '" + $("#ddlCC").val() + "'}",
+                        dataType: "json",
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.split('~')[1],
+                                    val: item.split('~')[0]
+                                }
+                            }));
+                        },
+                        error: function (response) {
+                        },
+                        failure: function (response) {
+                        }
+                    });
+                },
+                select: function (e, i) {
+                    $("[name=txtcc]").val(i.item.val);
+                    $("#ddlCC").val(i.item.label);
+                },
+                minLength: 1
+            });
+
+        });
+
+
+
+    });
+    var queryApp = angular.module('VSPARApp', ['ui.bootstrap']);
+    queryApp.service("vsservice", function ($http) {
+
+        this.VendorSelectionOpexDetailsSummaryPAR = function () {
+            var pargid = $("[name=txtprgid]").val();
+
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("VendorSelectionOpexDetailsSummaryPAR", "Print")?docgid=' + pargid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GenerateOBFDetails = function (objOBFDetails) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(objOBFDetails),
+                url: '@Url.Action("GenerateOBFDetails", "Print")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetProductGroup = function (prodservflag) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetProductGroup", "WONew")?flag=' + prodservflag + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetProductGroupById = function (prodservflag, prodgroupgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetProductGroupById", "WONew")?flag=' + prodservflag + '&ProdGroupId=' + prodgroupgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.GetOBFDetailsByIdPAR = function (obfdetgid) {
+            var response = $http({
+                method: "post",
+                url: '@Url.Action("GetOBFDetailsByIdPAR", "Print")?docgid=' + obfdetgid + '&' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.UpdateOBFDetailsPAR = function (objOBFDetails) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(objOBFDetails),
+                url: '@Url.Action("UpdateOBFDetailsPAR", "Print")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+        this.SubmitOBFDetailsPAR = function (objOBFDetails) {
+            var response = $http({
+                method: "post",
+                data: JSON.stringify(objOBFDetails),
+                url: '@Url.Action("SubmitOBFDetailsPAR", "Print")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+    });
+    queryApp.controller('VSPARController', function ($scope, vsservice) {
+
+        $scope.maxSize = 5;
+        $scope.PerPageItems = 10;
+        $scope.currentPage = 1;
+        VendorSelectionOpexDetailsSummaryPAR();
+
+        function VendorSelectionOpexDetailsSummaryPAR() {
+            if ($scope.OBFGid == null || $scope.OBFGid == "" || $scope.OBFGid == "0" || $scope.OBFGid == 0) {
+                var getData = vsservice.VendorSelectionOpexDetailsSummaryPAR();
+                getData.then(function (response) {
+                    var Data0 = "",Data1 = "";
+                    if (response.data.data0 != null && response.data.data0 != "")
+                        Data0 = JSON.parse(response.data.data0);
+                    $scope.OBFDate = Data0[0].OBFDate;
+                    $scope.OBFAmount = Data0[0].OBFAmount;
+                    $scope.OBFMode = Data0[0].OBFMode;
+                }, function () {
+                    alert('Error While Loading record');
+                });
+            }
+        }
+
+        $scope.GenerateOBFDetails = function () {
+            if ($scope.OBFRequestFor == null || $scope.OBFRequestFor == "") {
+                jAlert("Ensure Request For(PIP/IT)", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.OBFRequestFor == 'IT') {
+                if ($scope.OBFITType == null || $scope.OBFITType == "") {
+                    jAlert("Ensure Request For Type (Application/Infrastructure)", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }
+            else {
+                $scope.OBFITType = "";
+            }
+            var pargid = $("[name=txtprgid]").val();
+            var objOBFDetails = {
+                "PARGid" : pargid,
+                "OBFRequestFor": $scope.OBFRequestFor,
+                "OBFJustification": $scope.OBFJustification,
+                "OBFDescription": $scope.OBFDescription,
+                "OBFITType": $scope.OBFITType
+            };
+            var getData = vsservice.GenerateOBFDetails(objOBFDetails);
+            getData.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Generating OBF", "Error", function () {
+                        return false;
+                    });
+                }
+                else {
+                    var Data0 = "", Data1 = "";
+                    if (response.data.data0 != null && response.data.data0 != "")
+                        Data0 = JSON.parse(response.data.data0);
+                    $scope.OBFNumber = Data0[0].OBFNumber;
+                    $scope.OBFDate = Data0[0].OBFDate;
+                    $scope.OBFAmount = Data0[0].OBFAmount;
+                    $scope.OBFRequestFor = Data0[0].OBFRequestFor;
+                    $scope.OBFMode = Data0[0].OBFMode;
+                    $scope.OBFGid = Data0[0].OBFGid;
+                    if (response.data.data1 != null && response.data.data1 != "")
+                        Data1 = JSON.parse(response.data.data1);
+                    // alert(Data1[0].ProdserviceCode);
+                    $scope.myapprovals = Data1;
+                    $scope.FilteredItemsQ = $scope.myapprovals.length;
+                    if ($scope.FilteredItemsQ > 0) {
+                        $(".disableheaddiv").prop('disabled', true);
+                        $(".disableheaddiv").attr('disabled', 'disabled');
+                    }
+                }
+            }, function () {
+                alert('Error in adding record');
+            });
+        }
+        $scope.EditOBFDetails = function (obfdetgid) {
+            $scope.OBFDetailGidEdit = obfdetgid;
+            // alert(obfdetgid);
+
+
+            var getData2 = vsservice.GetOBFDetailsByIdPAR(obfdetgid);
+            getData2.then(function (response) {
+                var Data0 = "";
+                Data0 = JSON.parse(response.data.data0);
+                $scope.ProdserviceCode = Data0[0].ProdserviceCode;
+                $scope.ProdserviceName = Data0[0].ProdserviceName;
+                $scope.Qty = Data0[0].Qty;
+                $scope.UnitPrice = Data0[0].UnitPrice;
+                $scope.ProdDesc = Data0[0].ProdDesc;
+                $scope.Qty = Data0[0].Qty;
+                $scope.TotalAmount = Data0[0].TotalAmount;
+                $scope.CC = Data0[0].CC;
+                $scope.BudgetLine = Data0[0].BudgetLine;
+                $scope.SupplierName = Data0[0].SupplierName;
+                $("[name=txtVendorNameCustomGid]").val(Data0[0].SupplierGid);
+
+                $scope.OBFProdServiceFlag = Data0[0].OBFProdServiceFlag;
+                $scope.ChildProductGroupGid = Data0[0].ChildProductGroupGid;
+                $scope.ChildProductGid = Data0[0].ChildProductGid;
+
+                if ($scope.OBFProdServiceFlag != "" && $scope.OBFProdServiceFlag != null) {
+
+                    var getdata = vsservice.GetProductGroup($scope.OBFProdServiceFlag);
+                    getdata.then(function (response) {
+                        $scope.productlistgroup = JSON.parse(response.data.data0);
+                    }, function () {
+                        alert('Error while binding product group');
+                    });
+                    var getdata1 = vsservice.GetProductGroupById($scope.OBFProdServiceFlag, $scope.ChildProductGroupGid);
+                    getdata1.then(function (response) {
+                        $scope.productlist = JSON.parse(response.data.data0);
+
+                    }, function () {
+                        alert('Error while binding product');
+                    });
+                }
+
+                $("#divVSPR").css("display", "");
+                objADDWOParent.dialog({ title: 'Edit OBF Detail', width: '780', height: '400' });
+                objADDWOParent.dialog("open");
+
+            }, function () {
+                alert('Error in adding record');
+            });
+        }
+        $scope.getParentProduct = function () {
+            var getdata = vsservice.GetProductGroup($scope.OBFProdServiceFlag);
+            getdata.then(function (response) {
+                $scope.productlistgroup = JSON.parse(response.data.data0);
+            }, function () {
+                alert('Error while binding products');
+            });
+        }
+        $scope.getChildProduct = function () {
+            var getdata = vsservice.GetProductGroupById($scope.OBFProdServiceFlag, $scope.ChildProductGroupGid);
+            getdata.then(function (response) {
+                $scope.productlist = JSON.parse(response.data.data0);
+            }, function () {
+                alert('Error while binding products');
+            });
+        }
+        $scope.SaveOBFDetails = function () {
+            var supgid = $("[name=txtVendorNameCustomGid]").val();
+            if ($scope.BudgetLine == null || $scope.BudgetLine == "") {
+                $scope.BudgetLine = 0;
+            }
+            if ($scope.OBFRequestFor == 'PIP' || $scope.OBFITType == null) {
+                $scope.OBFITType = "";
+            }
+            if ($scope.OBFProdServiceFlag == null || $scope.OBFProdServiceFlag == "") {
+                jAlert("Ensure Product/ Service Flag", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var prodservflag = "";
+            if ($scope.OBFProdServiceFlag == "P") {
+                prodservflag = "Product";
+            }
+            else if ($scope.OBFProdServiceFlag == "S") {
+                prodservflag = "Service";
+            }
+            if ($scope.ChildProductGroupGid == null || $scope.ChildProductGroupGid == 0 || $scope.ChildProductGroupGid == "0" || $scope.ChildProductGroupGid == "") {
+                jAlert("Ensure " + prodservflag + " Group", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            if ($scope.ChildProductGid == null || $scope.ChildProductGid == 0 || $scope.ChildProductGid == "0" || $scope.ChildProductGid == "") {
+                jAlert("Ensure " + prodservflag + " Name", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            var objOBFDetails = {
+                "OBFDetailGid": $scope.OBFDetailGidEdit,
+                "CC": $scope.CC,
+                "BudgetLine": $scope.BudgetLine,
+                "SupplierGid": supgid,
+                "OBFGid": $scope.OBFGid,
+                "OBFJustification": $scope.OBFJustification,
+                "OBFDescription": $scope.OBFDescription,
+                "OBFProductGroupGid": $scope.ChildProductGroupGid,
+                "OBFProductGid": $scope.ChildProductGid,
+                "OBFProductDesc": $scope.ProdDesc
+            };
+            var getData = vsservice.UpdateOBFDetailsPAR(objOBFDetails);
+            getData.then(function (response) {
+                var ErrorMsg1 = response.data.ErrorMsg;
+                if (ErrorMsg1 == "1") {
+                    jAlert("Error While Save Details", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    var Data0 = "";
+                    Data0 = JSON.parse(response.data.data0);
+                    $scope.myapprovals = Data0;
+                    $scope.FilteredItemsQ = $scope.myapprovals.length;
+                    jAlert("OBF Detail Updated Successfully", "Success", function () {
+                        objADDWOParent.dialog("close");
+                        $("#divVSPR").css("display", "none");
+                    });
+                }
+            }, function () {
+                alert('Error in adding record');
+            });
+        }
+        $scope.CloseChildDialog = function () {
+            objADDWOParent.dialog("close");
+            $("#divVSPR").css("display", "none");
+        }
+        $scope.SubmitOBFDetails = function () {
+            if ($scope.OBFRequestFor == 'IT') {
+                if ($scope.OBFITType == null || $scope.OBFITType == "") {
+                    jAlert("Ensure Request For Type (Application/Infrastructure)", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+            }
+            else {
+                $scope.OBFITType = "";
+            }
+            var obfgid = $scope.OBFGid;
+            $.ajax({
+                url: '@Url.Action("CheckProductExists", "Print")?obfgid=' + obfgid + '&' + new Date().getTime(),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (response) {
+                    var Data0 = "";
+                    var ErrorMsg1 = response.ErrorMsg;
+                    if (ErrorMsg1 == "1") {
+                        jAlert("Error While Validate OBF Details", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else if (ErrorMsg1 == "404") {
+                        jAlert("Invalid OBF Details", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else if (ErrorMsg1 == "0") {
+                        Data0 = response.data0;
+                        if (Data0 == "-1") {
+                            jAlert("Invalid OBF Details", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else if (parseInt(Data0) > 0) {
+                            jAlert("Ensure Product/Service in all rows.[" + Data0 + " Row(s) Remaining]", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else if (parseInt(Data0) == 0) {
+                            var objOBFDetails = {
+                                "OBFGid": $scope.OBFGid,
+                                "OBFJustification": $scope.OBFJustification,
+                                "OBFDescription": $scope.OBFDescription,
+                                "OBFITType": $scope.OBFITType
+                            };
+                            var getData = vsservice.SubmitOBFDetailsPAR(objOBFDetails);
+                            getData.then(function (response) {
+                                var ErrorMsg1 = response.data.ErrorMsg;
+                                if (ErrorMsg1 == "1") {
+                                    jAlert("Error While Save Details", "Error", function () {
+                                        return false;
+                                    });
+                                }
+                                else {
+                                    jAlert("OBF Submitted Successfully", "Success", function () {
+                                        location = '@Url.Action("VendorSelectionOpex", "Print")?' + new Date().getTime();
+                                    });
+                                }
+                            }, function () {
+                                alert('Error in adding record');
+                            });
+                        }
+                    }
+                }
+            }, function () {
+                alert('Error in adding record');
+                return false;
+            });
+
+        }
+    });
+    queryApp.filter('Pagestart', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        }
+    });
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+        return true;
+    }
+    
+</script>

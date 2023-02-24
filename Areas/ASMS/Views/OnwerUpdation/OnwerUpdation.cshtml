@@ -1,0 +1,338 @@
+﻿@model IEM.Areas.ASMS.Models.SEModel
+@using IEM.Areas.ASMS.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Owner Updation</span>
+</div>
+<div class="well">
+
+    <table class="myTableStyleTabNew" width="100%" style="margin-top:10px;">
+        <tr>
+            <td align="left" style="width:99%; padding:10px;color:Background;font-size:medium;" class="panel panel-default">Bulk Updation</td>
+        </tr>
+        <tr>
+            <td class="panel panel-default" style="width:100%">
+                <table class="myTableStyleTabNew" width="100%">
+                    <tr>
+                        <td style="width:35%">
+                            <span>Select updation file</span><br />
+                            <form id="theuploadformOwner">
+                                <input class="fileuploadlocal fstextbox" id="fileuploadlocal" name="fileuploadlocal" type="file" accept=".xlsx,.xls">
+                            </form>
+                        </td>
+                        <td style="width:20%">
+                            <span>Select Sheet</span>
+                            <br />
+                            @Html.DropDownListFor(model => model.SheetName, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "form-control", @id = "ddlSelectsheet1", @name = "ddlSelectsheet1" })
+                        </td>
+                        <td style="width:25%">
+                            <button id="btnfrstsubmit" class="btn btn-primary" value="Upload" onclick="uploadOwner()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload</button>
+                            <button id="btncanpayclear" class="btn btn-primary" value="Upload" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                        <td style="width:20%; text-align:right;">
+                            <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-download"></span> Download Template</button>
+                            @*<a class="btn" data-modal="" href="../OnwerUpdation/samdownloadsexcel" id="DownloadTemplate">
+                                    Download Template
+                                </a>*@
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+    <table class="myTableStyleTabNew" width="100%" style="margin-top:20px;">
+        <tr>
+            <td align="left" style="width:99%; padding:10px;color:Background;font-size:medium;" class="panel panel-default">Manual Updation</td>
+        </tr>
+        <tr>
+            <td class="panel panel-default" style="width:100%">
+                <table class="myTableStyleTabNew" width="100%">
+                    <tr>
+                        <td style="width:100%">
+                            <table class="myTableStyleTabNew" width="100%">
+                                <tr>
+                                    <td style="width:22%">
+                                        <span>Supplier Code</span><br />
+                                        <input type="hidden" id="SessionSupGid" name="SessionSupGid" />
+                                        <input type="text" class="fstextbox " disabled name="txtsupID" id="txtsupID" value="" />
+                                    </td>
+                                    <td style="width:3%">
+                                        <a onclick="GetSupplier()" id="btnEmployeeSearchHeader"><span class="glyphicon glyphicon-search" style="margin-top: 25px;"></span></a>
+                                    </td>
+                                    <td style="width:25%">
+                                        <span>Supplier Name</span><br />
+                                        <input type="text" class="fstextbox " disabled name="txtsupName" id="txtsupName" value="" />
+                                    </td>
+                                    <td style="width:22%">
+                                        <span>Owner Code</span><br />
+                                        <input type="hidden" id="SessionOwnerGid" name="SessionOwnerGid" />
+                                        <input type="text" class="fstextbox " disabled name="txtOwnerID" id="txtOwnerID" value="" />
+                                    </td>
+                                    <td style="width:3%">
+                                        <a onclick="GetOwner()" id="btnEmployeeSearchHeader"><span class="glyphicon glyphicon-search" style="margin-top: 25px;"></span></a>
+                                    </td>
+                                    <td style="width:25%">
+                                        <span>Owner Name</span><br />
+                                        <input type="text" class="fstextbox " disabled name="txtOwnerName" id="txtOwnerName" value="" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:100%; text-align:right;">
+                            <button id="btnupdate" class="btn btn-primary" value="Upload" onclick="updateOnwer()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Update</button>
+                            <button id="btnclear" class="btn btn-primary" value="Upload"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div id="uploadSummaryViewID"></div>
+</div>
+
+<script>
+    var objDialog;
+    $(document).ready(function () {
+        objDialog = $("[id$='uploadSummaryViewID']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 750,
+            height: 550,
+            duration:300
+        });
+    });
+
+    function updateOnwer() {
+        var owngid = $("#SessionOwnerGid").val();
+        var supgid = $("#SessionSupGid").val();
+        // $("#txtOwnerID").val(empcode);
+        //  $("#txtOwnerName").val(empname);
+        // $("#txtsupID").val(supcode);
+        // $("#txtsupName").val(supname);});
+        showProgress();
+        var model = {
+            "_OwnerId": owngid
+            , "_HeaderID": supgid
+        };
+        $.post('../OnwerUpdation/UpdateOwnerManual', model,
+        function (data) {
+
+            if (data == "success") {
+                hideProgress();
+                jAlert("Record updated Successfully!!", "Message", function (r) {
+                    if (r == true) {
+                        location = '../OnwerUpdation/OnwerUpdation';
+                    }
+                });
+
+            }
+            else {
+                hideProgress();
+                jAlert("Update not Done!!", "Message", function (r) {
+                    if (r == true) {
+                        return false;
+                    }
+                }); return false;
+            }
+        }, 'json');
+
+    }
+
+    $('#btncanpayclear').click(function () {
+        location = '../OnwerUpdation/OnwerUpdation';
+    });
+
+
+    $('#btnclear').click(function () {
+        $("#txtsupID").val('');
+        $("#txtsupName").val('');
+        $("#txtOwnerID").val('');
+        $("#txtOwnerName").val('');
+    });
+
+    function uploadOwner() {
+        if ($("#fileuploadlocal").val() == null || $("#fileuploadlocal").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+        }
+        var sheet = $("#ddlSelectsheet1 option:selected").text();
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please select sheet", "Message");
+            $("#ddlSelectsheet1").focus();
+            return false;
+        }
+        else {
+            var objsheet =
+                 {
+                     "SheetName": sheet
+                 };
+            showProgress();
+            $.ajax({
+                url: "../OnwerUpdation/Localconveyancestatuserr",
+                type: 'POST',
+                cache: false,
+                async: false,
+                data: objsheet,
+                success: function (data) {
+                    if (data == "Success") {
+                        hideProgress();
+                        // alert(data);
+                        $("#fileuploadlocal").val("");
+                        $("#theuploadformOwner").val('');
+                        @*var url = '@Url.Action("Uploadstatus", "OnwerUpdation")?ddlSelectsheet=' ;*@
+                        objDialog.load("../OnwerUpdation/Uploadstatus?ddlSelectsheet=" + sheet + '&' + new Date().getTime());
+                        objDialog.dialog({ title: 'Upload Summary' });
+                        objDialog.dialog("open");
+
+                    }
+                    else {
+                        hideProgress();
+                        jAlert("Invalid template." + "\n\t\t" + "   Please refer template.", "Message");
+                        $("#fileuploadlocal").val("")
+                        return false;
+                    }
+                },
+                error: function () {
+                    hideProgress();
+                    jAlert("Please refer template.", "Message");
+                    $("#fileuploadlocal").val("")
+                    return false;
+                }
+            });
+        }
+    }
+    $("#ddlSelectsheet1").keyup(function () {
+        var txtContractFrom = $("#ddlSelectsheet1 option:selected").text();
+        if (txtContractFrom.trim() != "--Select--") {
+            $("#ddlSelectsheet1").removeClass('required');
+            $("#ddlSelectsheet1").addClass('valid');
+        }
+        else {
+            $("#ddlSelectsheet1").removeClass('valid');
+            $("#ddlSelectsheet1").addClass('required');
+        }
+    });
+    $("#ddlSelectsheet1").change(function () {
+        var txtContractFrom = $("#ddlSelectsheet1 option:selected").text();
+        if (txtContractFrom.trim() != "--Select--") {
+            $("#ddlSelectsheet1").removeClass('required');
+            $("#ddlSelectsheet1").addClass('valid');
+        }
+        else {
+            $("#ddlSelectsheet1").removeClass('valid');
+            $("#ddlSelectsheet1").addClass('required');
+        }
+    });
+
+    function GetOwner() {
+        objDialog.load('../OnwerUpdation/SearchEmployee?listfor=new&formname=owner&' + new Date().getTime());
+        objDialog.dialog({ title: 'Owner List' });
+        objDialog.dialog("open");
+    }
+    function GetSupplier() {
+        objDialog.load('../OnwerUpdation/SearchSupplier?listfor=new&' + new Date().getTime());
+        objDialog.dialog({ title: 'Supplier Name List' });
+        objDialog.dialog("open");
+    }
+
+
+    $('#fileuploadlocal').on('change', function (e) {
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#theuploadformOwner');
+        form.attr("action", "../OnwerUpdation/UploadFilesnew");
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe");
+        form.attr("file", $('#fileuploadlocal').val());
+        form.submit();
+        getsheets();
+    });
+
+    function getsheets() {
+        // alert('fff');
+        var data = "fff";
+        showProgress();
+        $.ajax({
+            type: "POST",
+            url: '../OnwerUpdation/UploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                hideProgress();
+                $("#ddlSelectsheet1").empty();
+                $("#ddlSelectsheet1").append("<option value='0' >--Select--</option>");
+                var err = result[0].SheetName;
+                if (err == "Error") {
+                    jAlert("Please Upload Valid File", "Message");
+                    return false;
+                }
+                else {
+                    hideProgress();
+                    if (result.length > 0) {
+                        for (var i = 0; i < result.length; i++) {
+                            var stylesSelect = $('#ddlSelectsheet1');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlSelectsheet1").append("<option value=" + result[i].SheetId + " >" + result[i].SheetName + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSelectsheet1');
+                        stylesSelect.attr('disabled', true);
+                    }
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+                hideProgress();
+                var err = "Error " + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                console.log(err);
+            }
+        });
+    }
+
+    function SelectEmployee(element, id) {
+        var row = $(element).closest('tr');
+        var empgid = row.find('td:eq(0)').text();
+        var empcode = row.find('td:eq(2)').text();
+        var empname = row.find('td:eq(3)').text();
+        $("#SessionOwnerGid").val(empgid);
+        $("#txtOwnerID").val(empcode);
+        $("#txtOwnerName").val(empname);
+        window.parent.jQuery("#uploadSummaryViewID").dialog('close');
+    }
+    function SelectSupplier(element, id) {
+
+        var row = $(element).closest('tr');
+        var supgid = row.find('td:eq(0)').text();
+        var empcode = row.find('td:eq(1)').text();
+        var empname = row.find('td:eq(2)').text();
+        var empgid = row.find('td:eq(3)').text();
+        var supcode = row.find('td:eq(5)').text();
+        var supname = row.find('td:eq(6)').text();
+        //   alert(supcode);
+        $("#SessionOwnerGid").val(empgid);
+        $("#SessionSupGid").val(supgid);
+        $("#txtOwnerID").val(empcode);
+        $("#txtOwnerName").val(empname);
+        $("#txtsupID").val(supcode);
+        $("#txtsupName").val(supname);
+        window.parent.jQuery("#uploadSummaryViewID").dialog('close');
+        // window.parent.jQuery("#ForPartialView1").remove();
+    }
+    function Download() {
+        location = "../OnwerUpdation/samdownloadsexcel";
+    }
+</script>

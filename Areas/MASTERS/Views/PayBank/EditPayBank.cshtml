@@ -1,0 +1,332 @@
+﻿@model IEM.Areas.MASTERS.Models.PayBankDataModel
+@{
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span>Bank Name</span>
+                <br />
+                @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.BankName, "-----Select-----", new { @class = "textboxStyle valid", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "BankNameId", @Name = "BankName" })
+
+            </td>
+            <td>
+                <span>PayBank Acc No</span>
+                <br />
+                <input type="text"
+                       name="PayBankAccNo"
+                       id="PayBankAccNoId"
+                       value="@ViewBag.PayBankAccNo"
+                       class="textboxStyle valid"
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>PayBank IfSC Code</span>
+                <br />
+                <input type="text"
+                       name="PayBankIfSCCode"
+                       id="PayBankIfSCCodeId"
+                       value="@ViewBag.PayBankIfSCCode"
+                       class="textboxStyle valid"
+                       style="width: 200px;" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>PayBank Branch Name</span>
+                <br />
+                <input type="text"
+                       name="PayBankBranchName"
+                       id="PayBankBranchNameId"
+                       value="@ViewBag.PayBankBranchName"
+                       class="textboxStyle valid"
+                       style="width: 200px;" />
+            </td>
+            <td>
+                <span>PayBank GL No</span>
+                <br />
+                @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.BankGLNO, "-----Select-----", new { @class = "textboxStyle valid", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "BankGLNOId", @Name = "BankStatus" })
+            </td>
+            <td>
+                <span>Bank Status</span>
+                <br />
+                @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.BankStatus, "-----Select-----", new { @class = "textboxStyle valid", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "BankStatusId", @Name = "BankStatus" })
+            </td>
+        </tr>
+        <tr>
+            <td style="width:10%;">
+                <span>PayBank Period From</span>
+                <br />
+                <input type="text"
+                       id="RecivedDateFrom"
+                       name="RecivedDateFrom"
+                       value="@ViewBag.RecivedDateFrom"
+                       class="textboxStyle"
+                       style="width: 200px;" />
+            </td>
+            <td style="width:10%;">
+                <span>PayBank Period To</span>
+                <br />
+                <input type="text"
+                       id="RecivedDateTo"
+                       name="RecivedDateTo"
+                       value="@ViewBag.RecivedDateTo"
+                       class="textboxStyle"
+                       style="width: 200px;" />
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" disabled="disabled" class="btn btn-primary" value="Save" onclick="EditPayBank()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+}
+
+<div id="ForPartialViewcentral"></div>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        CheckFieldsHeader();
+
+        $("#RecivedDateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+
+                var dt = $('#RecivedDateFrom').val();
+                var dt1 = $('#RecivedDateTo').val();
+                $("#RecivedDateFrom").addClass('valid');
+                $("#RecivedDateTo").datepicker("option", "minDate", selected)
+            }
+        })
+        $("#RecivedDateTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                var dt = $('#RecivedDateFrom').val();
+                var dt1 = $('#RecivedDateTo').val();
+                $("#RecivedDateTo").addClass('valid');
+            }
+        });
+        //$("#RecivedDateFrom").change(function () {
+        //    var txtContractTo = $("#RecivedDateFrom").val();
+        //    if (txtContractTo.trim() != "") {
+
+        //        $("#RecivedDateFrom").removeClass('required');
+        //        $("#RecivedDateFrom").addClass('valid');
+        //        CheckFieldsHeader();
+        //    }
+        //    else {
+
+        //        $("#RecivedDateFrom").removeClass('valid');
+        //        $("#RecivedDateFrom").addClass('required');
+        //        CheckFieldsHeader();
+        //    }
+        //});
+        //$("#RecivedDateTo").change(function () {
+        //    var txtContractTo = $("#RecivedDateTo").val();
+        //    if (txtContractTo.trim() != "") {
+
+        //        $("#RecivedDateTo").removeClass('required');
+        //        $("#RecivedDateTo").addClass('valid');
+        //        CheckFieldsHeader();
+        //    }
+        //    else {
+
+        //        $("#RecivedDateTo").removeClass('valid');
+        //        $("#RecivedDateTo").addClass('required');
+        //        CheckFieldsHeader();
+        //    }
+        //});
+        $("#BankNameId").change(function () {
+            var txtContractTo = $("#BankNameId").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#BankNameId").removeClass('required');
+                $("#BankNameId").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#BankNameId").removeClass('valid');
+                $("#BankNameId").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+        $("#BankStatusId").change(function () {
+            var txtContractTo = $("#BankStatusId").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#BankStatusId").removeClass('required');
+                $("#BankStatusId").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#BankStatusId").removeClass('valid');
+                $("#BankStatusId").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+        $("#PayBankAccNoId").keyup(function () {
+            var txtContractTo = $("#PayBankAccNoId").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#PayBankAccNoId").removeClass('required');
+                $("#PayBankAccNoId").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#PayBankAccNoId").removeClass('valid');
+                $("#PayBankAccNoId").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+        $("#PayBankBranchNameId").keyup(function () {
+            var txtContractTo = $("#PayBankBranchNameId").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#PayBankBranchNameId").removeClass('required');
+                $("#PayBankBranchNameId").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#PayBankBranchNameId").removeClass('valid');
+                $("#PayBankBranchNameId").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+        $("#PayBankIfSCCodeId").keyup(function () {
+            var txtContractTo = $("#PayBankIfSCCodeId").val();
+            if (txtContractTo.trim() != "") {
+
+                $("#PayBankIfSCCodeId").removeClass('required');
+                $("#PayBankIfSCCodeId").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+
+                $("#PayBankIfSCCodeId").removeClass('valid');
+                $("#PayBankIfSCCodeId").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+    $("#BankGLNOId").change(function () {
+        var txtContractTo = $("#BankGLNOId").val();
+        if (txtContractTo.trim() != "") {
+
+            $("#BankGLNOId").removeClass('required');
+            $("#BankGLNOId").addClass('valid');
+            CheckFieldsHeader();
+        }
+        else {
+
+            $("#BankGLNOId").removeClass('valid');
+            $("#BankGLNOId").addClass('required');
+            CheckFieldsHeader();
+        }
+    });
+    $("#txtinvoice, #txtraisercode").keypress(function (event) {
+        return isNumber(event);
+    });
+    $("#txtraisername").keypress(function (event) {
+        return isAlphabet(event);
+    });
+    $("#txtsuppliercode", "#txtSuppliername", "#txtDepartment", "#txtInvoiceNo", "#txtPONO").keypress(function (event) {
+        return isAlphaNumeric(event);
+    });
+    $("#RecivedDateFrom", "#RecivedDateTo", "#txtInvoiceDate").keypress(function (event) {
+        return isDate(event);
+    });
+
+    function EditPayBank() {
+        var Bankid = $("#BankNameId option:selected").val();
+        var paybankname = $("#BankNameId option:selected").text();
+        var AccNo = $("#PayBankAccNoId").val();
+        var Bankifscccode = $("#PayBankIfSCCodeId").val();
+        var Branchname = $("#PayBankBranchNameId").val();
+        var bankglno = $("#BankGLNOId option:selected").text();
+        var bankstatus = $("#BankStatusId option:selected").text();
+        var Payperiodfrom = $("#RecivedDateFrom").val();
+        var payperiodto = $("#RecivedDateTo").val();
+        var Student = {
+            "BankGid": Bankid,
+            "BankName": paybankname,
+            "PayBankAcNo": AccNo,
+            "PayBankIfscCode": Bankifscccode,
+            "PayBankBranchName": Branchname,
+            "PayBankGlNo": bankglno,
+            "PeriodFrom": Payperiodfrom,
+            "PeriodTo": payperiodto,
+            "PayBankStatus": bankstatus
+        };
+        $.ajax({
+            url: '../PayBank/EditPayBank',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location.reload();
+                    }
+                });
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#PayBankPopUp').dialog('close');
+        objectpaybank.remove();
+    }
+    function CheckFieldsHeader() {
+        var ErrCount = 0;
+        if ($("#BankNameId").val() == "" || $("#BankNameId").val() == null) {
+            ErrCount = 1;
+        }
+        if ($("#PayBankAccNoId").val() == "" || $("#PayBankAccNoId").val() == null) {
+            ErrCount = 2;
+        }
+        if ($("#PayBankIfSCCodeId").val() == "" || $("#PayBankIfSCCodeId").val() == null) {
+            ErrCount = 3;
+        }
+        if ($("#BankGLNOId").val() == "" || $("#BankGLNOId").val() == null) {
+            ErrCount = 5;
+        }
+        if ($("#PayBankBranchNameId").val() == "" || $("#PayBankBranchNameId").val() == null) {
+            ErrCount = 6;
+        }
+        if ($("#BankStatusId").val() == "" || $("#BankStatusId").val() == null) {
+            ErrCount = 7;
+        }
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+</script>

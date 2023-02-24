@@ -1,0 +1,637 @@
+﻿ 
+@using IEM.Models
+@{ 
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (Session["Ecfdeclaratonnote"] != null)
+    {
+        ViewBag.decnote = Session["Ecfdeclaratonnote"].ToString();
+    }
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    var currentTab = 0;
+    $(function () {
+        $("#tabsmaintravel").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Supplier Invoice</span>
+</div>
+<div class="well" style=" padding-top: 10px;">
+    <div id="processworking">
+        <input type="hidden" id="ecfamomtssessionlocal" value="@Session["Ecfamountsupplier"]" />
+        <div id="tabsmaintravel" style="font-size: 12px;">
+            <ul>
+                @*GST Phase 3*@
+                @if (@ViewBag.processdata == "first")
+                {
+                    <li><a href="#tabsmainCygnet-1">Invoice Search</a></li>
+                }
+                @if (@ViewBag.processdatasec == "first")
+                {
+                     <li><a href="#tabsmaintravel-4">ECF Header</a></li>
+                    <li><a href="#tabsmaintravel-1">Invoice Summary</a></li>
+                    <li><a href="#tabsmaintravel-2">Attachment</a></li>
+                    if (Session["QueueGide"].ToString() != "")
+                    {
+                        <li><a href="#tabsmaintravel-3">Audit Trail</a></li>
+                    }
+                }
+            </ul>
+
+            @if (@ViewBag.processdata == "first")
+            {
+                <div id="tabsmainCygnet-1" style="padding: 10px 4px 3px 15px"> 
+                    @Html.Partial("_CygnetSearch_Supplier")                    
+                </div>
+            }
+            @if (@ViewBag.processdatasec == "first")
+            {
+                  <div id="tabsmaintravel-4" style="padding: 10px 4px 3px 15px">
+                    @Html.Partial("_supplierFrist")
+                </div>
+                <div id="tabsmaintravel-1" style="padding: 10px 4px 3px 15px">
+                    @Html.Partial("_suppliersummary")
+                </div>
+                <div id="tabsmaintravel-2" style="padding: 10px 4px 3px 15px">
+                    @Html.Partial("_supplierAttachment")
+                </div>
+                if (Session["QueueGide"].ToString() != "")
+                {
+                    <div id="tabsmaintravel-3" style="padding: 10px 4px 3px 15px">
+                        @Html.Partial("_EmpAuditTraileall")
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    @if (@ViewBag.processdatasec == "first")
+    {
+
+        <div id="processworkingdatanew">
+
+            <br /><br />
+            <div id="processworkingdatanew" style=" width: 100%;">
+                <table align="left" style="margin-top:5px;width:100%;" class="myTableStyleTabNew">
+                    <tr>
+                        <td>
+                            <span><b>Remarks</b></span>
+                            <br />
+                            @*length fixed by selva*@
+                            <textarea id="txtempRemarks" style="width: 60%; height:60px;" maxlength="255" class="textboxStyle">@ViewBag.ecfrmarks</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span><b>Declaration Note</b></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td style="vertical-align:middle;"><input type="checkbox" id="comfirm" /></td>
+                                    <td style="vertical-align:middle;"><label id="lbldecnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <table class="myTableStyleTabNew" align="center">
+                    <tr>
+                        <td>
+                            <button type="button" id="btnSubmitfinal" class="btn btn-success" value="Submit" onclick="SaveSubmitfinal()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                            @if (Session["QueueGide"].ToString() != "")
+                            {
+                                <button type="button" id="btnCancelfinaldash" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinalddash()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                            }
+                            else
+                            {
+                                <button type="button" id="btnDraftfinal" value="Save" class="btn btn-primary" onclick="SaveDraftfinal()"><span class="glyphicon glyphicon-briefcase" style="color:white;font-size: small;"></span> Draft</button>
+                                <button type="button" id="btnCancelfinal" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinal()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                            }
+                        </td>
+                    </tr>
+                </table>
+
+                @*<table>
+                        <tr>
+                            <td>
+                                <span><b>Remarks</b></span><br />
+                                <textarea id="txtempRemarks" style="width: 60%; height:60px;" class="textboxStyle">@ViewBag.ecfrmarks</textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <br />
+                                <span><b>Declaration Note</b></span><br />
+                                <table>
+                                    <tr>
+                                        <td valign="top">&nbsp;&nbsp;<input type="checkbox" id="comfirm" /></td>
+                                        <td align="left">  &nbsp;&nbsp;<label id="lbldecnote" style="font-weight:normal">@ViewBag.decnote</label></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 11px;" align="right" colspan="3">
+                                <button type="button" id="btnSubmitfinal" class="btn btn-success" value="Submit" onclick="SaveSubmitfinal()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Submit</button>
+                                @if (Session["QueueGide"].ToString() != "")
+                                {
+                                    <button type="button" id="btnCancelfinaldash" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinalddash()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                }
+                                else
+                                {
+                                    <button type="button" id="btnDraftfinal" value="Save" class="btn btn-primary" onclick="SaveDraftfinal()"><span class="glyphicon glyphicon-briefcase" style="color:white;font-size: small;"></span> Draft</button>
+                                    <button type="button" id="btnCancelfinal" value="Cancel" class="btn btn-warning" onclick="SaveCancelfinal()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                                }
+                            </td>
+                        </tr>
+                    </table>*@
+            </div>
+        </div>
+        if (Session["activetabrsi"] != null)
+        {
+            <div>
+                <input type="hidden" id="hdnactivetabfirsta" value="@Session["activetabrsi"]" />
+            </div>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var tabda = $("#hdnactivetabfirsta").val();
+                    jQuery("#tabsmaintravel").tabs("option", "selected", [tabda]);
+                });
+            </script>
+        }
+    }
+    else
+    {
+        <div>
+
+            @if (@ViewBag.message != null)
+            {
+                <script language="javascript">
+                    jAlert('@ViewBag.message', "Message");
+                    hideProgress();
+                </script>
+            }
+            else
+            {
+                <div>
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            hideProgress();
+                        });
+                    </script>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+<div id="ForPartialViewpolicypopup"></div>
+<div id="ForPartialViewpolicypopupcre"></div>
+<div id="ForPartialViewlastthreemontth"></div>
+<div id="ForPartialViewnewinvoices"></div>
+<script>
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+
+    $(document).ready(function () {
+        $("#txtempRemarks").keyup(function () {
+            var txtecfremarkh = $("#txtempRemarks").val();
+            $("#txtecfremarkh").val(txtecfremarkh);
+        });
+    });
+    var objnewinvoices;
+    $(document).ready(function () {
+        objnewinvoices = $("[id$='ForPartialViewnewinvoices']");
+        objnewinvoices.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'Add New Invoice ',
+            width: '95%',
+            height: 730,
+            open: function (event, ui) {
+                $('.ui-dialog').css('z-index', 1003);
+                $('.ui-widget-overlay').css('z-index', 1002);
+            }
+        });
+    });
+    var objlastthreemontth;
+    $(document).ready(function () {
+        objlastthreemontth = $("[id$='ForPartialViewlastthreemontth']");
+        objlastthreemontth.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'Last Three Month Invoice ',
+            width: 1100,
+            height: 500,
+            open: function (event, ui) {
+                $('.ui-dialog').css('z-index', 1003);
+                $('.ui-widget-overlay').css('z-index', 1002);
+            }
+        });
+    });
+    var objDialogpolicypopup;
+    $(document).ready(function () {
+        objDialogpolicypopup = $("[id$='ForPartialViewpolicypopup']");
+        objDialogpolicypopup.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'PPX ',
+            width: 950,
+            height: 400,
+            open: function (event, ui) {
+                $('.ui-dialog').css('z-index', 1003);
+                $('.ui-widget-overlay').css('z-index', 1002);
+            }
+
+        });
+
+    });
+
+    var objDialogpolicypopupce;
+    $(document).ready(function () {
+        objDialogpolicypopupce = $("[id$='ForPartialViewpolicypopupcre']");
+        objDialogpolicypopupce.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'PPX ',
+            width: 860,
+            height: 400,
+            open: function (event, ui) {
+                $('.ui-dialog').css('z-index', 1003);
+                $('.ui-widget-overlay').css('z-index', 1002);
+            }
+
+        });
+
+    });
+
+    function SaveCancelfinalddash() {
+
+        @*window.location.href = '@Url.Action("index", "DashBoard")';*@
+        window.localStorage.previousurlflag = "-1";
+        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+
+    }
+    function SaveSubmitfinal() {
+
+        $('#btnSubmitfinal').attr('disabled', true);
+        //var txtecfamontnew = $("#txtecfamont").val();
+        //var Ecfinvtolamt = $("#suppliertolamt").text();
+
+        var txtecfamontnew = $("#txtecfamont").val().replace(/,/g, "");
+        var Ecfinvtolamt = $("#suppliertolamt").text().replace(/,/g, "");
+
+        if (txtecfamontnew.toString().trim() != Ecfinvtolamt.toString().trim()) {
+            $('#btnSubmitfinal').attr('disabled', false);
+            jAlert('Please Check Invoice Total Amount Or ECF Amount : The Invoice Total Amount Should Be Equal To ECF Amount', "Message");
+            return false;
+        }
+        var status = $('#comfirm').is(':checked');
+        if (status == false) {
+            $('#btnSubmitfinal').attr('disabled', false);
+            jAlert("Please select the Declaration Note", "Message");
+            return false;
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("CheckWithCBF", "SupplierInvoiceNew")?' + new Date().getTime(),
+                dataType: "json",
+                cache: false,
+                async: false,
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    if (data == "0") {
+                        jAlert("Error While Validate Total Amount With CBF Amount", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else if (data == "404") {
+                        jAlert("Error While Validating Invoice Amount With CBF Amount", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else if (data != "VALID") {
+                        jConfirm(data, "Warning", function (u) {
+                            if (u == true) {
+                                jConfirm("Do you want to Submit This ECF...? ", "Message", function (u) {
+                                    if (u == true) {
+                                        showProgress();
+                                        var empRemarks = $("#txtempRemarks").val();
+                                        if (empRemarks == '' || empRemarks == null) {
+                                            empRemarks = " ";
+                                        }
+                                        var txtecfamont = $("#txtecfamont").val().replace(/,/g, "");
+                                        var txtecfdates = $("#txtecfdates").val();
+                                        var doctypeNames = $("#doctypeNames").val();
+                                        var potypes = $("#doctypeNames option:selected").text();
+                                        var currencyNames = $("#currencyNames").val();
+                                        var txtecfcurramount = $("#txtecfcurramount").val();
+                                        var CurrencyNamevalid = $("#CurrencyNamevalid").val();
+                                        var CurrencyExrate = $("#txtexrate").val();
+                                        var ecfDescriptionid = $("#txtecfdescription").val();
+
+                                        var NewAttmodel = {
+                                            "ecfremark": empRemarks,
+                                            "CurrencyId": currencyNames,
+                                            "ecfdescription": ecfDescriptionid,
+                                            "CurrencyName": CurrencyNamevalid,
+                                            "DocId": doctypeNames,
+                                            "DocName": potypes,
+                                            "Exrate": CurrencyExrate,
+                                            "ECF_Date": txtecfdates,
+                                            "Currencyamount": txtecfcurramount,
+                                            "ECF_Amount": txtecfamont
+                                        };
+                                        $.post('../SupplierInvoiceNew/_SupplierECFCreate', NewAttmodel,
+                                        function (data) {
+                                            if (data == "ECF") {
+                                                hideProgress();
+                                                $('#btnSubmitfinal').attr('disabled', false);
+                                                jAlert('Please Check Invoice Total Amount Or ECF Amount : The Invoice Total Amount Should Be Equal To ECF Amount', "Message");
+                                                return false;
+                                            }
+                                            else if (data == "BankAcc") {
+                                                hideProgress();
+                                                $('#btnSubmitfinal').attr('disabled', false);
+                                                jAlert('Please Check Bank Details - Bank Details are not Updated Properly', "Message");
+                                                return false;
+                                            }
+                                            else if (data == "DebitLine") {
+                                                hideProgress();
+                                                jAlert("Please Check DebitLine Details : The DebitLine Total Amount Should Be Equal To ECF Amount", "Message");
+                                                return false;
+                                            }
+                                            else if (data == "Pomapped") {
+                                                hideProgress();
+                                                jAlert("Please Check PO Mapped Details : The Total PO Mapped Amount Should Be Equal To ECF Amount", "Message");
+                                                return false;
+                                            }
+                                            else if (data == "Error") {
+                                                hideProgress();
+                                                $('#btnSubmitfinal').attr('disabled', false);
+                                                jAlert('Error..........', "Message");
+                                                return false;
+                                            }
+                                            else if (data == "Delmat") {
+                                                hideProgress();
+                                                $('#btnSubmitfinal').attr('disabled', false);
+                                                jAlert("Delmat has not been created.Contact functional IEM SPOC", "Message");
+                                                return false;
+                                            }
+                                            else {
+                                                hideProgress();
+                                                jAlert(data, "Message", function (u) {
+                                                    if (u == true) {
+                                                        @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                                                        window.localStorage.previousurlflag = "-1";
+                                                        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+
+                                                    }
+                                                });
+                                            }
+                                        }, 'json');
+                                    }
+                                    else {
+                                        hideProgress();
+                                        $('#btnSubmitfinal').attr('disabled', false);
+                                    }
+                                });
+                            }
+                            else {
+                                return false;
+                            }
+                        });
+                        //return false;
+                    }
+                    else if (data == "VALID") {
+                        jConfirm("Do you want to Submit This ECF...? ", "Message", function (u) {
+                            if (u == true) {
+                                showProgress();
+                                var empRemarks = $("#txtempRemarks").val();
+                                if (empRemarks == '' || empRemarks == null) {
+                                    empRemarks = ' ';
+                                }
+                                var txtecfamont = $("#txtecfamont").val().replace(/,/g, "");
+                                var txtecfdates = $("#txtecfdates").val();
+                                var doctypeNames = $("#doctypeNames").val();
+                                var potypes = $("#doctypeNames option:selected").text();
+                                var currencyNames = $("#currencyNames").val();
+                                var txtecfcurramount = $("#txtecfcurramount").val().replace(/,/g, "");
+                                var CurrencyNamevalid = $("#CurrencyNamevalid").val();
+                                var CurrencyExrate = $("#txtexrate").val();
+                                var ecfDescriptionid = $("#txtecfdescription").val();
+
+                                var NewAttmodel = {
+                                    "ecfremark": empRemarks,
+                                    "CurrencyId": currencyNames,
+                                    "ecfdescription": ecfDescriptionid,
+                                    "CurrencyName": CurrencyNamevalid,
+                                    "DocId": doctypeNames,
+                                    "DocName": potypes,
+                                    "Exrate": CurrencyExrate,
+                                    "ECF_Date": txtecfdates,
+                                    "Currencyamount": txtecfcurramount,
+                                    "ECF_Amount": txtecfamont
+                                };
+                                $.post('../SupplierInvoiceNew/_SupplierECFCreate', NewAttmodel,
+                                function (data) {
+                                    if (data == "ECF") {
+                                        hideProgress();
+                                        $('#btnSubmitfinal').attr('disabled', false);
+                                        jAlert('Please Check Invoice Total Amount Or ECF Amount : The Invoice Total Amount Should Be Equal To ECF Amount', "Message");
+                                        return false;
+                                    }
+                                    else if (data == "BankAcc") {
+                                        hideProgress();
+                                        $('#btnSubmitfinal').attr('disabled', false);
+                                        jAlert('Please Check Bank Details - Bank Details are not Updated Properly', "Message");
+                                        return false;
+                                    }
+                                    else if (data == "DebitLine") {
+                                        hideProgress();
+                                        jAlert("Please Check DebitLine Details : The DebitLine Total Amount Should Be Equal To ECF Amount", "Message");
+                                        return false;
+                                    }
+                                    else if (data == "Pomapped") {
+                                        hideProgress();
+                                        jAlert("Please Check PO Mapped Details : The Total PO Mapped Amount Should Be Equal To ECF Amount", "Message");
+                                        return false;
+                                    }
+                                    else if (data == "Error") {
+                                        hideProgress();
+                                        $('#btnSubmitfinal').attr('disabled', false);
+                                        jAlert('Error..........', "Message");
+                                        return false;
+                                    }
+                                    else if (data == "Delmat") {
+                                        hideProgress();
+                                        $('#btnSubmitfinal').attr('disabled', false);
+                                        jAlert("Delmat has not been created.Contact functional IEM SPOC", "Message");
+                                        return false;
+                                    }
+                                    else {
+                                        hideProgress();
+                                        jAlert(data, "Message", function (u) {
+                                            if (u == true) {
+                                                @*window.location.href = '@Url.Action("index", "DashBoard")?' + new Date().getTime();*@
+                                                window.localStorage.previousurlflag = "-1";
+                                                location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+
+                                            }
+                                        });
+                                    }
+                                }, 'json');
+                            }
+                            else {
+                                hideProgress();
+                                $('#btnSubmitfinal').attr('disabled', false);
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Error While Validating Invoice Amount With CBF Amount", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                },
+                error: function (data) {
+                    jAlert("Error While Delete PO", "Error", function () {
+                        return false;
+                    });
+                },
+                failure: function (data) {
+                    jAlert("Error While Delete PO", "Error", function () {
+                        return false;
+                    });
+                }
+            });
+
+
+        }
+    }
+    function SaveDraftfinal() {
+        jConfirm("Do you want to Save Draft Mode This ECF...? ", "Message", function (u) {
+            if (u == true) {
+                var empRemarks = $("#txtempRemarks").val();
+                if (empRemarks == '' || empRemarks == null) {
+                    empRemarks = ' ';
+                }
+                var NewAttmodel = {
+                    "ecfremark": empRemarks
+                };
+                $.post('../SupplierInvoiceNew/_EmpECFDraft', NewAttmodel,
+                function (data) {
+                    if (data == "Success") {
+                        @*window.location.href = '@Url.Action("index", "DashBoard")';*@
+                        window.localStorage.previousurlflag = "-1";
+                        location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+
+                    }
+                    else {
+                        alert('Error..........');
+                        return false;
+                    }
+                }, 'json');
+            }
+        });
+    }
+    function SaveCancelfinal() {
+        jConfirm("Do you want to Cancel This ECF...? ", "Message", function (u) {
+            if (u == true) {
+                //window.location = '../EmployeeClaimNew/index';
+                window.location.href = '@Url.Action("index", "SupplierInvoiceNew")';
+            }
+        });
+    }
+
+    function Selectsearch() {
+        //alert(1);
+        var empcode = $('#supcode').val();
+        var empname = $('#supname').val();
+        var objownersearch = {
+            "empName": empname,
+            "empCode": empcode
+        };
+        @*$.ajax({
+          type: 'POST',
+          url: '@Url.Action("SupplierSearchnew", "SupplierInvoiceNew")',
+          data: objownersearch,
+          success: function (data) {
+              var url = '@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime() + '&listfor=search';
+              $("#searchgrid").load(url);
+              //$("#searchgrid").load('../SupplierInvoiceNew/_Suppliersearch?listfor=search');
+          },
+          error: function () {
+          }
+      });*@
+        //$.post('~/EOW/SupplierInvoiceNew/SupplierSearchnew', objownersearch,
+
+        var url = "http://localhost:49187/EOW/supplierinvoicenew/suppliersearchnew";
+
+        @*var serverRoot = @System.Configuration.ConfigurationManager.AppSettings["ClientURL"]+"";
+        var url = serverRoot + "/SupplierInvoiceNew/SupplierSearchnew";*@
+
+        $.post(url, objownersearch,
+
+     function (data) {
+         debugger;
+         // var url = '@@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime() + '&listfor=search';
+          
+         //  var url = '@@Url.Action("_Suppliersearch", "SupplierInvoiceNew")?' + new Date().getTime() + '&listfor=search';
+         //var url = serverRoot+supplierinvoicenew/_Suppliersearch?listfor=search&"
+         var url = "http://localhost:49187/EOW/supplierinvoicenew/_Suppliersearch?listfor=search&";
+         //var url = "~/SupplierInvoiceNew/_Suppliersearch?listfor=search&";
+
+         $("#searchgrid").load(url);
+         //$("#searchgrid").load('../../SupplierInvoiceNew/_Suppliersearch?listfor=search&' + new Date().getTime());
+         setTimeout(function () {
+             $("#supname").val(empname);
+         }, 50);
+
+     }, 'json');
+
+    }
+</script>

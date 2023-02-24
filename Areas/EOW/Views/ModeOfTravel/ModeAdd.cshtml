@@ -1,0 +1,126 @@
+﻿@model  IEM.Areas.EOW.Models.ModeOfTravelEntity
+@{
+    ViewBag.Title = "Index";
+}
+@using (Html.BeginForm())
+{
+
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <span>Mode Of Travel </span>
+                    <br />
+                    <div>
+                        <input type="text"
+                               name="ModeOfTravel"
+                               id="ModeOfTravelIdAdd"
+                               value="@ViewBag.ModeOfTravel"
+                               class="textboxStyle required"
+                               maxlength="16"
+                               style="display: block;width:306px;" />
+                    </div>
+
+                </td>
+                </tr>
+            <tr>
+                <td>
+                    <input type="checkbox" id="chkid" class="chkclass" value="Distance/Rate" title="Distance/Rate" /><span style="padding-left:15px">Distance/Rate</span>
+                </td> 
+            </tr>
+        </table>
+        <br />
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="SaveMode()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+}
+<script>
+    $(document).ready(function () {
+
+        $(function () {
+            $("#ModeOfTravelIdAdd").focus();
+        });
+        if ($("#ModeOfTravelIdAdd").val() == "") {
+            $("#btnsave").attr("disabled", true);
+        }
+        else {
+            $("#btnsave").removeAttr('disabled');
+        }
+        $("#ModeOfTravelIdAdd").keyup(function () {
+            var txtContractTo = $("#ModeOfTravelIdAdd").val();
+            if (txtContractTo.trim() != "") {
+                $("#btnsave").removeAttr('disabled');
+                $("#ModeOfTravelIdAdd").removeClass('required');
+                $("#ModeOfTravelIdAdd").addClass('valid');
+            }
+            else {
+                $("#btnsave").attr("disabled", true);
+                $("#ModeOfTravelIdAdd").removeClass('valid');
+                $("#ModeOfTravelIdAdd").addClass('required');
+            }
+        });
+    });
+    function SaveMode() {
+
+        var travelflag;
+        var ModeOfTravel = $("#ModeOfTravelIdAdd").val();
+        if (ModeOfTravel == "" || ModeOfTravel == null)
+        {
+            jAlert("You Can't Add Empty Values", "Information");
+            return false;
+        }
+        if ($('#chkid').attr('checked'))
+        {
+            travelflag = 'Y';
+        }
+        else
+        {
+            travelflag = 'N';
+        }
+       
+        var Student = {
+            "ModeOfTravel": ModeOfTravel,
+            "ModeFlag": travelflag
+        };
+        $.ajax({
+            url: '../ModeOfTravel/ModeSubmit',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = '../ModeOfTravel/ModeIndex';
+                    }
+                });
+                //if (result == "Successfully Added")
+                //{
+                //    location.reload();
+                //}
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewMode').dialog('close');
+        $('#gridModeOfTravelid').find('tr').css('background', 'none');
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridModeOfTravelid').find('tr').css('background', 'none');
+    });
+    $("#ModeOfTravelIdAdd").keypress(function (event) {
+        return isAlphabet(event);
+    });
+   
+</script>

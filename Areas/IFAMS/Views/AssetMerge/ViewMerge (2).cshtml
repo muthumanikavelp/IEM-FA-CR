@@ -1,0 +1,203 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+@{
+    ViewBag.Title = "ViewMerge";
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(
+                       source: Model.AssetParentSummary,
+                         canPage: false,
+                         canSort: false,
+                         ajaxUpdateContainerId: "grid"
+                       );
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+}
+
+<div>
+    <div class="myTableStyleTabNew">
+        Merged Number :@HttpContext.Current.Session["MergeId"]
+      
+    </div>
+  
+
+    <div style="margin-top:17px;height:250px;overflow:scroll;" class="overflowx overflowy">
+        @grid.GetHtml(
+fillEmptyRows: false,
+tableStyle: "tableSmall table-bordered table-hover table-responsive",
+mode: WebGridPagerModes.All,
+columns: grid.Columns(
+         grid.Column(header: "S.No", format: item => rowVal = rowVal + 1),
+         grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),
+         grid.Column("AssetCode", obj.Sorter("AssetCode", "Asset Code", grid), style: "MidColumns10"),
+         grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Decription", grid), style: "MidColumns10"),
+         grid.Column("AssetValue", obj.Sorter("AssetValue", "Asset Value", grid), style: "MidColumns10"),
+         grid.Column("AssetType", obj.Sorter("AssetType", "Asset Type", grid), style: "MidColumns10"),
+         grid.Column("status", obj.Sorter("status", "Status", grid))
+             ))
+
+        <div class="borderStyle btnCenter" align="center">
+            <b> @ViewBag.Message </b>
+        </div>
+        <br />
+        <div class="myTableStyleTabNew">
+            <span>  Total No Of Records : @Model.AssetParentSummary.Count()</span>
+        </div>
+
+    </div>
+
+
+
+    <br />
+    <div id="tabaudit" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+        <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+            <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active"><a href="#tabs-1">Audit Trail</a></li>
+        </ul>
+        <div id="tabs-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom">
+            @Html.Partial("MergeAuditTrial")
+        </div>
+    </div>
+    <br />
+
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+
+            @if (ViewBag.UserRole == "Checker")
+            {  
+                <td class="form-group" nowrap="nowrap">
+
+                    <div style="float:right;padding-right:20px;margin-top:5px;">
+                        <span class="input-group-btn">
+                            <button class="btn btnApprove btn-success" type="submit" id="btnApprove" name="command" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                        </span>
+                    </div>
+                </td>
+
+                <td class="form-group" nowrap="nowrap">
+
+                    <div style="float:right;padding-right:20px;margin-top:5px;">
+                        <span class="input-group-btn">
+                            <button class="btn btnReject btn-danger" type="submit" id="btnReject" name="command" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                        </span>
+                    </div>
+                </td>
+            
+
+            }
+          
+           
+            <td class="form-group" nowrap="nowrap">
+
+                <div style="float:right;padding-right:20px;margin-top:5px;">
+                    <span class="input-group-btn">
+                        <button class="btn backbtn btn-warning" type="submit" name="command" value="cancel" onclick="CloseView()"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                    </span>
+                </div>
+            </td>
+
+
+
+        </tr>
+    </table>
+
+
+</div>
+
+<script type="text/javascript">
+
+  
+    $(document).ready(function () {
+
+        @*var Status = '@ViewBag.Status';
+       
+        if (Status.toString() == "APPROVED" || Status.toString() == "REJECTED") {
+            $("#btnApprove").hide();
+            $("#btnReject").hide();
+        }
+        else if (Status.toString() == "WAITING FOR APPROVAL")
+        {
+            $("#btnApprove").show();
+            $("#btnReject").show();
+        }*@
+          
+    });
+
+
+
+
+    function CloseView()
+    {
+        window.parent.jQuery('#ViewMergeDet').dialog('close');
+
+    }
+
+
+    $('.btnApprove').on("click", function () {
+        var Approve = $('#btnApprove').val();
+        $.ajax({
+            url: '@Url.Action("Approve", "AssetMerge")?Approve=' + Approve,
+            type: 'POST',
+            cache: false,
+            data: {},
+            success: function (data) {
+
+                if (data == "Success") {
+                    jAlert("Merging of Assets  Approved", "Information", function (r) {
+                        if (r == true) {
+                            location = '../AssetMerge/AssetMergeSummaryy';
+                        }
+                    });
+
+                    //objforAttachment.dialog("close");
+                    window.parent.jQuery('#ViewMergeDet').dialog('close');
+                }
+                else {
+                    jAlert("Merging of Assets failed to Approve!!", "Message");
+                }
+            },
+            error: function () {
+                jAlert("Merging of Asset failed with error!!", "Message");
+                return false;
+            }
+        });
+    });
+
+
+
+    $('.btnReject').on("click", function () {
+        var Reject = $('#btnReject').val();
+        alert(Reject);
+        $.ajax({
+            url: '@Url.Action("Reject", "AssetMerge")?Reject=' + Reject,
+            type: 'POST',
+            cache: false,
+            data: {},
+            success: function (data) {
+                alert();
+                if (data == "Success") {
+                    jAlert("Merging of Assets  Rejected", "Information", function (r) {
+                        if (r == true) {
+                            location = '../AssetMerge/AssetMergeSummaryy';
+                        }
+                    });
+
+                    //objforAttachment.dialog("close");
+                    window.parent.jQuery('#ViewMergeDet').dialog('close');
+                }
+                else {
+                    jAlert("Merging of Assets failed to Reject!!", "Message");
+                }
+            },
+            error: function () {
+                jAlert("Merging of Asset failed with error!!", "Message");
+                return false;
+            }
+        });
+    });
+
+
+
+</script>

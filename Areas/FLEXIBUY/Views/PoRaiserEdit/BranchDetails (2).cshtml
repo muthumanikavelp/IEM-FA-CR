@@ -1,0 +1,145 @@
+﻿@model IEnumerable<IEM.Areas.FLEXIBUY.Models.shipment>
+@using IEM.Common
+
+@{
+    var grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "searchgridbranch");
+    CmnFunctions obj = new CmnFunctions();
+}
+
+<div id="searchgridbranch">
+    <div class="row">
+        <div class="col-sm-10">
+            <table class="myTableStyle">
+                <tr>
+                    <td>
+                        <span>Branch Code</span>
+                        <br />
+                        <input type="text"
+                               id="txtbranchcode"
+                               value="@TempData["code"]"
+                               class="textboxStyleSearch"
+                               placeholder="Enter Branch Code" />
+                    </td>
+                    <td>
+                        <span>Branch Name</span>
+                        <br />
+                        <input type="text"
+                               id="txtbranchlocation"
+                               value="@TempData["name"]"
+                               class="textboxStyleSearch"
+                               placeholder="Enter Branch Location Name" />
+                    </td>
+                    <td>
+                        <a id="btnsearch" onclick="searchbranch()"><span class="glyphicon glyphicon-search cursorpointer"></span></a>
+                    </td>
+                    <td>
+                        <a id="btnrefresh" onclick="BranchDetailsRefresh()"><span class="glyphicon glyphicon-refresh cursorpointer"></span></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div id="emplgrid">
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "branchgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                                             grid.Column("SrNo", obj.Sorter("SrNo", "Sl", grid)),
+                                             grid.Column("branchName", obj.Sorter("branchName", "Branch Name", grid)),
+                                             grid.Column("address", obj.Sorter("address", "Branch Address", grid)),
+                                             grid.Column("location", obj.Sorter("location", "Branch Name", grid)),
+                                             grid.Column("branchCode", obj.Sorter("branchCode", "Branch Code", grid)),
+                                             grid.Column("inchargeID", obj.Sorter("branchCode", "In-Charge ID", grid)),
+                                             grid.Column("branchgid", obj.Sorter("branchgid", "Branch gid", grid)),
+                                    grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                                        <a><span onclick="selectbranch(this)" class="btn btn-link btnselect">Select</span></a>
+                    </text>)))
+        @if (@TempData["records"] != null || @TempData["records"] == "")
+        {
+            <div class="borderStyle">
+                @TempData["records"]
+            </div>
+        }
+    </div>
+    <br />
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div style="margin-left: 230px;">
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="branchClose()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span>Close
+                    </button>
+                    @*<input type="button" class="btn btn-warning" value="Close" onclick="shipmentClose()" />*@
+                </div>
+            </td>
+        </tr>
+    </table>
+    <script>
+        $("#branchgrid td:nth-child(7),#branchgrid th:nth-child(7)").hide();
+        function searchbranch() {
+            var branchcode = $("#txtbranchcode").val();
+            var branchlocation = $('#txtbranchlocation').val();
+            var objbranchsearch = {
+                "branchCode": branchcode,
+                "branchName": branchlocation
+            };
+            $.post('../PoRaiserEdit/searchbranch?' + new Date().getTime(), objbranchsearch,
+                 function (data) {
+                     if (data == 0) {
+                         jAlert("Error Occured", "Error");
+                         return false;
+                     }
+                     else {
+                         $("#searchgridbranch").load('../PoRaiserEdit/BranchDetails?listfor=search');
+                     }
+                 }
+            , 'json');
+        }
+        function BranchDetailsRefresh() {
+            $("#txtbranchcode").val("");
+            $("#txtbranchlocation").val("");
+            var branchcode = $("#txtbranchcode").val();
+            var branchlocation = $("#txtbranchlocation").val();
+            var obj = {
+                "branchCode": branchcode,
+                "branchName": branchlocation
+            };
+            $.post('../PoRaiserEdit/BranchDetails?' + new Date().getTime(), obj,
+            function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }               
+                else {
+                    $("#searchgridbranch").load("../PoRaiserEdit/BranchDetails?listfor=refresh'");
+                }
+            }, 'json');
+        }
+        $(".ui-icon-closethick").click(function () {
+            window.parent.jQuery('#BranchDetails1').dialog('close');
+        });
+        function selectbranch(element) {
+            var row = $(element).closest('tr');
+            var name = row.find('td:eq(1)').text();
+            var address = row.find('td:eq(2)').text();
+            var location = row.find('td:eq(3)').text();
+            var branchcode = row.find('td:eq(4)').text();
+            var inchargeID = row.find('td:eq(5)').text();
+            var branchgid = row.find('td:eq(6)').text();
+            var id = $('#rowid').val();
+            $('#branchgid' + id + '').val(branchgid);
+            $('#branchName' + id + '').val(name);
+            $('#address' + id + '').val(address);
+            $('#location' + id + '').val(location);
+            $('#branchCode' + id + '').val(branchcode);
+            $('#inchargeID' + id + '').val(inchargeID);
+            window.parent.jQuery('#BranchDetails1').dialog('close');
+        }
+        function branchClose() {
+            window.parent.jQuery('#BranchDetails1').dialog('close');
+        }
+    </script>
+</div>

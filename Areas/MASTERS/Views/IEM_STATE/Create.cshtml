@@ -1,0 +1,184 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_state
+
+<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" style="width:100%;">       
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                    <span> State Code </span>
+                    <br />
+                <input name="DocNameName" id="_statecode" type="text" data-val="true" maxlength="30" value=""
+                       class="fstextbox required " />
+               
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> State Name </span>
+                <br />
+                <input name="DocNameName" id="_statename" type="text" data-val="true" value="" maxlength="70"
+                       class="fstextbox required "  />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Region</span>
+                <br/>
+                @Html.DropDownListFor(m => m.region_gid, Model.Getregion, "--Select Region--", new { @class = "fstextbox  chosen-select", @style = "display: block", @id = "region_gid" })
+               
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span>Country</span>
+                @Html.DropDownListFor(c => c.country_gid, Model.Getcountry, "--Select Country--", new { @class = "fstextbox  chosen-select", @style = "display: block", @id = "country_gid" })
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align:center;">
+               
+                <button type="button" id="_save" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()" style="margin-top:10px;  color:white;">
+                    <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                </button>
+               
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()" style="margin-top:10px;  color:white;">
+                    <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                </button>
+                
+            </td>
+        </tr>
+    </table>
+}
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+
+                $("#region_gid").chosen({});
+                $("#country_gid").chosen({});
+                $("#region_gid_chosen, #country_gid_chosen").addClass("mychosen").css('width', '100%');
+
+                $(function () {
+                    $("#_statecode").focus();
+                });
+
+
+                $("#_statecode").focus();
+                $("#_statecode").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                });
+                $("#_statename").focus();
+                $("#_statename").keypress(function (event) {
+                    return isSplAlphaNumeric(event, this);
+                });
+            });
+
+            $("#_statecode").keyup(function () {
+                var txtSupplierName = $("#_statecode").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_statecode").removeClass('required');
+                    $("#_statecode").addClass('valid');
+                    CheckFieldsHeader();
+                }
+                else {
+                    $("#_statecode").removeClass('valid');
+                    $("#_statecode").addClass('required');
+                    CheckFieldsHeader();
+                }
+            });
+            $("#_statename").keyup(function () {
+                var txtSupplierName = $("#_statename").val();
+                if (txtSupplierName.trim() != "") {
+                    $("#_statename").removeClass('required');
+                    $("#_statename").addClass('valid');
+                    CheckFieldsHeader();
+                }
+                else {
+                    $("#_statename").removeClass('valid');
+                    $("#_statename").addClass('required');
+                    CheckFieldsHeader();
+                }
+            });
+            function SAVE() {
+                var statecode = $("#_statecode").val();
+                var statename = $("#_statename").val();
+
+                var regiongid = $("#region_gid").val();
+                var countrygid = $("#country_gid").val();
+
+                if (statecode == "") {
+                    jAlert("Please Enter State Code.", "Information")
+                    $("#_statecode").focus();
+                    return false;
+                }
+
+                if (statename == "") {
+                    jAlert("Please Enter State Name.", "Information")
+                    $("#_statename").focus();
+                    return false;
+                }
+                if (regiongid == 0) {
+                    jAlert("Please Select Region.", "Information")
+
+                    $("#region_gid").focus();
+                    return false;
+
+                }
+                if (countrygid == 0) {
+                    jAlert("Please Select Country.", "Information")
+
+                    $("#country_gid").focus();
+                    return false;
+                }
+
+                var DocNameModel = { "state_code": statecode, "state_name": statename, "region_gid": regiongid, "country_gid": countrygid };
+                $.post('../IEM_STATE/CreateState', DocNameModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record Inserted Successfully!!", "Information", function (r) {
+                            if (r == true) {
+                                location = '../IEM_STATE/Index';
+                            }
+                        });
+
+                    }
+
+                }, 'json');
+
+            }
+            function GotoIndex() {
+                window.parent.jQuery('#ForPartialView').dialog('close');
+            }
+            function CheckFieldsHeader() {
+                var ErrCount = 0;
+                if ($("#_statecode").val().trim() == "" || $("#_statecode").val() == null) {
+                    ErrCount = 1;
+                }
+                if ($("#_statename").val().trim() == "" || $("#_statename").val() == null) {
+                    ErrCount = 2;
+                }
+
+                if (ErrCount == 0) {
+                    $("#_save").removeAttr('disabled');
+                }
+                else {
+                    $("#_save").attr('disabled', 'disabled');
+                }
+            }
+        </script>
+
+
+
+

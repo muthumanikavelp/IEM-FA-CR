@@ -1,0 +1,256 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_PO> lstpogrndetals = new List<EOW_PO>();
+    EOW_PO grngeader = (EOW_PO)ViewBag.currentgrnheader;
+
+    lstpogrndetals = (List<EOW_PO>)TempData["SearchItems"];
+    if (lstpogrndetals == null)
+    {
+        ViewBag.IsSearched = "no";
+        //lstpogrndetals = objd.Getgrnheaderdetails("17").ToList();
+        lstpogrndetals = objd.Getgrnheaderdetails(grngeader.POdetlGid).ToList();
+    }
+
+    if (lstpogrndetals.Count == 0)
+    {
+        ViewBag.NoRecordsAttachment = "NoRecords";
+        ViewBag.NoRecordsFoundAttachment = "No Records Found";
+    }
+
+
+}
+
+<input type="hidden" id="po_POGid" value="@grngeader.POGid" />
+<input type="hidden" id="po_POdetlGid" value="@grngeader.POdetlGid" />
+<input type="hidden" id="po_POserprogid" value="@grngeader.POserprogid" />
+<input type="hidden" id="po_POrate" value="@grngeader.POrate" />
+<div class="table-responsive">
+    <table style="width:100%;font-size:12px;">
+        <tr>
+            <td> Product/ Service Code : <br /> <label id="lblserporcode"></label></td>
+            <td> Product/ Service Description : <br /><label id="lblsercodname"></label></td>
+            <td> Rate : <br /><label>@grngeader.POrate</label></td>
+        </tr>
+    </table>
+</div>
+<br />
+<div id="wggrnqtydetails">
+    @{
+        var gridlstpogrndetalsinv = new WebGrid(lstpogrndetals, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wggrnqtydetails", ajaxUpdateCallback: "DummyFunction()");
+    }
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridlstpogrndetalsinv.GetHtml(
+                htmlAttributes: new { id = "wggrnqtydetails" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+                columns:
+                gridlstpogrndetalsinv.Columns(
+                gridlstpogrndetalsinv.Column("GRNNumber", objCmnFunctions.Sorter("GRNNumber", "GRN Number", gridlstpogrndetalsinv), canSort: false, style: "collargeBreak"),
+                gridlstpogrndetalsinv.Column("BranchType", objCmnFunctions.Sorter("BranchType", "Branch Type", gridlstpogrndetalsinv), canSort: false, style: "collargeBreak"),
+                gridlstpogrndetalsinv.Column("ReceivedQty", objCmnFunctions.Sorter("ReceivedQty", "Received Qty", gridlstpogrndetalsinv), canSort: false, style: "collargeBreak"),
+                 gridlstpogrndetalsinv.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='Invoiced Qty' onclick='Newgrninvdetls(" + item.grninwrdheadergid + ")' > <span id='id' style='color: #2A6393;font-weight:bold;' class=btn btn-link' >Select</span> </a>")
+                </text>)))
+        @if (@ViewBag.NoRecordsAttachment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundAttachment </b>
+                </center>
+            </div>
+        }
+        else
+        {
+            <div>
+                <input type="hidden" id="hdtolattachment" value="@gridlstpogrndetalsinv.TotalRowCount" />
+            </div>
+        }
+    </div>
+</div>
+<br />
+<div align="center">
+    <table id="getdrnreciveddtls1" class="tableSmall table-bordered" style="width:50%;">
+        <tr>
+            <td style="width:40%;" align="center">Enter No of Quantity</td>
+            <td style="width:32%;" align="center"><input type="text" name="txtexrate" id="txtnoofqty" class="textboxStyle" onkeypress="return isAmount(event);" maxlength="15" /></td>
+            <td style="width:21%;" align="center"><button type="button" title="Submit" name="Submit" id="btnsubmitqty" class="btn btn-primary" onclick="Newqtyubmit()"><span style="color:white;font-size:11px;" class="glyphicon glyphicon-floppy-disk"></span> Submit</button></td>
+        </tr>
+    </table>
+</div>
+<br /><div class="overflowy" style="max-height: 430px;">
+    <div class="table-responsive">
+        <table id="getdrnreciveddtls" class="tableSmall table-bordered" style="width:100%;">
+            <thead>
+                <tr>
+                    <th class="collargeBreak">Asset SLNo</th>
+                    <th class="collargeBreak">Manufacturer Name</th>
+                    <th class="collargeBreak">GRN Received Qty</th>
+                    <th class="collargeBreak">Select &nbsp;&nbsp;<input type="checkbox" title="Select All" value="0" id="selectAll"></th>
+                </tr>
+            </thead>
+            <tbody id="tbodyid"></tbody>
+        </table>
+    </div>
+</div>
+<br />
+<div class="table-responsive">
+    <table id="getdrnreciveddtls2" class="tableSmall table-bordered" style="width:100%;">
+        <tfoot>
+            <tr>
+                <td class="collargeBreak">
+                    <center>
+                        <button type="button" title="Save" name="Save" id="btnsavexpNN" class="btn btn-primary" onclick="Newgrninvdetlssave()"><span style="color:white;font-size:11px;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                        <button type="button" id="btncanexpNNN" title="Cancel" name="Cancel" class="btn btn-warning" onclick="Newgrninvdetlscan()"><span style="color:white;font-size:11px;" class="glyphicon glyphicon-remove-sign"></span>Cancel</button>
+                    </center>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<script>
+    function Newqtyubmit() {
+        var rows = $('#getdrnreciveddtls tbody tr').length;
+        var entervales = $('#txtnoofqty').val();
+        if (entervales == "") {
+            jAlert("Please Enter No of Quantity", "Message");
+            return false;
+        }
+        if (rows < entervales) {
+            jAlert("Please Enter The Value Less then or Equal to " + rows, "Message");
+            return false;
+        }
+        var rows = 0;
+        $('.case').each(function () {
+            rows++;
+            if (entervales < rows) {
+                this.checked = false;
+            }
+            else {
+                this.checked = true;
+            }
+        });
+    }
+    $(document).ready(function () {
+        $('#selectAll').on('click', function () {
+            if ($(this).is(':checked')) {
+                $('.case').each(function () {
+                    this.checked = true;
+                });
+            } else {
+                $('.case').each(function () {
+                    this.checked = false;
+                });
+            }
+        })
+    });
+    $(document).ready(function () {
+        $("#wggrnqtydetails tr #id").click(function () {
+            $('#wggrnqtydetails').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+        $("#getdrnreciveddtls").css("display", "none");
+        $("#getdrnreciveddtls1").css("display", "none");
+        $("#getdrnreciveddtls2").css("display", "none");
+
+        var POserprocode = $('#po_pscodenew').val();
+        var POserprodesc = $('#po_psdescnew').val();
+        $("#lblserporcode").text(POserprocode);
+        $("#lblsercodname").text(POserprodesc);
+    });
+    function Newgrninvdetlscan() {
+        $("#tbodyid").empty();
+        $("#getdrnreciveddtls").css("display", "none");
+        $("#getdrnreciveddtls1").css("display", "none");
+        $("#getdrnreciveddtls2").css("display", "none");
+    }
+
+    function Newgrninvdetls(id) {
+        $("#getdrnreciveddtls").css("display", "block");
+        $("#getdrnreciveddtls1").css("display", "block");
+        $("#getdrnreciveddtls2").css("display", "block");
+        var Student =
+       {
+           "ExpenseCategoryId": id
+       };
+        $.ajax({
+            url: '../SupplierInvoiceNewc/Getgrninwrddetview/',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#tbodyid").empty();
+                if (data.qrylist.length > 0) {
+                    $('#btnsavexpNN').attr('disabled', false);
+                    for (var i = 0; i < data.qrylist.length; i++) {
+                        if (data.qrylist[i].grninwrddetrecedqtychk == "0") {
+                            $('#getdrnreciveddtls').append('<tr><td>' + data.qrylist[i].grninwrddetassetsrlno + '</td><td>' + data.qrylist[i].grninwrddetmftname + '</td><td>' + data.qrylist[i].grninwrddetrecedqty + '</td><td align="center"><input type="checkbox" title="Select" id="chkValues" class="case" name="case[]" value=' + data.qrylist[i].grninwrddetgid + ' /></td></tr>');
+                        }
+                        else {
+                            $('#getdrnreciveddtls').append('<tr><td>' + data.qrylist[i].grninwrddetassetsrlno + '</td><td>' + data.qrylist[i].grninwrddetmftname + '</td><td>' + data.qrylist[i].grninwrddetrecedqty + '</td><td align="center"><input type="checkbox" title="Select" checked="checked" id="chkValues" class="case" name="case[]" value=' + data.qrylist[i].grninwrddetgid + ' /></td></tr>');
+
+                        }
+                    }
+                }
+                if (data.qrylist.length == 0) {
+                    $('#btnsavexpNN').attr('disabled', true);
+                }
+            },
+            error: function (result) {
+                jAlert("Error.", "Error");
+                return false;
+            }
+        });
+    }
+    function Newgrninvdetlssave() {
+        var POgid = $('#po_POGid').val();
+        var POitemid = $('#po_POdetlGid').val();
+        var po_itemgidcurrentid = $('#po_POserprogid').val();
+        //var POrate = $('#po_POrate').val();
+        var POrate = $("#po_POrate").val().replace(/,/g, "");
+        CheckListVal = [];
+        $('input:checkbox:checked').each(function () {
+            CheckListVal.push($(this).attr('value'));
+        });
+        if (CheckListVal == "") {
+            jAlert("No More Entry Selected", "Message");
+            return false;
+        }
+        else {
+            var Student = {
+                "SelectedValues": CheckListVal,
+                "POGid": POgid,
+                "POserprogid": po_itemgidcurrentid,
+                "POrate": POrate,
+                "POdetlGid": POitemid,
+            };
+            $.ajax({
+                url: '../SupplierInvoiceNewc/grndetailssubmit/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data == "Success") {
+                        $("#getdrnreciveddtls").css("display", "none");
+                        $("#getdrnreciveddtls1").css("display", "none");
+                        $("#getdrnreciveddtls2").css("display", "none");
+                        var url = '@Url.Action("_Pomappingdetail", "SupplierInvoiceNewc")?id=' + POgid + '&' + new Date().getTime();
+                        $("#searchgridpotems").load(url);
+                        $("#tbodyid").empty();
+                    }
+                    else {
+                        jAlert(data, "Error");
+                        return false;
+                    }
+                },
+                error: function (result) {
+                    jAlert("Error.", "Error");
+                    return false;
+                }
+            });
+        }
+    }
+</script>

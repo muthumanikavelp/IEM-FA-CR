@@ -1,0 +1,270 @@
+﻿@using IEM.Areas.IFAMS.Models
+@model IEM.Areas.IFAMS.Models.Ifams_RptEntity
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.RptModel, canPage: false, canSort: false);
+    int rowval = 0;
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<b>
+    <span style="color: rgb(52,108,196);">
+        Central ECF Report
+    </span>
+</b>
+
+<br /><br />
+@using (Html.BeginForm())
+{
+
+    <div class="well">
+
+        <div class="row">
+
+            <div class="col-sm-12">
+
+                <table class="myTableStyleTabNew" style="width:100%;">
+
+                    <tr>
+                        <td width="25%" style="padding: 0px 10px">
+                            <span>Date From</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDateFrom"
+                                   value="@ViewBag.fdate"
+                                   class="fstextbox required" autocomplete="off" />
+                        </td>
+                        <td width="25%" style="padding: 0px 10px">
+                            <span>Date To</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDateTo"
+                                   value="@ViewBag.tdate"
+                                   class="fstextbox required" autocomplete="off" />
+                        </td>
+                        <td width="25%" style="padding: 0px 10px">
+                            <span>Department</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDept"
+                                   value="@ViewBag.dept"
+                                   class="fstextbox" />
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" onclick="Search()" type="button" style="margin-top:10px;  color:white;">
+                                <span style="color:white;" class="glyphicon glyphicon-search"></span>
+                                Search
+                            </button>
+                            <button class="btn btn-success" onclick="Export()" type="button" style="margin-top:10px;  color:white;">
+                                <span style="color:white;" class="glyphicon glyphicon-download-alt"></span>
+                                Export Excel
+                            </button>
+                            <button class="btn btn-danger" onclick="clearcontrol();" type="button" style="color:white;margin-top:10px;">
+                                <span style="color:white; " class="glyphicon glyphicon-refresh"></span>
+                                Clear
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div style="margin-top:17px; " class="overflowx overflowy table-responsive" >
+
+            @grid.GetHtml(htmlAttributes: new { id = "CECFgridid" }, fillEmptyRows: false, tableStyle: "tableSmall table-bordered table-hover", mode: WebGridPagerModes.All,
+        columns: grid.Columns(
+        grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+  grid.Column("ReceivedDate", "Received Date", style: "col-lg-3 MidColumn20Center,overflow:hidden;")
+            ,
+                     grid.Column("Name", "Supplier/Employee", style: "col-lg-8 MidColumn20Center,overflow:hidden;"),
+                                       grid.Column("Raiser", "Raiser", style: "col-lg-8 MidColumn20Center,overflow:hidden;"),
+                                          grid.Column("ECFNo", "ECF No", style: "col-lg-3 MidColumn20Center"),
+                                          grid.Column("InvoiceNo", "Invoice No", style: "col-lg-2 MidColumn20Center"),
+                                          grid.Column("InvoiceDate", "Invoice Date", style: "col-lg-3 MidColumn20Center"),
+                                          grid.Column("InvoiceAmount", "Invoice Amount", style: "col-lg-3 MidColumn20Center"),
+                                          grid.Column("InvoiceDesc", "Invoice Desc", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("poheader_pono", "PO No", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("PaymentDate", "Payment Date", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("ECFStatus", "ECF Status", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("CTECFStatus", "Approver Status", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("Department", "Department", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("Queue", "Pending For", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("Aging", "Aging", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("STATUS", "Approval Status", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("queue_date", "Queue Date", style: "col-lg-3 MidColumn20Center"),
+                                         grid.Column("queue_action_Date", "Queue Action Date", style: "col-lg-3 MidColumn20Center")
+                                               ))
+
+            @*@if (ViewBag.Message != null)
+            {
+                <div class="borderStyle" align="center">
+                    <b> @ViewBag.Message</b>
+                </div>
+            }*@
+
+
+            @*<br /><br />*@
+
+            @*<span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records: @grid.TotalRowCount</span>*@
+        </div>
+
+    </div>
+}
+
+<style type="text/css">
+    .webgrid {
+        width: 100%;
+        font: normal 12px/150% Arial, Helvetica, sans-serif;
+        background: #fff;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        -webkit-border-radius: 3px;
+        -moz-border-radius: 3px;
+        border-radius: 3px;
+    }
+
+    .col-1 {
+        width: 1px;
+        min-width: 5px;
+    }
+
+    .col-2 {
+        width: 20px;
+        min-width: 10px;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+
+
+     //   $('#CECFgridid tr th:nth-child(5)').addClass("nosort");
+        $('#CECFgridid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+        hideProgress();
+
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd',
+            numberOfMonths: 1,
+            maxDate: new Date()
+        };
+        $("#txtDateFrom").datepicker(pickerOpts);
+        $("#txtDateTo").datepicker(pickerOpts);
+
+        $("#txtDateTo").change(function () {
+            var startDate = document.getElementById("txtDateFrom").value;
+            var endDate = document.getElementById("txtDateTo").value;
+            if (Date.parse(startDate) > Date.parse(endDate)) {
+                var today = new Date();
+                var dd = today.getDate();
+                var mm = today.getMonth() + 1;
+                var yyyy = today.getFullYear();
+
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                today = yyyy + '-' + mm + '-' + dd;
+                document.getElementById("txtDateFrom").value = "";
+                document.getElementById("txtDateTo").value = "";
+                jAlert("To Date should  be greater than From Date");
+            }
+        });
+
+    });
+
+
+</script>
+<script>
+    function Export() {
+        //showProgress();
+        var datefrom = "";
+        var dateto = "";
+        var dep ="";
+        datefrom = $("#txtDateFrom").val();
+        dateto = $("#txtDateTo").val();
+        dep = $("#txtDept").val();
+        if (datefrom == "" || datefrom == 0 || datefrom == undefined) {
+            hideProgress();
+            jAlert("From Date should not be empty!");
+            return false;
+        }
+        else if (dateto == "" || dateto == 0 || dateto == undefined) {
+            hideProgress();
+            jAlert("To Date should not be empty!");
+            return false;
+        }
+        //location = '@Url.Action("GetCentralECFReport", "Report")?DateFrom=' + datefrom + '&todate=' + dateto + '&' + new Date().getTime();
+        location = '@Url.Action("GetCentralECFReport", "Report")?DateFrom=' + datefrom + '&todate=' + dateto + '&dep=' + dep + '&' + new Date().getTime();
+    }
+
+    function clearcontrol()
+    {
+        debugger;
+        //alert('test1');
+        $("#txtDateFrom").val("");
+        $("#txtDateTo").val("");
+        $("#txtDept").val("");
+        location = '@Url.Action("CentralECFRpt", "Report")';
+        //return false;
+    }
+   
+
+    function Search()
+    { debugger
+        showProgress();
+        var datefrom = "";
+        var dateto = "";
+        datefrom = $("#txtDateFrom").val();
+        dateto = $("#txtDateTo").val();
+        dep = $("#txtDept").val();
+        if (datefrom == "" || datefrom == 0 || datefrom == undefined) {
+            hideProgress();
+            jAlert("From Date should not be empty!");
+
+            return false;
+        }
+        else if (dateto == "" || dateto == 0 || dateto == undefined) {
+            hideProgress();
+            jAlert("To Date should not be empty!");
+            return false;
+        }
+       // showProgress();
+        location = '@Url.Action("CentralECFRpt", "Report")?DateFrom=' + datefrom + '&todate=' + dateto + '&dep=' + dep + '&command=Search&' + new Date().getTime();
+    }
+
+
+
+    $("#txtDept").autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: '@Url.Action("autodepartment", "Report")?' + '&' + new Date().getTime(),
+                //url: "../AssetValueReduction/locautosearch",
+                type: "POST",
+                dataType: "json",
+                data: { term: request.term },
+                success: function (data) {
+                    response($.map(data, function (item) {
+                        return { label: item.Depname, value: item.Depname };
+                    }))
+                }
+            })
+        },
+        messages: {
+            noResults: "", results: ""
+        }
+    });
+</script>

@@ -1,0 +1,151 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.SupEmployeeRole>
+@{
+    ViewBag.Title = "Role Vs Employee Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true);
+    int rowVal = 0;
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">Employee Vs Role</span>
+</b>
+<br />
+<br />
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" style="margin-left:-4px;">
+                    <tr>
+                        <td>
+                            <span>Employee Code</span>
+                            <br />
+                            <div>
+                                <input type="text"
+                                       name="filter_code"
+                                       id="txtfilter_code"
+                                       value="@ViewBag.filter_code"
+                                       class="textboxStyleSearch"
+                                       style="width:200px" />
+                            </div>
+                        </td>
+                        <td width="25px"></td>
+                        <td>
+                            <span>Employee Name</span>
+                            <br />
+                            <div>
+                                <input type="text"
+                                       name="filter_name"
+                                       id="txtfilter_name"
+                                       value="@ViewBag.filter_name"
+                                       class="textboxStyleSearch"
+                                       style="width:200px" />
+                            </div>
+                        </td>
+                        <td>
+                            @if (ViewBag.alert != "No Records")
+                            {
+                                <button type="button" id="btnexport" value="New Document Group" style="margin-top:20px;" onclick="Export()" class="btn btn-primary">
+                                    <span style="color:white;" class="glyphicon glyphicon-export"></span> Export
+                                </button>
+                            }
+
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="ClearEmployeeRole()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div style="margin-top:9px;overflow-x:scroll">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+            htmlAttributes: new { id = "gridEmployeeRoleid" },
+                tableStyle: "tableSmall table-bordered table-hover table-responsive ",
+                columns: grid.Columns
+                (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+                grid.Column("EmployeeCode", Sorter("EmployeeCode", "Employee Code", grid)),
+                grid.Column("EmployeeName", Sorter("EmployeeName", "Employee Name", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                    <input type="hidden" id="employeename" name="RollEmployee" value="@item.EmployeeName" />
+                    <input type="hidden" id="itemid" name="RollEmployee" value="@item.EmployeeId" />
+                    <span class="btn btn-link color" onclick="btnselect(id)" id="@item.EmployeeId">Map Role</span>
+                    </text>))))
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+        </div>
+        <br />
+        <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> - <span class="myTableStyleTabNew">  Total No Of Records:@grid.TotalRowCount</span>
+    </div>
+}
+<div id="ForPartialView1"></div>
+<script type="text/javascript">
+    var objDialogEmployeeMapping;
+    $(document).ready(function () {
+        objDialogEmployeeMapping = $("[id$='ForPartialView1']");
+        objDialogEmployeeMapping.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+        });
+        var tr = $("#gridEmployeeRoleid").find('tr');
+        $("#gridEmployeeRoleid tr .color").click(function () {
+            $('#gridEmployeeRoleid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+    });
+    function btnselect(id) {
+        var id = id;
+
+        //objDialogEmployeeMapping.load('../EmployeeRole/RoleMapping?id=' + id + '&' + new Date().getTime());
+        var url = '@Url.Action("RoleMapping", "EmployeeRole")?id=' + id + '&' + new Date().getTime();
+        objDialogEmployeeMapping.load(url);
+        objDialogEmployeeMapping.dialog({ title: 'Add Role', width: '400', height: '400' });
+        objDialogEmployeeMapping.dialog("open");
+    }
+    //$(".btnselect").on('click', function () {
+    //    var tr = $(this).parents('tr:first');
+    //    var Value = 'MapRole';
+    //    var id = tr.find("#itemid").val();
+    //    var employeename = tr.find("#employeename").val();
+    //    ListVal = []
+    //    ListVal.push(id);
+    //    ListVal.push(Value);
+    //    ListVal.push(employeename);
+    //    location = "RoleMapping?list=" + ListVal;
+    //})
+    function ClearEmployeeRole() {
+        $("#txtfilter_code").val('');
+        $("#txtfilter_name").val('');
+        //location = '../EmployeeRole/ClearEmployee';
+        location = '@Url.Action("ClearEmployee", "EmployeeRole")';
+    }
+
+    function Export() {
+
+        location = '../../EmployeeRole/excelexport'
+
+    }
+</script>

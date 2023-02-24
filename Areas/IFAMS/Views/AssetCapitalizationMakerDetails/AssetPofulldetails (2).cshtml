@@ -1,0 +1,637 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+    //var gridill = new WebGrid(Model.Itemlevellist, canSort: false, canPage: false, ajaxUpdateContainerId: "wgpill", ajaxUpdateCallback: "wgpill");
+    //  gridill.Pager(WebGridPagerModes.All);
+    var gridill = new WebGrid(Model.Itemlevellist, canSort: false, canPage: false);
+   // int rowNum = 0;
+}
+<style>
+.dataTables_wrapper .dataTables_filter {
+  float: left;
+  text-align: left;
+}
+</style>
+@*@using (Html.BeginForm())
+    {*@
+<div class="" id="pofdetails">
+    @*<table class="myTableStyleTabNew">
+        <tr class="well">
+            <td style="padding:10px;">
+                <span>Asset Code</span><br />
+                <input type="text"
+                       name="assetcode"
+                       id="txtassetcode"
+                       value=""
+                       class="textboxStyleSearch" maxlength="20" />
+            </td>
+            <td style="padding:10px;">
+                <span>Location</span><br />
+                <input type="text"
+                       name="loccode"
+                       id="txtloccode"
+                       value=""
+                       class="textboxStyleSearch" maxlength="20" />
+            </td>
+
+            <td style="padding-top:10px;padding-right:10px;">
+                <span></span><br />
+                <button type="button" id="btnill" class="btn btn-primary"><span class="glyphicon glyphicon-search" style="color:white;font-size:12px;"></span> Search</button>
+            </td>
+            <td style="padding-top:10px;padding-right:10px;">
+                <span></span><br />
+                <button type="button" id="btnillclear" class="btn btn-primary"><span class="glyphicon glyphicon-remove-circle" style="color:white;font-size:12px;"></span> Clear</button>
+            </td>
+        </tr>
+    </table>
+    <br />*@
+    <div align="center" style="width:1280px;overflow-x:scroll;height:350px;">
+        <table align="center">
+            <tr>
+                <td style="padding:10px;">
+                    <div style="width:2190px;" id="dipofull">
+                    @gridill.GetHtml(
+                    htmlAttributes: new { id = "wgpill" },
+                    tableStyle: "tableSmall table-bordered",
+                    mode: WebGridPagerModes.All,
+                    columns:
+                    gridill.Columns(
+                        gridill.Column("SNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+                        gridill.Column("pohgid", "SlNo"),
+                        gridill.Column("index", "Asset ID", format: @<text>
+                            <span class="edittmv"><label style="word-wrap: break-word;font-size:small; width:170px; font-weight:normal" id="lblsnonew2">@item.index</label></span>
+                        </text>),
+                        gridill.Column("invoicegid", "invoicegid"),
+                        gridill.Column("invoiceamount", "InvoiceAmt", style: "rig"),
+                        gridill.Column("locationName","Location"),
+                        gridill.Column("Grn_gid", "Grn_gid"),
+                        gridill.Column("ponumber", "PO Number", style: "MidColumn30 ", format:
+                        @<text>
+                            <span class="displaytmv">
+                            <a title='View' style="color:blue;" onclick="PoHeader(@item.pohgid)"> @item.ponumber </a>
+                            </span>
+                            <span class="edittmv textboxStyleMedium">
+                            </span>
+                        </text>),
+                        gridill.Column("AssetCategory", "Category", style: "MidColumnPO ", format:
+                        @<text>
+                            <span class="displaytmv">
+                            <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblAssetCategory">@item.AssetCategory</label>
+                            </span>
+                        </text>
+                        ),
+                        gridill.Column("AssetSubcategpry", "Subcategory", style: "MidColumnPO ", format:
+                        @<text>
+                            <span class="displaytmv MidColumn30">
+                            <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblAssetSubcategpry">@item.AssetSubcategpry</label>
+                            </span>
+                        </text>),
+                        gridill.Column("shipmentType", "Shipment Type"),
+                        gridill.Column("DEPRATE", "Depreciation Rate"),
+                        gridill.Column("glcode", "Asset GLCode"),
+                        gridill.Column("LocationCode", "Asset Location"),
+                        gridill.Column("GRNNo", "GRN No", format:
+                        @<text>
+                            <span class="displaytmv MidColumn30">
+                            <a><label style="word-wrap: break-word;font-size:small;  font-weight:normal;text-align:right;cursor:pointer; " onclick="GRNdetail(@item.Grn_gid)" id="lblGRNo">@item.GRNNo</label></a>
+                            </span>
+                            <span class="edittmv textboxStyleMedium">
+                            </span>
+                        </text>),
+                        gridill.Column("UOM", "UOM"),
+                        gridill.Column("Receivedqty", "Recd Qty"),
+                        gridill.Column("SplitedTaxAmnt", "Inv Tax Amnt"),
+                        gridill.Column("Amount", "Price", format:
+                        @<text>
+                            <span class="displaytmv">
+                            <label style="word-wrap: break-word;font-size:small; width:80px; font-weight:normal;text-align:right" id="lblAMT">@item.Amount</label>
+                            </span>
+                        </text>),
+                        gridill.Column("Discount", "Discount", format:
+                        @<text>
+                            <span class="displaytmv">
+                            <label style="word-wrap: break-word;font-size:small; width:80px; font-weight:normal;text-align:right" id="lblDiscount">@item.Discount</label>
+                            </span>
+                        </text>),
+                        gridill.Column("othres", "Others", format:
+                        @<text>
+                            <span class="displaytmv">
+                            <label style="word-wrap: break-word;font-size:small; width:80px; font-weight:normal;text-align:right" id="lblothres">@item.othres</label>
+                            </span>
+                        </text>),
+                        gridill.Column("TotalAmount", "Total", format: @<text>
+                            <span class="">
+                            <label style="word-wrap: break-word;font-size:small; width:80px; font-weight:normal;text-align:right" id="lblTotalAmount">@item.TotalAmount</label>
+                            </span>                    </text>),
+                        gridill.Column("DCNo", "DC No"),
+                        gridill.Column("GRNDate","Capitalization"),
+                        gridill.Column("AssetSrlno","Asset SrlNo"),
+                        gridill.Column("Assetmfn","Mnf Name"),
+                        gridill.Column("Description", "Description"),
+                        gridill.Column(header: "Action", canSort: false, style: "action",
+                        format: @<text>
+                        @if (Model.view == "Draft")
+                        {
+                            @*@Html.Raw("<a data-modal='' style='cursor: pointer;' title='Edit'> <span class='displaytmv  edit-btntmv glyphicon glyphicon-edit'> </span> </a>")
+                            @Html.Raw("<a data-modal='' style='cursor: pointer;' title='Save'> <span class=' edittmv save-btntmv glyphicon glyphicon-save'> </span> </a>")
+                            @Html.Raw("<a data-modal='' style='cursor: pointer;' title='Cancel'> <span class=' edittmv cancel-btntmv glyphicon glyphicon-remove'> </span> </a>")*@
+                            <a data-modal='' style='cursor: pointer;' title='Edit' onclick='EditLineItems( @item.Grn_detgid ,@item.invoicegid)'> <span class=' neweditbutton glyphicon glyphicon-edit'> </span> </a>
+                            @*<a data-modal='' style='cursor: pointer;' title='Save'> <span class=' edittmv save-btntmv glyphicon glyphicon-save'> </span> </a>*@
+                            @*<a data-modal='' style='cursor: pointer;' title='Cancel'> <span class=' edittmv cancel-btntmv glyphicon glyphicon-remove'> </span> </a>*@
+                        }
+                        </text>),
+                        gridill.Column(style: "col-lg-2 MidColumn20Center", format: @<text> <input type="checkbox" value="@item.Grn_detgid" name="ids" /> </text>, header: "{checkall}")))
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+</div>
+
+
+@*}*@
+<style>
+    .rig {
+        text-align: right;
+    }
+
+    .wid {
+        width: 250px;
+    }
+
+    .MidColumnPO {
+        width: 80%;
+        max-width: 800px;
+        min-width: 300px;
+        text-wrap: normal;
+        word-break: normal;
+        word-wrap: normal;
+        text-align:left;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('#wgpill').dataTable({
+            "bPaginate": false,
+            "bSort": false
+        }).css("width", "99%");
+    });
+        $("#idtab1capdetails").text('@gridill.TotalRowCount');
+        var id;
+
+        if ('@Model.view' != "Draft") {
+            $("#wgpill td:nth-child(28),#wgpill th:nth-child(28)").hide();
+            $("#wgpill td:nth-child(29),#wgpill th:nth-child(29)").hide();
+        }
+        var objEditLineItems;
+        function EditLineItems(grnid, invid) {
+            // debugger;
+            if ($("#idhiddeneditlineitems").val() == "") {
+                $('#idhiddeneditlineitems').val('sam');
+          
+                objEditLineItems = $("[id$='ideditlineitems']");
+                objEditLineItems.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 1100,
+                    height: 420,
+                    resizable: false
+                });
+            }
+            objEditLineItems.load('@Url.Action("UpdateLineItems", "AssetCapitalizationMakerDetails")?grnid=' + grnid + '&invid=' + invid + '&' + new Date().getTime());
+            objEditLineItems.dialog({ title: 'Update Details' });
+            objEditLineItems.dialog("open");
+        }
+        $(function () {
+
+            $("#wgpill td:nth-child(2),#wgpill th:nth-child(2)").hide();
+            $("#wgpill td:nth-child(3),#wgpill th:nth-child(3)").hide();
+            $("#wgpill td:nth-child(4),#wgpill th:nth-child(4)").hide();
+            $("#wgpill td:nth-child(5),#wgpill th:nth-child(5)").hide();
+            $("#wgpill td:nth-child(6),#wgpill th:nth-child(6)").hide();
+            $("#wgpill td:nth-child(7),#wgpill th:nth-child(7)").hide();
+
+            $('.edittmv').hide();
+            $('.edit-btntmv,.cancel-btntmv').on("click", function () {
+                id = $("#lblsnonew2").text();
+                var tr = $(this).parents('tr:first');
+                tr.find('.edittmv, .displaytmv').toggle();
+            });
+
+            $('.save-btntmv').on("click", function () {
+                var tr = $(this).parents('tr:first');
+                var AMOUNT = tr.find("#lblAMT").text();
+                var Samt = tr.find("#AMT").val();
+                var Discount = tr.find("#Discount").val();
+                var Tax1 = tr.find("#Tax1").val();
+                var othres = tr.find("#othres").val();
+                var DOB = tr.find("#DOB").val();
+                var id = tr.find("#lblsnonew2").text();
+                var assetsubcat = $("#ddlnewAssetsubCategory").val();
+                var Assetcategory = $("#ddlnewAssetCategory").val();
+                //alert(Assetcategory);
+                //alert(assetsubcat);
+                var location = tr.find("#ddllocacode").val();
+                var isSuccess = -1;
+                if (parseInt(Discount) > parseInt(AMOUNT)) {
+                    jAlert('Amount MisMatch', "Information");
+                    return false;
+                }
+                if (parseInt(Tax1) > parseInt(AMOUNT)) {
+                    jAlert('Amount MisMatch', "Information");
+                    return false;
+                }
+                if (parseInt(othres) > parseInt(AMOUNT)) {
+                    jAlert('Amount MisMatch', "Information");
+                    return false;
+                }
+                if (parseInt(Samt) > parseInt(AMOUNT)) {
+                    jAlert('Amount MisMatch', "Information");
+                    return false;
+                }
+                var sum = (parseInt(Samt) + parseInt(Tax1) + parseInt(othres)) - parseInt(Discount);
+                var moedl =
+                {
+                    "index": id,
+                    "Amount": Samt,
+                    "Discount": Discount,
+                    "Tax1": Tax1,
+                    "othres": othres,
+                    "DOB": DOB,
+                    "TotalAmount": sum,
+                    "AssetSubcategpry": assetsubcat,
+                    "Assetcategpry": Assetcategory,
+                    "locationName": location
+                };
+                showProgress();
+                $.ajax({
+                    url: "@Url.Action("SaveData", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+                    type: 'POST',
+                    data: moedl,
+                    success: function (data) {
+                        hideProgress();
+                        jAlert("Successfully Saved", "Message");
+                        $('#pofdetails').empty().append(data);
+                    },
+                    error: function (data) {
+                        jAlert("Error. Please, check the data", "Message");
+                    }
+                })
+
+            });
+        })
+
+
+        function Capitalizangrid(id) {
+            var obj =
+           {
+               "pohgid": id
+           }
+            $.ajax({
+                url: "@Url.Action("CapitalizationGrid", "AssetCapitalizationMakerDetails")",
+                type: 'POST',
+                data: obj,
+                success: function (data) {
+                    $("#gvcapitalization").empty().append(data);
+
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+
+        }
+
+        $('#btnill').on("click", function () {
+
+            var gid = '@Model.pohgid';
+            var code = $("#txtassetcode").val();
+            var loc = $("#txtloccode").val();
+
+            var objSearch = {
+                "AssetCode": code,
+                "locationName": loc,
+                "pohgid": gid,
+                "view": '@Model.view'
+            };
+            $.ajax({
+                url: "@Url.Action("PofullSearch", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+                type: 'POST',
+                data: objSearch,
+                success: function (data) {
+
+                    $("#txtassetcode").val('@ViewBag.asst');
+                    $("#txtloccode").val('@ViewBag.loc');
+                    $('#pofdetails').empty().append(data);
+                },
+                error: function (data) {
+                    jAlert("Error. Please, check the data", "Message");
+                }
+            });
+
+        });
+        $('#btnillclear').on("click", function () {
+
+            $("#txtassetcode").val('');
+            $("#txtloccode").val('');
+            var gid = '@Model.pohgid';
+            var objSearch = {
+                "AssetCode": null,
+                "locationName": null,
+                "pohgid": gid,
+                "view": '@Model.view'
+            };
+            $.ajax({
+                url: "@Url.Action("PofullSearch", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+                type: 'POST',
+                data: objSearch,
+                success: function (data) {
+                    $('#pofdetails').empty().append(data);
+                },
+                error: function (data) {
+                    jAlert("Error. Please, check the data", "Message");
+                }
+            });
+        });
+
+        var objDialogPoEdit;
+        function PoHeader(id) {
+            window.open('../../Flexibuy/PO/RaisePO/' + id + '/0', "_blank");
+            @*if ($("#idhiddenPoEdit").val() == "") {
+            $('#idhiddenPoEdit').val('ku');
+
+            objDialogTaxone = $("[id$='idPoEdit']");
+            objDialogTaxone.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                cache: false,
+                width: 1100,
+                height: 800
+            });
+        }
+        objDialogTaxone.load('@Url.Action("PoEdit", "AssetCapitalizationMakerDetails")?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialogTaxone.dialog({ title: 'Po Details' });
+        objDialogTaxone.dialog("open");*@
+        }
+        function PoDetails(id) {
+            if ($("#idhiddenPoEdit").val() == "") {
+                $('#idhiddenPoEdit').val('ku');
+
+                objDialogTaxone = $("[id$='idPoEdit']");
+                objDialogTaxone.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 1100,
+                    height: 800
+                });
+            }
+            objDialogTaxone.load('@Url.Action("PoEdit", "AssetCapitalizationMakerDetails")?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialogTaxone.dialog({ title: 'Po Details' });
+            objDialogTaxone.dialog("open");
+        }
+        var objDialoggrnconfirmation;
+        function GRNdetail(id) {
+            if ($("#idhiddengrnconfirmation").val() == "") {
+                $('#idhiddengrnconfirmation').val('ku');
+
+                objDialogTaxTwo = $("[id$='idgrnconfirmation']");
+                objDialogTaxTwo.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 950,
+                    height: 600
+                });
+            }
+            objDialogTaxTwo.load('@Url.Action("grnconfirmation", "AssetCapitalizationMakerDetails")?grnheadgid=' + id + '&' + new Date().getTime());
+            objDialogTaxTwo.dialog({ title: 'GRN Details' });
+            objDialogTaxTwo.dialog("open");
+        }
+        var objDialogTax;
+        $('#chkpo').on("click", function () {
+            if ($('#chkpo').attr("checked")) {
+
+                if ($("#idhiddenTaxUpdate").val() == "") {
+                    $("#idhiddenTaxUpdate").val('hai');
+
+                    objDialogTax = $("[id$='idTaxUpdate']");
+                    objDialogTax.dialog({
+                        autoOpen: false,
+                        modal: true,
+                        show: 'fade-in',
+                        close: 'fade-out',
+                        cache: false,
+                        width: 700,
+                        height: 200,
+                        resizable: false
+                    });
+                }
+                objDialogTax.load('@Url.Action("TaxUpdate", "AssetCapitalizationMakerDetails")?' + new Date().getTime());
+                objDialogTax.dialog({ title: 'Invoice amount Common Update ' });
+                objDialogTax.dialog("open");
+            }
+        });
+
+
+
+        var objDialogTaxPO;
+        function PoQuantity(id) {
+            if ($("#idhiddenPoQuantity").val() == "") {
+                $('#idhiddenPoQuantity').val('har');
+
+                objDialogTaxPO = $("[id$='idPoQuantity']");
+                objDialogTaxPO.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    width: 950,
+                    height: 600
+                });
+            }
+            objDialogTaxPO.load('@Url.Action("PoQuantity", "AssetCapitalizationMakerDetails")?id=' + id + '&' + new Date().getTime());
+            objDialogTaxPO.dialog({ title: 'PO Details' });
+            objDialogTaxPO.dialog("open");
+        }
+
+
+        @*$("#ddlnewAssetCategory").change(function () {
+
+        var value = $("#ddlnewAssetCategory").val();
+       // alert(value);
+        $.ajax({
+            url: "@Url.Action("Posubcategory", "AssetCapitalizationMakerDetails")?" + new Date().getTime(),
+            type: 'POST',
+            data: { values: value },
+            success: function (data) {
+                $("#ddlnewAssetsubCategory").empty()
+                var optionhtml1 = '<option value="' +
+                 0 + '">' + "--Select Sub-Category--" + '</option>';
+                $("#ddlnewAssetsubCategory").append(optionhtml1);
+
+                $.each(data, function (i) {
+                    var optionhtml = '<option value="' +
+                data[i].Value + '">' + data[i].Text + '</option>';
+                    $("#ddlnewAssetsubCategory").append(optionhtml);
+                });
+            },
+            error: function (data) {
+                jAlert("Error. Please, check the data", "Message");
+            }
+
+        });
+
+    });*@
+        $("#wgpill th").each(function () {
+            var checked = $("#wgpill td :checkbox:checked").length;
+
+            if (checked == 0) {
+                $("#wgpillbtnsubmit").attr("disabled", true);
+            }
+            else {
+                $("#wgpillbtnsubmit").attr("disabled", false);
+            }
+            if ($.trim($(this).text().toString().toLowerCase()) === "{checkall}") {
+                $(this).text('');
+                $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                $(this).append("<span>Select All</span>");
+            }
+
+        });
+
+        //2nd click event for header checkbox for select /deselect all
+        $("#cbSelectAll").live("click", function () {
+            var ischecked = this.checked;
+            totamnt = 0;
+            var pendingforcap = 0;
+            if (this.checked == true) {
+                $('#wgpill tbody tr').find("input:checkbox").each(function () {
+                    var tr = $(this).closest("tr");
+                    var tds = tr.find('td');
+                    // var ids = tds.eq(18).text();
+                    var ids = tds.eq(21).text();
+                    var taxamnt = tds.eq(17).text();
+                 //   var curamnt = parseFloat(totamnt) + (parseFloat(ids) + parseFloat(taxamnt));
+                    var curamnt = parseFloat(totamnt) + parseFloat(ids);
+                    totamnt = curamnt;
+                    var alreadycap = $("#hidalreadycap").val();
+               
+                    totamnt += parseFloat(alreadycap);
+                });
+           
+                $("#lblCapitalisedAmnt").html(totamnt);
+                var invoiceamnt = $("#hidinvamnt").val();
+                var inputcreditamnt = $("#hidinputcreditamnt").val();
+                pendingforcap = parseFloat(invoiceamnt) - (parseFloat(totamnt) + parseFloat(inputcreditamnt));
+            }
+            else {
+                var alreadycap = $("#hidalreadycap").val();
+                if (alreadycap == null || alreadycap == "")
+                    alreadycap = 0;
+                $("#lblCapitalisedAmnt").html(parseFloat(alreadycap));
+                totamnt = 0;
+                var invoiceamnt = $("#hidinvamnt").val();
+                var inputcreditamnt = $("#hidinputcreditamnt").val();
+                if (invoiceamnt == null || invoiceamnt == "")
+                    invoiceamnt = 0;
+                if (inputcreditamnt == null || inputcreditamnt == "")
+                    inputcreditamnt = 0;
+                pendingforcap = parseFloat(invoiceamnt) - (parseFloat(alreadycap) + parseFloat(inputcreditamnt));
+            }
+            pendingforcap = parseFloat(pendingforcap).toFixed(2);
+            $("#lblPendingForCapitalisedAmnt").html(pendingforcap);
+            $('#wgpill').find("input:checkbox").each(function () {
+                this.checked = ischecked;
+            });
+            var checked = $("#wgpill td :checkbox:checked").length;
+
+            if (checked == 0) {
+                $("#wgpillbtnsubmit").attr("disabled", true);
+            }
+            else {
+                $("#wgpillbtnsubmit").attr("disabled", false);
+
+            }
+
+        });
+
+        var totamnt = 0;
+        //3rd click event for checkbox of each row
+        $("input[name='ids']").click(function () {
+            var tr = $(this).closest("tr");
+            var tds = tr.find('td');
+            // var ids = tds.eq(18).text();
+            var ids = tds.eq(21).text();
+            var taxamnt = tds.eq(17).text();
+            if (this.checked == true) {
+                //var curamnt = parseFloat(totamnt) +(parseFloat(ids) + parseFloat(taxamnt));
+                var curamnt = parseFloat(totamnt) + parseFloat(ids);
+                totamnt = curamnt;
+                var alreadycap = $("#hidalreadycap").val();
+                if (parseFloat(totamnt) < parseFloat(alreadycap)) {
+                    totamnt += parseFloat(alreadycap);
+                }
+            }
+            else if (this.checked == false) {
+           
+              //  var curamnt = parseFloat(totamnt) - (parseFloat(ids) + parseFloat(taxamnt));
+                var curamnt = parseFloat(totamnt) - parseFloat(ids);
+                totamnt = curamnt;
+                var alreadycap = $("#hidalreadycap").val();
+                if (alreadycap == null || alreadycap == "")
+                    alreadycap = 0;
+                if (parseFloat(totamnt) < parseFloat(alreadycap)) {
+                    totamnt += parseFloat(alreadycap);
+                }
+            }
+            totamnt = parseFloat(totamnt).toFixed(2);
+            $("#lblCapitalisedAmnt").html(totamnt);
+            var invoiceamnt = $("#hidinvamnt").val();
+            var inputcreditamnt = $("#hidinputcreditamnt").val();
+            var capamnt = $("#lblCapitalisedAmnt").val();
+            var pendingforcap = 0;
+            if (invoiceamnt == null || invoiceamnt == "")
+                invoiceamnt = 0;
+            if (inputcreditamnt == null || inputcreditamnt == "")
+                inputcreditamnt = 0;
+            pendingforcap = parseFloat(invoiceamnt) - (parseFloat(totamnt) + parseFloat(inputcreditamnt));
+            pendingforcap = parseFloat(pendingforcap).toFixed(2);
+            $("#lblPendingForCapitalisedAmnt").html(pendingforcap);
+            var totalRows = $("#wgpill td :checkbox").length;
+            var checked = $("#wgpill td :checkbox:checked").length;
+            if (checked == 0) {
+                $("#wgpillbtnsubmit").attr("disabled", true);
+            }
+            else {
+                $("#wgpillbtnsubmit").attr("disabled", false);
+            }
+            if (checked == totalRows) {
+                $("#wgpill").find("input:checkbox").each(function () {
+                    this.checked = true;
+                });
+            }
+            else {
+                $("#cbSelectAll").removeAttr("checked");
+            }
+
+        });
+
+
+
+</script>

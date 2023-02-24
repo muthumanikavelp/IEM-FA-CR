@@ -1,0 +1,121 @@
+﻿<div style="padding-right: 10px;width:100%;">
+    <div align="right" style="padding-bottom:5px;">
+        <button type="button" id="btntaxdinvopo" disabled="disabled" value="Add PO" onclick="NewsupplierPO()" class="btn btn-primary">
+            <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New PO
+        </button>
+        @*<input type="button" value="Add PO" disabled="disabled" id="btntaxdinvopo" class="btn btn-primary" onclick="NewsupplierPO()" />*@
+    </div>
+    <div>
+        @Html.Partial("_PODetailsGrid")
+    </div>
+</div>
+<div id="ForPartialViewgrndtlsd"></div>
+<div id="ForPartialViewpomap"></div>
+<div id="ForPartialViewsupplierpo"></div>
+<script type="text/javascript">
+    var ForPartialViewgrndtls;
+    $(document).ready(function () {
+        ForPartialViewgrndtls = $("[id$='ForPartialViewgrndtlsd']");
+        ForPartialViewgrndtls.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            title: 'GRN Details ',
+            width: 950,
+            height: 800
+        });
+
+    });
+    var supplierpo;
+    $(document).ready(function () {
+        supplierpo = $("[id$='ForPartialViewsupplierpo']");
+        supplierpo.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1050,
+            height: 630
+        });
+
+    });
+
+    var ForPartialViewpomap;
+    $(document).ready(function () {
+        ForPartialViewpomap = $("[id$='ForPartialViewpomap']");
+        ForPartialViewpomap.dialog({
+            autoOpen: false,
+            cache: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1170,
+            height: 644,
+            title: 'Po Mapping'
+        });
+    });
+
+    function NewsupplierPO() {
+        var potypes = $("#doctypeNames option:selected").text();
+        if (potypes != "") {
+            if (potypes == "PO") {
+                potypes = "P";
+            }
+            if (potypes == "WO") {
+                potypes = "W";
+            }
+            var url = '@Url.Action("_PoAdd", "SupplierInvoiceNew")?potype=' + potypes + '&' + new Date().getTime();
+            @*var url = "@(Html.Raw(Url.Action("_PoAdd", "SupplierInvoiceNew")))";*@
+            supplierpo.load(url);
+            supplierpo.dialog({ title: 'New PO' });
+            supplierpo.dialog("open");
+        }
+
+    }
+    function GotoIndexAttachmentVsu() {
+        window.parent.jQuery('#ForPartialViewsupplierpo').dialog('close');
+    }
+    function EmppoDelete(id) {
+        jConfirm("Do you want to delete PO...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpPaymentmodel = { "POGid": id }
+                $.post('../SupplierInvoiceNew/SeuplierPODelete', EmpPaymentmodel,
+              function (data) {
+                  if (data == 0) { location = location.href; } else {
+                      jAlert("Deleted Successfully.", "Message");
+                      //$("#ddlgstProviderLoc").val("0");
+                      //$("#ddlgstReceiverLoc").val("0");
+                      //$("#txtGSTINVendor").val("");
+                      //$("#txtGSTINFICCL").val("");
+                      //$(".divGSTChargedShow").hide();
+
+                      var url1 = '@Url.Action("_GetGstDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                      $("#PoGstGrid").load(url1);
+                      var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                      var traurl = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                      var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                      $("#wgempposupplier").load(pourl);
+                      $("#wgempTaxsupplier").load(taxurl);
+                      $("#wgTravelmodeotab2").load(traurl);
+                      var url = '@Url.Action("_Pomappingdetail", "SupplierInvoiceNew")?id=' + POgid + '&' + new Date().getTime();
+                      $("#searchgridpotems").load(url);
+
+
+                  
+
+                  }
+              }, 'json');
+               // 
+                
+                var rows = $("#rowscount").text();  //pandiaraj 11-11-17
+                if (rows<=1)
+                    $("#doctypeNames").removeAttr("disabled");
+               
+            }
+        });
+    }
+
+</script>

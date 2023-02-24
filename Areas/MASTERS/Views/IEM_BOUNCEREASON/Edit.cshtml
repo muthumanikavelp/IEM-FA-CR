@@ -1,0 +1,227 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_bouncereason
+
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+    if (@Model.bouncereason_type == "O")
+        {ViewBag.offline = "checked";}
+    else
+        {ViewBag.cheque = "checked"; }
+}
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; display:none ;">
+                <input name="CategoryID" id="_Bouncegid"  type="text"  data-val="true" value="@Model.bouncereason_gid" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Bounce Code </span><br/>
+                <input name="CategoryeName" id="_Bouncecode" style="width:286px;" class="fstextbox valid" maxlength="50" type="text"
+                       data-val="true" value="@Model.bouncereason_code" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Bounce Name </span><br/>
+                <input name="CategoryeName" id="_Bouncename" maxlength="70" style="width:286px;" class="fstextbox valid" type="text"
+                       placeholder="Bank  Name" data-val="true" value="@Model.bouncereason_name" @ViewBag.viewmode />
+
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px;">
+                <span> Bounce Type</span><br />
+                <input type="radio" id="Cheq" value="Cheque" checked=@ViewBag.cheque name="Radiotypename" @ViewBag.viewmode>
+                <span>Cheque </span> 
+                    <input type="radio" id="Online" value="Online" checked=@ViewBag.offline name="Radiotypename" @ViewBag.viewmode>
+                <span>  Online/Memo</span>
+
+</td>
+        </tr>
+        <tr>
+            <td style="width:100%; padding:0px 10px 0px 3px; text-align :center;">
+             
+                @if (@ViewBag.viewmode == "")
+                {
+                    <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()" style="margin-top:10px;  color:white;">
+                        <span class="glyphicon glyphicon-floppy-disk" style="color:white;font-size:12px;"></span> Save
+                    </button>
+                }
+                @if (@ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()" style="margin-top:10px;  color:white;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon-trash"></span> Delete
+                    </button>
+                }
+            
+                @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                {
+                    <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button>
+                }
+                else if (@ViewBag.viewmode == "disabled")
+                {
+                    <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()" style="margin-top:10px;  color:white;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-sign"></span> Close
+                    </button>
+                }
+            </td>
+
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#_Bouncecode").focus();
+        $("#_Bouncecode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#_Bouncename").focus();
+        $("#_Bouncename").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#_Bouncecode").keyup(function () {
+            var txtSupplierName = $("#_Bouncecode").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Bouncecode").removeClass('required');
+                $("#_Bouncecode").addClass('valid');
+            }
+            else {
+                $("#_Bouncecode").removeClass('valid');
+                $("#_Bouncecode").addClass('required');
+            }
+        });
+
+        $("#_Bouncename").keyup(function () {
+            var txtSupplierName = $("#_Bouncename").val();
+            if (txtSupplierName.trim() != "") {
+                $("#_Bouncename").removeClass('required');
+                $("#_Bouncename").addClass('valid');
+            }
+            else {
+                $("#_Bouncename").removeClass('valid');
+                $("#_Bouncename").addClass('required');
+            }
+        });
+    });
+
+    function Update() {
+        var bouncecode = $("#_Bouncecode").val().trim();
+        var bouncename = $("#_Bouncename").val().trim();
+        var bouncegid = $("#_Bouncegid").val();
+        var bouncetype = $('input[name=Radiotypename]:checked').val();          
+       
+        if (bouncetype == "Cheque")
+        {
+            var gettype = "C";
+        }
+        else if (bouncetype == "Online") {
+            var gettype = "O";
+        }
+        else
+        {
+            alert("Please select bounce type !");
+            return false;
+        }
+       
+        if (bouncecode == "") {
+
+            jAlert("Please Enter Bounce Code.", "Information")
+
+            $("#_Bouncecode").focus();
+            return false;
+
+        }
+
+        if (bouncename == "") {
+
+            jAlert("Please Enter Bounce Name.", "Information")
+
+            $("#_Bouncename").focus();
+            return false;
+
+        }
+
+        var CategoryModel = { "bouncereason_gid": bouncegid, "bouncereason_code": bouncecode, "bouncereason_name": bouncename, "bouncereason_type": gettype };
+
+        $.post('../IEM_BOUNCEREASON/UpdateBounceDetails', CategoryModel,
+
+            function (data)
+            {                
+                if (data != "success")
+                {
+                    
+                    jAlert(data, "Information", function (r) {
+                        if (r == true) {
+                            return false;
+                        }
+                    });
+                }
+                else
+                {
+                  
+
+                    jAlert("Record updated Successfully!!", "Information", function (r) {
+                        if (r == true) {
+
+                            window.parent.jQuery('#ForPartialView').dialog('close');
+                            location = '../IEM_BOUNCEREASON/Index';
+                        }
+                    });
+                }
+            }
+
+        , 'json');
+    }
+    function DeleteType() {
+        var bouncegid = $("#_Bouncegid").val();
+        jConfirm("Do you want to delete this Bounce ? ", "Delete Bounce", function (j) {
+            if (j == true) {
+                var model = { "bouncereason_gid": bouncegid }
+                $.post('../IEM_BOUNCEREASON/DeleteBounceDetails', model,
+                     function (data) {
+                         if (data == "Record deleted successfully !") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location ='../IEM_BOUNCEREASON/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+    }
+
+    $(".ui-icon-closethick").click(function () {
+       // $('#gridbounce').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    });
+
+    function goToIndex()
+    {
+       //$('#gridbounce').find('tr').css('background', 'none');
+       //window.parent.jQuery('#ForPartialView').dialog('close');
+
+       window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+</script>

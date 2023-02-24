@@ -1,0 +1,238 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_currencyrate>
+@using IEM.Common
+@{
+    CmnFunctions prop = new CmnFunctions();
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Currency Rate </span>
+    </div>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="well">
+            <table class="myTableStyleTabNew" style="width:100%;">
+                <tr>
+
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> Currency Name  </span>
+                        <br />
+                        <input type="text"
+                               name="Currencyname"
+                               id="txtcurrencyname"
+                               value="@ViewBag.Currencyname"
+                               class="fstextbox"
+                               maxlength="50" />
+
+                    </td>
+
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> Currency Period From   </span>
+                        <br />
+                        <input type="text"
+                               name="periodfrom"
+                               id="txtcurencyperiodfrom"
+                               value="@ViewBag.periodfrom"
+                               class="fstextbox"
+                               onkeypress="return isEvent(event)" />
+
+                    </td>
+
+                    <td style="width:20%; padding:0px 10px 0px 3px;">
+                        <span> Currency Period To </span>
+                        <br />
+                        <input type="text"
+                               name="periodto"
+                               id="periodto"
+                               value="@ViewBag.periodto"
+                               class="fstextbox"
+                               onkeypress="return isNumberKey(event)" />
+
+                    </td>
+
+                    <td style="width:40%; padding:0px 10px 0px 3px;">
+
+                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                style="margin-top:20px;color:white;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+
+                        @*<button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit"
+                            style="margin-top:20px;"><span style="color:white;font-size:12px;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+
+                        <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit"
+                                style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+
+                        <button type="button" value="New City" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px;" class="glyphicon glyphicon-plus"></span> New Currency Rate
+                        </button>
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                        </button>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="table-responsive" style="margin-top:10px;">
+                @grid.GetHtml(
+          htmlAttributes: new { id = "gridcurrencyrate" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                      grid.Column(header: "Currency Name", columnName: "currency_name"),
+                //grid.Column(header: "Currency Rate", columnName: "currencyrate_value", style: "colamountlarge"),
+             grid.Column(header: "Currency Rate", format: @<text> @Html.Raw(String.Format("{0:#,##}", prop.GetINRAmount(Convert.ToString(@item.currencyrate_value)))) </text>, style: "colamountlarge"),
+             grid.Column(header: "Currency PeriodFrom", columnName: "currencyrate_period_from", style: "actionlarge"),
+       grid.Column(header: "Currency PeriodTo", columnName: "currencyrate_period_to", style: "actionlarge"),
+                      grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.currencyrate_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.currencyrate_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteCurrencyrate(" + item.currencyrate_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                            </text>))))
+            </div>
+           
+             
+        </div>
+    }
+    <div id="ForPartialView"></div>
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+            $('#gridcurrencyrate tr th:nth-child(6)').addClass("nosort");
+            $('#gridcurrencyrate').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            objDialog = $("[id$='ForPartialView']");
+            //objDialogfordelete = $("[id$='ForPartialViewfordelete']");
+            //objDialogforedit = $("[id$='ForPartialViewforedit']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 350,
+                height: 350,
+                duration: 300
+            });
+
+            $(function () {
+                $("#txtFilter").focus();
+            });
+        
+            $("#txtcurrencyname").focus();
+            $("#txtcurrencyname").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $("#txtFilter2").focus();
+            $("#txtFilter2").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+        });
+     
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        $("#txtcurencyperiodfrom").datepicker({
+            yearRange: '1900:' + Presentyear,
+            changeMonth: true,
+            changeYear: true,
+            maxDate: 'd',
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+                $("#periodto").val('');
+                $("#periodto").datepicker("option", "minDate", selected)
+            }
+        });
+        $("#periodto").datepicker({
+            //yearRange: '1900:' + Presentyear,
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+
+        $('#txtcurencyperiodfrom,#periodto').keyup(function (e) {
+            if (e.keyCode == 8) {
+                $.datepicker._clearDate(this);
+            }
+            if (e.keyCode == 46) {
+                $.datepicker._clearDate(this);
+            }
+            $(this).datepicker('show');
+        });
+
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : event.keyCode
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+        function NewType() {
+            objDialog.load('../IEM_CURRENCYRATE/Create');
+            objDialog.dialog({ title: 'Add  Currency Rate' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_CURRENCYRATE/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Currency Rate ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_CURRENCYRATE/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'Currency Rate ' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteCurrencyrate(id) {
+            objDialog.load('../IEM_CURRENCYRATE/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: ' Delete Currency Rate ' });
+            objDialog.dialog("open");
+            return false;
+        }
+
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=7&FileName=CurrencyRate&' + new Date().getTime());
+        }
+
+        function refresh() {
+            location = '../IEM_CURRENCYRATE/Index';
+        }
+
+        function isEvent(evt) {
+            return false;
+        }
+
+        function testDecimals(currentval) {
+            var count;
+            currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+            return count;
+        }
+
+        function replaceCommas(yourNumber) {
+            var components = yourNumber.toString().split(".");
+            if (components.length === 1)
+                components[0] = yourNumber;
+            components[0] = components[0].replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (components.length === 2)
+                components[1] = components[1].replace(/\D/g, "");
+            return components.join(".");
+        }
+    </script>

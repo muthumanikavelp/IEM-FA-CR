@@ -1,0 +1,137 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@using IEM.Areas.FLEXIBUY.Models
+
+@{
+    //  ViewBag.Title = "editprattachgrid";
+    int rowcount = 0;
+    var grid = new WebGrid();
+    string cbfattchemnet = Session["prgid"].ToString();
+    Session["prdetails"] = cbfattchemnet;
+    CbfSumEntity objMAttachment = new CbfSumEntity();
+    CbfSumModel objRep = new CbfSumModel();
+    if (Session["prdetails"].ToString() == "")
+    {
+        objMAttachment.amoun = cbfattchemnet;
+        objMAttachment = objRep.Attachmentname(objMAttachment);
+        Model.attachment = objMAttachment.attachment;
+    }
+    else
+    {
+        objMAttachment.amoun = cbfattchemnet;
+        objMAttachment = objRep.Attachmentname(objMAttachment);
+        Model.attachment = objMAttachment.attachment;
+    }
+    objMAttachment.attachmentDate = DateTime.Now.ToShortDateString();
+
+    if (Session["prgid"].ToString() == "") { grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid"); }
+    else
+    {
+        grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid");
+    } grid.Pager(WebGridPagerModes.All);
+
+}
+
+<div class="overflowx" id="gridattachment">
+
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                columns: grid.Columns
+                (
+                        grid.Column("Sl", format: a => rowcount = rowcount + 1, style: "col-sm-1"),
+                                        grid.Column("attachedDate", Sorter("attachedDate", "Attachment Date", grid), style: "col-sm-1"),
+                                grid.Column("fileName", Sorter("fileName", "File name", grid),
+                                format: @<text>
+                                    <a title='click here to download' onclick='DownloadPRAttachment("@item.filename")'>
+                                        @item.filename
+
+                                    </a></text>,style: "col-sm-2"),
+                              grid.Column("description", Sorter("description", "Description", grid), style: "col-sm-2"),
+                            grid.Column(header: "Action", canSort: false, style: "action",
+                                format: @<text>
+                                <input type="button" value="Delete" class="btn btn-link" onclick="attachmentDetele(id)" id="@item.filename" title="Delete" />
+                                </text>)
+))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+
+</div>
+
+<script>
+
+
+    function DownloadPRAttachment(filename) {
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                }
+
+        $.post('@Url.Action("Downloaded", "PRSummary")', prattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '@Url.Action("Download", "PRSummary")' }
+        }, 'json');
+
+    }
+
+    function attachmentDetele(filename) {
+
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                }
+        $.ajax({
+            url: '@Url.Action("EditDeleteAttachment", "PrSummary")?' + new Date().getTime(),
+            type: 'POST',
+            data: prattachmentmodel,
+            success: function (data) {
+
+                $.ajax({
+                    url: "@Url.Action("editPRattachgrid", "PrSummary")?" + new Date().getTime(),
+                    type: 'GET',
+
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#gridattachment").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong");
+                    }
+                });
+                @*$.post('../../PRSummary/EditDeleteAttachment', prattachmentmodel,
+                function (data) {
+                    if (data == 0) {
+
+                        location = location.href;
+                    }
+                    else {
+                        jAlert("Record Successfully Deleted","Message");
+                        // $('#gridattachment').load('../../PRSummary/editPRattachgrid'); refresh();
+                        $('#gridattachment').load('@Url.Action("editPRattachgrid", "PRSummary")');
+                    }
+                }, 'json');*@
+
+            }
+        });
+    }
+</script>

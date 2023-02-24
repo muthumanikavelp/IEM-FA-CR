@@ -1,0 +1,1069 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.CentraldataModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true);
+    int rowVal = 0;
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Inward</span>
+</div>
+<link href="~/Scripts/asms/getbootstrap336.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<script src="~/Scripts/asms/Angular149.js"></script>
+<script src="~/Scripts/asms/angularanimate.js"></script>
+<script src="~/Scripts/asms/bootstraptpls112.js"></script>
+
+<script>
+
+    function refresh() {
+        //location = '../Central/Centralteaminward';
+        $('#RecivedDateFrom').val("");
+        $('#RecivedDateTo').val("");
+        $('#UploadFile').val("");
+        $('#txtInvoiceDate').val("");
+        $('#txtraisercodeserch').val("");
+        $('#txtraisernameserch').val("");
+        $('#txtsuppliercodeser').val("");
+        $('#txtSuppliernameser').val("");
+        $('#DepartmentId').val("");
+        $('#txtInvoiceNo').val("");
+        $('#txtPONO').val("");
+        $('#txtinvoice').val("");
+
+    }
+    var app = angular.module('ui.bootstrap.demo', ['ngAnimate', 'ui.bootstrap']);
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        };
+    });
+
+    app.controller('ModalDemoCtrl', function ($scope, $uibModal, $log, $http, filterFilter) {
+
+        var urlgetdata = '@Url.Action("ToGetraiserdetails", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+        $http.get(urlgetdata)
+     .then(function (response) {
+         $scope.items = response.data.qrylist;
+         $scope.itemssuppier = response.data.qrylistsupplier;
+
+         $scope.animationsEnabled = true;
+
+         $scope.open = function (size) {
+
+             var modalInstance = $uibModal.open({
+                 animation: $scope.animationsEnabled,
+                 templateUrl: 'myModalContent.html',
+                 controller: 'ModalInstanceCtrl',
+                 size: size,
+                 resolve: {
+                     items: function () {
+                         return $scope.items;
+                     }
+                 }
+             });
+
+             modalInstance.result.then(function (selectedItem) {
+                 $scope.selected = selectedItem;
+             }, function () {
+                 $log.info('Modal dismissed at: ' + new Date());
+             });
+         };
+
+         $scope.opensupplier = function (size) {
+             var modalInstance = $uibModal.open({
+                 animation: $scope.animationsEnabled,
+                 templateUrl: 'myModalContentsup.html',
+                 controller: 'ModalInstanceCtrlsup',
+                 size: size,
+                 resolve: {
+                     items: function () {
+                         return $scope.itemssuppier;
+                     }
+                 }
+             });
+
+             modalInstance.result.then(function (selectedItem) {
+                 $scope.selectedsupplier = selectedItem;
+             }, function () {
+                 $log.info('Modal dismissed at: ' + new Date());
+             });
+         };
+
+         $scope.toggleAnimation = function () {
+             $scope.animationsEnabled = !$scope.animationsEnabled;
+         };
+     });
+    });
+
+    app.controller('ModalInstanceCtrlsup', function ($scope, $uibModalInstance, items) {
+
+        $scope.items = items;
+        $scope.search = {};
+        $scope.resetFilters = function () {
+            $scope.search = {};
+        };
+        $scope.currentPage = 1;
+        $scope.totalItems = $scope.items.length;
+        $scope.entryLimit = 50;
+        $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+        $scope.noofsetpages = 5;
+        $scope.$watch('search', function (newVal, oldVal) {
+            $scope.filtered = filterFilter($scope.items, newVal);
+            $scope.totalItems = $scope.filtered.length;
+            $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+            $scope.currentPage = 1;
+            $scope.noofsetpages = 5;
+        }, true);
+
+        $scope.selected = {
+            item: $scope.items[0]
+        };
+
+        $scope.ok = function () {
+
+            var empid = $scope.selected.item.employeeGid;
+            var empcode = $scope.selected.item.empCode;
+            var empname = $scope.selected.item.empName;
+
+            var objownersearchnew = {
+                "employeeGid": empid,
+                "empCode": empcode,
+                "empName": empname
+            };
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Getsupplier", "SupplierInvoiceNewmanual")',
+                data: objownersearchnew,
+                success: function (data) {
+
+
+                    $('#txtsuppliercode11').val(empcode);
+                    $('#txtSuppliername11').val(empname);
+
+                    $('#suppliercode').val(empcode);
+                    $('#Suppliername').val(empname);
+
+                    $('#txtsuppliercodeser').val(empcode);
+                    $('#txtSuppliernameser').val(empname);
+                    $('#supplierId').val(empid);
+
+                    $("#txtponumber1").val('')
+                    $("#txtponumber1").removeClass('valid');
+                    $("#txtponumber1").addClass('required');
+
+                    $("#Suppliername").removeClass('required');
+                    $("#Suppliername").addClass('valid');
+
+                },
+                error: function () {
+                }
+            });
+
+            $uibModalInstance.close($scope.selected.item);
+        };
+
+        $scope.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
+    });
+
+    app.controller('ModalInstanceCtrl', function ($scope, $uibModalInstance, items) {
+
+        $scope.items = items;
+        $scope.search = {};
+        $scope.resetFilters = function () {
+            $scope.search = {};
+        };
+        $scope.currentPage = 1;
+        $scope.totalItems = $scope.items.length;
+        $scope.entryLimit = 50;
+        $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+        $scope.noofsetpages = 5;
+        $scope.$watch('search', function (newVal, oldVal) {
+            $scope.filtered = filterFilter($scope.items, newVal);
+            $scope.totalItems = $scope.filtered.length;
+            $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+            $scope.currentPage = 1;
+            $scope.noofsetpages = 5;
+        }, true);
+
+        $scope.selected = {
+            item: $scope.items[0]
+        };
+
+        $scope.ok = function () {
+
+            var Employeeid = $scope.selected.item.employeeGid
+            var EmployeeCode = $scope.selected.item.empCode
+            var EmployeeName = $scope.selected.item.empName
+            var Employeegrade = $scope.selected.item.empgrade
+
+            //$("#txtraisercodes").text(EmployeeCode);
+            //$("#txtraisernames").text(EmployeeName);
+            //$("#txtgrades").text(Employeegrade);
+
+            //$("#txtraisercodess").val(EmployeeCode);
+            //$("#txtraisernamess").val(EmployeeName);
+            //$("#txtraisergisss").val(Employeeid);
+            //$("#txtecrnewraiser").val(Employeeid);
+
+            $('#txtraisercodeserch').val(EmployeeCode);
+            $('#txtraisernameserch').val(EmployeeName);
+            $('#txtraisercodeforcen').val(EmployeeCode);
+            $('#txtraisernameforcen').val(EmployeeName);
+
+            $uibModalInstance.close($scope.selected.item);
+        };
+
+        $scope.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
+    });
+</script>
+<style>
+    .glyphicon {
+        color: orange;
+    }
+</style>
+
+<div class="panel4 panel4-default4" ng-app="ui.bootstrap.demo">
+    <div ng-controller="ModalDemoCtrl">
+        <script type="text/ng-template" id="myModalContentsup.html">
+            <div class="modal-header" style="padding:5px">
+                <table style="width:100%">
+                    <tr>
+                        <td><h4 class="modal-title">New Supplier</h4></td>
+                        <td valign="top" align="right">
+                            <a href="#" class="ui-dialog-titlebar-close ui-corner-all" ng-click="cancel()" role="button">
+                                <span class="remove glyphicon glyphicon-remove-sign glyphicon-white"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="modal-body">
+                <div>
+                    <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;font-family:Tahoma;">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th class="thfix" style="display:none;">
+                                    ecf Gid
+                                </th>
+                                <th class="thfix" style="width:7%;">
+                                    S.No
+                                </th>
+                                <th class="thfix" style="width:25%;">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empCode'; sortReversemyreq = !sortReversemyreq">
+                                        Supplier Code
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empCode' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empCode' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empCode">
+                                </th>
+                                <th class="thfix">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empName'; sortReversemyreq = !sortReversemyreq">
+                                        Supplier Name
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empName' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empName' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empName">
+                                </th>
+                                <th class="thfix" style="width:11.7%;">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div style="height: 507px;overflow-y: scroll;">
+                        <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+                            <tbody ng-show="filtered.length!=0" ng-repeat="item in filtered = items| orderBy:sortTypemyreq:sortReversemyreq | filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit" style="width:100%;">
+                                <tr>
+                                    <td class="tdfix" style="display:none;">
+                                        {{item.employeeGid}}
+                                    </td>
+                                    <td class="tdfix" style=" width:7.1%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td class="tdfix" style="width:25.5%;overflow: hidden;">
+                                        <span> {{item.empCode}}</span>
+                                    </td>
+                                    <td class="tdfix" style="overflow: hidden;">
+                                        <span> {{item.empName}}</span>
+                                    </td>
+                                    <td class="tdfix" style="width:10%;" align="center">
+                                        <a id="idview" ng-click="$event.preventDefault(); selected.item = item;ok()" title="Select">
+                                            <span class="btn btn-link color">Select</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot ng-show="filtered.length==0">
+                                <tr>
+                                    <td colspan="9" style="text-align:left;"><div class="gridMessage" style="width:100%; border:none;"><center>No Records Found</center></div></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div ng-show="filtered.length>0">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems}}  of {{filtered.length}} </div></td>
+                                <td align="right">
+                                    <pagination total-items="totalItems"
+                                                ng-model="currentPage"
+                                                page="currentPage"
+                                                max-size="noofsetpages"
+                                                boundary-links="true"
+                                                items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;font-size:14px;">
+                                    </pagination>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script type="text/ng-template" id="myModalContent.html">
+            <div class="modal-header" style="padding:5px">
+                <table style="width:100%">
+                    <tr>
+                        <td><h4 class="modal-title">Change Raiser Details</h4></td>
+                        <td valign="top" align="right">
+                            <a href="#" class="ui-dialog-titlebar-close ui-corner-all" ng-click="cancel()" role="button">
+                                <span class="remove glyphicon glyphicon-remove-sign glyphicon-white"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="modal-body">
+                <div>
+                    <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;font-family:Tahoma;">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th class="thfix" style="display:none;">
+                                    ecf Gid
+                                </th>
+                                <th class="thfix" style="width:7%;">
+                                    S.No
+                                </th>
+                                <th class="thfix" style="width:15%;">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empCode'; sortReversemyreq = !sortReversemyreq">
+                                        Employee Code
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empCode' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empCode' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empCode">
+                                </th>
+                                <th class="thfix">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empName'; sortReversemyreq = !sortReversemyreq">
+                                        Employee Name
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empName' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empName' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empName">
+                                </th>
+                                <th class="thfix" style="width:15%;">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empfc'; sortReversemyreq = !sortReversemyreq">
+                                        FC Code
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empfc' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empfc' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empfc">
+                                </th>
+                                <th class="thfix" style="width:15%;">
+                                    <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'empcc'; sortReversemyreq = !sortReversemyreq">
+                                        CC Code
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empcc' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                        <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'empcc' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                    </a>
+                                    <br />
+                                    <input type="text" class="textboxStyle" ng-model="search.empcc">
+                                </th>
+                                <th class="thfix" style="width:11.7%;">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div style="height: 507px;overflow-y: scroll;">
+                        <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+                            <tbody ng-show="filtered.length!=0" ng-repeat="item in filtered = items| orderBy:sortTypemyreq:sortReversemyreq | filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit" style="width:100%;">
+                                <tr>
+                                    <td class="tdfix" style="display:none;">
+                                        {{item.employeeGid}}
+                                    </td>
+                                    <td class="tdfix" style=" width:7.1%;" align="center">
+                                        {{$index+1}}
+                                    </td>
+                                    <td class="tdfix" style="width:15.2%;overflow: hidden;">
+                                        <span> {{item.empCode}}</span>
+                                    </td>
+                                    <td class="tdfix" style="overflow: hidden;">
+                                        <span> {{item.empName}}</span>
+                                    </td>
+                                    <td class="tdfix" style="width:15.2%;overflow: hidden;">
+                                        <span> {{item.empfc}}</span>
+                                    </td>
+                                    <td class="tdfix" style="width:15.2%;overflow: hidden;">
+                                        <span>{{item.empcc}}</span>
+                                    </td>
+                                    <td class="tdfix" style="width:10%;" align="center">
+                                        <a id="idview" ng-click="$event.preventDefault(); selected.item = item;ok()" title="Select">
+                                            <span class="btn btn-link color">Select</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot ng-show="filtered.length==0">
+                                <tr>
+                                    <td colspan="9" style="text-align:left;"><div class="gridMessage" style="width:100%; border:none;"><center>No Records Found</center></div></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div ng-show="filtered.length>0">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems}}  of {{filtered.length}} </div></td>
+                                <td align="right">
+                                    <pagination total-items="totalItems"
+                                                ng-model="currentPage"
+                                                page="currentPage"
+                                                max-size="noofsetpages"
+                                                boundary-links="true"
+                                                items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;font-size:14px;">
+                                    </pagination>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+
+        <div class="well">
+            @using (Html.BeginForm("Centralteaminward", "Central", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmIDCentralteaminward" }))
+            {
+                <table class="myTableStyleTabNew" width="100%">
+                    <tr>
+                        <td style="width:10%;">
+                            <span>Date From</span>
+                            <br />
+                            <input type="text"
+                                   id="RecivedDateFrom"
+                                   name="RecivedDateFrom"
+                                   value="@ViewBag.RecivedDateFrom" maxlength="10"
+                                   class="textboxStyle" /> @*//Length Fixed by selva*@
+                            </td>
+                            <td style="width:10%;">
+                                <span>Date To</span>
+                                <br />
+                                <input type="text"
+                                       id="RecivedDateTo"
+                                       name="RecivedDateTo"
+                                       value="@ViewBag.RecivedDateTo" maxlength="10"
+                                       class="textboxStyle" /> @*//Length Fixed by selva*@
+                                </td>
+                                <td style="width:10%;">
+                                    <span> Raiser Code</span>
+                                    <br />
+                                    <input type="text"
+                                           name="raisercode"
+                                           id="txtraisercodeserch"
+                                           value="@ViewBag.raisercode"
+                                           class="textboxStyle"
+                                           readonly="readonly" />
+                                </td>
+                                <td style="width:2%; vertical-align:bottom; padding-bottom:6px;">
+                                    @*<a ng-click="open('lg')"> <span class="glyphicon glyphicon-search" style="padding-top: 7px;" onclick="Searcentrinwardemp()"></span> </a>*@
+                                    <a title="Search" ng-click="open('lg')"><span class="glyphicon glyphicon-search" id="Searchicon"></span></a>
+                                </td>
+                                <td style="width:20%;">
+                                    <span> Raiser Name</span>
+                                    <br />
+                                    <input type="text"
+                                           name="raisername"
+                                           id="txtraisernameserch"
+                                           value="@ViewBag.raisername"
+                                           class="textboxStyle"
+                                           readonly="readonly" />
+                                </td>
+                                <td style="width:10%;">
+                                    <span> Invoice Date</span>
+                                    <br />
+                                    <input type="text"
+                                           name="InvoiceDate"
+                                           id="txtInvoiceDate"
+                                           value="@ViewBag.InvoiceDate" maxlength="10"
+                                           class="textboxStyle" /> @*//Length Fixed by selva*@
+
+                                    </td>
+                                    <td style="width:12%;">
+                                        <span> Invoice Amount</span>
+                                        <br />
+                                        <input type="text"
+                                               name="invoiceAmount"
+                                               id="txtinvoice"
+                                               value="@ViewBag.invoiceAmount" maxlength="15"
+                                               class="textboxStyle" /> @*//Length Fixed by selva*@
+                                        </td>
+                                        <td style="width:13%;">
+                                            <span>Invoice No</span>
+                                            <br />
+                                            <input type="text"
+                                                   id="txtInvoiceNo"
+                                                   name="InvoiceNo"
+                                                   value="@ViewBag.InvoiceNo"
+                                                   class="textboxStyle"
+                                                   maxlength="64" />
+                                        </td>
+                                        <td style="width:13%;">
+                                            <span>PO No</span>
+                                            <br />
+                                            <input type="text"
+                                                   id="txtPONO"
+                                                   name="PONO"
+                                                   value="@ViewBag.PONO"
+                                                   class="textboxStyle"
+                                                   maxlength="32" />
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table class="myTableStyleTabNew" width="100%">
+                                    <tr>
+                                        <td style="width:20%;">
+                                            <span> Supplier Type</span>
+                                            @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.SupplierType, "-----Select-----", new { @class = "form-control ", @style = "display: block;", @id = "TravelModeId", @Name = "SupplierType" })
+                                        </td>
+                                        <td style="width:10%;">
+                                            <span> Supplier Code</span>
+                                            <br />
+                                            <input type="text"
+                                                   name="suppliercode"
+                                                   id="txtsuppliercodeser"
+                                                   value="@ViewBag.suppliercode"
+                                                   class="textboxStyle"
+                                                   readonly="readonly" />
+                                        </td>
+                                        <td style="width:2%;  vertical-align:bottom; padding-bottom:6px;">
+                                            <a title="Search" ng-click="opensupplier('lg')"> <span style="margin:27px 0px 0px 0px;" class="glyphicon glyphicon-search" id="SearchiconSupplier"></span> </a>
+                                            @*<a title="Search"><span class="glyphicon glyphicon-search" id="SearchiconSupplier" onclick="Searforsupceninward()"></span></a>*@
+                                        </td>
+                                        <td style="width:20%;">
+                                            <span> Supplier Name</span>
+                                            <br />
+                                            <input type="text"
+                                                   name="Suppliername"
+                                                   id="txtSuppliernameser"
+                                                   value="@ViewBag.Suppliername"
+                                                   class="textboxStyle"
+                                                   readonly="readonly"
+                                                   maxlength="128" />
+                                        </td>
+                                        <td style="width:22%;">
+                                            <span> Department</span>
+                                            <br />
+                                            <input type="text"
+                                                   name="Department"
+                                                   id="DepartmentId"
+                                                   value="@ViewBag.Department"
+                                                   class="textboxStyle"
+                                                   maxlength="128" />
+                                        </td>
+                                        <td style="width:26%; vertical-align:bottom;">
+                                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="button" style="" onclick="refresh()"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                                            <button class="btn btn-primary" id="btnclear" value="Clear" name="command" type="button" onclick="Clear()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                                        </td>
+                                    </tr>
+                                </table>
+            }
+            <table class="myTableStyleTabNew" width="100%">
+                <tr>
+                    <td style="text-align:right;">
+                        <button type="button" value="Bulk" onclick="NewExcelupload()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-cloud-upload"></span> Bulk Inward</button>
+                        <button type="button" value="New" onclick="InwardAdd()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Inward</button>
+                    </td>
+                </tr>
+            </table>
+
+            <table class="myTableStyleTabNew" width="100%" id="exceluploadsupplier">
+                <tr>
+                    <td style="width:25%;">
+                        <span>Select file</span><br />
+                        @*<form id="theuploadlocal"  action="../Central/UploadFilesnew" method="post" enctype="multipart/form-data">
+                                <input type="file" style="padding-top: 5px;" name="UploadFile" id="UploadFile" class="fileupsupplier" />
+                            </form>*@
+
+                        <form id="theuploadlocal">
+                            <input class="textboxStyleSearch" id="UploadFile" name="UploadFile" type="file" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                        </form>
+                    </td>
+
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <input type="button" id="btnfrstsubmit" class="btn btn-primary" value="Upload" onclick="SaleMaker();" />&nbsp;&nbsp;&nbsp;
+                        <input type="button" id="btnfrstClear" class="btn btn-warning" value="Clear" onclick="cancel();" />
+                    </td>
+                    <td>
+                        <br />
+                        <a name="btnerror" id="btnerror" class="btn btn-primary" href="../Central/downloadTemplets" style="margin-top:10px; margin-left:83%">
+                            <span style="color:white;font-size:small;" class="glyphicon glyphicon-floppy-save">
+                            </span> Download Excel
+                        </a>
+
+                    </td>
+                    <td style="width:35%;"></td>
+                </tr>
+            </table>
+
+            <div id=" mainll" class="table-responsive" style="margin-top:10px;">
+                @functions {
+                        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                        {
+                            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                            grid.SortDirection == SortDirection.Ascending ? "▲" :
+                            "▼" : string.Empty);
+                        }
+                }
+                @grid.GetHtml(
+                    tableStyle: "tableSmall table-bordered table-hover",
+                    columns: grid.Columns
+                    (
+                    grid.Columns(grid.Column("SlNo", style: "slno", format: item => rowVal = rowVal + 1),
+                    grid.Column("ReceivedDate", Sorter("ReceivedDate", "Received Date", grid), style: "colmediumCenter"),
+                    grid.Column("SupplierCode", Sorter("SupplierCode", "Supplier Code", grid), style: "colmediumBreak"),
+                    grid.Column("SupplierName", Sorter("SupplierName", "Supplier Name", grid), style: "colextralargeBreak"),
+                    grid.Column("RaiserName", Sorter("RaiserName", "Raiser", grid), style: "colextralargeBreak"),
+                    grid.Column("EmployeeDepartment", Sorter("EmployeeDepartment", "Department", grid), style: "colextralargeBreak"),
+                    grid.Column("InvoiceNo", Sorter("InvoiceNo", "Invoice No", grid), style: "colmediumBreak"),
+                    grid.Column("InvoiceDate", Sorter("InvoiceDate", "Invoice Date", grid), style: "colmediumCenter"),
+                    grid.Column("PONo", Sorter("PONo", "PO No", grid), style: "colmediumBreak"),
+                    grid.Column("InvoiceAmount", Sorter("InvoiceAmount", "Invoice Amount", grid), style: "colamountlarge"),
+                    grid.Column("Inwardedby", Sorter("Inwardedby", "Inwarded by", grid), style: "colextralargeBreak"),
+                    grid.Column("Remarks", Sorter("Remarks", "Remarks", grid), style: "colextralargeBreak"),
+                    grid.Column(header: "Action", canSort: false, style: "action",
+                    format: @<text>
+                        <input type="hidden" id="employeename" name="RollEmployee" value="@item.InwardId" />
+                        <a title="View" style="text-decoration:none;"> <span class="glyphicon glyphicon-eye-open" onclick="InwardView(@item.InwardId)"></span></a>
+                        <a title="Edit" style="text-decoration:none;"> <span class=" glyphicon glyphicon-edit" onclick="InwardEdit(@item.InwardId)"></span></a>
+                        <a title="Delete" style="text-decoration:none;"> <span class="glyphicon glyphicon-trash" onclick="DeleteInward(@item.InwardId)"></span></a>
+                    </text>))))
+            </div>
+            @if (ViewBag.Message != null)
+            {
+                <div class="gridMessage" style="width:100%">
+                    @ViewBag.Message
+                </div>
+            }
+            @if (ViewBag.Message == null)
+            {
+                <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+            }
+
+
+
+        </div>
+
+        <div id="ForPartialViewcentral"></div>
+        <div id="forpartialviewforempsearch"></div>
+        <div id="forpartialviewforsupsearch"></div>
+        <div id="forpartialviewforposearch"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    $(document).keydown(function (e) {
+        if (e.keyCode == 8 && e.target.tagName != 'INPUT' && e.target.tagName != 'TEXTAREA')
+            e.preventDefault();
+    });
+    var posearchdetails;
+    $(document).ready(function () {
+
+        if ($("#TravelModeId").val() == "UnApproved") {
+            $("#txtSuppliernameser").attr("readonly", false)
+            $("#SearchiconSupplier").attr("disabled", true)
+        }
+        else {
+            $("#txtSuppliernameser").attr("readonly", true)
+            $("#SearchiconSupplier").attr("disabled", false)
+        }
+
+        posearchdetails = $("[id$='forpartialviewforposearch']");
+        posearchdetails.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+        $("#DepartmentId").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/ECF/getAutocompleteDepartment",
+                    type: "POST",
+                    dataType: "json",
+                    data: { RaiserName: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.EmployeeDepartment, value: item.EmployeeDepartment };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "", results: ""
+            }
+        });
+    });
+
+    var objDialogyCentral;
+    $(document).ready(function () {
+        objDialogyCentral = $("[id$='ForPartialViewcentral']");
+        objDialogyCentral.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+            width: 920,
+            height: 400
+        });
+    });
+    $(document).ready(function () {
+        objDialogyinwardsupse = $("[id$='forpartialviewforsupsearch']");
+        objDialogyinwardsupse.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+    });
+    $(document).ready(function () {
+        objDialogyinwardempse = $("[id$='forpartialviewforempsearch']");
+        objDialogyinwardempse.dialog({
+            autoOpen: false,
+            modal: true,
+            //show: 'fade-in',
+            //close: 'fade-out',
+        });
+    });
+    function Searforsupceninward() {
+
+        var url = "@(Html.Raw(Url.Action("SupplierSearch", "Central")))";
+        objDialogyinwardsupse.load(url + '?' + new Date().getTime());
+        objDialogyinwardsupse.dialog({
+            title: 'Supplier Search ', 'width': 830, modal: true, cache: false, resizable: false, autoOpen: false, 'height': 510
+        });
+        objDialogyinwardsupse.dialog("open");
+    }
+    function Searcentrinwardemp() {
+
+        var url = "@(Html.Raw(Url.Action("EmployeeSearchInward", "Central")))";
+        objDialogyinwardempse.load(url + '?' + new Date().getTime());
+        objDialogyinwardempse.dialog({
+            title: 'Employee Search ', 'width': 830, modal: true, resizable: false, cache: false, autoOpen: false, 'height': 510
+        });
+        objDialogyinwardempse.dialog("open");
+    }
+
+    function InwardAdd() {
+        objDialogyCentral.load('../Central/CentralteaminwardAddNew?' + new Date().getTime());
+        objDialogyCentral.dialog({ title: 'Add New Inward', width: '1135', height: '350' });
+        objDialogyCentral.dialog("open");
+    }
+    function InwardEdit(id) {
+        objDialogyCentral.load('../Central/EditSupplierView?id=' + id + '&' + new Date().getTime());
+        objDialogyCentral.dialog({ title: 'Edit Inward', width: '1135', height: '350' });
+        objDialogyCentral.dialog("open");
+    }
+    function InwardView(id) {
+        objDialogyCentral.load('../Central/View?id=' + id + '&' + new Date().getTime());
+        objDialogyCentral.dialog({ title: 'View Inward', width: '1135', height: '350' });
+        objDialogyCentral.dialog("open");
+    }
+    function DeleteInward(id) {
+        objDialogyCentral.load('../Central/Delete?id=' + id + '&' + new Date().getTime());
+        objDialogyCentral.dialog({ title: 'Delete Inward', width: '1135', height: '350' });
+        objDialogyCentral.dialog("open");
+    }
+    $(document).ready(function () {
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        //$("#RecivedDateFrom").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy',
+        //});
+        //$("#RecivedDateTo").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    maxDate: '-id',
+        //    dateFormat: 'dd-mm-yy',
+        //});
+        $("#txtInvoiceDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            maxDate: '-id',
+            dateFormat: 'dd-mm-yy',
+        });
+        $("#RecivedDateFrom").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+
+                var dt = $('#RecivedDateFrom').val();
+                var dt1 = $('#RecivedDateTo').val();
+                $("#RecivedDateFrom").addClass('valid');
+                $("#RecivedDateTo").datepicker("option", "minDate", selected)
+            }
+        })
+        $("#RecivedDateTo").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+
+            onSelect: function (selected) {
+                var dt = $('#RecivedDateFrom').val();
+                var dt1 = $('#RecivedDateTo').val();
+                $("#RecivedDateTo").addClass('valid');
+            }
+        });
+        $('#TravelModeId').change(function () {
+            var type = $("#TravelModeId").val();
+            if (type == "Approved") {
+                $("#txtSuppliernameser").val('');
+                $("#txtsuppliercodeser").val('');
+                $("#txtSuppliernameser").attr("readonly", true)
+                $("#SearchiconSupplier").attr("disabled", false)
+            }
+            else {
+                $("#txtSuppliernameser").val('');
+                $("#txtsuppliercodeser").val('');
+                $("#txtSuppliernameser").attr("readonly", false)
+                $("#SearchiconSupplier").attr("disabled", true)
+            }
+        });
+        $("#txtinvoice, #txtraisercode").keypress(function (event) {
+            return isNumber(event);
+        });
+        $("#txtraisername").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#txtsuppliercode", "#txtSuppliername", "#txtDepartment", "#txtInvoiceNo", "#txtPONO").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#RecivedDateFrom", "#RecivedDateTo", "#txtInvoiceDate").keypress(function (event) {
+            return isDate(event);
+        });
+
+    });
+    function refresh() {
+        location = '../Central/Centralteaminward';
+    }
+    function Clear() {
+        location = '@Url.Action("ClearInward", "Central")';
+    }
+    function CheckFieldsHeader() {
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+        $("#exceluploadsupplier").hide();
+    });
+    function NewExcelupload() {
+        $("#ddlSelectsheet").empty();
+        $("#ddlSelectsheet").append("<option value='0' >--Select--</option>");
+        $("#exceluploadsupplier").slideToggle(500);
+    }
+
+
+
+    @*function Newexcelsunew() {
+
+        $.ajax({
+            url: "../CentralController/Bulkcolumn/",
+            type: 'POST',
+            cache: false,
+            data: objcbf,
+            success: function (data) {
+                if (data == "Success") {
+                    var urlVU = '@Url.Action("_Supplierexcelstatus", "CentralController")?' + new Date().getTime();
+                    objDialogOtherTravelmodenew.load(urlVU);
+                    objDialogOtherTravelmodenew.dialog({ title: 'Upload Summary' });
+                    objDialogOtherTravelmodenew.dialog("open");
+
+                    $fileInput = $('#filebulkin');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#filebulkin").val('');
+                }
+                else {
+                    $fileInput = $('#filebulkin');
+                    $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                    $("#filebulkin").val('');
+                    jAlert("Invalid Template", "Message");
+                    return false;
+                }
+            },
+            error: function () {
+                $fileInput = $('#filebulkin');
+                $fileInput.replaceWith($fileInput = $fileInput.clone(true));
+                $("#filebulkin").val('');
+                jAlert("something seems wrong", "Message");
+                return false;
+            }
+        });
+    }*@
+</script>
+<div id="inwardframe" style="width: 0px; height: 0px; display: none;">
+</div>
+<script>
+
+</script>
+<script type="text/javascript">
+    getlocalsheetsfile();
+    $('#UploadFile').on('change', function (e) {
+        debugger;
+        if ($('#UploadFile').val() != "") {
+
+            getlocalsheetsfile();
+        }
+        //SaleMaker();
+        //return false;
+    });
+    function getlocalsheetsfile() {
+        debugger;
+        if ($('#UploadFile').val() != "") {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#theuploadlocal');
+            form.attr("action", "../../Central/UploadFilesnew");
+            //form.attr("action", "@Url.Action("UploadFilesnew", "Central")");
+            form.attr("method", "post");
+            form.attr("encodeing", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#UploadFile').val());
+            form.submit();
+        }
+    }
+
+    function SaleMaker() {
+        debugger;
+        if ($("#UploadFile").val() == null || $("#UploadFile").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+        }
+        else {
+            $('#UploadFile').val("");
+            getlocalsheetsfile();
+            showProgress();
+            setTimeout(function () {
+                $.ajax({
+                    url: "@Url.Action("UploadFileslocal", "Central")",
+                    type: 'post',
+                    cache: false,
+                    data: {},
+                    success: function (result) {
+                        $("#UploadFile").val('');
+                        hideProgress();
+                        if (result == "1")
+                            jAlert("Invalid Excel File Format", "Message");
+                        else if (result == "2")
+                            jAlert("Invoice Sheet Header Columns Empty / Mismatch", "Message");
+                        else if (result == "3")
+                            jAlert("Duplicate Ivoice Rows in Excel", "Message");
+                        else if (result == "4")
+                            jAlert("Debitline Sheet Header Columns Empty / Mismatch", "Message");
+                        else if (result == "5")
+                            jAlert("Duplicate Debitline Rows in Excel", "Message");
+                        else if (result == "6")
+                            jAlert("Invoice / Debitline Sheet Rows have Empty records", "Message");
+                        else if (result == "7")
+                            jAlert("Invoice / Debitline Amount not in format", "Message");
+                        else if (result == "8")
+                            jAlert("Suuplier Type should be Approved / Unapproved", "Message");
+                        else if (result == "9")
+                            jAlert(" GST / RCM flag should be Yes / No", "Message");
+                        else if (result == "10")
+                            jAlert("Receiver / Provider should be provide if GST Yes", "Message");
+                        else if (result == "11")
+                            jAlert("InvoiceType should be PO / WO / Non POWO", "Message");
+                        else if (result == "12")
+                            jAlert("PO/WO No should be provide,if Invoicetype PO/WO", "Message");
+                        else if (result == "13")
+                            jAlert("if GST have Yes, RCM should be No and Viceversa", "Message");
+                        else if (result == "14")
+                            jAlert("Invalid Expense Details", "Message");
+                        else if (result == "15")
+                            jAlert("Invalid Debit line Details are added", "Message");
+                        else if (result == "16")
+                            jAlert("Invalid Invoice No and Invoice Date are in Debitline Sheet", "Message");
+                        else if (result == "17")
+                            jAlert("Received Date should be less than Current date", "Message");
+                        else if (result == "18")
+                            jAlert("Invoice Date should be less than Current date / Received Date", "Message");
+                        else if (result == "100") {
+                            hideProgress();
+                            jConfirm("Bulk Insert failed!", "Message", function (r) {
+                                location = '../Central/ErrordownloadTemplets?' + new Date().getTime();
+                            });
+                        }
+                        else if (result == "150")
+                            jAlert("Successfully Inserted", "Message");
+                        else {
+                            cancel();
+                            jAlert("Re Upload The Excel", "Message");
+
+                        } hideProgress();
+                    },
+                    error: function (xhr, status, p3, p4) {
+                        hideProgress();
+                        jAlert("Please refer template.", "Message");
+                        var err = "Error " + " " + status + " " + p3 + " " + p4;
+                        if (xhr.responseText && xhr.responseText[0] == "{")
+                            err = JSON.parse(xhr.responseText).Message;
+                        console.log(err);
+                        $("#fileUploadSaMaker").val("")
+                        cancel();
+                        return false;
+                    }
+
+                });
+            }, 500);
+
+        }
+        hideProgress();
+    }
+    function cancel() {
+        $("#UploadFile").val('');
+    }
+</script>

@@ -1,0 +1,157 @@
+﻿@model IEM.Areas.MASTERS.Models.iem_mst_accomodationtype
+@{
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+    }
+    else if (viewfor == "view")
+    {
+        ViewBag.viewmode = "disabled";
+    }
+    else if (viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        ViewBag.deletemode = "disabled";
+    }
+
+}
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div id="txtTypeName">
+                    <span>Accommodation Type</span>
+                    <br />
+                    <input name="CategoryName" id="txteditaccomatype" maxlength="32" type="text" @ViewBag.viewmode style="width:284px;" class="textboxStyle valid" data-val="true" value="@Model.accommodationtype_name" />
+                    <input type="hidden" id="accogid" value="@Model.accommodationtype_gid">
+                </div>
+            </td>
+        </tr>
+    </table>
+    
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td style="padding-top:15px;">
+                <div>
+                    @if (@ViewBag.viewmode == "")
+                    {
+                        <button type="button" id="_save" value="Save" class="btn btn-primary" onclick="Update()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                    }
+                    @if (@ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Delete" class="btn btn-danger" onclick="DeleteType()"><span style="color:white;" class="glyphicon glyphicon-trash"></span> Delete</button>
+                    }
+                </div>
+            </td>
+            <td style="padding-top:15px;">
+                <div>
+                    @if (@ViewBag.viewmode == "" || @ViewBag.deletemode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    }
+                    else if (@ViewBag.viewmode == "disabled")
+                    {
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="goToIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Close</button>
+                    }
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#txteditaccomatype").focus();
+        $("#txteditaccomatype").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txteditaccomatype").keyup(function () {
+            var txtSupplierName = $("#txteditaccomatype").val();
+            if (txtSupplierName.trim() != "") {
+                $("#txteditaccomatype").removeClass('required');
+                $("#txteditaccomatype").addClass('valid');
+                CheckFieldsHeader();
+            }
+            else {
+                $("#txteditaccomatype").removeClass('valid');
+                $("#txteditaccomatype").addClass('required');
+                CheckFieldsHeader();
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    function Update() {
+
+        var accomodationname = $("#txteditaccomatype").val().trim();
+        var accomogid = $("#accogid").val();
+
+        
+        var CategoryModel = { "accommodationtype_gid": accomogid, "accommodationtype_name": accomodationname };
+        $.post('../IEM_MST_ACCOMODATION/Updateaccomodationdetails', CategoryModel,
+                function (data) {
+                    if (data != "success") {
+                        jAlert(data, "Information", function (r) {
+                            if (r == true) {
+                                return false;
+                            }
+                        });
+                    }
+                    else {
+                        jAlert("Record Updated Successfully !", "Information", function (r) {
+                            if (r == true) {
+                                location = '../IEM_MST_ACCOMODATION/Index';
+                            }
+                        });
+
+                    }
+                }
+
+            , 'json');
+        }
+    
+    function DeleteType() {
+        var accomagid = $("#accogid").val();
+        jConfirm("Do you want to delete this Accommodation Type? ", "Delete Accommodation", function (j) {
+            if (j == true) {
+                var model = { "accommodationtype_gid": accomagid }
+                $.post('../IEM_MST_ACCOMODATION/DeleteCourier', model,
+                     function (data) {
+                         if (data = "success") {
+                             jAlert("Record Deleted Successfully!!!", "Information", function (r) {
+                                 if (r = true) { location = '../IEM_MST_ACCOMODATION/Index'; }
+                             });
+                         }
+                     }, 'json');
+            }
+        });
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridAccommodation').find('tr').css('background', 'none');
+    });
+
+    function goToIndex() {
+        $('#gridAccommodation').find('tr').css('background', 'none');
+        window.parent.jQuery('#ForPartialViewaccomodation').dialog('close');
+    }
+
+        function CheckFieldsHeader() {
+            var valu = $('#_EditCouriername').val();
+            var ErrCount = 0;
+            if ($("#txteditaccomatype").val().trim() == "" || $("#txteditaccomatype").val() == null)
+            {
+                ErrCount = 1;
+            }
+            if (ErrCount == 0) {
+                $("#_save").removeAttr('disabled');
+            }
+            else {
+                $("#_save").attr('disabled', 'disabled');
+            }
+        }
+
+</script>

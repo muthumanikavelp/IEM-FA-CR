@@ -1,0 +1,196 @@
+﻿@using IEM.Areas.MASTERS.Models
+@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_auditsubgroup>
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, rowsPerPage: 15, canSort: true);
+    int id = @grid.PageIndex;
+    CmnFunctions cmn = new CmnFunctions();
+    int rowVal = 0;
+    iem_mst_auditsubgroup auditgroupname = (iem_mst_auditsubgroup)ViewBag.SelectGroup;
+}
+<b>
+    <span style="color: rgb(52, 108, 196);">Audit SubGroup</span>
+</b>
+<br />
+<br />
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-6">
+                <table class="myTableStyleTabNew" style="margin-left:-3px;">
+                    <tr>
+                        <td>
+                            <div class="input-append">
+                                <span> SubGroup Name</span>
+                                <br />
+                                <input type="text"
+                                       name="filter_subgroupname"
+                                       id="filter_subgroupname"
+                                       value="@ViewBag.filter_subgroupname"
+                                       class="form-control"
+                                       style="display: block;width:250px;"
+                                       maxlength="64"
+                                       autocomplete="off" />
+                            </div>
+                        </td>                       
+                        <td>
+                            <div class="input-append">
+                                <span>Group Name</span>
+                                <br />
+                                <select name="filter_auditgroupname" id="filter_auditgroupname" class="form-control" style="width: 250px;" onchange="checkauditgroup()">
+                                    <option value="">-----Select----</option>
+                                    @foreach (var pitem in auditgroupname.selctgroupname)
+                                    {
+                                        string selectedValue = "";
+                                        if (ViewBag.selctgroupname == pitem.Text)
+                                        {
+                                            selectedValue = "selected='selected'";
+                                        }
+                                        <option value="@pitem.Value" @selectedValue>@pitem.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:20px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:9px;" class="myTableStyle">
+                            <button type="button" value="New Bank" onclick="NewType()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Audit Sub Group</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:2px;">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+
+            @grid.GetHtml(
+          htmlAttributes: new { id = "gridauditsubgroup" },
+    tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+          columns: grid.Columns
+            (
+grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+grid.Column("auditsubgroup_name", cmn.Sorter("auditsubgroup_name", "Audit SubGroup Name", grid)),
+grid.Column("auditgroup_name", cmn.Sorter("auditgroup_name", "Audit Group Name", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' onclick='ViewType(" + item.auditsubgroup_gid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Edit' onclick='EditType(" + item.auditsubgroup_gid + ")'> <span class='glyphicon glyphicon-edit' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Delete' onclick='DeleteAuditsubgroup(" + item.auditsubgroup_gid + ")'> <span class='glyphicon glyphicon-trash' id='Color'> </span> </a> ")
+                </text>))))
+
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+
+        </div>
+        <br />
+        @if (ViewBag.Message == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+        }
+    </div>
+}
+<div id="forauditsub"></div>
+
+<script type="text/javascript">
+    var objDialog;
+
+    $(document).ready(function () {
+
+        $(function () {
+            $("#txtFilterCode").focus();
+        });
+
+        $("#txtFilterCode").focus();
+        $("#txtFilterCode").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilterName").focus();
+        $("#txtFilterName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        var tr = $("#gridauditsubgroup").find('tr');
+        $("#gridauditsubgroup tr #Color").click(function () {
+            $('#gridauditsubgroup').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+    });
+
+        $(document).ready(function () {
+            objDialog = $("[id$='forauditsub']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 300,
+                resizable: false
+            });
+
+        });
+
+        function NewType()
+        {
+            objDialog.load('../IEM_AUDITSUBGROUP/Create?' + new Date().getTime());
+            objDialog.dialog({ title: 'Add AuditSub Group' });
+            objDialog.dialog("open");
+        }
+        function EditType(id) {
+            objDialog.load('../IEM_AUDITSUBGROUP/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit AuditSub Group' });
+            objDialog.dialog("open");
+        }
+        function ViewType(id) {
+            objDialog.load('../IEM_AUDITSUBGROUP/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View AuditSub Group' });
+            objDialog.dialog("open");
+        }
+        function DeleteAuditsubgroup(id) {
+            objDialog.load('../IEM_AUDITSUBGROUP/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'Delete AuditSub Group' });
+            objDialog.dialog("open");
+        }
+
+        function refresh() {
+            location = '../IEM_AUDITSUBGROUP/Index';
+        }
+
+
+</script>

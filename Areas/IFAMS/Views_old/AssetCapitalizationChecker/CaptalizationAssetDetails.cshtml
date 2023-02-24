@@ -1,0 +1,163 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+@{
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+
+}
+@using (Html.BeginForm())
+{
+    <div >
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td style="padding:10px;">
+                    <div class="panel panel-default" style="width:1200px;">
+                        @{
+    var gridilldetails = new WebGrid(Model.Getdetapplist, canSort: true, canPage: true, rowsPerPage: 8, ajaxUpdateContainerId: "wgpilldetail");
+    @gridilldetails.GetHtml(
+ htmlAttributes: new { id = "wgpilldetail" },
+                tableStyle: "tableSmall table-bordered",
+                mode: WebGridPagerModes.All,
+                columns:
+gridilldetails.Columns(
+
+                          gridilldetails.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+                                    gridilldetails.Column("invoiceno", commfa.Sorter("invoiceno", "Invoice Number", gridilldetails)),
+                                    gridilldetails.Column("ponumber", commfa.Sorter("ponumber", "PO Number", gridilldetails)),
+                                          //  gridilldetails.Column("AssetCode", commfa.Sorter("AssetCode", "Asset Code", gridilldetails)),
+       //  gridilldetails.Column("AssetName", commfa.Sorter("AssetName", "Asset Name", gridilldetails)),
+                     gridilldetails.Column("AssetCategory", commfa.Sorter("AssetCategory", "Category", gridilldetails)),
+                         gridilldetails.Column("AssetSubcategpry", commfa.Sorter("AssetSubcategpry", "Sub category", gridilldetails)),
+                             gridilldetails.Column("shipmentType", commfa.Sorter("shipmentType", "Shipment Type", gridilldetails)),
+                                 gridilldetails.Column("GRNDate", commfa.Sorter("GRNDate", "Capitalization", gridilldetails)),
+                  gridilldetails.Column("glcode", commfa.Sorter("glcode", "Asset GLCode", gridilldetails)),
+                          gridilldetails.Column("locationName", commfa.Sorter("locationName", "Location", gridilldetails)),
+                  gridilldetails.Column("GRNNo", commfa.Sorter("GRNNo", "GRN No", gridilldetails)),
+        gridilldetails.Column("UOM", commfa.Sorter("UOM", "UOM", gridilldetails)),
+        // gridilldetails.Column("Quantity", commfa.Sorter("Quantity", "POQty", gridilldetails)),
+                  gridilldetails.Column("Receivedqty", commfa.Sorter("Receivedqty", "RQty", gridilldetails)),
+      //  gridilldetails.Column("Amount", "Price"),
+        gridilldetails.Column("Amount", commfa.Sorter("Amount", "Price", gridilldetails)),
+        gridilldetails.Column("Discount", "Discount"),
+        gridilldetails.Column("Tax1", "Tax"),
+      //  gridilldetails.Column("Tax2", "Tax2"),
+        gridilldetails.Column("othres", "Othres"),
+        gridilldetails.Column("TotalAmount", "Total"),
+        gridilldetails.Column("DCNo", commfa.Sorter("DCNo", "DC No", gridilldetails)),
+         gridilldetails.Column("invoiceamount", commfa.Sorter("invoiceamount", "InvoiceAmt", gridilldetails))
+        //  gridilldetails.Column("DOB", "Capitalization")
+))
+                             
+    if (Model.Getdetapplist.Count == 0)
+    {
+        <div class="panel panel-default"><span>No Recards found</span></div>
+    }
+                        }
+
+                    </div>
+                    <label style="padding:10px;">Page: @(gridilldetails.PageIndex + 1) of @gridilldetails.PageCount - Total No of Records :@gridilldetails.TotalRowCount</label>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:10px;">
+                    <div>
+                        <table align="center">
+                            <tr>
+                                @if(Model.Status == "2")
+                                {
+                                    
+                                
+                                <td class="form-group" style="padding:10px;">
+                                    <div>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-success" id="_approve" onclick="approve()" type="button" value="Approve"><span style="color:white" class="glyphicon glyphicon-thumbs-up"></span> Approve</button>
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td class="form-group" style="padding:10px;">
+
+                                    <div>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-danger" id="_reject" onclick="reject()" type="button" value="Reject"><span style="color:white" class="glyphicon glyphicon-thumbs-down"></span> Reject</button>
+                                        </span>
+                                    </div>
+                                </td>
+                                }
+
+                                <td class="form-group" style="padding:10px;">
+
+                                    <div>
+                                        <span class="input-group-btn">
+
+                                            <button class="btn backbtn btn-warning" id="_cback " onclick="backcapapp()" type="button" value="cancel"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+}
+<script>
+
+    function approve() {
+   
+     
+        var inv = '@Model.invoicegid';
+        var objSearch = {
+            "invoicegid": inv,
+            "commend":"APPROVED"
+        };
+
+        $.ajax({
+            url: "@Url.Action("CaptalizationAssetDetails", "AssetCapitalizationChecker")" ,
+            type: 'POST',
+           data: objSearch,
+           success: function (data) {
+              // alert(data);
+           location = "@Url.Action("AssetCapitalizationChecker", "AssetCapitalizationChecker")";
+        },
+        error: function (data) {
+            jAlert("Error. Please, check the data", "Message");
+        }
+    });
+    }
+
+    function reject() {
+        var inv = '@Model.invoicegid';
+        var objSearch = {
+            "invoicegid": inv,
+            "commend": "REJECT"
+        };
+        $.ajax({
+            url: "@Url.Action("CaptalizationAssetDetails", "AssetCapitalizationChecker")",
+            type: 'POST',
+            data: objSearch,
+            success: function (data) {
+                
+                location = "@Url.Action("AssetCapitalizationChecker", "AssetCapitalizationChecker")";
+            },
+            error: function (data) {
+                jAlert("Error. Please, check the data", "Message");
+            }
+        });
+    }
+    @*$('#_cback').on("click", function () {
+        alert('ok');
+        location = "@Url.Action("AssetCapitalizationChecker", "AssetCapitalizationChecker")";
+
+    });*@
+
+    function backcapapp()
+    {
+      //  alert('ok');
+        location = "@Url.Action("AssetCapitalizationChecker", "AssetCapitalizationChecker")";
+    }
+
+</script>

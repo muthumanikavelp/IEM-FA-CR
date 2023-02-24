@@ -1,0 +1,2810 @@
+﻿@using IEM.Areas.EOW.Models
+@{
+    string sh = ViewBag.invId;
+}
+<script src="~/Scripts/asms/jQuery1.alert.js"></script>
+<script type="text/javascript">
+    function testDecimals(currentval) {
+        var count;
+        currentval.match(/\./g) === null ? count = 0 : count = currentval.match(/\./g);
+        return count;
+    }
+    function replaceCommas(yourNumber) {
+        var components = yourNumber.toString().split(".");
+        if (components.length === 1)
+            components[0] = yourNumber;
+        components[0] = components[0].replace(/\D/g, "").replace(/(\d)(?=(\d\d)+\d$)/g, "$1,");
+        if (components.length === 2)
+            components[1] = components[1].replace(/\D/g, "");
+        return components.join(".");
+    }
+    var currentTab = 0;
+    $(function () {
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $(document).ready(function () {
+        $("#txtInvoicedate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            onSelect: function (selected) {
+                $("#txtInvoicedate").addClass('valid');
+                var resultr = invoicedatecheck($("#txtInvoicedate").val());
+            }
+        });
+    });
+    $(function () {
+        $('.monthYearPicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            maxDate: '-id',
+            dateFormat: 'MM-yy'
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                $("#txtsermonth").removeClass('required');
+                $("#txtsermonth").addClass('valid');
+            });
+        });
+    });
+    $(document).ready(function () {
+        var today = new Date();
+        $("#txtrelasedate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            maxDate: '+180d',
+            onSelect: function (selected) {
+                $("#txtrelasedate").addClass('valid');
+            }
+        });
+    });
+
+    function invoicedatecheck(date) {
+        if (date.length == 10) {
+            var Student =
+            {
+                "InvoiceDate": date
+            };
+            $.ajax({
+                url: '../SupplierInvoiceNew/invoicedatevat/',
+                data: JSON.stringify(Student),
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data == "Deviation") {
+                        jAlert("The Invoive Date Greather Than 180 Days Please Atach Deviation Approval Document", "Message");
+                        return true;
+                    }
+                },
+                error: function (result) {
+                    jAlert("Error.", "Error");
+                    return false;
+                }
+            });
+        }
+    }
+
+</script>
+
+<div class="table-responsive" id="Invoicenewadd">
+    <br />
+    <div class="well table-responsive" style="width: 99%;border-color: #43B6F5;border-width: 1px;padding: 0px;">
+        <table class="myTableStyleTab" style="width: 99%;">
+            <tr>
+                <td style="padding-left: 15px;">
+                    <span>Invoice Date</span><br />
+                    @*<input type='text' name='Invoicegid' id="Invoicegid" readonly="readonly" class="textboxStyle" style="width:100%; display:none" value="@ViewBag.invId" />*@
+                    <input class="textboxStyle required" type="text" id="txtInvoicedate" maxlength="10" placeholder="dd-mm-yyyy" readonly="readonly" />
+                </td>
+                <td>
+                    <span>Invoice No</span><br />
+                    <input class="textboxStyle required" type="text" id="txtInvoiceno" maxlength="64" />
+                </td>
+                <td>
+                    <span>Service Month</span><br />
+                    <input class="textboxStyle required monthYearPicker" type="text" id="txtsermonth" maxlength="10" placeholder="MMM-yyyy" readonly="readonly" />
+                </td>
+                <td>
+                    <span>Invoice Amount</span><br />
+                    <input type="hidden" id="hdinvoiceamt" value="0" />
+                    <input class="textboxStyle required" type="text" id="txtInvoiceamount" onkeypress="return isAmount(event);" onkeyup="compare(this)" maxlength="15" />
+                </td>
+                <td style="padding-bottom: 10px;">
+                    <span>Provision Flag</span><br />
+                    <input type="radio" name="rblProvisionflg" id="rblYesp" value="Yes" />&nbsp;Yes
+                    &nbsp;&nbsp;
+                    <input type="radio" name="rblProvisionflg" id="rblNop" value="No">&nbsp;No
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left: 15px;padding-bottom: 9px;">
+                    <span>Without Tax Amount</span><br />
+                    <input class="textboxStyle required" type="text" id="txtWithoutTaxAmount" onkeypress="return isAmount(event);" maxlength="15" />
+                </td>
+                <td colspan="3">
+                    <span>Invoice Description</span><br />
+                    <textarea id="tctInvoicedec" maxlength="125" class="textboxStyle" style="height:30px;resize:none;width:100%"></textarea>
+                </td>
+                <td style="padding-bottom: 10px;padding-left: 25px;">
+                    <span>Retention Flag</span><br />
+                    <input type="radio" name="rblRetentionflg" id="rblYesr" value="Yes" />&nbsp;Yes
+                    &nbsp;&nbsp;
+                    <input type="radio" name="rblRetentionflg" id="rblNor" value="No">&nbsp;No
+                </td>
+                <td style="padding-left: 15px;">
+                    <span> GST Charged</span>
+                    <br />
+                    <input checked="checked" id="rdogstChargedFlagYes" name="rdogstChargedFlag" type="radio" value="Y" style="margin-top: 10px; margin-right:5px;">Yes
+                    <input id="rdogstChargedFlagNo" name="rdogstChargedFlag" type="radio" value="N" style="margin: 10px 5px 0px 20px;">No
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>Provider Location (state)</span><br />
+                        <select id="ddlgstProviderLoc" class="fstextbox required"></select>
+                    </div>
+                </td>
+                <td style="padding:5px 10px;" colspan="2">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; display:none;" class="divGSTChargedShow">
+                                    <span>GSTIN Vendor </span>
+                                    <br />
+                                    <input type="text" disabled
+                                           id="txtGSTINVendor" maxlength="50"
+                                           class="fstextbox" /> @*//Length fixed by selva*@
+                                </div>
+                            </td>
+                            <td style="width:33%; padding:3px;">
+                                <div style="width:100%; display:none;" class="divGSTChargedShow">
+                                    <span>Receiver Location (state)</span><br />
+                                    <select id="ddlgstReceiverLoc" class="fstextbox required"></select>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="padding:5px 10px;">
+                    <div style="width:100%; display:none;" class="divGSTChargedShow">
+                        <span>GSTIN @System.Configuration.ConfigurationManager.AppSettings["CompanyName"] </span>
+                        <br />
+                        <input type="text"
+                               id="txtGSTINFICCL" disabled
+                               class="fstextbox" maxlength="50" /> @*//Length fixed by selva*@
+                    </div>
+                </td>
+                <td align="right">
+                    <button type="button" title="Addinvoice" name="Addinvoice" id="idAddinvoice" class="btn btn-primary" onclick="NewAddinvoice()" style="width: 65%;"> Save </button>
+                </td>
+            </tr>
+            <tr>
+
+                <td style="padding-left: 15px;">
+                    <div style="display:none;" id="Retentionflgg">
+                        <span>Retention %</span><br />
+                        <input class="textboxStyle" type="text" id="txtRetentionper" disabled="disabled" onkeypress="return isAmount(event);" maxlength="5" />
+                    </div>
+                </td>
+                <td>
+                    <div style="display:none" id="Retentionflgg1">
+                        <span>Retention Amount</span><br />
+                        <input class="textboxStyle" type="text" id="txtRetentionamount" disabled="disabled" onkeypress="return isAmount(event);" maxlength="15" />
+                    </div>
+                </td>
+                <td>
+                    <div style="display:none" id="Retentionflgg2">
+                        <span>Release Date</span><br />
+                        <input class="textboxStyle" type="text" id="txtrelasedate" disabled="disabled" maxlength="10" placeholder="dd-mm-yyyy" />
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <br />
+    </div>
+    <br />
+    <div style="padding:0;margin:0; width:99%">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-2"> Debit Line </a></li>
+                <li><a id="Gsttab" href="#tabs-6" style="display:none;">GST</a></li>
+                <li><a id="RCMtab" href="#tabs-7" style="display:none;">RCM</a></li>
+                @*<li><a id="Taxtab" href="#tabs-1" style=" display:none;">Tax Details</a></li>*@
+               
+                <li><a href="#tabs-3">Payment</a></li>
+                <li><a href="#tabs-5">Invoice Attachments</a></li>
+
+            </ul>
+            <div id="tabs-1">
+                
+                @*@Html.Partial("_TabTaxDetails")*@
+            </div>
+            <div id="tabs-2">
+               
+                @Html.Partial("_Tabdebitline")
+            </div>
+            <div id="tabs-3">
+     
+                @Html.Partial("_SupplierPaymentDetails")
+            </div>
+            <div id="tabs-5">
+               
+                @Html.Partial("_TabIAttachments")
+            </div>
+            <div id="tabs-6">
+                <div style="width:100%; text-align:right;display:none;">
+                        <button type="button" value="New" data-bind="click:$root.AddTaxAmount" style="color:white; margin-bottom:3px;" class="btn btn-primary">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span>
+                            Add Tax
+                        </button>
+                    </div>
+              
+                @Html.Partial("_GetGstDetails")
+            </div>
+            <div id="tabs-7">
+                @Html.Partial("_LoadRCMDetails")
+            </div>
+        </div>
+    </div>
+    <br />
+    <div>
+        <center>
+            <button type="button" id="newinvoiceadds" class="btn btn-success" value="Save" onclick="Newsupplieeinvoicecreate()"><span class="glyphicon glyphicon-ok" style="color:white;font-size: small;"></span> Save</button>
+            &nbsp; &nbsp;
+            <button type="button" id="newinvoiceaddscal" value="Cancel" class="btn btn-warning" onclick="Newsupplieeinvoicecancel()"><span style="color:white;font-size: small;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+        </center>
+    </div>
+</div>
+
+<div id="summaryhd1" style="padding-right: 10px;">
+    @*@if (Session["CTmakerclaim"] != "C")
+    {*@
+        <table class="table-responsive" style="width:100%;">
+            <tr>
+                <td align="left" style="padding-bottom: 5px;">
+                    <input type="button" id="viewlastthree" value="View Last Three Month Invoice" class="btn btn-primary" onclick="Newsupplieeinvoicelast()" />
+                </td>
+                <td align="right" style="padding-bottom: 5px;">
+                    <button type="button" id="btnempNewExpensddetr" value="New Invoice" onclick="Newsupplieeinvoice()" class="btn btn-primary">
+                        <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New Invoice
+                    </button>
+                </td>
+            </tr>
+        </table>
+    @*}*@
+</div>
+<div id="summaryhd2" style="padding-right: 10px;">
+   
+    @Html.Partial("_supplierGridDetails")
+</div>
+<div style="display:none" id="ShowDialog">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:50%; padding:5px 10px;">
+                <span>Tax Type</span>
+                <br />
+                <select id="ddlTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: TaxTypeArray} ,event:{ change: $root.ChangeTaxType }">
+                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                </select>
+                <input type="hidden" value="0" id="hfInvoiceTaxgid" />
+            </td>
+            <td style="width:50%; padding:5px 10px;">
+                <span>SubTax Type</span>
+                <br />
+                <select id="ddlSubTaxType" disabled="disabled" class="fstextbox required" data-bind="foreach: {data: SubTaxTypeArray},event:{ change: $root.ChangeSubTaxType2 }">
+                    <option data-bind="attr: {value: Id, title:Value1}, text: Combo"></option>
+                </select>
+            </td>
+
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <span>Tax Rate(%)</span>
+                <br />
+                @*<select id="txtTaxRate" class="fstextbox required" data-bind="foreach: {data: TaxRateArray}">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option>
+                    </select>*@
+                <input type="text"
+                       id="txtTaxRate" disabled="disabled" class="fstextbox required" maxlength="5" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Taxable Amount</span>
+                <br />
+                <input type="text" data-bind="event:{ change: $root.ChangeSubTaxType2 }"
+                       id="txtTaxableAmount"
+                       class="fstextbox required" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <span>Tax Amount</span>
+                <br />
+                <input type="text" disabled="disabled" id="txtTaxAmount"
+                       class="fstextbox" />
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:10px 10px 5px; text-align:center;" colspan="2">
+                @if ("N" == "N")
+                {
+                    <button type="button" id="btnTaxSubmit" style="color:white;" class="btn btn-primary" data-bind="click: function() { $root.SaveCessTaxDetails(2); }">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                        Submit
+                    </button>
+                }
+                <button type="button" title="Cancel" name="Cancel" class="btn btn-warning" data-bind="click: function() { $root.CloseDetails(1); }">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                    Cancel
+                </button>
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" value='@sh' id="hfInvIdForCess" />
+    @*Ramya Aug*@
+    <input type="hidden" name="hdfEditViewGstChargedFlag" id="hdfEditViewGstChargedFlag" value="N" />
+</div>
+
+
+
+<script>
+    $(document).ready(function () {
+        $("#txtGSTINVendor,#txtGSTINFICCL").val("");
+        $("#ddlgstReceiverLoc,#ddlgstProviderLoc").removeClass("valid").removeClass("required").addClass("required");
+        $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+        $(".viewForIvoice").css("display", "");
+        $('#divInvoice').attr("style", "display:block;");
+        $(".divGSTChargedShow").show();
+        $("#Gsttab").hide();
+        $("#RCMtab").hide();        
+        $("#Taxtab").hide();
+
+      /*  $("#rdogstChargedFlagNo").change(function () {
+
+
+            $("#ddlgstProviderLoc").val("0");
+            $("#ddlgstReceiverLoc").val("0");
+            $("#txtGSTINVendor").val("");
+            $("#txtGSTINFICCL").val("");
+
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").addClass("required");
+
+            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y" && $("#doctypeNames").val() != "1" && $("#doctypeNames").val() != "2") {
+                $(".divGSTChargedShow").show();
+            }
+            else
+                $(".divGSTChargedShow").show();
+        });
+
+        $("#rdogstChargedFlagYes").change(function () {
+
+            $("#ddlgstProviderLoc").val("0");
+            $("#ddlgstReceiverLoc").val("0");
+            $("#txtGSTINVendor").val("");
+            $("#txtGSTINFICCL").val("");
+
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            $("#ddlgstProviderLoc,#ddlgstReceiverLoc").addClass("required");
+
+            if ($("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value") == "Y" && $("#doctypeNames").val() != "1" && $("#doctypeNames").val() != "2")
+                $(".divGSTChargedShow").show();
+            else
+                $(".divGSTChargedShow").show();
+        });*/
+
+        LoadGSTINCategory();
+        function LoadGSTINCategory() {
+            var _tmpFilter = {
+                ViewType: "5",
+                RefId: "0"
+            };
+            $.ajax({
+                type: "post",
+                url: '../EOWHelper/GetGSTINArray/',
+                data: JSON.stringify(_tmpFilter),
+                async: false,
+                contentType: "application/json;",
+                success: function (response) {
+                    var data2 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                        data2 = JSON.parse(response.Data1);
+                    $("#ddlgstReceiverLoc").empty();
+                    if (data2.length > 0) {
+                        $("#ddlgstReceiverLoc").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data2.length; i++) {
+                            var stylesSelect = $('#ddlgstReceiverLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstReceiverLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                            var stylesSelect = $('#ddlgstProviderLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstProviderLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                        }
+                    }
+                    if (data2.length == 0) {
+                        $("#ddlgstReceiverLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstReceiverLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                    if (data2.length == 0) {
+                        $("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstProviderLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+
+
+            var RefId = $("#txtSuppliercodegid").val(); //var RefId = "5838";
+            var _Filter = {
+                ViewType: "1",
+                RefId: RefId
+            };
+            $.ajax({
+                type: "post",
+                url: UrlHelper + "GetGSTINArray",
+                data: JSON.stringify(_Filter),
+                async: false,
+                contentType: "application/json;",
+                success: function (response) {
+                    var data2 = "";
+                    if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                        data2 = JSON.parse(response.Data1);
+                    $("#ddlgstProviderLoc").empty();
+                    if (data2.length > 0) {
+                        $("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data2.length; i++) {
+                            var stylesSelect = $('#ddlgstProviderLoc');
+                            stylesSelect.attr('disabled', false);
+                            $("#ddlgstProviderLoc").append("<option value=" + data2[i].Id + " title=" + data2[i].Value1 + " >" + data2[i].Value + "</option>");
+                        }
+                    }
+
+                    if (data2.length == 0) {
+                        $("#ddlgstProviderLoc").append("<option value='0' >--Select--</option>");
+                        var stylesSelect = $('#ddlgstProviderLoc');
+                        stylesSelect.attr('disabled', true);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+
+
+        };
+        $("#ddlgstReceiverLoc").change(function () {
+            $("#ddlgstReceiverLoc").removeClass("valid").removeClass("required");
+            var value = $(this).val();
+            if (value != null && value != "0" && value != "") {
+                $("#ddlgstReceiverLoc").addClass("valid");
+            } else { $("#ddlgstReceiverLoc").addClass("required"); }
+
+            var _text = $('#ddlgstReceiverLoc option:selected').attr('title');
+            $("#txtGSTINFICCL").val(_text);
+        });
+        $("#ddlgstProviderLoc").change(function () {
+            $("#ddlgstProviderLoc").removeClass("valid").removeClass("required");
+            var value = $(this).val();
+            if (value != null && value != "0" && value != "") {
+                $("#ddlgstProviderLoc").addClass("valid");
+            } else { $("#ddlgstProviderLoc").addClass("required"); }
+
+            var _text = $('#ddlgstProviderLoc option:selected').attr('title');
+            $("#txtGSTINVendor").val(_text);
+        });
+
+        $("#txtRetentionper,#txtInvoiceamount,#txtWithoutTaxAmount").keyup(function () {
+
+            //var curramountexrates = $("#txtInvoiceamount").val();
+            var curramountexrates = $("#txtInvoiceamount").val().replace(/,/g, "");
+            var curramounts = $("#txtRetentionper").val();
+
+            if (curramounts != null || curramounts != "" || curramountexrates != null || curramountexrates != "") {
+
+                //var Amount = $("#txtInvoiceamount").val().replace(/,/g, "");
+                var tol = $('#txtRetentionper').val() * (curramountexrates / 100);
+                var currentval = tol.toFixed(2);
+                var testDecimal = testDecimals(currentval);
+                if (testDecimal.length > 1) {
+                    currentval = currentval.slice(0, -1);
+                }
+                var tolnew = replaceCommas(currentval);
+                $('#txtRetentionamount').val(tolnew);
+                //$('#txtRetentionamount').val(tol.toFixed(2));
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtRetentionamount").addClass('valid');
+            }
+            else {
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtRetentionamount").addClass('required');
+            }
+        });
+    });
+    $("#txtInvoiceamount").keyup(function (event) {
+        if (event.which >= 37 && event.which <= 40) {
+            event.preventDefault();
+        }
+
+        var currentval = $("#txtInvoiceamount").val();
+        var testDecimal = testDecimals(currentval);
+        if (testDecimal.length > 1) {
+            currentval = currentval.slice(0, -1);
+        }
+        $("#txtInvoiceamount").val(replaceCommas(currentval));
+
+    });
+    $(document).ready(function () {
+        $("#Invoicenewadd").hide();
+        var doctypeNames = $("#doctypeNames option:selected").text();
+        if (doctypeNames == "PO" || doctypeNames == "WO") {
+            $("#rblYesr").attr('disabled', false);
+            $("#rblNor").attr('disabled', false);
+        }
+        else {
+            $("#rblYesr").attr('disabled', true);
+            $("#rblNor").attr('disabled', true);
+        }
+    });
+
+    $(document).ready(function () {
+
+
+        var stylesSelect = $('#txtRetentionper');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtRetentionamount');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtrelasedate');
+        stylesSelect.attr('disabled', true);
+
+
+
+        $('input[type=radio][name=rblRetentionflg]').change(function () {
+
+            if (this.value == 'Yes') {
+                $("#Retentionflgg").fadeIn();
+                $("#Retentionflgg1").fadeIn();
+                $("#Retentionflgg2").fadeIn();
+                $("#txtRetentionper").val('');
+                $("#txtRetentionamount").val('');
+                $("#txtrelasedate").val('');
+
+                var stylesSelect = $('#txtRetentionper');
+                stylesSelect.attr('disabled', false);
+
+                var stylesSelect = $('#txtRetentionamount');
+                stylesSelect.attr('disabled', false);
+
+                var stylesSelect = $('#txtrelasedate');
+                stylesSelect.attr('disabled', false);
+
+                $("#txtRetentionper").addClass('required');
+                $("#txtRetentionamount").addClass('required');
+                $("#txtrelasedate").addClass('required');
+
+                $('#txtrelasedate').datepicker({
+                    defaultDate: '+3m'
+                });
+            }
+            else {
+                $("#Retentionflgg").fadeOut();
+                $("#Retentionflgg1").fadeOut();
+                $("#Retentionflgg2").fadeOut();
+                $("#txtRetentionper").val('');
+                $("#txtRetentionamount").val('');
+                $("#txtrelasedate").val('');
+
+                var stylesSelect = $('#txtRetentionper');
+                stylesSelect.attr('disabled', true);
+
+                var stylesSelect = $('#txtRetentionamount');
+                stylesSelect.attr('disabled', true);
+
+                var stylesSelect = $('#txtrelasedate');
+                stylesSelect.attr('disabled', true);
+                $("#txtRetentionper").removeClass('required');
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtrelasedate").removeClass('required');
+                $("#txtRetentionper").removeClass('valid');
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtrelasedate").removeClass('valid');
+            }
+        });
+    });
+
+</script>
+
+<script>
+
+    var objDialogyAdd;
+    objDialogyAdd = $("[id$='ShowDialog']");
+    objDialogyAdd.dialog({
+        autoOpen: false,
+        modal: true,
+        width: 460,
+        height: 290,
+        duration: 300
+    });
+
+    function NewAddinvoice() {
+        var InvidName = $('#idAddinvoice').text();
+        if ((InvidName.toUpperCase()).trim() == "SAVE") {
+            var doctypeNames = $("#doctypeNames option:selected").text();
+
+            var Invoicedate = $("#txtInvoicedate").val();
+            var Invoiceno = $("#txtInvoiceno").val();
+            var Invoicedec = $("#tctInvoicedec").val();
+            //var Invoiceamount = $("#txtInvoiceamount").val();
+            var Invoiceamount = $("#txtInvoiceamount").val().replace(/,/g, "");
+            var TaxableAmount = $("#txtWithoutTaxAmount").val().replace(/,/g, "");
+            var sermonth = $("#txtsermonth").val();
+            var Retentionper = $("#txtRetentionper").val();
+            //var Retentionamount = $("#txtRetentionamount").val();
+            var Retentionamount = $("#txtRetentionamount").val().replace(/,/g, "");
+            var relasedate = $("#txtrelasedate").val();
+            var Provision = $("input[name=rblProvisionflg]:checked").val();
+            var rodio = $("input[name=rblRetentionflg]:checked").val();
+            var providerlocation = $("#ddlgstProviderLoc").val();
+            var Receiverlocation = $("#ddlgstReceiverLoc").val();
+            var VendorGst = $("#txtGSTINVendor").val();
+            var Ficcl = $("#txtGSTINFICCL").val();
+            var GstCharged = "N";
+            GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+
+            if (Invoicedate == "" || Invoicedate == null) {
+                jAlert("Please Select Invoice Date", "Message");
+                return false;
+            }
+            if (Invoiceno == "" || Invoiceno == null) {
+                jAlert("Please Enter Invoice No", "Message");
+                return false;
+            }
+            if (Invoicedec == "" || Invoicedec == null) {
+                jAlert("Please Enter Invoice Description", "Message");
+                return false;
+            }
+            // if ((providerlocation == "0" || providerlocation == "" || providerlocation == null) && GstCharged == "Y") {
+            if ((providerlocation == "0" || providerlocation == "" || providerlocation == null)) {
+                jAlert("Please Select provider Location ", "Message");
+                return false;
+            }
+            // if ((Receiverlocation == "0" || Receiverlocation == "" || Receiverlocation == null) && GstCharged == "Y") {
+            if ((Receiverlocation == "0" || Receiverlocation == "" || Receiverlocation == null)) {
+                jAlert("Please Select Receiver Location", "Message");
+                return false;
+            }
+            if ((VendorGst == "" || VendorGst == null) && GstCharged == "Y") {
+                jAlert("Please Select GSTIN Vendor", "Message");
+                return false;
+            }
+            if ((Ficcl == "" || Ficcl == null) && GstCharged == "Y") {
+                jAlert("Please Select GSTIN " +@System.Configuration.ConfigurationManager.AppSettings["CompanyName"] +"", "Message");
+                return false;
+            }
+            if (Invoiceamount == "" || Invoiceamount == null) {
+                jAlert("Please Enter Invoice Amount", "Message");
+                return false;
+            }
+            if (TaxableAmount == "" || TaxableAmount == null) {
+                jAlert("Please Enter Without tax Amount", "Message");
+                return false;
+            }
+            if (sermonth == "" || sermonth == null) {
+                jAlert("Please Select Service Month", "Message");
+                return false;
+            }
+
+            if (rodio == 'undefined' || rodio == null) {
+                jAlert("Please Select Retention", "Message");
+                return false;
+            }
+
+            if (Provision == 'undefined' || Provision == null) {
+                jAlert("Please Select Provision", "Message");
+                return false;
+            }
+            if (rodio == "Yes") {
+                if (Retentionper == "" || Retentionper == null) {
+                    jAlert("Please Enter Retention %", "Message");
+                    return true;
+                }
+                if (Retentionamount == "" || Retentionamount == null) {
+                    jAlert("Please Enter Retention Amount", "Message");
+                    return true;
+                }
+                if (relasedate == "" || relasedate == null) {
+                    jAlert(" Please Select Release Date", "Message");
+                    return true;
+                }
+            }
+            else
+            {
+                rodio = "N";
+            }
+
+            if (Provision == "No")
+            {
+                Provision = "N";
+            }
+            else
+            {
+                Provision='Y'
+            }
+            var Invoicegid=$("#Invoicegid").val();
+            var ecfgid = $("#ecf_GID").val();
+            var suppliergid = $("#txtSuppliercodegid").val();
+            $("#hdfEditViewGstChargedFlag").val(GstCharged);
+            var NewAttmodel = {
+                "Invoicegid": Invoicegid,
+                "InvoiceDate": Invoicedate,
+                "InvoiceNo": Invoiceno,
+                "Description": Invoicedec,
+                "Amount": Invoiceamount,
+                "TaxableAmount": TaxableAmount,
+                "SerMonth": sermonth,
+                "Retensionflg": rodio,
+                "Retensionper": Retentionper,
+                "Retensionamount": Retentionamount,
+                "Retensionrelse": relasedate,
+                "potype": doctypeNames,
+                "Provision": Provision,
+                "GstCharged": GstCharged,
+                "ProviderLocation": providerlocation,
+                "ReceiverLocation": Receiverlocation,
+                "GstinVendor": VendorGst,
+                "GstinFiccl": Ficcl,
+                "suppliergid": suppliergid,
+                "ecfgid": ecfgid
+
+            };
+
+            $.post('../Insurance/Newinvoiceadd', NewAttmodel ,
+            function (data) {
+                @*if (data == "Error") {
+                    jAlert('Error..........', "Message");
+                    return false;
+                }
+                else*@
+                     if (data == "DuplicateInvoice") {
+                    jAlert('Duplicate Invoice Number : Invoice Number Already Exists', "Message");
+                    return false;
+                }
+                else if (data == "DuplicateInvoicecrid") {
+                    jAlert('Delete Records Payment Tab SUS,CRN and PPX ', "Message");
+                    return false;
+                }
+                else {
+                    if (data == "FinanceApprove") {
+                        jAlert("Invoive Date Greather Than 180 Days & Invoive Amount More Then 2 Lakh : Please Atach Finance Approval ", "Message", function (u) {
+                            if (u == true) {
+                                jAlert("Saved Sucessfully", "Message", function (u) {
+                                    if (u == true) {
+                                        var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "Insurance")?' + new Date().getTime();
+                                        var traurl = '@Url.Action("_TabdebitlineDetails", "Insurance")?' + new Date().getTime();
+                                        var payurl = '@Url.Action("_SupplierPaymentGrid", "Insurance")?' + new Date().getTime();
+                                        @*var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();*@
+
+                                        var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "Insurance")?' + new Date().getTime();
+                                        $("#wgAttachmentsupplierinv").load(invatturl);
+
+                                        //$("#wgempposupplier").load(pourl);
+                                        $("#wgempTaxsupplier").load(taxurl);
+                                        $("#wgTravelmodeotab2").load(traurl);
+                                        $("#wgempPaymensupplier").load(payurl);
+
+                                        var url1 = '@Url.Action("_GetGstDetails", "Insurance")?' + new Date().getTime();
+                                        $("#PoGstGrid").load(url1);
+                                        var url2 = '@Url.Action("_LoadRCMDetails", "SupplierInvoiceNew")';
+                                        $("#GrdRCMdetls").load(url2);
+                                        var stylesSelect = $('#newinvoiceadds');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btndebitlieinvo');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btnpaymentinvo');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btntaxdinvo');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btndebitlieinvoexcel');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btntaxdinvopo');
+                                        stylesSelect.attr('disabled', false);
+
+                                        var stylesSelect = $('#btnInvoiceattmt');
+                                        stylesSelect.attr('disabled', false);
+
+                                        var stylesSelect = $('#btnInvoiceattmt');
+                                        stylesSelect.attr('disabled', false);
+
+                                        var stylesSelect = $('#idAddinvoice');
+                                        stylesSelect.attr('disabled', false);
+                                        var stylesSelect = $('#btnempNewExpensddetr');
+                                        stylesSelect.attr('disabled', true);
+                                        var stylesSelect = $('#viewlastthree');
+                                        stylesSelect.attr('disabled', true);
+                                        $("#hdinvoiceamt").val('0');
+                                        var GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+                                        if (GstCharged == "Y") {
+                                            $("#Gsttab").show();
+                                            $("#RCMtab").hide();
+                                            $('#tabs').tabs('select', 1);
+                                            $("#Taxtab").hide();
+                                        } else {
+                                            $("#Gsttab").hide();
+                                            $("#Taxtab").hide();
+                                            $("#RCMtab").show();
+                                        }
+
+                                        $('#tabs').tabs('select', 1);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    else if (data == "success") {
+
+                        jAlert("Saved Sucessfully", "Message", function (u) {
+                            if (u == true) {
+                                var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "Insurance")?' + new Date().getTime();
+                                var traurl = '@Url.Action("_TabdebitlineDetails", "Insurance")?' + new Date().getTime();
+                                var payurl = '@Url.Action("_SupplierPaymentGrid", "Insurance")?' + new Date().getTime();
+                                @*var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();*@
+                                var url1 = '@Url.Action("_GetGstDetails", "Insurance")';
+                                $("#PoGstGrid").load(url1);
+                                var url2 = '@Url.Action("_LoadRCMDetails", "SupplierInvoiceNew")';
+                                $("#GrdRCMdetls").load(url2);
+                                var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "Insurance")?' + new Date().getTime();
+                                $("#wgAttachmentsupplierinv").load(invatturl);
+
+                                //$("#wgempposupplier").load(pourl);
+                                $("#wgempTaxsupplier").load(taxurl);
+                                $("#wgTravelmodeotab2").load(traurl);
+                                $("#wgempPaymensupplier").load(payurl);
+                                var stylesSelect = $('#newinvoiceadds');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btndebitlieinvo');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btnpaymentinvo');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btntaxdinvo');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btndebitlieinvoexcel');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btntaxdinvopo');
+                                stylesSelect.attr('disabled', false);
+
+                                var stylesSelect = $('#btnInvoiceattmt');
+                                stylesSelect.attr('disabled', false);
+
+                                var stylesSelect = $('#idAddinvoice');
+                                stylesSelect.attr('disabled', false);
+                                var stylesSelect = $('#btnempNewExpensddetr');
+                                stylesSelect.attr('disabled', true);
+                                var stylesSelect = $('#viewlastthree');
+                                stylesSelect.attr('disabled', true);
+                                $("#hdinvoiceamt").val('0');
+                                var GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+                                if (GstCharged == "Y") {
+                                    $("#Gsttab").show();
+                                    $("#RCMtab").hide();
+                                    $('#tabs').tabs('select', 0);
+                                    $("#Taxtab").hide();
+                                }
+                                else {
+                                    $("#Gsttab").hide();
+                                    $("#RCMtab").show();
+
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 'json');
+        }
+        else if ((InvidName.toUpperCase()).trim() == "UPDATE") {
+            var GstCharged = "N";
+            GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+            $("#hdfEditViewGstChargedFlag").val(GstCharged);
+            if (GstCharged == "Y") {
+                ProviderLocation = $("#ddlgstProviderLoc").val();
+                GstinVendor = $("#txtGSTINVendor").val();
+                ReceiverLocation = $("#ddlgstReceiverLoc").val();
+                GstinFiccl = $("#txtGSTINFICCL").val();
+            }
+            if ($("#doctypeNames").val() != 1 && $("#doctypeNames").val() != 2) {
+                if ($.trim(GstinVendor) == "" && GstCharged == "Y") {
+                    jAlert("Ensure GSTIN Vendor!", "Message");
+                    return false;
+                }
+
+                if ((parseInt(ReceiverLocation) == 0 || $.trim(ReceiverLocation) == "") && GstCharged == "Y") {
+                    jAlert("Ensure Receiver Location!", "Message");
+                    return false;
+                }
+
+                if ($.trim(GstinFiccl) == "" && GstCharged == "Y") {
+                    jAlert("Ensure GSTIN " +@System.Configuration.ConfigurationManager.AppSettings["CompanyName"] +"!", "Message");
+                    return false;
+                }
+            }
+            var NewAttmodel = {
+                "GstCharged": GstCharged,
+                "ProviderLocation": ProviderLocation,
+                "GstinVendor": GstinVendor,
+                "ReceiverLocation": ReceiverLocation,
+                "GstinFiccl": GstinFiccl
+            };
+            $.post('../SupplierInvoiceNew/_suppliserinvoiceupdate', NewAttmodel,
+           function (data) {
+               var Data2 = "";
+               Data2 = JSON.parse(data);
+               if (data == "Error") {
+                   jAlert('Error..........', "Message");
+                   return false;
+               }
+               else if (data == "DuplicateInvoice") {
+                   jAlert('Duplicate Invoice Number : Invoice Number Already Exists', "Message");
+                   return false;
+               }
+               else if (data == "DuplicateInvoicecrid") {
+                   jAlert('Delete Records Payment Tab SUS,CRN and PPX ', "Message");
+                   return false;
+               }
+               else if (Data2[0].Msg == "Sucessfully") {
+                   jAlert('GSt Details Added Sucessfully', "Message");
+                   return false;
+               }
+           });
+        }
+    }
+
+
+    function compare(e) {
+        //var hdinvoiceamt = $("#hdinvoiceamt").val();
+        //var ecfamont = $("#txtecfamont").val();
+        //var tolinvoiceamt = $("#suppliertolamt").text();
+
+        var tolinvoiceamt = $("#suppliertolamt").text().replace(/,/g, "");
+        var hdinvoiceamt = $("#hdinvoiceamt").val().replace(/,/g, "");
+        var ecfamont = $("#txtecfamont").val().replace(/,/g, "");
+
+        var invoamt = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var incuramt = parseFloat(tolinvoiceamt) - parseFloat(hdinvoiceamt);
+
+        var tolecfval = parseFloat(incuramt) + parseFloat(invoamt);
+        //var tolecfval = parseFloat(invoamt);
+
+        var val1 = parseFloat(ecfamont);
+        var val2 = parseFloat(tolecfval);
+
+        if (parseFloat(val1) < parseFloat(val2)) {
+            jAlert("Invoice Total Amount Should Be Equal To ECF Total Amount", "Message");
+            $("#txtInvoiceamount").val(invoamt.slice(0, -1))
+            return false;
+        }
+    }
+    function Newsupplieeinvoicecancel() {
+
+        $("#summaryhd1").show();
+        $("#summaryhd2").show();
+
+        var Provision = "N";
+        var NewAttmodel = {
+            "Provision": Provision
+        };
+        $.post('../SupplierInvoiceNew/_suppliserinvoiceclear', NewAttmodel,
+        function (data) {
+            if (data == "Error") {
+                alert('Error..........');
+                return false;
+            }
+            else {
+
+                $("#Invoicenewadd").slideToggle(500);
+
+                var url = '@Url.Action("_supplierGridDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                $("#wgSuppliersuppliermainnew").load(url);
+
+                var stylesSelect = $('#btnempNewExpensddetr');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#viewlastthree');
+                stylesSelect.attr('disabled', false);
+
+
+                var stylesSelect = $('#btnSubmitfinal');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#btnDraftfinal');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#btnCancelfinal');
+                stylesSelect.attr('disabled', false);
+                var stylesSelect = $('#btnCancelfinaldash');
+                stylesSelect.attr('disabled', false);
+            }
+        }, 'json');
+    }
+
+    function Newsupplieeinvoicecreate() {
+        
+        var hdtolattachmentINVV = $("#hdtolattachmentinvoice").text();
+
+        var Invoicedate = $("#txtInvoicedate").val();
+        var Invoiceno = $("#txtInvoiceno").val();
+        var Invoicedec = $("#tctInvoicedec").val();
+        //var Invoiceamount = $("#txtInvoiceamount").val();
+        var Invoiceamount = $("#txtInvoiceamount").val().replace(/,/g, "");
+        var TaxableAmount = $("#txtWithoutTaxAmount").val().replace(/,/g, "");
+
+        var sermonth = $("#txtsermonth").val();
+        var Retentionper = $("#txtRetentionper").val();
+        //var Retentionamount = $("#txtRetentionamount").val();
+        var Retentionamount = $("#txtRetentionamount").val().replace(/,/g, "");
+        var relasedate = $("#txtrelasedate").val();
+
+        var Provision = $("input[name=rblProvisionflg]:checked").val();
+        var rodio = $("input[name=rblRetentionflg]:checked").val();
+
+        //var supplierdetlineamt = $("#supplierdetlineamtr").text();
+        var supplierdetlineamt = $("#supplierdetlineamtr").text().replace(/,/g, "");
+        //var supplierpoamt = $("#supplierpomapamt").text();
+        var supplierpoamt = $("#supplierpomapamt").text().replace(/,/g, "");
+        //var supplierpaymentd = $("#supplierpaymentd").text();
+        var supplierpaymentd = $("#supplierpaymentd").text().replace(/,/g, "");
+        //var suppliertaxd = $("#suppliertaxd").text();
+        var suppliertaxd = $("#suppliertaxd").text().replace(/,/g, "");
+
+        var hsngid =$("#txtHsnId").val() ;
+        var VendorGst = $("#txtGSTINVendor").val();
+        var Ficcl = $("#txtGSTINFICCL").val();
+        var providerloc="";
+        var receiloc="";
+        
+
+        var gsttotal = $("#suppliergstd").text().replace(/,/g, "");
+        // alert(suppliertaxd);
+        if (Invoicedate == "" || Invoicedate == null) {
+            jAlert("Please Select Invoice Date", "Message");
+            return false;
+        }
+        if (Invoiceno == "" || Invoiceno == null) {
+            jAlert("Please Enter Invoice No", "Message");
+            return false;
+        }
+        if (Invoicedec == "" || Invoicedec == null) {
+            jAlert("Please Enter Invoice Description", "Message");
+            return false;
+        }
+
+        if (Invoiceamount == "" || Invoiceamount == null) {
+            jAlert("Please Enter Invoice Amount", "Message");
+            return false;
+        }
+        if (sermonth == "" || sermonth == null) {
+            jAlert("Please Select Service Month", "Message");
+            return false;
+        }
+
+        if (rodio == 'undefined' || rodio == null) {
+            jAlert("Please Select Retention", "Message");
+            return false;
+        }
+
+        if (Provision == 'undefined' || Provision == null) {
+            jAlert("Please Select Provision", "Message");
+            return false;
+        }
+        if (rodio == "Yes") {
+            if (Retentionper == "" || Retentionper == null) {
+                jAlert("Please Enter Retention %", "Message");
+                return true;
+            }
+            if (Retentionamount == "" || Retentionamount == null) {
+                jAlert("Please Enter Retention Amount", "Message");
+                return true;
+            }
+            if (relasedate == "" || relasedate == null) {
+                jAlert(" Please Select Release Date", "Message");
+                return true;
+            }
+        }
+        //if (hsngid=="" || hsngid==null)
+        //{
+        //    jAlert('Please Select hsn code for all debitline details ', "Message");
+        //    return false;
+        //}
+
+        if (hdtolattachmentINVV == "" || hdtolattachmentINVV == "undefined" || hdtolattachmentINVV == null) {
+            jAlert('Please Attach Atleast one Attachment ', "Message");
+            return false;
+        }
+        var val1 = parseFloat(Invoiceamount);
+        var val2 = parseFloat(supplierdetlineamt);
+        var val3 = parseFloat(supplierpaymentd);
+        var val4 = parseFloat(supplierdetlineamt) + parseFloat(suppliertaxd);
+        var val5 = parseFloat(supplierpoamt);
+        var wtaxamt = parseFloat(TaxableAmount);
+
+        var swtgst = parseFloat(wtaxamt) + parseFloat(gsttotal);
+        var GstCharged = "N";
+        GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+        if (GstCharged == "Y") {
+            providerloc = $("#ddlgstProviderLoc").val();
+            receiloc=  $("#ddlgstReceiverLoc").val();
+            if (parseFloat(val1) != parseFloat(swtgst)) {
+                //jAlert("GST tax amount + without tax amount should be equal to invoice amount", "Message");
+                //return false;
+            }
+        }
+        if (GstCharged == "N") {
+
+            if (parseFloat(wtaxamt) != parseFloat(val1)) {
+                jAlert("Without tax amount should be Equal to invoice amount", "Message");
+                return false;
+            }
+        }
+
+
+        if (parseFloat(val1) != parseFloat(val2)) {
+            jAlert("Please Check DebitLine Details : The DebitLine Total Amount Should Be Equal To Invoice Amount", "Message");
+            return false;
+        }
+        if (parseFloat(val1) != parseFloat(val3)) {
+            jAlert("Please Check Payment Details or Tax Details : The Payment Should Be Equal To Invoice Amount", "Message");
+            return false;
+        }
+
+        var doctypeNames = $("#doctypeNames option:selected").text();
+        var hdtolpogridcount = $("#hdtolpogridcount").text();
+
+        if (doctypeNames == "PO" || doctypeNames == "WO") {
+            if (hdtolpogridcount == 'undefined' || hdtolpogridcount == null || hdtolpogridcount == '0') {
+                jAlert('Please Add PO details ', "Message");
+                return false;
+            }
+            if (supplierpoamt.trim() == "0" || supplierpoamt.trim() == "0.00") {
+                jAlert('Please Map PO details ', "Message");
+                return false;
+            }
+        }
+        $.ajax({
+            type: "post",
+            url: '../SupplierInvoiceNew/checkhsnfordebitline/',
+            async: false,
+            contentType: "application/json;",
+            success: function (response) {
+                var data2 = "";
+                if (response != null && response != "" && JSON.parse(response) != null)
+                    data2 = JSON.parse(response);
+                if (data2[0].Msg == "Exists") {
+                    jAlert('Please Select hsn code for all debitline details ', "Message");
+                    return false;
+                }
+            }
+        });
+        //if (doctypeNames == "PO" || doctypeNames == "WO") {
+        //    if (parseFloat(val1) != parseFloat(val4)) {
+        //        jAlert("Please Check PO Mapped Details : The Total PO Mapped Amount Should Be Equal To Invoice Amount", "Message");
+        //        return false;
+        //    }
+        //}
+        var EmpPaymentmodel = { "Amount": Invoiceamount, }
+        $.post('../SupplierInvoiceNew/_suppliserinvoicechkppx', EmpPaymentmodel,
+      function (data) {
+          if (data == "PPX") {
+              //jYesNo(result, "Information", function (j) {
+              jYesNo("PPX are Available...Do you want add PPX Adjustment?..", "Information", function (u) {
+                  if (u == true) {
+                      return false;
+                  }
+                  else
+                  {
+                      var Invoicegid = $("#Invoicegid").val();
+                      var ecfgid = $("#ecf_GID").val();
+                      var suppliergid = $("#txtSuppliercodegid").val();
+                      var NewAttmodel = {
+                          "Invoicegid": Invoicegid,
+                          "InvoiceDate": Invoicedate,
+                          "InvoiceNo": Invoiceno,
+                          "Description": Invoicedec,
+                          "Amount": Invoiceamount,
+                          "TaxableAmount": TaxableAmount,
+                          "SerMonth": sermonth,
+                          "Retensionflg": rodio,
+                          "Retensionper": Retentionper,
+                          "Retensionamount": Retentionamount,
+                          "Retensionrelse": relasedate,
+                          "potype": doctypeNames,
+                          "Provision": Provision,
+                          "GstCharged": GstCharged,
+                          "ProviderLocation":providerloc,
+                          "ReceiverLocation": receiloc,
+                          "GstinVendor": VendorGst,
+                          "GstinFiccl": Ficcl,
+                          "suppliergid": suppliergid,
+                          "ecfgid": ecfgid
+
+
+                      };
+                      $.post('../Insurance/_suppliserinvoiceCreateb', NewAttmodel,
+                      function (data) {
+                          if (data == "Debit") {
+                              jAlert("Please Check DebitLine Details : The DebitLine Total Amount Should Be Equal To Invoice Amount", "Message");
+                              return false;
+                          }
+                          else if (data == "Payment") {
+                              jAlert("Please Check Payment Details or Tax Details : The Payment Should Be Equal To Invoice Amount", "Message");
+                              return false;
+                          }
+                          else if (data == "POAmt") {
+                              jAlert("Please Check PO Mapped Details : The Total PO Mapped Amount Should Be Equal To Invoice Amount", "Message");
+                              return false;
+                          }
+                          else if (data == "Error") {
+                              jAlert('Error..........', "Message");
+                              return false;
+                          }
+                          else {
+                              jAlert("Saved Sucessfully", "Message", function (u) {
+                                  if (u == true) {
+                                      $("#summaryhd1").show();
+                                      $("#summaryhd2").show();
+
+                                      $("#Invoicenewadd").slideToggle(500);
+
+                                      var url = '@Url.Action("_supplierGridDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                                      $("#wgSuppliersuppliermainnew").load(url);
+                                      $("#txtRetentionper").val('');
+                                      $("#txtRetentionamount").val('');
+                                      $("#txtrelasedate").val('');
+
+                                      $("#txtInvoicedate").val('');
+                                      $("#hdinvoiceamt").val('0');
+                                      $("#txtInvoiceno").val('');
+                                      $("#tctInvoicedec").val('');
+                                      $("#txtInvoiceamount").val('');
+                                      $("#txtsermonth").val('');
+                                      $("#Retentionflgg").fadeOut();
+                                      $("#Retentionflgg1").fadeOut();
+                                      $("#Retentionflgg2").fadeOut();
+                                      $("#txtInvoicedate").addClass('required');
+                                      $("#txtInvoiceno").addClass('required');
+                                      $("#tctInvoicedec").addClass('required');
+                                      $("#txtInvoiceamount").addClass('required');
+                                      $("#txtsermonth").addClass('required');
+
+                                      var $rblrblRetention = $('input:radio[name=rblRetentionflg]');
+                                      $rblrblRetention.filter('[value=Yes]').prop('checked', false);
+                                      $rblrblRetention.filter('[value=No]').prop('checked', true);
+
+                                      var stylesSelect = $('#btnempNewExpensddetr');
+                                      stylesSelect.attr('disabled', false);
+                                      var stylesSelect = $('#viewlastthree');
+                                      stylesSelect.attr('disabled', false);
+
+                                      var stylesSelect = $('#btnSubmitfinal');
+                                      stylesSelect.attr('disabled', false);
+                                      var stylesSelect = $('#btnDraftfinal');
+                                      stylesSelect.attr('disabled', false);
+                                      var stylesSelect = $('#btnCancelfinal');
+                                      stylesSelect.attr('disabled', false);
+                                      var stylesSelect = $('#btnCancelfinaldash');
+                                      stylesSelect.attr('disabled', false);
+                                      //$("#wgSuppliersuppliermainnew").load('../SupplierInvoiceNew/_supplierGridDetails');
+                                  }
+                              });
+                          }
+                      }, 'json');
+                  }
+              });
+          }
+          else {
+              var Invoicegid = $("#Invoicegid").val();
+              var ecfgid = $("#ecf_GID").val();
+              var suppliergid = $("#txtSuppliercodegid").val();
+              var NewAttmodel = {
+                  "InvoiceDate": Invoicedate,
+                  "InvoiceNo": Invoiceno,
+                  "Description": Invoicedec,
+                  "Amount": Invoiceamount,
+                  "TaxableAmount": TaxableAmount,
+                  "SerMonth": sermonth,
+                  "Retensionflg": rodio,
+                  "Retensionper": Retentionper,
+                  "Retensionamount": Retentionamount,
+                  "Retensionrelse": relasedate,
+                  "potype": doctypeNames,
+                  "Provision": Provision,
+                  "GstCharged": GstCharged,
+                  "ProviderLocation": providerloc,
+                  "ReceiverLocation": receiloc,
+                  "GstinVendor": VendorGst,
+                  "GstinFiccl": Ficcl,
+                  "suppliergid": suppliergid,
+                  "ecfgid": ecfgid
+              }
+              $.post('../SupplierInvoiceNew/_suppliserinvoiceCreateb', NewAttmodel,
+              function (data) {
+                  if (data == "Debit") {
+                      jAlert("Please Check DebitLine Details : The DebitLine Total Amount Should Be Equal To Invoice Amount", "Message");
+                      return false;
+                  }
+                  else if (data == "Payment") {
+                      jAlert("Please Check Payment Details or Tax Details : The Payment Should Be Equal To Invoice Amount", "Message");
+                      return false;
+                  }
+                  else if (data == "POAmt") {
+                      jAlert("Please Check PO Mapped Details : The Total PO Mapped Amount Should Be Equal To Invoice Amount", "Message");
+                      return false;
+                  }
+                  else if (data == "Error") {
+                      jAlert('Error..........', "Message");
+                      return false;
+                  }
+                  else {
+                      jAlert("Saved Sucessfully", "Message", function (u) {
+                          if (u == true) {
+                              $("#summaryhd1").show();
+                              $("#summaryhd2").show();
+
+                              $("#Invoicenewadd").slideToggle(500);
+
+                              var url = '@Url.Action("_supplierGridDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                              $("#wgSuppliersuppliermainnew").load(url);
+                              $("#txtRetentionper").val('');
+                              $("#txtRetentionamount").val('');
+                              $("#txtrelasedate").val('');
+                              $("#hdinvoiceamt").val('0');
+                              $("#txtInvoicedate").val('');
+                              $("#txtInvoiceno").val('');
+                              $("#tctInvoicedec").val('');
+                              $("#txtInvoiceamount").val('');
+                              $("#txtsermonth").val('');
+                              $("#Retentionflgg").fadeOut();
+                              $("#Retentionflgg1").fadeOut();
+                              $("#Retentionflgg2").fadeOut();
+                              $("#txtInvoicedate").addClass('required');
+                              $("#txtInvoiceno").addClass('required');
+                              $("#tctInvoicedec").addClass('required');
+                              $("#txtInvoiceamount").addClass('required');
+                              $("#txtsermonth").addClass('required');
+
+                              var $rblrblRetention = $('input:radio[name=rblRetentionflg]');
+                              $rblrblRetention.filter('[value=Yes]').prop('checked', false);
+                              $rblrblRetention.filter('[value=No]').prop('checked', true);
+
+                              var stylesSelect = $('#btnempNewExpensddetr');
+                              stylesSelect.attr('disabled', false);
+                              var stylesSelect = $('#viewlastthree');
+                              stylesSelect.attr('disabled', false);
+
+                              var stylesSelect = $('#btnSubmitfinal');
+                              stylesSelect.attr('disabled', false);
+                              var stylesSelect = $('#btnDraftfinal');
+                              stylesSelect.attr('disabled', false);
+                              var stylesSelect = $('#btnCancelfinal');
+                              stylesSelect.attr('disabled', false);
+                              var stylesSelect = $('#btnCancelfinaldash');
+                              stylesSelect.attr('disabled', false);
+                              //$("#wgSuppliersuppliermainnew").load('../SupplierInvoiceNew/_supplierGridDetails');
+                          }
+                      });
+                  }
+              }, 'json');
+          }
+      }, 'json');
+    }
+
+    function Newsupplieeinvoice() {
+
+        $("#summaryhd1").hide();
+        $("#summaryhd2").hide();
+        $("#ddlgstProviderLoc").val("0");
+        $("#ddlgstReceiverLoc").val("0");
+        $("#txtGSTINVendor").val("");
+        $("#txtGSTINFICCL").val("");
+        $(".divGSTChargedShow").show();
+        $('#idAddinvoice').text('Save');
+        $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+        $("#hdfEditViewGstChargedFlag").val("N");
+        $("#txtRetentionper").val('');
+        $("#txtRetentionamount").val('');
+        $("#txtrelasedate").val('');
+        $("#txtInvoicedate").val('');
+        $("#txtInvoiceno").val('');
+        $("#tctInvoicedec").val('');
+        $("#txtInvoiceamount").val('');
+        $("#txtsermonth").val('');
+        $("#hdinvoiceamt").val('0');
+        $("#txtWithoutTaxAmount").val('');
+        $("#txtRetentionper").removeClass('valid');
+        $("#txtRetentionamount").removeClass('valid');
+        $("#txtrelasedate").removeClass('valid');
+
+        $("#txtInvoicedate").removeClass('valid');
+        $("#txtInvoiceno").removeClass('valid');
+        $("#tctInvoicedec").removeClass('valid');
+        $("#txtInvoiceamount").removeClass('valid');
+        $("#txtsermonth").removeClass('valid');
+
+        $("#txtInvoicedate").addClass('required');
+        $("#txtInvoiceno").addClass('required');
+        $("#tctInvoicedec").addClass('required');
+        $("#txtInvoiceamount").addClass('required');
+        $("#txtsermonth").addClass('required');
+
+        var stylesSelect = $('#txtRetentionper');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtRetentionamount');
+        stylesSelect.attr('disabled', true);
+
+        var stylesSelect = $('#txtrelasedate');
+        stylesSelect.attr('disabled', true);
+
+        //var stylesSelect = $('#rdogstChargedFlagNo');
+        //stylesSelect.attr('disabled', false);
+        //var stylesSelect = $('#rdogstChargedFlagYes');
+        //stylesSelect.attr('disabled', false);
+        var stylesSelect = $('#txtGSTINFICCL');
+        stylesSelect.attr('disabled', false);
+        var stylesSelect = $('#txtGSTINVendor');
+        stylesSelect.attr('disabled', false);
+        var stylesSelect = $('#ddlgstReceiverLoc');
+        stylesSelect.attr('disabled', false);
+        var stylesSelect = $('#ddlgstProviderLoc');
+        stylesSelect.attr('disabled', false);
+        var GstCharged = "N";
+        GstCharged = $("input[name=rdogstChargedFlag]:radio[checked=checked]").attr("value");
+        $("#hdfEditViewGstChargedFlag").val(GstCharged);
+        if (GstCharged == "Y") {
+            $("#Gsttab").show();
+            $("#RCMtab").hide();
+            $("#Taxtab").hide(); 
+        }
+        else {
+            $("#Gsttab").hide();
+            $("#Taxtab").hide();
+        }
+        var id = "";
+        var EmpPaymentmodel = { "Invoicegid": id }
+        $.post('../SupplierInvoiceNew/createSupplierinvoice', EmpPaymentmodel,
+      function (data) {
+          if (data == 0) { location = location.href; } else {
+              $("#Invoicenewadd").slideToggle(500);
+              var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              var traurl = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+              var payurl = '@Url.Action("_SupplierPaymentGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+
+              var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              $("#wgempposupplier").load(pourl);
+
+              $("#wgempTaxsupplier").load(taxurl);
+              $("#wgTravelmodeotab2").load(traurl);
+              $("#wgempPaymensupplier").load(payurl);
+
+              var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+              $("#wgAttachmentsupplierinv").load(invatturl);
+
+              $("#txtInvoicedate").addClass('required');
+              $("#txtInvoiceno").addClass('required');
+              $("#tctInvoicedec").addClass('required');
+              $("#txtInvoiceamount").addClass('required');
+              $("#txtsermonth").addClass('required');
+
+              var $rblProvision = $('input:radio[name=rblProvisionflg]');
+              $rblProvision.filter('[value=Yes]').prop('checked', true);
+              $rblProvision.filter('[value=No]').prop('checked', false);
+              $("#Retentionflgg").fadeOut();
+              $("#Retentionflgg1").fadeOut();
+              $("#Retentionflgg2").fadeOut();
+              var $rblrblRetention = $('input:radio[name=rblRetentionflg]');
+              $rblrblRetention.filter('[value=Yes]').prop('checked', false);
+              $rblrblRetention.filter('[value=No]').prop('checked', true);
+
+              var stylesSelect = $('#txtInvoicedate');
+              stylesSelect.attr('disabled', false);
+              var stylesSelect = $('#txtInvoiceno');
+              stylesSelect.attr('disabled', false);
+              var stylesSelect = $('#tctInvoicedec');
+              stylesSelect.attr('disabled', false);
+              var stylesSelect = $('#txtInvoiceamount');
+              stylesSelect.attr('disabled', false);
+              var stylesSelect = $('#txtsermonth');
+              stylesSelect.attr('disabled', false);
+
+              $("#rblYesp").attr('disabled', false);
+              $("#rblNop").attr('disabled', false);
+              $("#rblYesr").attr('disabled', false);
+              $("#rblNor").attr('disabled', false);
+
+              $("#txtInvoicedate").addClass('required');
+              $("#txtInvoiceno").addClass('required');
+              $("#tctInvoicedec").addClass('required');
+              $("#txtInvoiceamount").addClass('required');
+              $("#txtsermonth").addClass('required');
+
+              var stylesSelect = $('#newinvoiceadds');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnpaymentinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btntaxdinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvoexcel');
+              stylesSelect.attr('disabled', true);
+              var stylesSelectpo = $('#btntaxdinvopo');
+              stylesSelectpo.attr('disabled', true);
+
+              var stylesSelect = $('#btnInvoiceattmt');
+              stylesSelect.attr('disabled', true);
+
+              var stylesSelect = $('#idAddinvoice');
+              stylesSelect.attr('disabled', false);
+
+              var stylesSelect = $('#btnempNewExpensddetr');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#viewlastthree');
+              stylesSelect.attr('disabled', true);
+
+              var doctypeNames = $("#doctypeNames option:selected").text();
+              if (doctypeNames == "PO" || doctypeNames == "WO") {
+                  $("#rblYesr").attr('disabled', false);
+                  $("#rblNor").attr('disabled', false);
+                  $("#rblYesp").attr('disabled', true);
+                  $("#rblNop").attr('disabled', true);
+              }
+              else {
+                  $("#rblYesp").attr('disabled', false);
+                  $("#rblNop").attr('disabled', false);
+                  $("#rblYesr").attr('disabled', true);
+                  $("#rblNor").attr('disabled', true);
+              }
+              var stylesSelect = $('#btnSubmitfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnDraftfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinaldash');
+              stylesSelect.attr('disabled', true);
+
+          }
+      }, 'json');
+    }
+    function SupplierInvoiceEdit(id) {
+        $("#summaryhd1").hide();
+        $("#summaryhd2").hide();
+        var stylesSelect = $('#idAddinvoice');
+        stylesSelect.attr('disabled', false);
+        $("#hfInvId").val(id);
+        var EmpPaymentmodel = {
+            "Invoicegid": id,
+            "Provision": "Edit"
+        }
+        $.post('../Insurance/ViewSupplierinvoice', EmpPaymentmodel,
+      function (data) {
+          if (data == 0) { location = location.href; } else {
+              $("#Invoicenewadd").slideToggle(500);
+
+              //var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              var traurl = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+              var payurl = '@Url.Action("_SupplierPaymentGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              $("#wgempposupplier").load(pourl);
+
+              // $("#wgempTaxsupplier").load(taxurl);
+              $("#wgTravelmodeotab2").load(traurl);
+              $("#wgempPaymensupplier").load(payurl);
+
+              $("#ddlgstProviderLoc").val(data[0].ProviderLocation);
+              $("#ddlgstReceiverLoc").val(data[0].ReceiverLocation);
+              $("#txtGSTINVendor").val(data[0].GstinVendor);
+              $("#txtGSTINFICCL").val(data[0].GstinFiccl);
+              $("#ddlgstProviderLoc").addClass('valid');
+              $("#ddlgstReceiverLoc").addClass('valid');
+              $("#txtGSTINVendor").addClass('valid');
+              $("#txtGSTINFICCL").addClass('valid');
+
+              if (data[0].GstCharged == "Y") {
+                  $(".divGSTChargedShow").show();
+                  $("input[name=rdogstChargedFlag][value=Y]").prop("checked", true);
+                  //Ramya Aug
+                  $("#hdfEditViewGstChargedFlag").val(data[0].GstCharged);
+                  var url1 = '@Url.Action("_GetGstDetails", "Insurance")';
+                  $("#PoGstGrid").load(url1);
+                  $("#Gsttab").show();
+                  $("#RCMtab").hide();
+                  //$("#Taxtab").hide();
+              }
+              else {
+                  $(".divGSTChargedShow").show();
+                  $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+                  $("#hdfEditViewGstChargedFlag").val("N");
+                  @*var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                  $("#wgempTaxsupplier").load(taxurl);*@
+                  $("#Gsttab").hide();
+                  //$("#Taxtab").hide();
+                  $("#RCMtab").show();
+                  var url2 = '@Url.Action("_LoadRCMDetails", "Insurance")';
+                  $("#GrdRCMdetls").load(url2);
+              }
+
+              var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "Insurance")?' + new Date().getTime();
+              $("#wgAttachmentsupplierinv").load(invatturl);
+
+              $("#txtInvoicedate").val(data[0].InvoiceDate);
+              $("#txtInvoiceno").val(data[0].InvoiceNo);
+              $("#tctInvoicedec").val(data[0].Description);
+
+              var currentval = data[0].Amount;
+              var testDecimal = testDecimals(currentval);
+              if (testDecimal.length > 1) {
+                  currentval = currentval.slice(0, -1);
+              }
+              var tolnew = replaceCommas(currentval);
+              $('#txtInvoiceamount').val(tolnew);
+
+              var taxableAmount = data[0].TaxableAmount;
+              var testDecimal1 = testDecimals(taxableAmount);
+              if (testDecimal1.length > 1) {
+                  taxableAmount = taxableAmount.slice(0, -1);
+              }
+              var tolnew1 = replaceCommas(taxableAmount);
+              $('#txtWithoutTaxAmount').val(tolnew1);
+
+              //$("#txtInvoiceamount").val(data[0].Amount);
+              $("#txtsermonth").val(data[0].SerMonth);
+              $("#hdinvoiceamt").val(data[0].Amount);
+              var txtsermonthnew = $("#txtInvoicedate").val();
+              if (txtsermonthnew.trim() != "") {
+                  $("#txtsermonth").addClass('valid');
+                  getmonth(data[0].SerMonth);
+              }
+              else {
+                  $("#txtsermonth").addClass('required');
+              }
+
+
+              var renflg = data[0].Retensionflg;
+
+              $("#txtInvoicedate").addClass('valid');
+              $("#txtInvoiceno").addClass('valid');
+              $("#tctInvoicedec").addClass('valid');
+              $("#txtInvoiceamount").addClass('valid');
+              $("#txtWithoutTaxAmount").addClass('valid');
+              $("#txtsermonth").addClass('valid');
+
+              var selmode = $("#raisermodeNames").val();
+              if (selmode.trim() == "C") {
+                  var stylesSelect = $('#idAddinvoice');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtInvoicedate');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#txtInvoiceno');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#tctInvoicedec');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtInvoiceamount');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#txtWithoutTaxAmount');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#txtsermonth');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#newinvoiceadds');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btndebitlieinvo');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#btnpaymentinvo');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#btntaxdinvo');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#btndebitlieinvoexcel');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#btntaxdinvopo');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#btnInvoiceattmt');
+                  stylesSelect.attr('disabled', true);
+
+              }
+              else {
+                  var stylesSelect = $('#txtInvoicedate');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtInvoiceno');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#tctInvoicedec');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtInvoiceamount');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#txtWithoutTaxAmount');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtsermonth');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#newinvoiceadds');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btndebitlieinvo');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btnpaymentinvo');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btntaxdinvo');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btndebitlieinvoexcel');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btntaxdinvopo');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#btnInvoiceattmt');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#idAddinvoice');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#btnempNewExpensddetr');
+                  stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#viewlastthree');
+                  stylesSelect.attr('disabled', true);
+
+                  //var stylesSelect = $('#rdogstChargedFlagNo');
+                  //stylesSelect.attr('disabled', true);
+                  //var stylesSelect = $('#rdogstChargedFlagYes');
+                  //stylesSelect.attr('disabled', true);
+                  var stylesSelect = $('#txtGSTINFICCL');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#txtGSTINVendor');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#ddlgstReceiverLoc');
+                  stylesSelect.attr('disabled', false);
+                  var stylesSelect = $('#ddlgstProviderLoc');
+                  stylesSelect.attr('disabled', false);
+              }
+              $("#rblYesp").attr('disabled', false);
+              $("#rblNop").attr('disabled', false);
+              $("#rblYesr").attr('disabled', false);
+              $("#rblNor").attr('disabled', false);
+
+              var $radios = $('input:radio[name=rblRetentionflg]');
+              if (renflg == "Y") {
+                  $("#Retentionflgg").fadeIn();
+                  $("#Retentionflgg1").fadeIn();
+                  $("#Retentionflgg2").fadeIn();
+                  $radios.filter('[value=Yes]').prop('checked', true);
+                  $("#txtRetentionper").val(data[0].Retensionper);
+
+                  var currentval = data[0].Retensionamount;
+                  var testDecimal = testDecimals(currentval);
+                  if (testDecimal.length > 1) {
+                      currentval = currentval.slice(0, -1);
+                  }
+                  var tolnew = replaceCommas(currentval);
+                  $('#txtRetentionamount').val(tolnew);
+                  //$("#txtRetentionamount").val(data[0].Retensionamount);
+                  $("#txtrelasedate").val(data[0].Retensionrelse);
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', false);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', false);
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('valid');
+
+              }
+              else {
+                  $radios.filter('[value=No]').prop('checked', true);
+                  $("#Retentionflgg").fadeOut();
+                  $("#Retentionflgg1").fadeOut();
+                  $("#Retentionflgg2").fadeOut();
+                  $("#txtRetentionper").val('');
+                  $("#txtRetentionamount").val('');
+                  $("#txtrelasedate").val('');
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', true);
+                  $("#txtRetentionper").removeClass('required');
+                  $("#txtRetentionamount").removeClass('required');
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('required');
+                  $("#txtrelasedate").removeClass('valid');
+              }
+              var renflg = data[0].Provision;
+
+              var $rblProvision = $('input:radio[name=rblProvisionflg]');
+              if (renflg == "Y") {
+                  $rblProvision.filter('[value=Yes]').prop('checked', true);
+              }
+              else {
+                  $rblProvision.filter('[value=No]').prop('checked', true);
+              }
+
+              var doctypeNames = $("#doctypeNames option:selected").text();
+              if (doctypeNames == "PO" || doctypeNames == "WO") {
+                  $("#rblYesr").attr('disabled', false);
+                  $("#rblNor").attr('disabled', false);
+                  $("#rblYesp").attr('disabled', true);
+                  $("#rblNop").attr('disabled', true);
+              }
+              else {
+                  $("#rblYesp").attr('disabled', false);
+                  $("#rblNop").attr('disabled', false);
+                  $("#rblYesr").attr('disabled', true);
+                  $("#rblNor").attr('disabled', true);
+              }
+
+              var stylesSelect = $('#btnSubmitfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnDraftfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinaldash');
+              stylesSelect.attr('disabled', true);
+          }
+      }, 'json');
+    }
+
+    function getmonth(date) {
+        if (date.length == 10) {
+            var ddd = isgetmonthyear(date);
+            if (ddd == "Error") {
+                $("#txtsermonth").val('')
+            }
+            else {
+                $("#txtsermonth").val(ddd)
+            }
+        }
+        else {
+            $("#txtsermonth").val('')
+        }
+    }
+    function isgetmonthyear(evt) {
+        var retnval;
+        var str = evt;
+        var array = str.split('-');
+
+        if (array[1] == "01") {
+            retnval = "January-" + array[2];
+            return retnval;
+        }
+        if (array[1] == "02") {
+            retnval = "February-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "03") {
+            retnval = "March-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "04") {
+            retnval = "April-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "05") {
+            retnval = "May-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "06") {
+            retnval = "June-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "07") {
+            retnval = "July-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "08") {
+            retnval = "August-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "09") {
+            retnval = "September-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "10") {
+            retnval = "October-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "11") {
+            retnval = "November-" + array[2]; return retnval;
+        }
+        if (array[1].trim() == "12") {
+            retnval = "December-" + array[2]; return retnval;
+        }
+        else {
+            retnval = "Error"; return retnval;
+        }
+        return retnval;
+    }
+    function SupplierInvoiceViewm(id) {
+        $("#summaryhd1").hide();
+        $("#summaryhd2").hide();
+        var EmpPaymentmodel = {
+            "Invoicegid": id,
+            "Provision": "View"
+        }
+        $.post('../SupplierInvoiceNew/ViewSupplierinvoice', EmpPaymentmodel,
+      function (data) {
+          if (data == 0) { location = location.href; } else {
+              $("#Invoicenewadd").slideToggle(500);
+              @*var taxurl = "@(Html.Raw(Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")))";
+              var traurl = "@(Html.Raw(Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")))";
+              var payurl = "@(Html.Raw(Url.Action("_SupplierPaymentGrid", "SupplierInvoiceNew")))";
+
+              $("#wgempTaxsupplier").load(taxurl);
+              $("#wgTravelmodeotab2").load(traurl);
+              $("#wgempPaymensupplier").load(payurl);*@
+              //var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              var traurl = '@Url.Action("_TabdebitlineDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+              var payurl = '@Url.Action("_SupplierPaymentGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              var pourl = '@Url.Action("_PODetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+              $("#wgempposupplier").load(pourl);
+
+              //$("#wgempTaxsupplier").load(taxurl);
+              $("#wgTravelmodeotab2").load(traurl);
+              $("#wgempPaymensupplier").load(payurl);
+
+              var invatturl = '@Url.Action("_InvoiceAttachmentDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+              $("#wgAttachmentsupplierinv").load(invatturl);
+
+              $("#ddlgstProviderLoc").val(data[0].ProviderLocation);
+              $("#ddlgstReceiverLoc").val(data[0].ReceiverLocation);
+              $("#txtGSTINVendor").val(data[0].GstinVendor);
+              $("#txtGSTINFICCL").val(data[0].GstinFiccl);
+              $("#ddlgstProviderLoc").addClass('valid');
+              $("#ddlgstReceiverLoc").addClass('valid');
+              $("#txtGSTINVendor").addClass('valid');
+              $("#txtGSTINFICCL").addClass('valid');
+              var stylesSelect = $('#txtGSTINFICCL');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtGSTINVendor');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#ddlgstReceiverLoc');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#ddlgstProviderLoc');
+              stylesSelect.attr('disabled', true);
+
+              if (data[0].GstCharged == "Y") {
+                  $(".divGSTChargedShow").show();
+                  $("input[name=rdogstChargedFlag][value=Y]").prop("checked", true);
+                  //Ramya Aug
+                  $("#hdfEditViewGstChargedFlag").val(data[0].GstCharged);
+                  var url1 = '@Url.Action("_GetGstDetails", "SupplierInvoiceNew")';
+                  $("#PoGstGrid").load(url1);
+                  $("#Gsttab").show();
+                  $("#Taxtab").hide();
+              }
+              else {
+                  $(".divGSTChargedShow").show();
+                  $("#hdfEditViewGstChargedFlag").val("N");
+                  $("input[name=rdogstChargedFlag][value=N]").prop("checked", true);
+                  var taxurl = '@Url.Action("_SupplierTaxDetailsGrid", "SupplierInvoiceNew")?' + new Date().getTime();
+                  $("#wgempTaxsupplier").load(taxurl);
+                  $("#Gsttab").hide();
+                  $("#Taxtab").hide();
+                  $("#RCMtab").show();
+                  var url2 = '@Url.Action("_LoadRCMDetails", "SupplierInvoiceNew")';
+                  $("#GrdRCMdetls").load(url2); 
+              }
+              //var stylesSelect = $('#rdogstChargedFlagNo');
+              //stylesSelect.attr('disabled', true);
+              //var stylesSelect = $('#rdogstChargedFlagYes');
+              //stylesSelect.attr('disabled', true);
+              $('#idAddinvoice').text('Update');
+
+              $("#txtInvoicedate").val(data[0].InvoiceDate);
+              $("#txtInvoiceno").val(data[0].InvoiceNo);
+              $("#tctInvoicedec").val(data[0].Description);
+
+              var currentval = data[0].Amount;
+              var testDecimal = testDecimals(currentval);
+              if (testDecimal.length > 1) {
+                  currentval = currentval.slice(0, -1);
+              }
+              var tolnew = replaceCommas(currentval);
+              $('#txtInvoiceamount').val(tolnew);
+
+              $("#txtInvoiceamount").val(data[0].Amount);
+              $("#txtsermonth").val(data[0].SerMonth);
+              $("#hdinvoiceamt").val(data[0].Amount);
+              var txtsermonthnew = $("#txtInvoicedate").val();
+              if (txtsermonthnew.trim() != "") {
+                  $("#txtsermonth").addClass('valid');
+                  getmonth(data[0].SerMonth);
+              }
+              else {
+                  $("#txtsermonth").addClass('required');
+              }
+
+              $("#txtInvoicedate").addClass('valid');
+              $("#txtInvoiceno").addClass('valid');
+              $("#tctInvoicedec").addClass('valid');
+              $("#txtInvoiceamount").addClass('valid');
+              $("#txtsermonth").addClass('valid');
+
+              var renflg = data[0].Retensionflg;
+              var stylesSelect = $('#txtInvoicedate');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtInvoiceno');
+              stylesSelect.attr('disabled', true);
+              var renflg = data[0].Retensionflg;
+              var stylesSelect = $('#tctInvoicedec');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtInvoiceamount');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#txtsermonth');
+              stylesSelect.attr('disabled', true);
+
+              //var stylesSelect = $('#rblYes');
+              //stylesSelect.attr('disabled', true);
+              //var stylesSelect = $('#rblNo');
+              //stylesSelect.attr('disabled', true);
+              $("#rblYesp").attr('disabled', true);
+              $("#rblNop").attr('disabled', true);
+              $("#rblYesr").attr('disabled', true);
+              $("#rblNor").attr('disabled', true);
+
+              var $radios = $('input:radio[name=rblRetentionflg]');
+              if (renflg == "Y") {
+                  $radios.filter('[value=Yes]').prop('checked', true);
+                  $("#Retentionflgg").fadeIn();
+                  $("#Retentionflgg1").fadeIn();
+                  $("#Retentionflgg2").fadeIn();
+                  $("#txtRetentionper").val(data[0].Retensionper);
+                  var currentval = data[0].Retensionamount;
+                  var testDecimal = testDecimals(currentval);
+                  if (testDecimal.length > 1) {
+                      currentval = currentval.slice(0, -1);
+                  }
+                  var tolnew = replaceCommas(currentval);
+                  $('#txtRetentionamount').val(tolnew);
+                  //$("#txtRetentionamount").val(data[0].Retensionamount);
+                  $("#txtrelasedate").val(data[0].Retensionrelse);
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', true);
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('valid');
+              }
+              else {
+                  $radios.filter('[value=No]').prop('checked', true);
+                  $("#Retentionflgg").fadeOut();
+                  $("#Retentionflgg1").fadeOut();
+                  $("#Retentionflgg2").fadeOut();
+                  $("#txtRetentionper").val('');
+                  $("#txtRetentionamount").val('');
+                  $("#txtrelasedate").val('');
+                  var stylesSelect = $('#txtRetentionper');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtRetentionamount');
+                  stylesSelect.attr('disabled', true);
+
+                  var stylesSelect = $('#txtrelasedate');
+                  stylesSelect.attr('disabled', true);
+                  $("#txtRetentionper").removeClass('required');
+                  $("#txtRetentionamount").removeClass('required');
+                  $("#txtRetentionper").removeClass('valid');
+                  $("#txtRetentionamount").removeClass('valid');
+                  $("#txtrelasedate").removeClass('required');
+                  $("#txtrelasedate").removeClass('valid');
+              }
+              var renflg = data[0].Provision;
+
+              var $rblProvision = $('input:radio[name=rblProvisionflg]');
+              if (renflg == "Y") {
+                  $rblProvision.filter('[value=Yes]').prop('checked', true);
+              }
+              else {
+                  $rblProvision.filter('[value=No]').prop('checked', true);
+              }
+              var stylesSelect = $('#newinvoiceadds');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnpaymentinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btntaxdinvo');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btndebitlieinvoexcel');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btntaxdinvopo');
+              stylesSelect.attr('disabled', true);
+
+              var stylesSelect = $('#btnInvoiceattmt');
+              stylesSelect.attr('disabled', true);
+
+              var stylesSelect = $('#idAddinvoice');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnempNewExpensddetr');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#viewlastthree');
+              stylesSelect.attr('disabled', true);
+
+
+              var stylesSelect = $('#btnSubmitfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnDraftfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinal');
+              stylesSelect.attr('disabled', true);
+              var stylesSelect = $('#btnCancelfinaldash');
+              stylesSelect.attr('disabled', true);
+          }
+      }, 'json');
+    }
+
+    function SupplierInvoiceDeleteMAIN(id) {
+        jConfirm("Do you want to delete Invoice...? ", "Message", function (u) {
+            if (u == true) {
+                var EmpExpensemodel = { "TravelMode_GID": id }
+                $.post('../SupplierInvoiceNew/DeleteSupppersdExpense', EmpExpensemodel,
+                function (data) {
+                    if (data == 0) {
+                        location = location.href;
+                    } else {
+                        var url = '@Url.Action("_supplierGridDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                        $("#wgSuppliersuppliermainnew").load(url);
+
+                        var urlatt = '@Url.Action("_supplierAttachmentDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                        $("#wgAttachmentsupplier").load(urlatt);
+                    }
+                }, 'json');
+            }
+        });
+    }
+    function Newsupplieeinvoicelast() {
+        var url = '@Url.Action("_Lastthrrmonth", "SupplierInvoiceNew")?' + new Date().getTime();
+        objlastthreemontth.load(url);
+        objlastthreemontth.dialog({ title: 'Last Three Month Invoice ' });
+        objlastthreemontth.dialog("open");
+    }
+
+    function EditTaxDetails(id) {
+
+        var InvoiceTaxgid = id;
+        $("#hfInvoiceTaxgid").val(InvoiceTaxgid);
+        var action;
+        var InvoiceTax = {
+            action: "Edit",
+            InvoiceTaxgid: InvoiceTaxgid
+        };
+        $.ajax({
+            type: "post",
+            url: "../SupplierInvoiceNew/SetCessTaxDetails",
+            data: JSON.stringify(InvoiceTax),
+            contentType: "application/json;",
+            success: function (response) {
+                var Data1 = "";
+                if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                    Data1 = JSON.parse(response.Data1);
+                    if (Data1[0].invoicetaxgid != "0") {
+                        
+
+                        $("#ddlTaxType").val(Data1[0].Taxgid);
+                        $("#ddlSubTaxType").val(Data1[0].TaxsubtypegID);
+                        $("#txtTaxRate").val(Data1[0].Rate);
+                        $("#txtTaxAmount").val(Data1[0].TaxAmt);
+                        $("#txtTaxableAmount").val(Data1[0].TaxableAmt);
+                        $("#btnTaxSubmit").css("display", "");
+                        // $('#ShowDialog').attr("style", "display:block;");
+                        objDialogyAdd.dialog({ title: 'Invoice Tax', width: '460', height: '290' });
+                        objDialogyAdd.dialog("open");
+
+                    }
+                }
+
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                //alert(errorThrown);
+            }
+        });
+
+
+    }
+
+    $(document).ready(function () {
+
+        $("#txtInvoicedate").keyup(function () {
+            var txtContractFrom = $("#txtInvoicedate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoicedate").removeClass('required');
+                $("#txtInvoicedate").addClass('valid');
+                var resultr = invoicedatecheck($("#txtInvoicedate").val());
+            }
+            else {
+                $("#txtInvoicedate").removeClass('valid');
+                $("#txtInvoicedate").addClass('required');
+            }
+        });
+        $("#txtInvoicedate").change(function () {
+            var txtContractFrom = $("#txtInvoicedate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoicedate").removeClass('required');
+                $("#txtInvoicedate").addClass('valid');
+                var resultr = invoicedatecheck($("#txtInvoicedate").val());
+            }
+            else {
+                $("#txtInvoicedate").removeClass('valid');
+                $("#txtInvoicedate").addClass('required');
+            }
+        });
+
+        $("#txtInvoiceno").keyup(function () {
+            var txtContractFrom = $("#txtInvoiceno").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoiceno").removeClass('required');
+                $("#txtInvoiceno").addClass('valid');
+            }
+            else {
+                $("#txtInvoiceno").removeClass('valid');
+                $("#txtInvoiceno").addClass('required');
+            }
+        });
+        $("#txtInvoiceno").change(function () {
+            var txtContractFrom = $("#txtInvoiceno").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoiceno").removeClass('required');
+                $("#txtInvoiceno").addClass('valid');
+            }
+            else {
+                $("#txtInvoiceno").removeClass('valid');
+                $("#txtInvoiceno").addClass('required');
+            }
+        });
+
+        $("#tctInvoicedec").keyup(function () {
+            var txtContractFrom = $("#tctInvoicedec").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#tctInvoicedec").removeClass('required');
+                $("#tctInvoicedec").addClass('valid');
+            }
+            else {
+                $("#tctInvoicedec").removeClass('valid');
+                $("#tctInvoicedec").addClass('required');
+            }
+        });
+        $("#tctInvoicedec").change(function () {
+            var txtContractFrom = $("#tctInvoicedec").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#tctInvoicedec").removeClass('required');
+                $("#tctInvoicedec").addClass('valid');
+            }
+            else {
+                $("#tctInvoicedec").removeClass('valid');
+                $("#tctInvoicedec").addClass('required');
+            }
+        });
+
+        $("#txtInvoiceamount").keyup(function () {
+            var txtContractFrom = $("#txtInvoiceamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoiceamount").removeClass('required');
+                $("#txtInvoiceamount").addClass('valid');
+            }
+            else {
+                $("#txtInvoiceamount").removeClass('valid');
+                $("#txtInvoiceamount").addClass('required');
+            }
+        });
+        $("#txtInvoiceamount").change(function () {
+            var txtContractFrom = $("#txtInvoiceamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtInvoiceamount").removeClass('required');
+                $("#txtInvoiceamount").addClass('valid');
+            }
+            else {
+                $("#txtInvoiceamount").removeClass('valid');
+                $("#txtInvoiceamount").addClass('required');
+            }
+        });
+
+        $("#txtWithoutTaxAmount").change(function () {
+
+            var WTAmount = $("#txtWithoutTaxAmount").val();
+            if (WTAmount.trim() != "") {
+                $("#txtWithoutTaxAmount").removeClass('required');
+                $("#txtWithoutTaxAmount").addClass('valid');
+            }
+            else {
+                $("#txtWithoutTaxAmount").removeClass('valid');
+                $("#txtWithoutTaxAmount").addClass('required');
+            }
+        });
+
+        $("#txtWithoutTaxAmount").keyup(function () {
+
+            var WTAmount = $("#txtWithoutTaxAmount").val();
+            if (WTAmount.trim() != "") {
+                $("#txtWithoutTaxAmount").removeClass('required');
+                $("#txtWithoutTaxAmount").addClass('valid');
+            }
+            else {
+                $("#txtWithoutTaxAmount").removeClass('valid');
+                $("#txtWithoutTaxAmount").addClass('required');
+            }
+        });
+
+        $("#txtTaxRate").keyup(function () {
+            
+            var TaxRate = $("#txtTaxRate").val();
+            if (TaxRate.trim() != "") {
+                $("#txtTaxRate").removeClass('required');
+                $("#txtTaxRate").addClass('valid');
+            }
+            else {
+                $("#txtTaxRate").removeClass('valid');
+                $("#txtTaxRate").addClass('required');
+            }
+        });
+
+
+
+        $("#txtsermonth").keyup(function () {
+            var txtContractFrom = $("#txtsermonth").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtsermonth").removeClass('required');
+                $("#txtsermonth").addClass('valid');
+            }
+            else {
+                $("#txtsermonth").removeClass('valid');
+                $("#txtsermonth").addClass('required');
+            }
+        });
+        $("#txtsermonth").change(function () {
+            var txtContractFrom = $("#txtsermonth").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtsermonth").removeClass('required');
+                $("#txtsermonth").addClass('valid');
+            }
+            else {
+                $("#txtsermonth").removeClass('valid');
+                $("#txtsermonth").addClass('required');
+            }
+        });
+
+
+        var rodio = $("input[name=rblRetentionflg]:checked").val()
+        if (rodio == 'undefined' || rodio == null) {
+            $("#txtRetentionper").removeClass('required');
+            $("#txtRetentionamount").removeClass('required');
+            $("#txtRetentionper").removeClass('valid');
+            $("#txtRetentionamount").removeClass('valid');
+
+            $("#txtrelasedate").removeClass('valid');
+            $("#txtrelasedate").removeClass('required');
+        }
+        else if (rodio == "Yes") {
+            $("#Retentionflgg").fadeIn();
+            $("#Retentionflgg1").fadeIn();
+            $("#Retentionflgg2").fadeIn();
+            var txtContractFrom = $("#txtRetentionper").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionper").removeClass('required');
+                $("#txtRetentionper").addClass('valid');
+            }
+            else {
+                $("#txtRetentionper").removeClass('valid');
+                $("#txtRetentionper").addClass('required');
+            }
+            var txtContractFrom = $("#txtRetentionamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtRetentionamount").addClass('valid');
+            }
+            else {
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtRetentionamount").addClass('required');
+            }
+            var txtContractFrom = $("#txtrelasedate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtrelasedate").removeClass('required');
+                $("#txtrelasedate").addClass('valid');
+            }
+            else {
+                $("#txtrelasedate").removeClass('valid');
+                $("#txtrelasedate").addClass('required');
+            }
+        }
+        else if (rodio == "No") {
+            $("#Retentionflgg").fadeOut();
+            $("#Retentionflgg1").fadeOut();
+            $("#Retentionflgg2").fadeOut();
+            $("#txtRetentionper").removeClass('required');
+            $("#txtRetentionamount").removeClass('required');
+            $("#txtRetentionper").removeClass('valid');
+            $("#txtRetentionamount").removeClass('valid');
+            $("#txtrelasedate").removeClass('required');
+            $("#txtrelasedate").removeClass('valid');
+        }
+
+
+
+
+        $("#txtRetentionper").keyup(function () {
+            var txtContractFrom = $("#txtRetentionper").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionper").removeClass('required');
+                $("#txtRetentionper").addClass('valid');
+            }
+            else {
+                $("#txtRetentionper").removeClass('valid');
+                $("#txtRetentionper").addClass('required');
+            }
+        });
+        $("#txtRetentionper").change(function () {
+            var txtContractFrom = $("#txtRetentionper").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionper").removeClass('required');
+                $("#txtRetentionper").addClass('valid');
+            }
+            else {
+                $("#txtRetentionper").removeClass('valid');
+                $("#txtRetentionper").addClass('required');
+            }
+        });
+
+        $("#txtRetentionamount").keyup(function () {
+            var txtContractFrom = $("#txtRetentionamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtRetentionamount").addClass('valid');
+            }
+            else {
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtRetentionamount").addClass('required');
+            }
+        });
+        $("#txtRetentionamount").change(function () {
+            var txtContractFrom = $("#txtRetentionamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtRetentionamount").removeClass('required');
+                $("#txtRetentionamount").addClass('valid');
+            }
+            else {
+                $("#txtRetentionamount").removeClass('valid');
+                $("#txtRetentionamount").addClass('required');
+            }
+        });
+        $("#txtrelasedate").keyup(function () {
+            var txtContractFrom = $("#txtrelasedate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtrelasedate").removeClass('required');
+                $("#txtrelasedate").addClass('valid');
+            }
+            else {
+                $("#txtrelasedate").removeClass('valid');
+                $("#txtrelasedate").addClass('required');
+            }
+        });
+        $("#txtrelasedate").change(function () {
+            var txtContractFrom = $("#txtRetentionamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtrelasedate").removeClass('required');
+                $("#txtrelasedate").addClass('valid');
+            }
+            else {
+                $("#txtrelasedate").removeClass('valid');
+                $("#txtrelasedate").addClass('required');
+            }
+        });
+
+    });
+</script>
+<script type="text/javascript">
+
+        $(document).ready(function () {
+            $("#ddlTaxType, #ddlSubTaxType,#txtTaxRate,#txtTaxableAmount,#txtTaxAmount").focusout(function () {
+                var value = $(this).val();
+                if (value != "")
+                    $(this).removeClass("required").addClass("valid");
+                else
+                    $(this).removeClass("valid").addClass("required");
+            });
+
+
+        });
+        var UrlHelper = "@Url.Action("GetAutoCompleteCourier", "EOWHelper")"
+        UrlHelper = UrlHelper.replace("GetAutoCompleteCourier", "");
+    </script>
+   @*     var SearchModel = function () {
+            var self = this;
+            //var objDialogyAdd;
+            //objDialogyAdd = $("[id$='ShowDialog']");
+            //objDialogyAdd.dialog({
+            //    autoOpen: false,
+            //    modal: true,
+            //    width: 460,
+            //    height: 290,
+            //    duration: 300
+            //});
+
+            self.TaxTypeArray = ko.observableArray();
+            self.SubTaxTypeArray = ko.observableArray();
+            self.TaxRateArray = ko.observableArray();
+            self.LoadTaxRate = function () {
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetTaxRate",
+                    data: "{}",
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "", Data2 = "", Data3 = "";// alert("6");
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.TaxRateArray(Data1);
+                        //if (response.Data2 != null && response.Data2 != "" && JSON.parse(response.Data2) != null)
+                        //    Data2 = response.Data2;
+
+                        //$("#ddlWHTaxSubType").val(Data2);
+                        //if (response.Data3 != null && response.Data3 != "" && JSON.parse(response.Data3) != null)
+                        //    Data3 = response.Data3;
+
+                        //$("#ddlWHTaxType").val(Data3);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+            self.LoadTaxSubType = function () {
+                var CatId = $("#ddlTaxType").val();
+                var CatFilter = {
+                    CatId: CatId
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetWHTaxSubType",
+                    data: JSON.stringify(CatFilter),
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.SubTaxTypeArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    }
+                });
+            };
+            self.LoadTaxType = function () {
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "GetTaxType",
+                    data: "{}",
+                    async: false,
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null)
+                            Data1 = JSON.parse(response.Data1);
+                        self.TaxTypeArray(Data1);
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+
+            this.ChangeTaxType = function () {
+                self.LoadTaxSubType();
+            };
+            this.ChangeSubTaxType2 = function () {
+                var rate = $("#txtTaxRate").val();
+                if (rate > 0) {
+                    var TaxRate = $("#txtTaxRate").val();
+                    var TaxableAmt = $.trim($("#txtTaxableAmount").val()) == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                    var tax = TaxableAmt * TaxRate / 100;
+                    $("#txtTaxAmount").val(tax);
+
+                }
+
+            };
+
+
+
+            this.SaveCessTaxDetails = function (id) {
+                
+                var InvoiceTaxgid = $("#hfInvoiceTaxgid").val();
+                var action;
+                var InvId = $("#hfInvIdForCess").val();
+                var TaxId = $("#ddlTaxType").val();
+                var SubTaxId = $("#ddlSubTaxType").val();
+                var TaxRate = $("#txtTaxRate").val();
+                var TaxableAmt = $.trim($("#txtTaxableAmount").val()) == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                var TaxAmount = $.trim($("#txtTaxAmount").val()) == "" ? 0 : parseFloat($("#txtTaxAmount").val());
+                var IsRemoved = "N";
+                var INVAmount = $.trim($("#txtInvoiceAmount").val()) == "" ? 0 : parseFloat($("#txtInvoiceAmount").val());
+                var Tax = (TaxRate * TaxableAmt) / 100;
+                if (InvoiceTaxgid == 1) {
+                    action = "Insert";
+                }
+                else {
+                    action = "Update";
+                }
+
+                if (TaxId == "0") {
+                    jAlert("Ensure Tax Type!", "Message");
+                    return false;
+                }
+
+                if (SubTaxId == "0") {
+                    jAlert("Ensure Tax SubType!", "Message");
+                    return false;
+                }
+
+                if ($.trim(TaxRate) == "" || parseFloat(TaxRate) == 0) {
+                    jAlert("Ensure Tax Rate!", "Message");
+                    return false;
+                }
+
+                if ($.trim(TaxableAmt) == "" || parseFloat(TaxableAmt) == 0) {
+                    jAlert("Ensure Taxable Amount!", "Message");
+                    return false;
+                }
+
+                if (TaxAmount == 0) {
+                    jAlert("Ensure Tax Amount!", "Message");
+                    return false;
+                }
+
+
+
+                var InvoiceTax = {
+                    action: action,
+                    InvoiceTaxgid: InvoiceTaxgid,
+                    InvId: InvId,
+                    TaxId: TaxId,
+                    SubTaxId: SubTaxId,
+                    TaxRate: TaxRate,
+                    TaxableAmt: TaxableAmt,
+                    TaxAmount: TaxAmount,
+                    IsRemoved: IsRemoved
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "SetCessTaxDetails",
+                    data: JSON.stringify(InvoiceTax),
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                            Data1 = JSON.parse(response.Data1);
+                            if (Data1[0].Msg == false)
+                                jAlert("Error", "Message");
+                            else {
+                                objDialogyAdd.dialog("close");
+                                jAlert(Data1[0].Msg, "Message");
+                                var url = '@Url.Action("_GetGstDetails", "SupplierInvoiceNew")?' + new Date().getTime();
+                                $("#PoGstGrid").load(url);
+
+                            }
+                        }
+
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+            };
+
+            this.EditTaxDetails = function (id) {
+                var InvoiceTaxgid = id;
+                var action;
+                var InvoiceTax = {
+                    action: "Edit",
+                    InvoiceTaxgid: InvoiceTaxgid
+                };
+                $.ajax({
+                    type: "post",
+                    url: UrlHelper + "SetCessTaxDetails",
+                    data: JSON.stringify(InvoiceTax),
+                    contentType: "application/json;",
+                    success: function (response) {
+                        var Data1 = "";
+                        if (response.Data1 != null && response.Data1 != "" && JSON.parse(response.Data1) != null) {
+                            Data1 = JSON.parse(response.Data1);
+                            if (Data1[0].Clear == false)
+                                jAlert("Error", "Message");
+                            else {
+
+                                $("#hfInvoiceTaxgid").val("0");
+                                $("#ddlTaxType").val("0");
+                                $("#ddlSubTaxType").val("0");
+                                $("#txtTaxRate").val("0");
+                                $("#txtTaxAmount").val("");
+                                $("#btnTaxSubmit").css("display", "");
+                                $('#ShowDialog').attr("style", "display:block;");
+                                objDialogyAdd.dialog({ title: 'Invoice Tax', width: '460', height: '290' });
+                                objDialogyAdd.dialog("open");
+
+                            }
+                        }
+
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert(errorThrown);
+                    }
+                });
+
+
+
+
+
+            };
+
+            this.AddTaxAmount = function () {
+                $('#ShowDialog').attr("style", "display:block;");
+
+                if ($("#ddlTaxType").hasClass("valid")) {
+                    $("#ddlTaxType").removeClass("valid");
+                    $("#ddlTaxType").addClass("required");
+                }
+                if ($("#ddlSubTaxType").hasClass("valid")) {
+                    $("#ddlSubTaxType").removeClass("valid");
+                    $("#ddlSubTaxType").addClass("required");
+                }
+                if ($("#txtTaxRate").hasClass("valid")) {
+                    $("#txtTaxRate").removeClass("valid");
+                    $("#txtTaxRate").addClass("required");
+                }
+
+                $("#txtTaxableAmount").val($("#txtWithoutTaxAmount").val());
+                var Amount = $.trim($("#txtTaxableAmount").val()) == "" ? 0 : parseFloat($("#txtTaxableAmount").val());
+                if (Amount > 0) {
+                    $("#txtTaxableAmount").removeClass("required");
+                    $("#txtTaxableAmount").addClass("valid");
+                }
+                else {
+                    $("#txtTaxableAmount").removeClass("valid");
+                    $("#txtTaxableAmount").addClass("required");
+                }
+
+                objDialogyAdd.dialog({ title: 'Invoice Tax', width: '460', height: '290' });
+                $("#hfInvoiceTaxgid").val("0");
+                $("#ddlTaxType").val("0");
+                $("#ddlSubTaxType").val("0");
+                $("#txtTaxRate").val("0");
+                $("#txtTaxAmount").val("");
+                $("#btnTaxSubmit").css("display", "");
+                objDialogyAdd.dialog("open");
+                return false;
+            }
+
+
+            this.CloseDetails = function (flag) {
+                if (flag == 0)
+                    objDialogyAdd.dialog("close");
+            }
+
+            self.LoadTaxType();
+            self.LoadTaxSubType();
+            self.LoadTaxRate();
+        }
+        var mainViewModel = new SearchModel();
+        ko.applyBindings(mainViewModel, document.getElementById("_suppliersummary"));
+    </script>*@

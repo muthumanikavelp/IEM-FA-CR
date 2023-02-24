@@ -1,0 +1,235 @@
+﻿@model IEnumerable<IEM.Areas.EOW.Models.ProxyDataModel>
+@{
+
+    Layout = null;
+    //WebGrid grid = new WebGrid(source: Model, canSort: true, canPage: true, ajaxUpdateContainerId: "searchgridproxy", ajaxUpdateCallback: "Dummyfuncprosearch()");
+    var grid = new WebGrid(Model, canSort: false, canPage: false);
+    int rowVal = 0;
+}
+<div id="searchgridproxy">
+    <style type="text/css">
+        .txtwth {
+            width: 130px;
+        }
+
+        .lblwth {
+            width: 140px;
+        }
+    </style>
+
+    <script src="~/Script/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="~/Script/jquery-ui.js" type="text/javascript"></script>
+    @using (Html.BeginForm())
+    {
+ <div class="well">
+     @*<div class="row">
+         <table class="myTableStyleTabNew tblstyles" align="center">
+             <tr>
+                 <td>
+                     <span style="margin:0px 0px 0px 14px;"> Employee Code </span>
+                     <input name="EmployeeCode"
+                            id="txtinwardcode"
+                            type="text"
+                            class="textboxStyle required"
+                            data-val="true"
+                            value="@ViewBag.EmployeeCode"
+                            style="margin:9px 0px 0px 14px;width:181px;" />
+                 </td>
+                 <td>
+                     <span> Employee Name </span>
+                     <input name="EmployeeName"
+                            id="txtinwardempname"
+                            type="text"
+                            class="textboxStyle required"
+                            data-val="true"
+                            value="@ViewBag.EmployeeName"
+                            style="margin: 8px 0px 0px 0px;width:271px;" />
+                 </td>
+                 <td>
+                     <div class="input-append ">
+                         <span class="input-append">
+
+                             <button class="btn btn-primary" id="btncensearch" value="Search" name="command" type="button" onclick="Searchproxemp()" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+
+                         </span>
+                     </div>
+                 </td>
+                 <td>
+                     <div class="input-append ">
+                         <span class="input-append">
+                             <button class="btn btn-primary" id="btncenclea" value="Clear" name="command" type="button" onclick="refreshproxyemp()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                         </span>
+                     </div>
+                 </td>
+                 <td>
+                     <div class="input-append ">
+                         <span class="input-append">
+                             <button type="button" value="Cancel" class="btn btn-warning" style="margin: 19px 15px -3px 6px;" onclick="Gotoproinde()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                         </span>
+                     </div>
+                 </td>
+             </tr>
+         </table>
+
+     </div>*@
+     <br />
+     <div style="margin-top:17px;" id="mainll">
+         @functions {
+             public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+             {
+                 return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                     grid.SortDirection == SortDirection.Ascending ? "▲" :
+                     "▼" : string.Empty);
+             }
+         }
+         @grid.GetHtml(
+            htmlAttributes: new { id = "wgridEmployeeProxySearch" },
+                tableStyle: "table table-bordered table-hover table-responsive",
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+                grid.Columns(grid.Column("S No", format: item => rowVal = rowVal + 1),
+
+                grid.Column("RaiserCode", Sorter("RaiserCode", "Employee Code", grid)),
+                grid.Column("RaiserName", Sorter("RaiserName", "Employee Name", grid)),
+            //  grid.Column("EmployeeId", Sorter("EmployeeId", "EmployeeId", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                 <input type="hidden" id="EmployeeIdFind_@item.EmployeeId" name="EmployeeId" value="@item.EmployeeId" />
+                 <input type="hidden" id="RaiserCodeFind_@item.EmployeeId" name="RaiserCode" value="@item.RaiserCode" />
+                 <input type="hidden" id="RaiserNameFind_@item.EmployeeId" name="RaiserName" value="@item.RaiserName" />
+                 <input type="hidden" id="EmployeeGradeFind_@item.EmployeeId" name="EmployeeGrade" value="@item.EmployeeGrade" />
+                 <input type="hidden" id="EmployeeMobileFind_@item.EmployeeId" name="EmployeeMobile" value="@item.EmployeeMobile" />
+
+                 <a><span class="btn btn-link btnsearch" id="EmployeeSearch" onclick="SelectProxy(@item.EmployeeId)">Select</span></a>
+             </text>))))
+     </div>
+  
+     @if (ViewBag.Message != null)
+     {   <div align="center" class="borderStyle">
+         <h6 class="row" style="font-weight:bold ;">
+             @ViewBag.Message
+         </h6>
+     </div>
+     } 
+        </div>
+    }
+
+    <script>
+       
+        $(document).ready(function () {
+
+            //$("#txtproxyempcode").keyup(function () {
+            //    var txtSupplierName = $("#txtproxyempcode").val();
+            //    if (txtSupplierName.trim() != "") {
+            //        $("#txtproxyempcode").removeClass('required');
+            //        $("#txtproxyempcode").addClass('valid');
+
+            //    }
+            //    else {
+            //        $("#txtproxyempcode").removeClass('valid');
+            //        $("#txtproxyempcode").addClass('required');
+
+            //    }
+            //});
+            //$("#txtproxyempname").keyup(function () {
+            //    var txtSupplierName = $("#txtproxyempname").val();
+            //    if (txtSupplierName.trim() != "") {
+            //        $("#txtproxyempname").removeClass('required');
+            //        $("#txtproxyempname").addClass('valid');
+
+            //    }
+            //    else {
+            //        $("#txtproxyempname").removeClass('valid');
+            //        $("#txtproxyempname").addClass('required');
+
+            //    }
+            //});
+            $('#wgridEmployeeProxySearch tr th:nth-child(4)').addClass("nosort");
+            $('#wgridEmployeeProxySearch').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+        });
+        function Searchproxemp() {
+            var empcode = $('#txtinwardcode').val();
+            var empname = $('#txtinwardempname').val();
+            var objownersearch =
+                {
+                    "RaiserName": empname,
+                    "RaiserCode": empcode
+                };
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EmployeeSearchforproxy", "Proxy")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgridproxy").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+        }
+        function refreshproxyemp() {
+            $('#txtinwardcode').val('');
+            $('#txtinwardempname').val('');
+            var empcode = $('#txtproxyempcode').val();
+            var empname = $('#txtproxyempname').val();
+
+            var objownersearch =
+               {
+                   "RaiserName": empname,
+                   "RaiserCode": empcode
+               };
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EmployeeSearchforproxy", "Proxy")',
+                data: objownersearch,
+                success: function (data) {
+                    $("#searchgridproxy").empty().append(data);
+                    //$('#emplgrid').load(url, data);
+                },
+                error: function () {
+                }
+            });
+
+        }
+        function SelectProxy(id) {
+
+            var Employeeid = $("#EmployeeIdFind_" + id + "").val();
+            var EmployeeName = $("#RaiserNameFind_" + id + "").val();
+            var EmployeeCode = $("#RaiserCodeFind_" + id + "").val();
+            var EmployeeGrade = $("#EmployeeGradeFind_" + id + "").val();
+            var EmployeeMobile = $("#EmployeeMobileFind_" + id + "").val();
+            $('#EmployeeId').val(Employeeid);
+            $('#ProxyId').val(EmployeeCode);
+            $('#ProxyName').val(EmployeeName);
+            $('#TitleGrade').val(EmployeeGrade);
+            $('#MobileNo').val(EmployeeMobile);
+
+            //$('#EmployeeEditId').val(Employeeid);
+            //$('#ProxyEditId').val(EmployeeCode);
+            //$('#ProxyEditName').val(EmployeeName);
+            //$('#TitleGrade').val(EmployeeGrade);
+            //$('#MobileNo').val(EmployeeMobile);
+            Gotoproinde();
+        }
+        function Gotoproinde() {
+            //window.parent.jQuery('#ForPartialProxySearch').dialog('close');
+            objDialogyProxySearch.dialog("close");
+            objDialogyProxySearch.remove();
+            window.parent.jQuery('#ForPartialProxySearch').dialog('close');
+            //objDialogyProxySearch.remove();
+        }
+        $(".ui-icon-closethick").click(function () {
+            window.parent.jQuery('#ForPartialProxySearch').dialog('close');
+        });
+        function Dummyfuncprosearch() {
+            $("#wgridEmployeeProxySearch td:nth-child(2),#wgridEmployeeProxySearch th:nth-child(2)").show();
+        }
+    </script>
+</div>

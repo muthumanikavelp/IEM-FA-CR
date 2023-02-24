@@ -1,0 +1,171 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}<script src="~/Scripts/angular.min.js"></script>
+
+<b>
+    <span style="color: rgb(52, 108, 196);"> Revoke Impairment</span>
+</b>
+<div ng-app="revokeImp">
+    <div class="well">
+        <iframe id="txtArea1" style="display:none"></iframe>
+      
+        <div ng-controller="AssetImpairmentsController">
+            
+            <table class="tableSmall table-bordered table-hover table-responsive" id="TABLETOPRINT1">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:5%;">
+                            S.No
+                        </th>
+                        <th style="width:20%;">
+                            Impairment Number  <br />
+                            <input type="text"
+                                   ng-model="search._imp_number" class="textboxStyleSearch" maxlength="20" />
+                        </th>
+                        <th style="width:20%;">
+                            Impairment Date
+                            <br />
+                            <input type="text"
+                                   ng-model="search._imp_date" class="textboxStyleSearch" maxlength="20" />
+                        </th>
+                        <th style="width:20%;">
+                            No of Records
+                            <input type="text"
+                                   ng-model="search._no_records" class="textboxStyleSearch" maxlength="20" />
+                        </th>
+                        <th style="width:10%;" class="removethis">
+                            Action
+                            <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" @*ng-click="Download()"*@ onclick="fnExcelReport()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-repeat="impairRevokeSumm in impairRevokeSumm | filter:search:strict | orderBy:predicate:reverse">
+                    <tr>
+                        <td style="width:5%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:20%;">
+                            {{impairRevokeSumm._imp_number}}
+                        </td>
+                        <td style="width:20%;">
+                            {{impairRevokeSumm._imp_date}}
+                        </td>
+                        <td style="width:20%;">
+                            {{impairRevokeSumm._no_records}}
+                        </td>
+                        <td style="width:10%;" align="center">
+                            <a ng-click="ViewDetails(impairRevokeSumm._gid)" title="View Detail"> <span id="Color" class="glyphicon glyphicon-eye-open"> </span> </a>
+                            &nbsp; &nbsp;  <a ng-click="Revoke(impairRevokeSumm._gid)" title="Revoke Impairment"> <span id="Color" class="glyphicon glyphicon-repeat"> </span> </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+             </div>
+    </div>
+</div>
+    <div id="forAttachment"></div>   
+    <script type="text/javascript">     
+        var obPopUp;
+        $(document).ready(function () {
+            obPopUp = $("[id$='forAttachment']");
+            obPopUp.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                width: 950,
+                height: 450,
+                resizable: false
+            });
+        });
+
+        var myApp = angular.module('revokeImp', []);
+        myApp.service("revokeImpService", function ($http) {
+            this.getimpairRevokeSummaryList = function () {
+                return $http.get("../AssetImpairments/RevokeSummary1?" + new Date().getTime());
+            };
+        });
+        myApp.controller('AssetImpairmentsController', function ($scope, revokeImpService) {
+            RevokeSummary1();
+            function RevokeSummary1() {
+                var getData = revokeImpService.getimpairRevokeSummaryList();
+                getData.then(function (temp) {
+                    $scope.impairRevokeSumm = temp.data;
+                }, function () {
+                    alert('Error');
+                });
+            }
+            $scope.ViewDetails = function (element) {
+                var gid = toString(element);
+                obPopUp.load('@Url.Action("ViewImpairments", "AssetImpairments")?id=' + element + '&' + 'viewfor=viewDetail' + '&' + new Date().getTime());
+                obPopUp.dialog({ title: 'View Impaiment Details' });
+                obPopUp.dialog("open");
+            }
+            $scope.Revoke = function (element) {
+                var gid = toString(element);
+                obPopUp.load('@Url.Action("ViewImpairments", "AssetImpairments")?id=' + element + '&' + 'viewfor=viewRevoke' + '&' + new Date().getTime());
+                obPopUp.dialog({ title: 'Revoke Impaiment' });
+                obPopUp.dialog("open");
+            }
+            $scope.Download = function () {
+                location = "../AssetImpairments/ReImpairExceldownload?cList=" + $scope.impairRevokeSumm;
+            }
+        });
+        //function Download() {
+        //    location = "../AssetImpairments/ReImpairExceldownload";
+        //}
+
+        function fnExcelReport() {
+            //$("#btnExport").live("click", function () {
+           //$("#TABLETOPRINT1 td:nth-child(5),#wgridTaxDetails th:nth-child(5)").hide();
+           
+            var tab_text = "<table border='2px'> <caption ><b>Physical Verification Report - Recon</b></caption><tr bgcolor='#DF9357' style='color: rgb(256, 256, 256);'>";
+            var textRange; var j = 0; var k = 1;
+            tab = document.getElementById('TABLETOPRINT1'); // id of table
+
+         //  tab.cols[5].hide();
+            for (j = 0 ; j < 1 ; j++) {
+            
+                tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
+                //tab_text=tab_text+"</tr>";
+            }
+
+            tab_text = tab_text ;
+            var tab_text1 = "<table border='2px'> <caption > <tr bgcolor='#FFFFFF'>";
+            var textRange; 
+            tab = document.getElementById('TABLETOPRINT1'); // id of table
+
+            for (k = 1 ; k < tab.rows.length ; k++) {
+                tab_text1 = tab_text1 + tab.rows[k].innerHTML + "</tr>";
+                //tab_text=tab_text+"</tr>";
+            }
+          
+            tab_text1 = tab_text1 + "</table>";
+            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
+            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf("MSIE ");
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+            {
+                txtArea1.document.open("txt/html", "replace");
+                txtArea1.document.write(tab_text);   
+                txtArea1.document.write(tab_text1);   
+                txtArea1.document.close();
+                txtArea1.focus();
+                sa = txtArea1.document.execCommand("SaveAs", true, "Revoke Impairments.xls");
+            }
+            else                 //other browser not tested on IE 11
+
+                sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+            //$("#TABLETOPRINT1 td:nth-child(5),#wgridTaxDetails th:nth-child(5)").show();
+            //$("#TABLETOPRINT1 td:nth-last-child(5)").show();
+            return (sa);
+        }
+    </script>
+
+
+

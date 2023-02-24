@@ -1,0 +1,487 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    Session["da"] = null;
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<b> <span style="color:rgb(52,108,196);"> PAR Raiser</span></b>
+
+<div class="well">
+    <div class="borderStyle panel panel-default" style="margin-bottom:15px;">
+        <table class="myTableStyleTabNew" align="center" width="100%">
+            <tr>
+                <td style="padding:10px; width:20%;">
+
+                    <span>PAR Number</span>
+                    <br />
+                    <input type="text"
+                           name="txtparno"
+                           class="textboxStyle"
+                           disabled="disabled"
+                           style="width:100%;"
+                           id="txtpar_no" />
+                </td>
+                <td style="padding:10px; width:20%;">
+                    <span>PAR Date</span>
+                    <br />
+                    <input type="text"
+                           id="ParDate_id"
+                           value="@DateTime.Now.ToString("dd-MM-yyyy")"
+                           maxlength="10"
+                           disabled="disabled"
+                           style="width:100%;"
+                           class="textboxStyle valid" />
+                </td>
+                <td style="padding:10px; width:20%;">
+                    <span>PAR Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtparamount_id"
+                           disabled="disabled"
+                           style="width:100%;"
+                           class="textboxStyle required" />
+                </td>
+                <td style="padding:10px; width:20%;">
+                    <span>Final Approval Date</span>
+                    <br />
+                    <input type="text"
+                           id="txtfinalApprovaldate_id"
+                           value=""
+                           maxlength="10"
+                           disabled="disabled"
+                           style="width:100%;"
+                           class="textboxStyle required" />
+                </td>
+                <td style="padding:10px; width:20%;">
+                    <span>Period</span>
+                    <br />
+                    <input type="text"
+                           id="period_id"
+                           value=""
+                           maxlength="9"
+                           disabled="disabled"
+                           style="width:100%;"
+                           class="textboxStyle required" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:10px;">
+                    <span>Is Budgeted?</span>
+                    <br />
+                    <div style="margin-top:5px;">
+                        <input type="radio" id="rdbBudgeted" name="Budgeted" value="Y" checked="checked" />
+                        Yes
+                        <input type="radio" id="rdbUnBudgeted" name="Budgeted" value="N" />
+                        No
+                    </div>
+                </td>
+                <td style="padding:10px;">
+                    <span>Contigency %</span>
+                    <br />
+                    <input type="text"
+                           id="txtContigency_id"
+                           value=""
+                           maxlength="2"
+                           onkeypress="return isNumber1(event, this);"
+                           class="textboxStyle"
+                           style="width:100%;"
+                           onchange="cancellation()" />
+                </td>
+                <td style="padding:10px;">
+                    <span>Contigency Amount</span>
+                    <br />
+                    <input type="text"
+                           id="txtContigencyamount_id"
+                           value=""
+                           maxlength="9"
+                           class="textboxStyle "
+                           style="width:100%;"
+                           disabled="disabled"
+                           readonly="readonly" />
+
+                </td>
+                
+                <td style="padding:10px;" colspan="2">
+                    <span>PAR Description</span>
+                    <br />
+                    <div>
+                        <input type="text"
+                               name="txt_Description"
+                               class="textboxStyle"
+                               maxlength="264"
+                               style="display:block; width:100%;"
+                               id="description" />
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        @Html.Partial("ParDetailsForPar")
+    </div>
+    <div>
+        @Html.Partial("EmployeeDetails")
+    </div>
+    <div id="forempsearch">
+    </div>
+    <div id="boqattachment"></div>
+
+    <div id="tabsat" style="height:100%;font-size:14px;">
+        <ul>
+             @*<li><a href="#tabs-1">Audit Trail</a></li>*@
+            <li><a href="#tabs-1">Attachments</a></li>
+        </ul>
+        @*<div id="tabs-1">
+                @Html.Partial("tab_auditrail")
+            </div>*@
+        <div id="tabs-1">
+            @Html.Partial("BoqAttach")
+        </div>
+    </div><br />
+
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div @*style="margin-left: 350px;"*@ @*style="padding:10px 10px 0px 0px;text-align:center;"*@>
+
+                    <button type="button" id="btncancel" class="btn btn-primary" onclick="saveparraiser()" value="Submit">
+                        <span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save
+                    </button>&nbsp;
+                    <button type="button" class="btn btn-success" onclick="submitparraiser()" value="Submit">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Submit
+                    </button>&nbsp;
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Cancel" onclick="fucntionclose()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button> @*<input type="button" class="btn btn-primary" value="Save" onclick="saveparraiser()" />
+                        <input type="button" class="btn btn-success" value="Submit" onclick="submitparraiser()" />
+                        <input type="button" class="btn btn-warning " value="Cancel" onclick="fucntionclose()" />*@
+                </div>
+            </td>
+        </tr>
+    </table>
+    <input id="employeeserach" hidden="hidden" />
+</div>
+<script>
+
+    var currentTab = 0;
+    $(function () {
+        $("#tabsat").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+
+    $("#description").keyup(function () {
+        var a = $("#description").val();
+        if (a.trim() != "" || a != null) {
+            $("#description").removeClass("required");
+            $("#description").addClass("valid");
+        }
+        else {
+            $("#description").removeClass("valid");
+            $("#description").addClass("required");
+        }
+
+    })
+    $("#txtContigencyamount_id").change(function () {
+        var a = $("#txtContigencyamount_id").val();
+        if (a.trim() != "" || a != null) {
+
+            $("#txtContigencyamount_id").addClass("valid");
+        }
+        else {
+            $("#txtContigencyamount_id").removeClass("valid");
+
+        }
+
+    })
+    $("#txtContigency_id").keyup(function () {
+        var a = $("#txtContigency_id").val();
+        if (a.trim() != "" || a != null) {
+            $("#txtContigency_id").addClass("valid");
+        }
+        else {
+            $("#txtContigency_id").removeClass("valid");
+        }
+
+    })
+    $("#period_id").change(function () {
+        var a = $("#period_id").val();
+        if (a.trim() != "" || a != null) {
+            $("#period_id").removeClass("required");
+            $("#period_id").addClass("valid");
+        }
+        else {
+            $("#period_id").removeClass("valid");
+            $("#period_id").addClass("required");
+        }
+
+    })
+    $("#txtfinalApprovaldate_id").change(function () {
+        var a = $("#txtfinalApprovaldate_id").val();
+        if (a.trim() != "" || a != null) {
+            $("#txtfinalApprovaldate_id").removeClass("required");
+            $("#txtfinalApprovaldate_id").addClass("valid");
+        }
+        else {
+            $("#txtfinalApprovaldate_id").removeClass("valid");
+            $("#txtfinalApprovaldate_id").addClass("required");
+        }
+
+    })
+    $("#txtparamount_id").change(function () {
+        var a = $("#txtparamount_id").val();
+        if (a.trim() != "" || a != null) {
+            $("#txtparamount_id").addClass("valid");
+        }
+        else {
+            $("#txtparamount_id").removeClass("valid");
+        }
+
+
+    });
+    function cancellation() {
+        if ($('#txtContigency_id').val() > 99) {
+            jAlert("Percentage should not greater than 99%", "Error");
+            return false;
+        }
+        else if ($('#txtContigency_id').val() == "") {
+            $('#txtContigencyamount_id').val("0");
+        }
+        else {
+            var contper = $('#txtContigency_id').val();
+            if(parseInt($('#txtparamount_id').val() !=0)){
+                var add1 = ((parseInt($('#txtparamount_id').val()) / 100) * parseInt(contper));
+                $('#txtContigencyamount_id').val(add1);
+            }
+            //var add1 = ((parseInt($('#txtparamount_id').val()) / 100) * parseInt(contper)) + (parseInt($('#txtparamount_id').val()));
+          
+        }
+    }
+    var objDialogforboq;
+    $(document).ready(function () {
+        objDialogforboq = $("[id$='boqattachment']");
+        objDialogforboq.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 1000,
+            height: 600
+        });
+    });
+    function Newboq() {
+        var id = "";
+        objDialogforboq.load('../ParRaiser/BoqAttach?id=' + id + '&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'Select BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    $(document).ready(function () {
+        var pickerOpts = {
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1950:2100',
+            currentText: "Now",
+            dateFormat: "dd-mm-yy"
+
+        };
+        $('#ParDate_id').datepicker(pickerOpts);
+
+    });
+    function fucntionclose() {
+        location = '../ParSummary/Index';
+    }
+    function saveparraiser() {
+        var existrow = $('.save-btn1').length;
+        if (existrow != 0) {
+            jAlert("Please Save All Rows In PAR Details Grid", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        var pardate = $('#ParDate_id').val();
+        var paramount = $('#txtparamount_id').val();
+        var finalapproval = $('#txtfinalApprovaldate_id').val();
+        var contignecy = $('#txtContigency_id').val();
+        var isBudgeted = $('input:radio[name=Budgeted]:checked').val();
+        var contignecyamount = $("#txtContigencyamount_id").val();
+        var description = $("#description").val();
+        if (pardate == null || pardate == "") {
+
+            jAlert("Please Enter PAR Date.", "Error");
+            return false;
+        }
+        if (paramount == null || paramount == "") {
+            jAlert("Please Enter Any Par Amount", "Error");
+            return false;
+        }
+        if (finalapproval == null || finalapproval == "") {
+            jAlert("Please Enter Final Approval", "Error");
+            return false;
+        }
+        if (description == null || description == "") {
+            jAlert("Please Select Description", "Error");
+            return false;
+        }
+        if (contignecy == null || contignecy == "") {
+            //    jAlert("Please Enter Contigency Percentage", "Error");
+            //    return false;
+            contignecy = "0.00";
+        }
+       
+        if (contignecyamount == null || contignecyamount == "") {
+            //jAlert("Contignecy Amount Should be Empty", "Error");
+            //return false;
+            contignecyamount = "0.00";
+        }
+        if (isBudgeted == null || isBudgeted == "" || isBudgeted == 0 || isBudgeted == "Select") {
+            jAlert("Please Select Budgeted Flag", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if (parseInt($("#gridattachment12 tr").length) < 2) {
+            jAlert("Please Add Attachment", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        var Parheader = {
+            "ParDate": pardate,
+            "ParAmount": paramount,
+            "FinalApprovalDate": finalapproval,
+            "pardescription": description,
+            "contigency": contignecy,
+            "contigencyamount": contignecyamount,
+            "budgeted":isBudgeted
+        };
+        showProgress();
+        $.post('../ParRaiser/Create', Parheader,
+              function (data) {
+                  if (data != "Inserted Successfully") {
+                    
+                          hideProgress();
+                          jAlert("Error Occured", "Error", function () {
+                              return false;
+                          });
+                          return false;
+                     
+                  } else {
+                      hideProgress();
+                      jAlert("Saved Successfully", "Success"); location = '../ParSummary/Index';
+                  }
+              }, 'json');
+
+    }
+
+    function submitparraiser() {
+        var existrow = $('.save-btn1').length;
+        if (existrow != 0) {
+            jAlert("Please Save All Rows In PAR Details Grid", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        var pardate = $('#ParDate_id').val();
+        var paramount = $('#txtparamount_id').val();
+        var finalapproval = $('#txtfinalApprovaldate_id').val();
+        var contignecy = $('#txtContigency_id').val();
+        var contignecyamount = $("#txtContigencyamount_id").val();
+        var description = $("#description").val();
+        var isBudgeted = $('input:radio[name=Budgeted]:checked').val();
+        var action = "submit";
+
+        if (pardate == null || pardate == "") {
+
+            jAlert("Please Enter PAR Date.", "Error");
+            return false;
+        }
+        if (paramount == null || paramount == "") {
+            jAlert("Please Enter Any Par Amount", "Error");
+            return false;
+        }
+        if (finalapproval == null || finalapproval == "") {
+            jAlert("Please Enter Final Approval", "Error");
+            return false;
+        }
+        if (description == null || description == "") {
+            jAlert("Please Select Description", "Error");
+            return false;
+        }
+        if (contignecy == null || contignecy == "") {
+            //jAlert("Please Enter Contigency Percentage", "Error");
+            //return false;
+            contignecy = "0.00";
+        }
+        if (contignecyamount == null || contignecyamount == "" || contignecyamount == "NaN") {
+            //jAlert("Contignecy Amount Should be Empty", "Error");
+            //return false;
+            contignecyamount = "0.00";
+        }
+        if (isBudgeted == null || isBudgeted == "" || isBudgeted == 0 || isBudgeted == "Select") {
+            jAlert("Please Select Budgeted Flag", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        if (parseInt($("#gridattachment12 tr").length) < 2) {
+            jAlert("Please Add Attachment", "Error", function () {
+                return false;
+            });
+            return false;
+        }
+        //alert(contignecy);
+        var Parheader = {
+            "ParDate": pardate,
+            "ParAmount": paramount,
+            "FinalApprovalDate": finalapproval,
+            "pardescription": description,
+            "contigency": contignecy,
+            "contigencyamount": contignecyamount,
+            "status": action,
+            "budgeted": isBudgeted
+        };
+        showProgress();
+        $.post('@Url.Action("Submit", "ParRaiser")', Parheader,
+              function (data) {
+                  //alert('asd');
+                  if (data != "Inserted Successfully")
+                  {
+                      
+                          //jAlert(data, "Error");
+                          hideProgress();
+                          jAlert("PAR Needs Final Approval", "Message", function () {
+                              return false;
+                          });
+                          return false;                     
+                  }
+                  else
+                  {
+                      hideProgress();
+                      jAlert("Submitted Successfully", "Success", function () {
+                          location = '@Url.Action("Index", "ParSummary")';
+                      });
+                     
+                  }
+              }, 'json');
+
+    }
+    function fucntionclose() {
+        location = '../ParSummary/Index';
+    }
+
+   
+    $("#txtContigency_id").keyup(function (e) {
+       
+            var PARAmount = $.trim($("#txtparamount_id").val()) == "" ? 0 : parseFloat($.trim($("#txtparamount_id").val()));
+            var CPercent = $.trim($("#txtContigency_id").val()) == "" ? 0 : parseFloat($.trim($("#txtContigency_id").val()));
+            var amount = (PARAmount * (CPercent / 100));
+            $("#txtContigencyamount_id").val(amount);       
+            $("#txtparamount_id").val(PARAmount+amount);
+        });
+
+
+</script>

@@ -1,0 +1,433 @@
+﻿@model  IEM.Areas.EOW.Models.EOW_EmployeeeExpense
+@using IEM.Areas.EOW.Models
+@{
+    EOW_EmployeeeExpense sh = (EOW_EmployeeeExpense)ViewBag.EOW_EmployeeeExpenseheader;
+}
+@*<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>*@
+<style>
+    .diapy {
+        display: none;
+    }
+
+    .wth {
+        width: 100%;
+        height: 50px;
+    }
+</style>
+<div class="panel3 panel3-default33">
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <table class="myTableStyleTabNew" align="left" width="100%">
+            <tr>
+                <td style="width: 75%;background-color: #F5F5F5;border-radius: 10px;padding: 2px 12px 0px 10px;">
+                    <table class="myTableStyleTabNew" style="width: 100%;">
+                        <tr>
+                            <td>
+                                @Html.HiddenFor(n => sh.ECF_Date, new { @id = "txtecfdateh" })
+                                <span>ECF Date</span><br />
+                                @Html.TextBoxFor(n => n.ECF_Date, new { disable = true, @class = "textboxStyle required", @id = "txtecfdate", @maxlength = "10", @placeholder = "dd-mm-yyyy", @readonly = "readonly" })
+
+                            </td>
+                            <td>
+                                @Html.HiddenFor(n => sh.ClaimMonth, new { @id = "txtclaimmonthh" })
+                                <span>Service Month</span><br />
+                                @Html.TextBoxFor(n => n.ClaimMonth, new { disable = true, @class = "textboxStyle required monthYearPicker", @id = "txtclaimmonthtr", @maxlength = "20", @placeholder = "MMM-yyyy" })
+                            </td>
+                            <td>
+                                @Html.HiddenFor(n => sh.ECF_Amount, new { @id = "txtecfamounth" })
+                                <span>ECF Amount</span><br />
+                                @*length fixed by selva*@
+                                @Html.TextBoxFor(n => n.ECF_Amount, new { disable = true, @class = "textboxStyle required", @id = "txtecfamount", @onkeypress = "return isAmount(event);", @maxlength = "13" })
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">
+                                @Html.HiddenFor(n => sh.ecfdescription, new { @id = "txtecfdescriptionh" })
+                                <span>ECF Description</span><br />
+                                @Html.TextAreaFor(n => n.ecfdescription, new { disable = true, @class = "textboxStyle required wth", @id = "txtecfdescription", @maxlength = "255" })
+                            </td>
+                            <td style="padding-top: 2.4%;">
+                                <span>@Html.HiddenFor(n => n.ecfremark, new { @id = "txtecfremarkh" })&nbsp;</span><br />
+                                <button id="btnfrstsubmit" class="btn btn-primary" type="submit"><span style="color:white" class="glyphicon glyphicon-share"></span>&nbsp;Proceed</button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td align="left" style="width:25%; background-color: #E3E3E3; border-radius: 10px; padding: 2px 6px 2px 6px;">
+                    <fieldset>
+                        <legend><center> <span style="font-weight:bold; font-size:13px; padding:3px;">RAISER DETAILS</span></center></legend>
+                        <table class="myTableStyleTabNew" style="border-top:solid 1px black;" width="100%">
+                            <tr>
+                                <td>
+                                    <span>Raiser Mode</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    @Html.DropDownListFor(n => n.raisermodeId, sh.Raiser_Modedata, new { @class = " diapy textboxStyle required", @id = "raisermodeName", @disabled = "disabled" })
+                                    <label id="txtmodes"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Code</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label id="txtraisercode">@sh.Raiser_Code</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Raiser Name</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label id="txtraisername">@sh.Raiser_Name</label>
+                                    <input type="hidden" id="payBeneficiaryname" value="@sh.Raiser_Name" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Grade</span>
+                                </td>
+                                <td style="width:1%; padding-right:3px; padding-left:3px;">:</td>
+                                <td align="left">
+                                    <label id="txtgrade">@sh.Grade</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align:center;font-size:20px;color:red;">
+                    <label id="lblIFSCCode" style="font-weight:normal">@ViewBag.IFSCCodemsg</label>
+                </td>
+            </tr>
+        </table>
+    }
+</div>
+<script>
+    $(document).ready(function () {
+        $("#txtecfamount").keyup(function (event) {
+            if (event.which >= 37 && event.which <= 40) {
+                event.preventDefault();
+            }
+
+            var currentval = $("#txtecfamount").val();
+            var testDecimal = testDecimals(currentval);
+            if (testDecimal.length > 1) {
+                currentval = currentval.slice(0, -1);
+            }
+            $("#txtecfamount").val(replaceCommas(currentval));
+
+        });
+
+        var txtecfdescriptionh = $("#txtecfdescriptionh").val();
+        if (txtecfdescriptionh.trim() != "") {
+            $("#txtecfdescription").val(txtecfdescriptionh);
+        }
+
+        var txtecfdateh = $("#txtecfdateh").val();
+        if (txtecfdateh.trim() != "") {
+            $("#txtecfdate").val(txtecfdateh);
+        }
+
+        var txtclaimmonthh = $("#txtclaimmonthh").val();
+        if (txtclaimmonthh.trim() != "") {
+            $("#txtclaimmonthtr").val(txtclaimmonthh);
+        }
+
+        var txtecfamounth = $("#txtecfamounth").val();
+        if (txtecfamounth.trim() != "") {
+            $("#txtecfamount").val(txtecfamounth);
+        }
+
+        $("#txtecfdescriptionh").val('');
+        $("#txtecfdateh").val('');
+        $("#txtclaimmonthh").val('');
+        $("#txtecfamounth").val('');
+
+        //$("#txtraisercode").addClass('valid');
+        //$("#txtraisername").addClass('valid');
+        //$("#txtgrade").addClass('valid');
+        //$("#raisermodeName").addClass('valid');
+
+        var txtecfdescription = $("#txtecfdescription").val();
+        if (txtecfdescription.trim() != "") {
+            $("#txtecfdescription").addClass('valid');
+        }
+        else {
+            $("#txtecfdescription").addClass('required');
+        }
+
+        var txtContractFrom = $("#txtecfdate").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfdate").addClass('valid');
+        }
+        else {
+            $("#txtecfdate").addClass('required');
+        }
+
+        var txtContractFrom = $("#txtecfamount").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtecfamount").addClass('valid');
+        }
+        else {
+            $("#txtecfamount").addClass('required');
+        }
+
+        var txtContractFrom = $("#txtclaimmonthtr").val();
+        if (txtContractFrom.trim() != "") {
+            $("#txtclaimmonthtr").addClass('valid');
+        }
+        else {
+            $("#txtclaimmonthtr").addClass('required');
+        }
+
+        $("#txtecfdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+            minDate: '+id',
+        });
+
+        var selmode = $("#raisermodeName option:selected").text();
+        if (selmode.trim() != "") {
+            $("#txtmodes").text(selmode);
+        }
+        else {
+            $("#txtmodes").text('Self');
+        }
+    });
+    $(function () {
+        $('.monthYearPicker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            maxDate: '-id',
+            dateFormat: 'MM-yy'
+        }).focus(function () {
+            var thisCalendar = $(this);
+            $('.ui-datepicker-calendar').detach();
+            $('.ui-datepicker-close').click(function () {
+                var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+                var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+                thisCalendar.datepicker('setDate', new Date(year, month, 1));
+                $("#txtclaimmonthtr").removeClass('required');
+                $("#txtclaimmonthtr").addClass('valid');
+            });
+        });
+    });
+    $(document).ready(function () {
+        //$("#txtclaimmonthtr").datepicker({
+        //    changeMonth: true,
+        //    changeYear: true,
+        //    dateFormat: 'MM-yy',
+        //    maxDate: '-id'
+        //});
+    });
+    $(document).ready(function () {
+        var txtContractFromdd = $("#txtecfdate").val();
+        if (txtContractFromdd == "") {
+            $('#txtecfdate').datepicker().datepicker('setDate', 'today');
+            $("#txtecfdate").removeClass('required');
+            $("#txtecfdate").addClass('valid');
+        }
+        $('#btnfrstsubmit').click(function () {
+            showProgress();
+            var raisermode = $("#raisermodeName").val().trim();
+            var raisercode = $("#txtraisercode").text().trim();
+            var raisername = $("#txtraisername").text().trim();
+            var ecfdate = $("#txtecfdate").val();
+            var grade = $("#txtgrade").text();
+            var claimmonth = $("#txtclaimmonthtr").val();
+            var ecfamount = $("#txtecfamount").val();
+            var ecfdescription = $("#txtecfdescription").val();
+
+            if (raisermode == null || raisermode == "0") {
+                hideProgress();
+                jAlert("Please Select Raiser Mode.", "Message");
+                //$("#_CustomerName").focus();
+                return false;
+            }
+            if (raisercode == null || raisercode == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Code.", "Message");
+                return false;
+            }
+            if (raisername == null || raisername == "") {
+                hideProgress();
+                jAlert("Please Enter Raiser Name.", "Message");
+                return false;
+            }
+            if (ecfdate == null || ecfdate == "") {
+                hideProgress();
+                jAlert("Please Select ECF Date.", "Message");
+                $("#txtecfdate").focus();
+                return false;
+
+            }
+            @*if (ecfdate != null && ecfdate != "") {
+                if (ecfdate.length == 10) {
+                    var Student =
+                    {
+                        "ECF_Date": ecfdate
+                    };
+                    $.ajax({
+                        url: '@Url.Action("checkvalataeemployeeS", "EmployeeClaimNewPetty")?' + new Date().getTime(),
+                        data: JSON.stringify(Student),
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == "NotRaise") {
+                                jAlert("Employee Can't Raise ECF", "Message");
+                                return true;
+                            }
+                        },
+                    });
+                }
+            }*@
+            if (grade == null || grade == "") {
+                hideProgress();
+                jAlert("Please Enter  Grade.", "Message");
+                return false;
+            }
+            if (claimmonth == null || claimmonth == "") {
+                hideProgress();
+                jAlert("Please Select Claim Month.", "Message");
+                //$("#txtclaimmonth").focus();
+                return false;
+            }
+            if (ecfamount == null || ecfamount == "") {
+                hideProgress();
+                jAlert("Please Enter ECF Amount.", "Message");
+                //$("#txtecfamount").focus();
+                return false;
+            }
+            if (ecfamount == "0" || ecfamount == "00" || ecfamount == "000" || ecfamount == "0000" || ecfamount == "00000" || ecfamount == "000000" || ecfamount == "0000000" || ecfamount == "0.000" || ecfamount == "00.000") {
+                hideProgress();
+                jAlert("Please Enter ECF Amount Greather then Zero.", "Message");
+                //$("#txtecfamount").focus();
+                return false;
+            }
+            if (ecfdescription == null || ecfdescription == "") {
+                hideProgress();
+                jAlert("Please Enter ECF Description.", "Message");
+                //$("#txtecfdescription").focus();
+                return false;
+            }
+        });
+
+
+        $("#txtecfdate").keyup(function () {
+            var txtContractFrom = $("#txtecfdate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdate").removeClass('required');
+                $("#txtecfdate").addClass('valid');
+            }
+            else {
+                $("#txtecfdate").removeClass('valid');
+                $("#txtecfdate").addClass('required');
+            }
+        });
+        $("#txtecfdate").change(function () {
+            var txtContractFrom = $("#txtecfdate").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdate").removeClass('required');
+                $("#txtecfdate").addClass('valid');
+            }
+            else {
+                $("#txtecfdate").removeClass('valid');
+                $("#txtecfdate").addClass('required');
+            }
+        });
+        $("#txtecfamount").keyup(function () {
+            var txtContractFrom = $("#txtecfamount").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfamount").removeClass('required');
+                $("#txtecfamount").addClass('valid');
+            }
+            else {
+                $("#txtecfamount").removeClass('valid');
+                $("#txtecfamount").addClass('required');
+            }
+        });
+        $("#txtclaimmonthtr").keyup(function () {
+            var txtContractFrom = $("#txtclaimmonthtr").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmonthtr").removeClass('required');
+                $("#txtclaimmonthtr").addClass('valid');
+            }
+            else {
+                $("#txtclaimmonthtr").removeClass('valid');
+                $("#txtclaimmonthtr").addClass('required');
+            }
+        });
+        $("#txtclaimmonthtr").change(function () {
+            var txtContractFrom = $("#txtclaimmonthtr").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtclaimmonthtr").removeClass('required');
+                $("#txtclaimmonthtr").addClass('valid');
+            }
+            else {
+                $("#txtclaimmonthtr").removeClass('valid');
+                $("#txtclaimmonthtr").addClass('required');
+            }
+        });
+        $("#raisermodeName").keyup(function () {
+            var txtContractFrom = $("#raisermodeName").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeName").removeClass('required');
+                $("#raisermodeName").addClass('valid');
+            }
+            else {
+                $("#raisermodeName").removeClass('valid');
+                $("#raisermodeName").addClass('required');
+            }
+        });
+        $("#raisermodeName").change(function () {
+            var txtContractFrom = $("#raisermodeName").val();
+            if (txtContractFrom.trim() != "0") {
+                $("#raisermodeName").removeClass('required');
+                $("#raisermodeName").addClass('valid');
+            }
+            else {
+                $("#raisermodeName").removeClass('valid');
+                $("#raisermodeName").addClass('required');
+            }
+        });
+        $("#txtecfdescription").keyup(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+        $("#txtecfdescription").change(function () {
+            var txtContractFrom = $("#txtecfdescription").val();
+            if (txtContractFrom.trim() != "") {
+                $("#txtecfdescription").removeClass('required');
+                $("#txtecfdescription").addClass('valid');
+            }
+            else {
+                $("#txtecfdescription").removeClass('valid');
+                $("#txtecfdescription").addClass('required');
+            }
+        });
+    });
+</script>
+
+
+
+
+
+

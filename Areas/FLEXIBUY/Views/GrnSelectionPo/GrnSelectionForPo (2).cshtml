@@ -1,0 +1,154 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.GRNInward
+@using IEM.Common
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    ViewBag.Title = "grninward";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var grid = new WebGrid(source: Model.objInwardList, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "grnselection");
+    grid.Pager(WebGridPagerModes.All);
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+}
+<style>
+    table.table-bordered > tbody > tr > td, table.table-bordered > thead > tr > th {
+        white-space: nowrap !important;
+    }
+</style>
+
+<input type="hidden" id="hid_viewfor" value="@Session["viewfor"]" />
+@*<h2>Select PO</h2>*@
+<b>
+    <span style="color: rgb(52, 108, 196);">Select PO</span>
+</b>
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <table class="myTableStyleTabNew" style="margin-left: 13px;">
+                <tr>
+                    <td>
+                        <span>PO Date</span>
+                        <br />
+                        <input type="text"
+                               name="podate"
+                               id="podate"
+                               value="@ViewBag.podate"
+                               class="textboxStyleSearch"
+                               maxlength="10"
+                               @*placeholder="Enter Date"*@ />
+                    </td>
+                    <td width="15px"></td>
+                    <td nowrap="nowrap">
+                        <div>
+                            <span>PO Refno</span>
+                            <br />
+
+                            <input type="text"
+                                   name="txtprrefno"
+                                   value="@ViewBag.porefno"
+                                   class="textboxStyleSearch "
+                                   style="display:block"
+                                   @*placeholder="Enter Po/Wo Ref No"*@ />
+                        </div>
+                    </td>
+                    <td>
+                        <span></span>
+                        <br />
+                        <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                        </button>
+                    </td>
+                    <td>
+                        <span> </span>
+                        <br />
+                        <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:17px" id="pogrid1">
+            <div class="table-responsive">
+                 @grid.GetHtml( tableStyle: "tableSmall table-bordered table-hover table-responsive", htmlAttributes: new { id = "grnselection" }, columns: grid.Columns ( grid.Column("slno", obj.Sorter("slno", "Sl", grid)), grid.Column("poDate", obj.Sorter("poDate", "PO Date", grid)), grid.Column("poRefNo", obj.Sorter("poRefNo", "PO Ref No", grid)), grid.Column("poVersion", obj.Sorter("poVersion", "PO Version", grid), style: "centerAlign"), grid.Column("vendorName", obj.Sorter("vendorName", "Vendor Name", grid)), grid.Column("productName", obj.Sorter("productName", "Product Name", grid)), grid.Column("grnStatus", obj.Sorter("grnStatus", "Status", grid)), grid.Column("poAmount", obj.Sorter("poAmount", "PO Amount", grid), style: "rightAlign"), grid.Column("quantBalanced", obj.Sorter("quantBalanced", "Released Qty", grid), style: "rightAlign"), grid.Column("grnType", obj.Sorter("grnType", "Qty", grid), style: "rightAlign"), grid.Column("podetailsGid", obj.Sorter("podetailsGid", "podetails", grid), style: "rightAlign"), grid.Column(header: "View PO", canSort: false, style: "View PO", format: @<text>
+                <input type="button" value="View PO" class="btn btn-link"
+                       onclick="podetails(id,this)" id="@item.poheadGid" title="View PO" />
+        </text>),
+          grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+            <input type="button" value="Select" class="btn btn-link"
+                   onclick="AddGrnInward(id,this)" id="@item.poheadGid" title="Select" />
+                    </text>)))
+        @if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle btnCenter">
+                @ViewBag.records
+            </div>
+        }
+        <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.objInwardList.Count</label>
+        </div>
+
+    </div>
+    </div>
+    @*<div id="tabsat" style="height:350px;font-size:14px;">
+        <ul>
+            <li><a href="#tabs-1">Audit Trail</a></li>
+            <li><a href="#tabs-2">Attachments</a></li>
+        </ul>
+        <div id="tabs-1">
+            @Html.Partial("tab_auditrailGRN")
+        </div>
+        <div id="tabs-2">
+            @Html.Partial("BoqAttach")
+        </div>
+    </div>*@
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div style="margin-left:570px">
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Back" onclick="BackGrnSummary()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span> Back
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#grnselection td:nth-child(10),#grnselection th:nth-child(10)").hide();
+        $("#grnselection td:nth-child(11),#grnselection th:nth-child(11)").hide();
+        $("#grnselection td:nth-last-child(1)").show();
+    });
+    
+    var currentTab = 0;
+    $(function () {
+        $("#tabsat").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+    });
+    $("#podate").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy'
+    });
+    function AddGrnInward(id,element) {
+        //var viewfor = $("#hid_viewfor").val();
+        var viewfor = $(element).closest('tr').find('td:eq(9)').text();
+        var podetail = $(element).closest('tr').find('td:eq(10)').text();
+        location = '@Url.Action("GrnInward", "GrnSelectionPo")?poheadGid=' + id + '&viewfor=' + viewfor + '&podetail=' + podetail;
+    }
+    function BackGrnSummary() {
+        location = '@Url.Action("GrnInwardSummary", "GRNInward")';
+    }
+    function podetails(id,element) {
+        location = '@Url.Action("RaisePO", "PO")/' + id + '/0';
+    }
+</script>

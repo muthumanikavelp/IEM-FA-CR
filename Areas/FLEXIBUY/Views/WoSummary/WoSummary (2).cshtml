@@ -1,0 +1,454 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.WoSummary
+@using IEM.Common;
+@using IEM.Areas.FLEXIBUY.Models
+<div id="posummary">
+    <link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+    @{
+        ViewBag.Title = "Index";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+        CmnFunctions obj = new CmnFunctions();
+
+        var grid = new WebGrid();
+        if (Session["FlexiDash"] != null)
+        {
+            flexibuydashboard dash = new flexibuydashboard();
+            List<flexibuydashboard> lst = new List<flexibuydashboard>();
+            lst = (List<flexibuydashboard>)Session["FlexiDash"];
+          //  grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+            grid = new WebGrid(lst, canSort: false, canPage: false);
+
+        }
+        else
+        {
+            grid = new WebGrid(Model.objWoSummary, canSort: false, canPage: false);
+         //   grid = new WebGrid(source: Model.objWoSummary, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+        }
+
+
+    }
+    <input type="hidden" id="hid_wogroup" value="@Model.grpRes" />
+    <b>
+        <span style="color: rgb(52, 108, 196);">WO Summary</span>
+    </b>
+    <br /><br />
+    @using (Html.BeginForm())
+    {
+        <div class="well">
+            <div class="row">
+                @*<div class="col-sm-10">
+                    <table class="myTableStyleTabNew">
+                        <tr>
+                            <td>
+                                <span>WO Date</span>
+                                <br />
+                                <input type="text"
+                                       name="wodate"
+                                       id="wodate"
+                                       value="@ViewBag.wodate"
+                                       class="textboxStyle"
+                                       />
+
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span>WO Ref No</span>
+                                <br />
+                                <input type="text"
+                                       name="worefno"
+                                       id="worefno"
+                                       value="@ViewBag.worefno"
+                                       class="textboxStyle"
+                                      />
+
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span>Vendor Name</span>
+                                <br />
+                                <input type="text"
+                                       name="vendorname"
+                                       id="vendorname"
+                                       value="@ViewBag.vendorname"
+                                       class="textboxStyle"
+                                       />
+
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span>Status</span>
+                                <br />
+                               
+                                <select name="ddlStatus" id="statusgid" class="textboxStyle" style="width:150px;">
+                                    <option value="0">Select Status</option>
+                                    @foreach (var pitem in Model.statusList)
+                                    {
+                                        var childitemfilter = Model.statusList.Where(m => m.Value == pitem.Value);
+                                        if (childitemfilter != null)
+                                        {
+                                            foreach (var citem in childitemfilter)
+                                            {
+                                                string selectedValue = "";
+                                                if (Model.statusgid == Convert.ToInt32(citem.Value))
+                                                {
+                                                    selectedValue = "selected='selected'";
+                                                }
+
+                                                <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                              
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearch" value="search" name="command"
+                                        type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                                </button>
+                                
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <span> </span>
+                                <br />
+                                <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                    <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                                </button>
+                                @if (@grid.TotalRowCount != 0)
+                                {
+                                    <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                                }
+                               
+                            </td>
+                          
+                        </tr>
+                    </table>
+                </div>*@
+                <table class="myTableStyleTabNew" style="float:right;padding-right:20px;margin-top: 20px;">
+                    <tr>
+                        <td>
+                            <div style="float:right;padding-right:20px;" class="myTableStyle">
+                                <button type="button" id="raisewo" value="RAISE WO" class="btn btn-success cursorpointer">
+                                    <span style="color:white;" class="glyphicon glyphicon-thumbs-up cursorpointer"></span> RAISE WO
+                                </button>
+                                @*<input type="button" value="RAISE PO" id="raisepo" class="btn btn-primary" />*@
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="pogrid">
+
+            </div>
+            <div style="margin-top:17px" id="pogrid1">
+                <div>
+                @if (Session["FlexiDash"] != null)
+                {
+            @grid.GetHtml(
+            tableStyle: "tableSmall table-bordered table-hover table-responsive",
+            htmlAttributes: new { id = "woheadergrid" },
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+                (
+                    grid.Column("woslno", "SNo", style: "MidColumn10"),
+                    grid.Column("woDate", "WO Date", style: "MidColumn10"),
+                    grid.Column("woRefNo", "WO Ref No", style: "MidColumn20"),
+                    grid.Column("wovendorName", "Vendor Name", style: "MidColumn30"),
+                    grid.Column("wostatus", "Status", style: "MidColumn10"),
+                    grid.Column("woAmount", "WO Amount", style: "MidColumn10"),
+                    //grid.Column("wovendorName", "WO Version", style: "MidColumn10"),
+                                 grid.Column(header: "Action", style: "action MidColumn10",
+                     format: @<text>
+                    @if (@item.wostatus == "Draft" || @item.wostatus == "Rejected")
+                    {
+                        <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWo(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash Color " style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" title="Delete" id="@item.woDetgid" type="button"></button>
+                        @*<button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" id="@item.woDetgid" name="command" title="Cancel" type="button"></button>*@
+                    }
+                    else if (@item.wostatus == "Approved")
+                    {
+                        <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWoAmendment(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" title="Delete" type="button"></button>
+                        @*<button class="glyphicon glyphicon-remove Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" name="command" id="@item.woDetgid" title="Cancel" type="button"></button>*@
+                    }
+                    else
+                    {
+                        <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                        <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWo(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                        <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" id="@item.woDetgid" title="Delete" type="button"></button>
+                        @*<button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" id="@item.woDetgid" name="command" title="Cancel" type="button"></button>*@
+                    }
+                    <a title="Raise Tickets" id="@item.woRefNo" onclick="RaiseTicket(id)"
+                       style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                    </a>
+                    @*<button id="Color" class="glyphicon glyphicon-eye-open" title="View" onclick="ViewProduct(@item.poDetgid)"></<button>
+                        <button  id="Color" class="glyphicon glyphicon-edit" title="Edit" onclick="EditProduct(@item.poDetgid)"></<button >
+                        <button  id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteProduct(@item.poDetgid)"></button>
+                        <button  id="Color" class="glyphicon glyphicon-remove" disabled="disabled" title="Cancel" onclick="CancelProduct(@item.poDetgid)"></button>*@
+                    @*<span class="glyphicon glyphicon-search" onclick="ViewProduct(@item.poRefNo)"></span>
+                        <span class="glyphicon glyphicon-trash" onclick="EditProduct(@item.poRefNo)"></span>
+                        <span class="glyphicon glyphicon-remove" onclick="DeleteProduct(@item.poRefNo)"></span>*@
+                    </text>)))
+
+                    }
+                    else
+                    {
+            @grid.GetHtml(
+            tableStyle: "tableSmall table-bordered table-hover table-responsive",
+            htmlAttributes: new { id = "woheadergrid" },
+            mode: WebGridPagerModes.All,
+            columns: grid.Columns
+                (
+                    grid.Column("slno", "SNo", style: "MidColumn10"),
+                    grid.Column("woDate", "WO Date", style: "MidColumn10"),
+                    grid.Column("woRefNo", "WO Ref No", style: "MidColumn20"),
+                    grid.Column("vendorName", "Vendor Name", style: "MidColumn30"),
+                    grid.Column("status", "Status", style: "MidColumn10"),
+                    grid.Column("woAmount", "WO Amount", style: "MidColumn10"),
+                    grid.Column("Version", "WO Version", style: "MidColumn10"),
+                    grid.Column(header: "Action", style: "action MidColumns10",
+                     format: @<text>
+                @if (@item.status == "Draft" || @item.status == "Rejected")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWo(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" title="Delete" id="@item.woDetgid" type="button"></button>
+                    @*<button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" id="@item.woDetgid" name="command" title="Cancel" type="button"></button>*@
+                }
+                else if (@item.status == "Approved")
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWoAmendment(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" title="Delete" type="button"></button>
+                    @*<button class="glyphicon glyphicon-remove Color" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" name="command" id="@item.woDetgid" title="Cancel" type="button"></button>*@
+                }
+                else
+                {
+                    <button class="glyphicon glyphicon-eye-open Color" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="ViewWo(id)" id="@item.woDetgid" title="View" type="button"></button>
+                    <button class="glyphicon glyphicon-edit Color" disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="EditWo(id)" id="@item.woDetgid" title="Edit" type="button"></button>
+                    <button class="glyphicon glyphicon-trash Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);" name="command" onclick="DeleteWo(id)" id="@item.woDetgid" title="Delete" type="button"></button>
+                    @*<button class="glyphicon glyphicon-remove Color " disabled="disabled" style="border:none;box-shadow: none;font-size: 1.4em;background-color: rgb(255, 255, 255);" onclick="CancelWo(id)" id="@item.woDetgid" name="command" title="Cancel" type="button"></button>*@
+                }
+                <a title="Raise Tickets" id="@item.woRefNo" onclick="RaiseTicket(id)"
+                   style="border:none;box-shadow: none;font-size: 1em;background-color: rgb(255, 255, 255);">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                </a>
+                @*<button id="Color" class="glyphicon glyphicon-eye-open" title="View" onclick="ViewProduct(@item.poDetgid)"></<button>
+                    <button  id="Color" class="glyphicon glyphicon-edit" title="Edit" onclick="EditProduct(@item.poDetgid)"></<button >
+                    <button  id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteProduct(@item.poDetgid)"></button>
+                    <button  id="Color" class="glyphicon glyphicon-remove" disabled="disabled" title="Cancel" onclick="CancelProduct(@item.poDetgid)"></button>*@
+                @*<span class="glyphicon glyphicon-search" onclick="ViewProduct(@item.poRefNo)"></span>
+                    <span class="glyphicon glyphicon-trash" onclick="EditProduct(@item.poRefNo)"></span>
+                    <span class="glyphicon glyphicon-remove" onclick="DeleteProduct(@item.poRefNo)"></span>*@
+                    </text>)))
+                    }
+
+                </div>
+
+                @*@if (@ViewBag.records != null || @ViewBag.records == "")
+                {
+                    <div class="borderStyle btnCenter">
+                        @ViewBag.records
+                    </div>
+                }
+                @{
+        Session["FlexiDash"] = null;
+                }
+                <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.objWoSummary.Count</label>*@
+            </div>
+        </div>
+        <input hidden="hidden" id="hidPopUp" value="" />
+        <div id="ForPopUpRT"></div>
+    }
+
+    <script type="text/javascript">
+        var tr = $("#woheadergrid").find('tr');
+        $("#woheadergrid tr .Color").click(function () {
+            $('#woheadergrid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+        $(document).ready(function () {
+            $("#statusgid").removeClass('required');
+            $("#statusgid").removeClass('valid');
+            $("#wodate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                dateFormat: 'dd-mm-yy'
+            });
+
+            var group = $("#hid_wogroup").val();
+            if (group == "notExists") {
+                $("#raisewo").attr("disabled", true);
+            }
+
+            $('#woheadergrid tr th:nth-child(8)').addClass("nosort");
+            $('#woheadergrid').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+        });
+        $("#btnsearch").live('click', function () {
+            var group = $("#hid_wogroup").val();
+            if (group == "notExists") {
+                $("#raisewo").attr("disabled", true);
+            }
+        });
+        $('#raisewo').click(function () {
+
+            location = '@Url.Action("ObfSelection", "obfselection")?' + new Date().getTime();
+        });
+        function EditWo(id) {
+            @*var viewfor = "edit";
+            var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+            location = '@Url.Action("Index", "WONew")?wogid=' + id + '&' + new Date().getTime();
+        }
+        function ViewWo(id) {
+            var viewfor = "view";
+            location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfor + '&' + new Date().getTime();
+            @*var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+        }
+
+        function DeleteWo(id) {
+            //alert(id);
+            var viewfor = "delete";
+            location = '@Url.Action("Index", "WONew")?wogid=' + id + '&viewtype=' + viewfor + '&' + new Date().getTime();
+            @*var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });*@
+        }
+
+        function CancelWo(id) {
+            var viewfor = "cancel";
+            var objraiser =
+           {
+               "woheadGid": id,
+               "viewfor": viewfor
+           };
+            $.ajax({
+                url: '@Url.Action("WoEditDetails", "WoRaiserEdit")?' + new Date().getTime(),
+                type: 'GET',
+                data: objraiser,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        location = '@Url.Action("WoEdit", "WoRaiserEdit")?' + new Date().getTime();
+                    }
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+        var objRT;
+        function RaiseTicket(wono) {
+            var refflagname = "WO";
+            var itemrefno = wono;
+            if ($('#hidPopUp').val() == "") {
+                $("#hidPopUp").val("iem");
+                objRT = $("[id$='ForPopUpRT']");
+                objRT.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    cache: false,
+                    show: 'fade-in',
+                    close: 'fade-out'
+                });
+            }
+            objRT.load('../../RaiseTickets/SingleTicketNormal?refname=' + refflagname + '&itemrefno=' + itemrefno + '&' + new Date().getTime());
+            objRT.dialog({
+                title: 'Raise Ticket',
+                width: 1100,
+                height: 500
+            });
+            objRT.dialog("open");
+        }
+        function Download() {
+            location = "../WoSummary/downloadsexcel";
+        }
+    </script>
+
+
+
+

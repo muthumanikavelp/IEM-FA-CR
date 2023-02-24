@@ -1,0 +1,121 @@
+﻿@model IEM.Areas.EOW.Models.EOW_arfraising
+@using System.Data
+@using IEM.Areas.EOW.Models
+@{
+    if (Session["SupplierCode"] != null)
+    {
+        DataTable getemployee = new DataTable();
+        List<EOW_arfraising> list = new List<EOW_arfraising>();
+        ArfRaising get = new ArfRaising();
+        getemployee = get.GetarfSupplierdetails(Session["SupplierCode"].ToString());
+        foreach (DataRow dr in getemployee.Rows)
+        {
+            list.Add(
+            new EOW_arfraising
+            {
+                ecf_supplier_gid = Convert.ToInt32(dr["supplierheader_gid"].ToString()),
+                supplierheader_suppliercode = dr["supplierheader_suppliercode"].ToString(),
+                supplierheader_name = dr["supplierheader_name"].ToString(),
+
+            });
+        };
+        //  WebGrid grid = new WebGrid(source: list, canPage: true, canSort: true);
+        WebGrid grid = new WebGrid(source: list, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "getsup", ajaxUpdateCallback: "DummyFunction2022();");
+        grid.Pager(WebGridPagerModes.All);
+        <div id="getsup">
+            @using (Html.BeginForm())
+            {
+                <div class="well">
+                    <div style="margin-top:17px;">
+                        @functions {
+                            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                            {
+                                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                                    "▼" : string.Empty);
+                            }
+                        }
+                        @grid.GetHtml(
+        tableStyle: "table table-bordered table-hover table-responsive",
+        columns: grid.Columns
+            (
+
+                //grid.Column("creditline_gid ", Sorter("creditline_gid ", "SNo", grid), canSort: false),
+grid.Column("supplierheader_suppliercode", Sorter("supplierheader_suppliercode", "Supplier Code", grid)),
+grid.Column("supplierheader_name", Sorter("supplierheader_name", "Supplier Name", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                 format: @<text>
+                        
+                        <input type="hidden" id="UrgentEmployeeIdFind_@item.ecf_supplier_gid" name="EmployeeId" value="@item.ecf_supplier_gid" />
+                        <input type="hidden" id="UrgentRaiserNameFind_@item.ecf_supplier_gid" name="RaiserCode" value="@item.supplierheader_name" />
+                        <input type="hidden" id="UrgentRaiserCodeFind_@item.ecf_supplier_gid" name="RaiserName" value="@item.supplierheader_suppliercode" />
+                        <a><span class="btn btn-link btn-link" onclick="Select(@item.ecf_supplier_gid)">Select</span></a>
+
+                    @*<input type="hidden" id="empname" name="empname" value="@item.supplierheader_name" />
+                    <input type="hidden" id="empcode" name="empcode" value="@item.supplierheader_suppliercode" />
+                    <a><span class="btn btn-link btn" id="EmployeeSearchsup">Select</span></a>*@
+                    @*<a><span class="linkStyle">Select </span></a>*@
+                </text>)))
+                    </div>
+                </div>
+            }
+        </div>
+    <div>
+
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+
+                        <button type="button" value="Cancel" class="btn btn-warning" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    }
+}
+<script type="text/javascript">
+    //$('.btn').click(function () {
+
+    //    var tr = $(this).parents('tr:first');
+    //    var EmployeeName = tr.find('#empname').val();
+    //    var Employeecede = tr.find('#empcode').val();
+    //    $('#_txtsupempname').val(EmployeeName);
+    //    $('#_txtsupempcode').val(Employeecede);
+    //    var txtSupplierName = $("#_txtsupempname").val();
+    //    if (txtSupplierName.trim() != "") {
+    //        $("#_txtsupempname").removeClass('required');
+    //        $("#_txtsupempname").addClass('valid');
+    //    }
+    //    else {
+    //        $("#_txtsupempname").removeClass('valid');
+    //        $("#_txtsupempname").addClass('required');
+    //    }
+    //    var txtSupplierName = $("#_txtsupempcode").val();
+    //    if (txtSupplierName.trim() != "") {
+    //        $("#_txtsupempcode").removeClass('required');
+    //        $("#_txtsupempcode").addClass('valid');
+    //    }
+    //    else {
+    //        $("#_txtsupempcode").removeClass('valid');
+    //        $("#_txtsupempcode").addClass('required');
+    //    }
+    //    GotoIndex();
+    //});
+    function Select(id)
+    {
+      //  var Employeeid = $("#UrgentEmployeeIdFind_"+ id +"").val();
+        var EmployeeName = $("#UrgentRaiserNameFind_"+ id +"").val();
+        var EmployeeCode = $("#UrgentRaiserCodeFind_"+ id +"").val();
+        $('#_txtsupempname').val(EmployeeName);
+        $('#_txtsupempcode').val(EmployeeCode);
+        GotoIndex();
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewforsupplier').dialog('close');
+    }
+    function DummyFunction2022() {
+        $("#gridempvl td:nth-child(2),#gridempvl th:nth-child(2)").show();
+    }
+</script>

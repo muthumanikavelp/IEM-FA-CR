@@ -1,0 +1,232 @@
+﻿@model IEM.Areas.IFAMS.Models.SaleMakerModel
+<div id="SAheaderattachement">
+    <div class="well" style="background-color:white">
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>Select file </span><br />
+                    <form id="theuploadformsama">
+                        <input class="textboxStyleSearch" id="fileUploadSaMaker" name="fileUploadSaMaker" type="file" onchange="SAcheckfile(this)" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                    </form>
+                </td>
+                <td>
+                    <span>Select Sheet</span>
+                    <br />
+                    @Html.DropDownListFor(model => Model.saleSheetname, Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyleSearch", @id = "ddlSelectSheetsa", @name = "ddlSelectSheetsa" })
+                </td>
+
+
+                <td>
+                    <span>&nbsp;</span><br />
+                    <div style="font-weight:bold">
+                        <a class="btn" data-modal="" href="../AssetSale/saledownloadexcel" id="DownloadTemplate">
+                            Download Template
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>&nbsp;</span><br />
+                    <button id="btnfirstsubmit" class="btn btn-primary" value="Upload" onclick="SaleMaker()"><span style="color:white;" class="glyphicon glyphicon-upload"></span> Upload </button>&nbsp;&nbsp;
+                    <button id="btncanpayclear" class="btn btn-primary" value="cancel" onclick="cancel()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear </button>&nbsp;&nbsp;
+                    <button id="btncanpayclear" class="btn btn-warning" value="cancel" onclick="backtosasummary()"><span style="color:white;" class="glyphicon glyphicon-circle-arrow-left"></span> Back </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+@*<div id="ForPartialViewerror"></div>*@
+
+
+<script>
+    //$(document).ready(function () {
+    //    objDialogerr = $("[id$='ForPartialViewerror']");
+
+    //});
+
+    function SaleMaker() {
+        if ($("#fileUploadSaMaker").val() == null || $("#fileUploadSaMaker").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+
+        }
+
+        var sheet = $("#ddlSelectSheetsa option:selected").text();
+       // alert(sheet);
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+           // alert(sheet);
+            jAlert("Please Sheet", "Message");
+            $("#ddlSelectsheetsa").focus();
+            return false;
+        }
+        else {
+            var objsheet =
+                {
+                    "SaleSheetName": sheet
+                };
+           // alert(objsheet);
+            $.ajax({
+                url: "@Url.Action("SaleMakerupdate", "AssetSale")",
+                type: 'post',
+                cache: false,
+                data: objsheet,
+                success: function (data) {
+                    if (data == "Success") {
+                        //alert(data);
+                        objDialog.dialog({
+                            autoOpen: false,
+                            modal: true,
+                            show: 'fade-in',
+                            close: 'fade-out',
+                            width: 360,
+                            height: 250,
+                            resizable: false
+                        });
+                        $("#fileUploadSaMaker").val("");
+                        $("#theuploadformsama").val('');
+                        objDialog.load("@Url.Action("SaleUploadstatus", "AssetSale")?ddlSelectSheetsa=" + sheet + '&' + new Date().getTime());
+                        objDialog.dialog({ title: 'Upload Summary' });
+                        objDialog.dialog("open");
+                    }
+                    else {
+                       // alert("else");
+                        jAlert("\tInvalid template." + "\n\t\t" + "Please refer template.", "Message");
+                        $("#fileUploadSaMaker").val("")
+                        @*window.parent.jQuery('#ForPartialViews').dialog('close');
+                        objDialog.load('@Url.Action("BulkSale", "AssetSale")?' + new Date().getTime());
+                        objDialog.dialog({ title: 'Make Bulk Sale' });
+                        objDialog.dialog("open");*@
+                        cancel();
+                        return false;
+                    }
+                },
+                error: function () {
+                   // alert("error");
+                    jAlert("Please refer template.", "Message");
+                    @*window.parent.jQuery('#ForPartialViews').dialog('close');
+                    objDialog.load('@Url.Action("BulkSale", "AssetSale")?' + new Date().getTime());
+                    objDialog.dialog({ title: 'Make Bulk Sale'});
+                    $("#fileUploadSaMaker").val("")*@
+                    cancel();
+                    return false;
+                }
+            });
+        }
+    }
+
+
+    //$('#fileUploadSaMaker').on('change', function (e) {
+    //    var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+    //    $("body").append(iframe)
+    //    var form = $('#theuploadformsama');
+    //    form.attr("action", "../AssetSale/SaleUploadFilesnew");
+    //    form.attr("method", "post");
+    //    form.attr("encoding", "multipart/form-data");
+    //    form.attr("enctype", "multipart/form-data");
+    //    form.attr("target", "postiframe");
+    //    form.attr("file", $('#fileUploadSaMaker').val());
+    //    form.submit();
+    //    getsheets();
+    //});
+
+    function getsheetnamess() {
+        
+        var data = "fff"
+        //alert();
+        $.ajax({
+            type: 'post',
+            url: '../AssetSale/SaleUploadFiles',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+               // $("#ddlSelectsheetsa").empty();
+                //$("#ddlSelectsheetsa").append("<option value='0'>--Select--</option>");
+                if (result == "undefined" || result == "") {
+                    jAlert("Please Upload File With Data", "Message");
+                    @*window.parent.jQuery('#ForPartialViews').dialog('close');
+                    objDialog.dialog.load('@Url.Action("BulkSale", "AssetSale")?' + new Date().getTime());
+                    objDialog.dialog({ title: 'Make Bulk Sale' });
+                    objDialog.dialog("open");*@
+                    cancel();
+                    return false;
+                }
+                else {
+                    if (result.length > 0) {
+                        $("#ddlSelectSheetsa").empty();
+                       $("#ddlSelectSheetsa").append("<option value='0'>--Select--</option>");
+                        var stylesSelect = $('#ddlSelectsheetsa');
+                        stylesSelect.attr('disabled', false);
+                        for (var i = 0; i < result.length; i++) {
+                            $("#ddlSelectSheetsa").append("<option value=" + result[i].saleSheetid + ">" + result[i].saleSheetname + "</option>");
+                        }
+                    }
+                    if (result.length == 0) {
+                        var stylesSelect = $('#ddlSeelctsheetsa');
+                        stylesSelect.attr('disabled', true);
+                    }
+                }
+            },
+            error: function (xhr, status, p3, p4) {
+              
+                var err = "Error" + " " + status + " " + p3 + " " + p4;
+                if (xhr.responseText && xhr.responseText[0] == "{")
+                    err = JSON.parse(xhr.responseText).Message;
+                jAlert(err);
+                cancel();
+
+                return false;
+            }
+        });
+    }
+    function backtosasummary() {
+        window.parent.jQuery('#ForPartialViews').dialog('close');
+    }
+
+    function SAcheckfile(sasender) {
+        var validExtension = new Array(".xlsx", ".xls");
+        var fileExte = sasender.value;
+        fileExte = fileExte.substring(fileExte.lastIndexOf('.'));
+        if (validExtension.indexOf(fileExte) < 0) {
+            jAlert("Invalid file selected, valid files are " + validExtension.toString() + " types.");
+            cancel();
+
+        }
+
+        else {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#theuploadformsama');
+            var up = $('#fileUploadSaMaker').val();
+           // alert(up);
+           // alert('hi');
+            form.attr("action", "../AssetSale/SaleUploadFilesnew"); 
+            form.attr("method", "post");
+            form.attr("encodeing", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#fileUploadSaMaker').val());
+            form.submit();
+            getsheetnamess();
+            
+        }
+    }
+
+
+    function cancel() {
+        var fileUpload = $("[id*=fileUploadSaMaker]");
+         //Create a new FileUpload element.
+        var newFileUpload = $(" <input class='textboxStyleSearch' id='fileUploadSaMaker' name='fileUploadSaMaker' type='file' onchange='SAcheckfile(this)' accept='.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel'>");
+
+        fileUpload.after(newFileUpload);
+
+        fileUpload.remove();
+
+        $("#ddlSelectSheetsa").empty();
+        $("#ddlSelectSheetsa").append("<option value='0' >--Select--</option>");
+    }
+</script>

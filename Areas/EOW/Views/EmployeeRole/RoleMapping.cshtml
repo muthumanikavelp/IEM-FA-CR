@@ -1,0 +1,126 @@
+﻿@model IEM.Areas.EOW.Models.SupEmployeeRole
+@{
+
+ }
+@using (Html.BeginForm())
+{
+        <div>
+            Role
+        </div>
+        <div id="divStudentlist" style="height: 269px; overflow: auto;border:solid; width:364px;">
+    @{
+            var Flag = 0;
+            foreach (var names in @Model.RoleMapping)
+            {
+                Flag = 0;
+                var checkBoxId = "chk" + names.Value;
+                var tdId = "td" + names.Value;
+                <table style="width:100%;">
+                    <tr>
+                        <td width="5px">
+                            @{
+                                foreach (var selectid in Model.lstSelectedRoleGid)
+                                {
+                                    if (!string.IsNullOrEmpty(selectid))
+                                    {
+                                        if (selectid==names.Value)
+                                        {
+                                            Flag = 1;
+                                            <input type="checkbox" id="@checkBoxId" class="chkclass" value="@names.Value" checked="checked" />
+                                        }
+                                    }
+
+                                }
+                            }
+                            @{
+                                if (Flag != 1)
+                                {
+                                    <input type="checkbox" id="@checkBoxId" class="chkclass" value="@names.Value" />
+                                }
+                            }
+
+                        </td>
+                        <td id="@tdId" width="100px">
+                            @names.Text
+                        </td>
+            
+                </table>
+            }
+        }
+        </div>
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="Save()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+
+<script type="text/javascript">
+    function Save() {
+
+        //var roleid = $("#roleid").val();
+        var studentListVal = null;
+        CheckedList = [];
+        $('input:checkbox:checked').each(function () {
+            CheckedList.push($(this).attr('value'));
+        });
+        var uncheckedlist = null;
+        uncheckedlist = [];
+        $("input:checkbox:not(:checked)").each(function () {
+            uncheckedlist.push($(this).attr('value'))
+        });
+        if (CheckedList == "" || CheckedList == null)
+        {
+            jAlert("Please Select Atleast One", "Information");
+            return;
+        }
+        var Student = {
+            //"Roleid": roleid,
+            "uncheckedlist":uncheckedlist,
+            "CheckedList": CheckedList
+        };
+        $.ajax({
+            url: '../EmployeeRole/RoleEmployeeAdding/',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = '@Url.Action("Index", "EmployeeRole")';
+                    }
+                });
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+        })
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridEmployeeRoleid').find('tr').css('background', 'none');
+    });
+    function GotoIndex() {
+        objDialogEmployeeMapping.remove();
+        $('#gridEmployeeRoleid').find('tr').css('background', 'none');
+        //location.reload();
+    }
+    function MapEmployee() {
+        //location = "RoleMapping";
+        location = '@Url.Action("RoleMapping", "EmployeeRole")';
+    }
+    function refresh() {
+        //location = '../EmployeeRole/RoleMapping';
+        location = '@Url.Action("RoleMapping", "EmployeeRole")';
+
+    }
+</script>

@@ -1,0 +1,1528 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common;
+@{
+    CbfSumEntity objDetails = new CbfSumEntity();
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    CbfSumModel objrep = new CbfSumModel();
+    var grid = new WebGrid();
+    int recordcount = 0;
+    int rowNum = 0;
+    if (Model.lListParDetails == null)
+    {
+        objDetails = objrep.GetParDetailsForPAR(recordcount.ToString());
+        grid = new WebGrid(source: objDetails.lListParDetails, canPage: false, canSort: false, rowsPerPage: 5, selectionFieldName: "selectedrow", ajaxUpdateContainerId: "grid_deteials", ajaxUpdateCallback: "dummypar()");
+        if (objDetails.lListParDetails.Count > 0)
+        {
+            TempData["records"] = "No Records Found";
+        }
+    }
+    else
+    {
+        if (Session["prheadersession"] != null)
+        {
+            objDetails = (CbfSumEntity)Session["prheadersession"];
+        }
+        grid = new WebGrid(source: Model.lListParDetails, canSort: false, canPage: false, rowsPerPage: 5, ajaxUpdateContainerId: "grid_deteials", ajaxUpdateCallback: "dummypar()", selectionFieldName: "selectedRow");
+        TempData["records"] = "";
+    }
+    var viewfor = (string)ViewBag.viewfor;
+    if (viewfor == "edit")
+    {
+        ViewBag.viewmode = "";
+        Session["ViewBag"] = "";
+    }
+    else if (viewfor == "view" || viewfor == "checker" || viewfor == "delete")
+    {
+        ViewBag.viewmode = "disabled";
+        Session["ViewBag"] = "disabled";
+    }
+}
+
+<style>
+    .width4 {
+        width: 4%;
+    }
+
+    .width7 {
+        width: 7%;
+        text-align: center !important;
+    }
+
+    .width9 {
+        width: 9%;
+    }
+
+    .width12 {
+        width: 12%;
+    }
+
+    .width23 {
+        width: 23%;
+    }
+    #ParDetails > tbody > tr > td
+    {
+        padding:3px 2px;
+    }
+</style>
+
+<div id="pardetailsid">
+
+    @using (Html.BeginForm())
+    {
+        <table style="width:100%; margin-bottom:4px;">
+            <tr>
+                <td style="width:50%; vertical-align:bottom;">
+                    <span style="color:rgb(52,108,196);">  PAR Details</span>
+                </td>
+                <td style="width:50%; text-align:right; vertical-align:bottom;">
+                    @*@if (viewfor == "edit")
+                    {*@
+                        <button class="btn btn-primary add "
+                                type="button"
+                                name="command"
+                                id="addnewrows"
+                                style="font-size:12px; padding:3px 8px;"
+                                @ViewBag.viewmode>
+                            <span class="glyphicon glyphicon-plus" style="color:white;"></span>
+                            Add PAR Details
+                        </button>
+                    @*}*@
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" hidden="hidden" id="pargid">
+        <div id="PardetailsEdit" class="borderStyle panel panel-default" style="margin-bottom:15px;">
+            <div id="grid_deteials" style="width:100%; overflow-y:scroll;min-height:100px; max-height:200px; padding:8px;">
+                <div>
+                    @if (viewfor == "view" || viewfor == "checker" || viewfor == "delete")
+                    {
+                        @grid.GetHtml(
+                        tableStyle: "tableSmall table-bordered overflowx",
+                        mode: WebGridPagerModes.All,
+                        htmlAttributes: new { id = "ParDetails" },
+                        columns: grid.Columns(
+                             grid.Column("Sl", format: item => rowNum = rowNum + 1, style: "width4"),
+                        grid.Column("Expense", objCmnFunctions.Sorter("Expense", "Capex/Opex", grid), format: @<text>
+                                <select name="expense" id="expense_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                                    <option value="0">Select</option>
+                                    @{
+                                        var childitemfilterexpence = item.capexId;
+                                        if (childitemfilterexpence != null)
+                                        {
+                                            foreach (var citemdept in Model.capexlist)
+                                            {
+                                                string selectedValuedept = "";
+                                                if (childitemfilterexpence == citemdept.Value)
+                                                {
+                                                    selectedValuedept = "selected='selected'";
+                                                }
+
+                                                <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                                <select name="expense" id="expense_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                                    <option value="0">Select</option>
+
+                                    @{
+                                        var childitemfilterdept = item.capexId;
+                                        if (childitemfilterdept != null)
+                                        {
+                                            foreach (var citemdept in Model.capexlist)
+                                            {
+                                                string selectedValuedept = "";
+                                                if (childitemfilterdept == citemdept.Value)
+                                                {
+                                                    selectedValuedept = "selected='selected'";
+                                                }
+
+                                                <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                            }
+                                        }
+                                    }
+
+                                </select>
+                        </text>,style: "width9"),
+                        grid.Column("Department",objCmnFunctions.Sorter("Department", "Department", grid), format: @<text>
+                    <select name="ddlDepartment" id="ddldepartment_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig edit">
+                        <option value="0">Select</option>
+
+                        @{
+                            var childitemfilterdept = item.Department;
+                            if (childitemfilterdept != null)
+                            {
+                                foreach (var citemdept in Model.requestFor)
+                                {
+                                    string selectedValuedept = "";
+                                    if (Convert.ToInt32(childitemfilterdept) == Convert.ToInt32(citemdept.Value))
+                                    {
+                                        selectedValuedept = "selected='selected'";
+                                    }
+
+                                    <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                }
+                            }
+                        }
+
+                    </select>
+
+
+
+                            <select name="ddlDepartment" id="ddldepartment_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+    <option value="0">Select</option>
+
+    @{
+        var childitemfilter = item.Department;
+        if (childitemfilter != null)
+        {
+            foreach (var citemdept1 in Model.requestFor)
+            {
+                string selectedValuedept1 = "";
+                if (childitemfilter == citemdept1.Value)
+                {
+                    selectedValuedept1 = "selected='selected'";
+                }
+
+                <option value="@citemdept1.Value" @selectedValuedept1>@citemdept1.Text</option>
+            }
+        }
+    }
+
+</select></text>,style: "width9"),
+                        @*grid.Column("Budgeted", objCmnFunctions.Sorter("Budgeted", "Budgeted", grid),
+                        format: @<text>
+                            <select name="Budgeted" id="Budgeted_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                                <option value="0">Select</option>
+
+                                @{
+                                    var childitemfilterbudject = item.budjectedid;
+                                    if (childitemfilterbudject != null)
+                                    {
+                                        foreach (var citemdept in Model.budjectedlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterbudject == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+
+
+
+                            </select>
+                            <select name="expense" id="Budgeted_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                                <option value="0">Select</option>
+
+                                @{
+                                    var childitemfilterdept = item.budjectedid;
+                                    if (childitemfilterdept != null)
+                                    {
+                                        foreach (var citemdept in Model.budjectedlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterdept == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+
+
+                            </select>
+                        </text>,style: "width9"),*@
+                        grid.Column("Description", objCmnFunctions.Sorter("Description", "Description", grid), format: @<text>  <span class="display"><label id="lblDescription_@item.ParDetails_Gid">@item.Description</label> </span><input type="text" maxlenth="264" id="txtDescription_@item.ParDetails_Gid" value="@item.Description" style="width:100px" class="edit textboxStyleBig" />  </text>,style: "width23"),
+                        grid.Column("FromYear", objCmnFunctions.Sorter("FromYear", "From    Year", grid), format: @<text>
+                    <select name="ddlDepartment" id="yearfrom_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter12 = item.FromYear;
+                         if (childitemfilter12 != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+                        }
+                    </select>
+
+
+
+                    <select name="ddlDepartment" id="yearfrom_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter = item.FromYear;
+                         if (childitemfilter != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+
+                        }
+                    </select>
+
+
+
+
+
+
+
+                        </text>,style: "width9"),
+                        grid.Column("ToYear", objCmnFunctions.Sorter("ToYear", "To    Year", grid), format: @<text><select name="ddlDepartment" id="yearto_@item.ParDetails_Gid" class="textboxStyleBig edit">
+    <option value="0">Select</option>
+
+    @{ var childitemfilter12 = item.ToYear;
+     if (childitemfilter12 != null)
+     {
+         int j = DateTime.Now.Year;
+         int dt = (DateTime.Now.Year) + 20;
+         for (int i = j; i < dt; i++)
+         {
+             string selectedValue = "";
+             if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+             {
+                 selectedValue = "selected='selected'";
+             }
+            <option value=@i @selectedValue>@i</option>
+         }
+     }
+
+    }
+</select>
+
+
+
+                    <select name="ddlDepartment" id="yearto_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter = item.ToYear;
+                         if (childitemfilter != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+
+                        }
+                    </select> </text>,style: "width9"),
+                        grid.Column("ParAmount", objCmnFunctions.Sorter("ParAmount", "Par Amount", grid), format: @<text>
+
+                            <span class="display" style="float:right"><label id="lblParAmount_@item.ParDetails_Gid">@item.ParAmount</label></span>
+                    <input type="text" style="float:right;" id="txtparamount_@item.ParDetails_Gid" name="inparamount" onkeypress="return isNumber1(event, this);" value="@item.ParAmount" onchange="total()" class="edit textboxStyleBig" /> </text>,style: "width12"),
+                        @*grid.Column("remarks", objCmnFunctions.Sorter("remarks", "Remarks", grid), format: @<text>
+                            <span class="display"><label id="lblremarks_@item.ParDetails_Gid">@item.remarks</label> </span>
+                            <input type="text" maxlenth="264" id="txtremarks_@item.ParDetails_Gid" value="@item.remarks" style="width:100px" class="edit textboxStyleBig" />  </text>,style: "MidColumn50"),*@
+ grid.Column(header: "BOQ", canSort: false, style: "width9",
+         format: @<text>
+    <input type="button" value="View Doc" class="btn btn-link" id="@item.ParDetails_Gid" onclick="NewDoc(id)" title="Attachment" />
+        </text>)))
+                    }
+                    else
+                    {
+                        @grid.GetHtml(
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        htmlAttributes: new { id = "ParDetails" },
+                        columns: grid.Columns(
+                             grid.Column("Sl", format: item => rowNum = rowNum + 1, style: "width4"),
+                        grid.Column("Expense", objCmnFunctions.Sorter("Expense", "Capex/Opex", grid), format: @<text>
+                            <select name="expense" id="expense_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                                <option value="0">Select</option>
+                                @{
+                                    var childitemfilterexpence = item.capexId;
+                                    if (childitemfilterexpence != null)
+                                    {
+                                        foreach (var citemdept in Model.capexlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterexpence == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <select name="expense" id="expense_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                                <option value="0">Select</option>
+
+                                @{
+                                    var childitemfilterdept = item.capexId;
+                                    if (childitemfilterdept != null)
+                                    {
+                                        foreach (var citemdept in Model.capexlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterdept == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+
+                            </select>
+                        </text>,style: "width9"),
+                        grid.Column("Department",objCmnFunctions.Sorter("Department", "Department", grid), format: @<text>
+                    <select name="ddldepartment" id="ddldepartment_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                        <option value="0">Select</option>
+
+                        @{
+                            var childitemfilterdept = item.Department;
+                            if (childitemfilterdept != null)
+                            {
+                                foreach (var citemdept in Model.requestFor)
+                                {
+                                    string selectedValuedept = "";
+                                    if (Convert.ToInt32(childitemfilterdept) == Convert.ToInt32(citemdept.Value))
+                                    {
+                                        selectedValuedept = "selected='selected'";
+                                    }
+
+                                    <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                }
+                            }
+                        }
+
+                    </select>
+
+
+
+                            <select name="ddldepartment" id="ddldepartment_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+    <option value="0">Select</option>
+
+    @{
+        var childitemfilter = item.Department;
+        if (childitemfilter != null)
+        {
+            foreach (var citemdept1 in Model.requestFor)
+            {
+                string selectedValuedept1 = "";
+                if (childitemfilter == citemdept1.Value)
+                {
+                    selectedValuedept1 = "selected='selected'";
+                }
+
+                <option value="@citemdept1.Value" @selectedValuedept1>@citemdept1.Text</option>
+            }
+        }
+    }
+
+</select></text>,style: "width9"),
+                        @*grid.Column("Budgeted", objCmnFunctions.Sorter("Budgeted", "Budgeted", grid),
+                        format: @<text>
+                            <select name="Budgeted" id="Budgeted_@item.ParDetails_Gid" class="textboxStyleBig edit">
+                                <option value="0">Select</option>
+
+                                @{
+                                    var childitemfilterbudject = item.budjectedid;
+                                    if (childitemfilterbudject != null)
+                                    {
+                                        foreach (var citemdept in Model.budjectedlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterbudject == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+
+
+
+                            </select>
+                            <select name="expense" id="Budgeted_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                                <option value="0">Select</option>
+
+                                @{
+                                    var childitemfilterdept = item.budjectedid;
+                                    if (childitemfilterdept != null)
+                                    {
+                                        foreach (var citemdept in Model.budjectedlist)
+                                        {
+                                            string selectedValuedept = "";
+                                            if (childitemfilterdept == citemdept.Value)
+                                            {
+                                                selectedValuedept = "selected='selected'";
+                                            }
+
+                                            <option value="@citemdept.Value" @selectedValuedept>@citemdept.Text</option>
+                                        }
+                                    }
+                                }
+
+
+                            </select>
+                        </text>,style: "width9"),*@
+                        grid.Column("Description", objCmnFunctions.Sorter("Description", "Description", grid), format: @<text>  <span class="display"><label id="lblDescription_@item.ParDetails_Gid">@item.Description</label> </span><input type="text" maxlenth="264" id="txtDescription_@item.ParDetails_Gid" value="@item.Description"  class="edit textboxStyleBig" />  </text>,style: "width23"),
+                        grid.Column("FromYear", objCmnFunctions.Sorter("FromYear", "From    Year", grid), format: @<text>
+                    <select name="ddlDepartment" id="yearfrom_@item.ParDetails_Gid" class="textboxStyleBig edit" onchange="FromYear(id,name,@item.ParDetails_Gid)">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter12 = item.FromYear;
+                         if (childitemfilter12 != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+                        }
+                    </select>
+
+
+
+
+
+
+
+                    <select name="ddlDepartment" id="yearfrom_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter = item.FromYear;
+                         if (childitemfilter != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+
+                        }
+                    </select>
+
+
+
+
+
+
+
+                        </text>,style: "width9"),
+                        grid.Column("ToYear", objCmnFunctions.Sorter("ToYear", "To    Year", grid), format: @<text><select name="ddlDepartment" id="yearto_@item.ParDetails_Gid" class="textboxStyleBig edit">
+    <option value="0">Select</option>
+
+    @{ var childitemfilter12 = item.ToYear;
+     if (childitemfilter12 != null)
+     {
+         int j = DateTime.Now.Year;
+         int dt = (DateTime.Now.Year) + 20;
+         for (int i = j; i < dt; i++)
+         {
+             string selectedValue = "";
+             if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+             {
+                 selectedValue = "selected='selected'";
+             }
+            <option value=@i @selectedValue>@i</option>
+         }
+     }
+
+    }
+</select>
+
+
+
+                    <select name="ddlDepartment" id="yearto_@item.ParDetails_Gid" disabled="disabled" class="textboxStyleBig display">
+                        <option value="0">Select</option>
+
+                        @{ var childitemfilter = item.ToYear;
+                         if (childitemfilter != null)
+                         {
+                             int j = DateTime.Now.Year - 1;
+                             int dt = (DateTime.Now.Year - 1) + 20;
+                             for (int i = j; i < dt; i++)
+                             {
+                                 string selectedValue = "";
+                                 if (Convert.ToInt32(childitemfilter12) == Convert.ToInt32(i))
+                                 {
+                                     selectedValue = "selected='selected'";
+                                 }
+                                <option value=@i @selectedValue>@i</option>
+                             }
+                         }
+
+
+                        }
+                    </select> </text>,style: "width9"),
+                        grid.Column("ParAmount", objCmnFunctions.Sorter("ParAmount", "Par Amount", grid), format: @<text>
+
+                            <span class="display" style="float:right;"><label id="lblParAmount_@item.ParDetails_Gid">@item.ParAmount</label></span>
+                            <input type="text" id="txtparamount_@item.ParDetails_Gid" name="inparamount" onkeypress="return isNumber1(event, this);" value="@item.ParAmount" onchange="total()" style="float:right;" class="edit textboxStyleBig" /> </text>,style: "width12"),
+
+                                     grid.Column(header: "BOQ", canSort: false, style: "width9",
+                        format: @<text>
+                    <input type="button" value="Attach Doc" class="btn btn-link display" disabled="disabled" id="@item.ParGid" name="@item.ParGid" onclick="Newdocboq1(id,name,this)" title="Attachment" />
+                    <input type="button" value="Attach Doc" class="btn btn-link edit" id="@item.ParGid" name="@item.ParGid" onclick="Newdocboq1(id,name,this)" title="Attachment" />
+                        </text>),
+                                     grid.Column(header: "Action", canSort: false, style: "width7",
+                        format: @<text>
+                            @*<span class="glyphicon glyphicon-floppy-open  display-mode add-btn"><label id="sdf34" hidden="hidden"> @rowNum</label></span>*@
+                            <span class='glyphicon glyphicon-floppy-save edit save-btn' style="cursor:pointer; margin-top:3px;" title="Save"> <label id="sdf34" hidden="hidden">@item.ParGid @item.ParDetails_Gid </label></span>
+                            <span class='glyphicon glyphicon-edit display edit-btn cursor' style="cursor:pointer; margin-top:3px;" title="Edit"><label id="sdf67" hidden="hidden"> @item.ParGid @item.ParDetails_Gid</label> </span>
+                            <span class='glyphicon glyphicon-trash display delete-btn cursor' style="cursor:pointer; margin-top:3px;" title="Delete"><label id="sdf8989" hidden="hidden">@item.ParGid @item.ParDetails_Gid</label> </span>
+                            <span class='glyphicon glyphicon-remove edit cancel-btn cursor' style="cursor:pointer; margin-top:3px;" title="Cancel"> <label id="sdf000-" hidden="hidden"> @item.ParGid @item.ParDetails_Gid</label></span>
+
+                        </text>)))
+                        if (@TempData["records"] != null || @TempData["records"] == "")
+                        {
+                            <div class="borderStyle">
+                                @TempData["records"]
+                            </div>
+                        }
+                    }
+                </div>
+                <label id="para1"></label>
+            </div>
+        </div>
+    }
+</div>
+<input hidden="hidden" id="viewboqdate" />
+<script type="text/javascript">
+
+    //$(document).ready(function () {
+    //    var add = 0;
+    //    $("#ParDetails td").find("input[name=intotal]:text").each(function () {
+    //        add += Number($(this).val());
+
+    //    });
+    //    $("#ParDetails td").find("input[name=inparamount]:text").each(function () {
+    //        add += Number($(this).val());
+
+    //    });
+    //    $("#para1").text("Grand Total : " + add);
+    //    getadd(add);
+
+    //});
+    function Newboq12(id) {
+        $('#viewboqdate').val("1")
+        objDialogforboq.load('../ParRaiserEdit/BoqAttached?id=' + id);
+        objDialogforboq.dialog({ title: 'Attach BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    function Newdocboq1(name,tempid, element) {
+        if (name == 0) {
+            $('#viewboqdate').val("1");
+        }
+        else {
+            $('#viewboqdate').val("2");
+        }
+        var pardetid = "";
+        var id = "";
+        if (name != '' && name != '0') {
+            pardetid = name;
+        }
+        else {
+            var row = $(element).closest('tr');
+            var idtemp = row.find('td:eq(0)').text();
+            id = idtemp;
+        }
+        if (isNaN(pardetid)) {
+            pardetid = "";
+        }
+        if (id == null || id == "" || isNaN(id)) {
+            if (parseInt($("#ParDetails tbody tr").length) > 0) {
+                var tempid = parseInt($("#ParDetails tbody tr").length);
+                id = tempid.toString();
+            }
+        }
+       
+       
+      //  $('#ParDetails tr:eq(3)').find();
+        objDialogforboq.load('@Url.Action("PARAttachmentIndex", "ParRaiser")?rowum=' + id + '&pardetid=' + pardetid + '&viewtype=edit&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'Attach BOQ Attachment' });
+        objDialogforboq.dialog("open");
+       
+    }
+    function Newboqs(element) {
+        var row = $(element).closest('tr');
+        var idtemp = row.find('td:eq(0)').text();
+        var rownum = "0";
+        if(idtemp == null || idtemp == "")
+        {
+            if (parseInt($("#ParDetails tbody tr").length) > 0) {
+                var tempid = parseInt($("#ParDetails tbody tr").length);
+                rownum = tempid.toString();
+            }
+        }
+        objDialogforboq.load('../ParRaiser/PARAttachmentIndex?rowum=' + rownum + '&viewtype=edit&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'Attach BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    function NewDoc(id) {
+        @*objDialogforboq.load('@Url.Action("BoqAttached", "ParRaiser")?id=' + id + '&' + new Date().getTime());*@
+        //objDialogforboq.load('../ParRaiserEdit/BoqAttached?id=' + id);
+        objDialogforboq.load('@Url.Action("PARAttachmentIndex", "ParRaiser")?pardetid=' + id + '&viewtype=view&' + new Date().getTime());
+        objDialogforboq.dialog({ title: 'View BOQ Attachment' });
+        objDialogforboq.dialog("open");
+    }
+    //function date(id, name) {
+    //    setTimeout(function () {
+    //        var i = $("#" + id + "").val();
+    //        //alert(i);
+    //        var end = 0;
+    //        end = parseInt(i) + parseInt(20);
+    //        //alert(end)
+    //        $("#Year1" + name + "").empty();
+    //        for (i  ; i < end; i++) {
+
+    //            $("#Year1" + name + "").append($('<option />').val(i).html(i));
+    //        }
+    //    }, 60);
+    //    //$("#ParDetails td").find("input[name=" + name + "]:text").each(function () {
+
+    //    //});
+    //    //$("#ParDetails td").find("input[name=inparamount]:text").each(function () {
+    //    //    add += Number($(this).val());
+
+    //    //});
+
+    //}
+    function date(id, name) {
+        setTimeout(function () {
+            var i = $("#" + id + "").val();
+            var end = 0;
+            end = parseInt(i) + parseInt(1);
+            $("#Year1" + name + "").empty();
+            $("#Year1" + name + "").append($('<option />').val(end).html(end));
+            $("#Year1" + name + "").attr("disabled", true);
+            //for (i  ; i < end; i++) {
+
+            //    $("#Year1" + name + "").append($('<option />').val(i).html(i));
+            //}
+        }, 60);
+    }
+
+    function FromYear(id, name, parid) {
+        setTimeout(function () {
+            var i = $("#" + id + "").val();
+            var end = 0;
+            end = parseInt(i) + parseInt(1);
+            $("#yearto_" + parid + "").empty();
+            $("#yearto_" + parid + "").append($('<option />').val(end).html(end));
+            $("#yearto_" + parid + "").attr("disabled", true);
+        }, 60);
+    }
+
+    function total() {
+
+        var add = 0;
+        $("#ParDetails td").find("input[name=intotal]:text").each(function () {
+
+            add += Number($(this).val());
+
+
+        });
+        $("#ParDetails td").find("input[name=inparamount]:text").each(function () {
+            add += Number($(this).val());
+
+        });
+        $("#para1").text("Grand Total : " + add);
+
+                                                                                                                        
+        $('#txtparamount_id').val(add);
+        var contper = $('#txtContigency_id').val();
+        var add1 = (((parseInt($('#txtparamount_id').val()) / 100) * parseInt(contper)) );
+        $('#txtContigencyamount_id').val(add1);
+        $("#txtparamount_id").val(add + add1);
+    }
+    function calll(id) {
+      
+        var tr = $(this).parents('tr:first');
+        var row = id;
+        var Expensex = $("#Expensex" + row.trim() + "").val();
+        var Department = $("#department" + row.trim() + "").val();
+        //  var Budgeted = $("#Budgeted" + row.trim() + "").val();
+        var Budgeted = $('input:radio[name=BudgetedEdit]:checked').val();
+        var description = $("#Description" + row.trim() + "").val();
+        var year = $("#Year" + row.trim() + "").val();
+        var year1 = $("#Year1" + row.trim() + "").val();
+        var amount = $("#Amount" + row.trim() + "").val();
+        //var remarks = $("#Remarks" + row.trim() + "").val();
+        var remarks = "";
+        if (Expensex == null || Expensex == "" || Expensex == 0 || Expensex == "Select") {
+            jAlert("Please Select Capex/Opex.", "Error");
+            return false;
+        }
+        //alert(Department);
+        if (Department == null || Department == "" || Department == 0 || Department == "Select") {
+            jAlert("Please Select Any Department.", "Error");
+            return false;
+        }
+
+        if (Budgeted == null || Budgeted == "" || Budgeted == 0 || Budgeted == "Select") {
+            //jAlert("Please Select Any Budgeted.", "Error");
+            //return false;
+            Budgeted = "Y";
+        }
+        if (description == null || description == "") {
+            jAlert("Please Enter Description.", "Error");
+            return false;
+        }
+        if (year == null || year == "" || year == "Select") {
+            jAlert("Please Enter Year.", "Error");
+            return false;
+        }
+        if (amount == null || amount == "" || amount == 0) {
+            jAlert("Please Select Amount", "Error");
+            return false;
+        }
+        //if (remarks == null || remarks == "") {
+        //    jAlert("Please Enter Remarks.", "Error");
+        //    return false;
+        //}
+        var UserModel =
+     {
+
+         "Expense": Expensex,
+         "Department": Department,
+         "Budgeted": Budgeted,
+         "Description": description,
+         "FromYear": year,
+         "ToYear": year1,
+         "ParAmount": amount,
+         "Remarks": remarks,
+
+     };
+        $.ajax({
+            url: "../ParRaiserEdit/ParSave/",
+            type: 'POST',
+            data: UserModel,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#pardetailsid").empty().append(data);
+                    jAlert("Inserted Successfully", "Message");
+                }
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+
+    }
+    function cancel(element) {
+        jConfirm("Are You Sure Want To Cancel", "Message", function (e) {
+            if (e == true) {
+                $(element).parents("tr").remove();
+            }
+        });
+    }
+    setTimeout(function () {
+
+        var i = (new Date().getFullYear());
+        var j = (new Date().getMonth());
+        if (j < 3)
+            i = i - 1;
+        var end = i + 20;
+        for (i  ; i < end; i++) {
+
+            $("#yearfrom").append($('<option />').val(i).html(i));
+        }
+    }, 60)
+    setTimeout(function () {
+        var i = (new Date().getFullYear());
+        var j = (new Date().getMonth());
+        if (j < 3)
+            i = i - 1;
+        var end = i + 20;
+        for (i  ; i < end; i++) {
+            $("#yearfrom").append($('<option />').val(i).html(i));
+        }
+    }, 60)
+
+
+    $(function () {
+        $('.add').on('click', function () {
+          
+            var existrow = $('.save-btn1').length;
+           
+            //debugger
+            if (existrow == 0) {
+                var index = $("#grid tbody tr").length + 1;
+                var Expensex = "Expensex" + index;
+                var Department = "department" + index;
+               // var Budgeted = "Budgeted" + index;
+                var Description = "Description" + index;
+                var year = "Year" + index;
+                var year1 = "Year1" + index;
+                var Amount = "Amount" + index;
+                var Remarks = "Remarks" + index;
+                var attach = "Attach_" + index;
+                var Save = "Save_" + index;
+                var Cancel = "Cancel_" + index;
+                $.ajax({
+                    url: '../ParRaiserEdit/GetRequestfor/',
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#" + Department + "").empty();
+                            $("#" + Department + "").append("<option value='Select' >Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + Department + "").append("<option value=" + data[i].requeestForGid + " >" + data[i].requestForName + "</option>");
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        jAlert("Something Wrong", "Error");
+                    }
+
+                });
+                setTimeout(function () {
+                    var i = (new Date().getFullYear());
+                    var j = (new Date().getMonth());
+                    if (j < 3)
+                        i = i - 1;
+                    var end = i + 20;
+                    for (i  ; i < end; i++) {
+                        $("#" + year + "").append($('<option />').val(i).html(i));
+                    }
+                }, 60)
+                setTimeout(function () {
+                    var i = (new Date().getFullYear());
+                    var j = (new Date().getMonth());
+                    if (j < 3)
+                        i = i - 1;
+                    var end = i + 20;
+                    for (i  ; i < end; i++) {
+                        $("#" + year1 + "").append($('<option />').val(i).html(i));
+                    }
+                }, 60)
+
+
+            //    var newRow = '<tr class="alternate-row"><td><span></span></td><td><span> <select id="' + Expensex + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="C">Capex</option><option value="O">Opex</option></select></span></td>' +
+            //     '<td style="MidColumn20"><span> <select id="' + Department + '" class="textboxStyleBig" name="ddluom"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+            //        '<td><span> <select id="' + Budgeted + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="Y">Yes</option><option value="N">NO</option></select></span></td>' +
+            //          '<td style="MidColumn20"><span> <input id="' + Description + '"   class="textboxStyleBig"  type="text" /></span></td>' +
+            //         '<td style="MidColumn50"><span><select id="' + year + '"  class="textboxStyleBig" name="' + index + '" style="display:block" onchange="date(id,name)">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+            //          '<td style="MidColumn50"><span><select id="' + year1 + '"  class="textboxStyleBig"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+            //          '<td style="MidColumn30"><span><input id="' + Amount + '"  class="textboxStyleBig" onchange="total()" name="intotal" onkeypress="return isNumber1(event, this);" type="text"/></span></td>' +
+            //          '<td style="MidColumn50"><span><input id="' + Remarks + '"   class="textboxStyleBig"  maxlength="256" type="text"/></span></td>' +
+            //          '<td style="MidColumn20"><span> <input type="button" value="Attach BOQ" class="btn btn-link" onclick="Newdocboq1(id)"  id="' + attach + '" title="BOQ" /></span></td>' +
+            //          '<td style="MidColumn20"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+                //'</tr>';
+
+                var newRow = '<tr class="alternate-row"><td style="width:4%;"><span></span></td><td style="width:9%;"><span> <select id="' + Expensex + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="C">Capex</option><option value="O">Opex</option></select></span></td>' +
+                  '<td style="width:9%;"><span> <select id="' + Department + '" class="textboxStyleBig" name="ddluom"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                    // '<td style="width:9%;"><span> <select id="' + Budgeted + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="Y">Yes</option><option value="N">No</option></select></span></td>' +
+                       '<td style="width:23%;"><span> <input id="' + Description + '"   class="textboxStyleBig"  type="text" /></span></td>' +
+                      '<td style="width:9%;"><span><select id="' + year + '"  class="textboxStyleBig" name="' + index + '" style="display:block" onchange="date(id,name)">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                       '<td style="width:9%;"><span><select id="' + year1 + '"  class="textboxStyleBig"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                       '<td style="width:12%;"><span><input id="' + Amount + '"  class="textboxStyleBig" onchange="total()" name="intotal" onkeypress="return isNumber1(event, this);" type="text"/></span></td>' +
+                       '<td style="width:9%;"><span> <input type="button" value="Attach Doc" class="btn btn-link" onclick="Newdocboq1(id,name,this)" name="0" id="' + attach + '" title="BOQ" /></span></td>' +
+                       '<td style="width:7%; text-align:center;"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+             '</tr>';
+                $("#ParDetails tbody").append(newRow);
+                $('#btnSave').removeAttr('disabled');
+            }
+            else {
+                jAlert("First Save Your Pervious record", "Message");
+            }
+
+        });
+
+        $('.edit ').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+
+        });
+        $('.delete-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var row = row.split(' ');
+
+            var deleteval = "";
+
+            if (row[1] == "" || row[1] == undefined || row[1] == row[0]) {
+                deleteval = { "ParGid": row[0] };
+
+            }
+            else {
+                deleteval = { "ParDetails_Gid": row[1] };
+            }
+
+            $.ajax({
+                url: "../ParRaiserEdit/DeletePar/",
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(deleteval),
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#pardetailsid").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        })
+        $('.save-btn').on('click', function () {
+
+         
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text().split(" ");
+           
+            var expense = $("#expense_" + row[2].trim() + "").val();
+            var departemt = $("#ddldepartment_" + row[2].trim() + "").val();
+            //  var budget = $("#Budgeted_" + row[2].trim() + "").val();
+            var budget = $('input:radio[name=BudgetedEdit]:checked').val();
+            var description = $("#txtDescription_" + row[2].trim() + "").val();
+            var yearfrom = tr.find("#yearfrom_" + row[2].trim() + "").val();
+            var yearto = tr.find("#yearto_" + row[2].trim() + "").val();
+            var amount = tr.find("#txtparamount_" + row[2].trim() + "").val();
+            //var remarks = tr.find("#txtremarks_" + row[2].trim() + "").val();
+            var remarks = "";
+
+            if (expense == null || expense == "" || expense == 0) {
+                //alert(expense);
+                jAlert("Please Select Expense.", "Error");
+                return false;
+            }
+            if (departemt == null || departemt == "" || departemt == 0) {
+                jAlert("Please Select Department.", "Error");
+                return false;
+            }
+
+            if (budget == null || budget == "" || budget == 0) {
+                //jAlert("Please Select Budgejrct", "Error");
+                //return false;
+                budget = "Y";
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+            if (yearfrom == null || yearfrom == "" || yearfrom == 0) {
+                jAlert("Please Enter Qty.", "Error");
+                return false;
+            }
+            if (yearto == null || yearto == "" || yearto == 0) {
+                jAlert("Please Enter Unit Amount.", "Error");
+                return false;
+            }
+
+            if (amount == null || amount == "" || amount == 0) {
+                jAlert("Total Amount Should Not Be Null", "Error");
+                return false;
+            }
+            //if (remarks == null || remarks == "") {
+            //    jAlert("Please Any Remarks.", "Error");
+            //    return false;
+            //}
+
+
+            $('.edit').hide();
+            var UserModel =
+            {
+                //"prdetails_gid": pargid,
+                "ParDetails_Gid": row[2].trim(),
+                "ParGid": row[1].trim(),
+                "Expense": expense,
+                "Department": departemt,
+                "Budgeted": budget,
+                "Description": description,
+                "FromYear": yearfrom,
+                "ToYear": yearto,
+                "ParAmount": amount,
+                "Remarks": remarks,
+
+
+
+            };
+            if (row[1] != "" && row[1] != "0") {
+                $.ajax({
+
+                    url: "../ParRaiserEdit/editparupdate/",
+                    type: 'POST',
+                    data: UserModel,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#pardetailsid").empty().append(data);
+                            jAlert("Updated Successfully", "Message");
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+
+                });
+            }
+            else {
+                $.ajax({
+
+                    url: "../ParRaiserEdit/ParSave/",
+                    type: 'POST',
+                    data: UserModel,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#pardetailsid").empty().append(data);
+                            jAlert("Inserted Successfully", "Message");
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+
+                });
+            }
+
+        });
+
+
+    });
+    function dummypar() {
+        function calll(id) {
+         
+            var tr = $(this).parents('tr:first');
+            var row = id;
+            var Expensex = $("#Expensex" + row.trim() + "").val();
+            var Department = $("#department" + row.trim() + "").val();
+            //var Budgeted = $("#Budgeted" + row.trim() + "").val();
+            var Budgeted = $('input:radio[name=BudgetedEdit]:checked').val();
+            var description = $("#Description" + row.trim() + "").val();
+            var year = $("#Year" + row.trim() + "").val();
+            var year1 = $("#Year1" + row.trim() + "").val();
+            var amount = $("#Amount" + row.trim() + "").val();
+            //var remarks = $("#Remarks" + row.trim() + "").val();
+            var remarks = "";
+            if (Expensex == null || Expensex == "" || Expensex == 0) {
+                jAlert("Please Select Capex/Opex.", "Error");
+                return false;
+            }
+            //alert(Department);
+            if (Department == null || Department == "" || Department == 0) {
+                jAlert("Please Select Any Department.", "Error");
+                return false;
+            }
+
+            if (Budgeted == null || Budgeted == "" || Budgeted == 0) {
+                //jAlert("Please Select Any Budgeted.", "Error");
+                //return false;
+                Budgeted = "Y";
+            }
+            if (description == null || description == "") {
+                jAlert("Please Enter Description.", "Error");
+                return false;
+            }
+            if (year == null || year == "") {
+                jAlert("Please Enter Year.", "Error");
+                return false;
+            }
+            if (amount == null || amount == "" || amount == 0) {
+                jAlert("Please Select Amount", "Error");
+                return false;
+            }
+            //if (remarks == null || remarks == "") {
+            //    jAlert("Please Enter Remarks.", "Error");
+            //    return false;
+            //}
+            var UserModel =
+         {
+
+             "Expense": Expensex,
+             "Department": Department,
+             "Budgeted": Budgeted,
+             "Description": description,
+             "FromYear": year,
+             "ToYear": year1,
+             "ParAmount": amount,
+             "Remarks": remarks,
+
+         };
+            $.ajax({
+                url: "../ParRaiserEdit/ParSave/",
+                type: 'POST',
+                data: UserModel,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error", function () {
+                            return false;
+                        });
+                        return false;
+                    }
+                    else {
+                        $("#pardetailsid").empty().append(data);
+                        jAlert("Inserted Successfully", "Message");
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+        }
+        function cancel(element) {
+            jConfirm("Are You Sure Want To Cancel", "Message", function (e) {
+                if (e == true) {
+                    $(element).parents("tr").remove();
+                }
+            });
+        }
+        $(function () {
+            $('.add').on('click', function () {
+             
+                var existrow = $('.save-btn1').length;
+              
+                //debugger
+                if (existrow == 0) {
+                    var index = $("#grid tbody tr").length + 1;
+                    var Expensex = "Expensex" + index;
+                    var Department = "department" + index;
+                 //   var Budgeted = "Budgeted" + index;
+                    var Description = "Description" + index;
+                    var year = "Year" + index;
+                    var year1 = "Year1" + index;
+                    var Amount = "Amount" + index;
+                    var Remarks = "Remarks" + index;
+                    var attach = "Attach_" + index;
+                    var Save = "Save_" + index;
+                    var Cancel = "Cancel_" + index;
+                    $.ajax({
+                        url: '../ParRaiserEdit/GetRequestfor/',
+                        data: '{}',
+                        type: 'POST',
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#" + Department + "").empty();
+                                $("#" + Department + "").append("<option value='Select' >Select</option>");
+                                for (var i = 0; i < data.length; i++) {
+                                    $("#" + Department + "").append("<option value=" + data[i].requeestForGid + " >" + data[i].requestForName + "</option>");
+                                }
+                            }
+                        },
+                        error: function (result) {
+                            jAlert("Something Wrong", "Error");
+                        }
+
+                    });
+                    setTimeout(function () {
+                        var i = (new Date().getFullYear());
+                        var j = (new Date().getMonth());
+                        if (j < 3)
+                            i = i - 1;
+                        var end = i + 20;
+                        for (i  ; i < end; i++) {
+                            $("#" + year + "").append($('<option />').val(i).html(i));
+                        }
+                    }, 60)
+                    setTimeout(function () {
+                        var i = (new Date().getFullYear());
+                        var j = (new Date().getMonth());
+                        if (j < 3)
+                            i = i - 1;
+                        var end = i + 20;
+                        for (i  ; i < end; i++) {
+                            $("#" + year1 + "").append($('<option />').val(i).html(i));
+                        }
+                    }, 60)
+
+
+                //    var newRow = '<tr class="alternate-row"><td><span></span></td><td><span> <select id="' + Expensex + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="C">Capex</option><option value="O">Opex</option></select></span></td>' +
+                //     '<td style="MidColumn20"><span> <select id="' + Department + '" class="textboxStyleBig" name="ddluom"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                //        '<td><span> <select id="' + Budgeted + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="Y">Yes</option><option value="N">NO</option></select></span></td>' +
+                //          '<td style="MidColumn20"><span> <input id="' + Description + '"   class="textboxStyleBig"  type="text" /></span></td>' +
+                //         '<td style="MidColumn50"><span><select id="' + year + '"  class="textboxStyleBig" name="' + index + '" style="display:block" onchange="date(id,name)">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                //          '<td style="MidColumn50"><span><select id="' + year1 + '"  class="textboxStyleBig"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                //          '<td style="MidColumn20"><span><input id="' + Amount + '"  class="textboxStyleBig" onchange="total()" name="intotal" onkeypress="return isNumber1(event, this);" type="text"/></span></td>' +
+                //          '<td style="MidColumn20"><span><input id="' + Remarks + '"   class="textboxStyleBig"  maxlength="256" type="text"/></span></td>' +
+                //          '<td style="MidColumn20"><span> <input type="button" value="Attach BOQ" class="btn btn-link" onclick="Newdocboq1(id)"  id="' + attach + '" title="BOQ" /></span></td>' +
+                //          '<td style="MidColumn20"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+                    //'</tr>';
+
+                    var newRow = '<tr class="alternate-row"><td style="width:4%;"><span></span></td><td style="width:9%;"><span> <select id="' + Expensex + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="C">Capex</option><option value="O">Opex</option></select></span></td>' +
+                  '<td style="width:9%;"><span> <select id="' + Department + '" class="textboxStyleBig" name="ddluom"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                  //   '<td style="width:9%;"><span> <select id="' + Budgeted + '" title="' + index + '" class="textboxStyleBig" name="txtstatus" style="display:block;"><option value="Select">Select</option><option value="Y">Yes</option><option value="N">No</option></select></span></td>' +
+                       '<td style="width:23%;"><span> <input id="' + Description + '"   class="textboxStyleBig"  type="text" /></span></td>' +
+                      '<td style="width:9%;"><span><select id="' + year + '"  class="textboxStyleBig" name="' + index + '" style="display:block" onchange="date(id,name)">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                       '<td style="width:9%;"><span><select id="' + year1 + '"  class="textboxStyleBig"  style="display:block">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                       '<td style="width:12%;"><span><input id="' + Amount + '"  class="textboxStyleBig" onchange="total()" name="intotal" onkeypress="return isNumber1(event, this);" type="text"/></span></td>' +
+                       '<td style="width:9%;"><span> <input type="button" value="Attach Doc" class="btn btn-link" onclick="Newdocboq1(id,name,this)" name="0"  id="' + attach + '" title="BOQ" /></span></td>' +
+                       '<td style="width:7%;  text-align:center;"><a class="edit save-btn1" id="' + index + '" onclick="calll(id)" ><span class="glyphicon glyphicon-floppy-save " style="cursor:pointer;" title="Save"></span> </a><b class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn"  style="cursor:pointer;" title="Cancel"></b></td>' +
+
+             '</tr>';
+                    $("#ParDetails tbody").append(newRow);
+                    $('#btnSave').removeAttr('disabled');
+                }
+                else {
+                    jAlert("First Save Your Pervious record", "Message");
+                }
+
+            });
+
+            $('.edit ').hide();
+            $('.edit-btn, .cancel-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+
+            });
+
+            $('.delete-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var row = row.split(' ');
+
+                var deleteval = "";
+
+                if (row[1] == "" || row[1] == undefined || row[1] == row[0]) {
+                    deleteval = { "ParGid": row[0] };
+
+                }
+                else {
+                    deleteval = { "ParDetails_Gid": row[1] };
+                }
+
+                $.ajax({
+                    url: "../ParRaiserEdit/DeletePar/",
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(deleteval),
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error", function () {
+                                return false;
+                            });
+                            return false;
+                        }
+                        else {
+                            $("#pardetailsid").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+            })
+            $('.save-btn').on('click', function () {
+
+              
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text().split(" ");
+
+
+                var expense = $("#expense_" + row[2].trim() + "").val();
+                var departemt = $("#ddldepartment_" + row[2].trim() + "").val();
+                //  var budget = $("#Budgeted_" + row[2].trim() + "").val();
+                var budget = $('input:radio[name=BudgetedEdit]:checked').val();
+                var description = $("#txtDescription_" + row[2].trim() + "").val();
+                var yearfrom = tr.find("#yearfrom_" + row[2].trim() + "").val();
+                var yearto = tr.find("#yearto_" + row[2].trim() + "").val();
+                var amount = tr.find("#txtparamount_" + row[2].trim() + "").val();
+                //var remarks = tr.find("#txtremarks_" + row[2].trim() + "").val();
+                var remarks = "";
+
+                if (expense == null || expense == "" || expense == 0) {
+                    //alert(expense);
+                    jAlert("Please Select Expense.", "Error");
+                    return false;
+                }
+                if (departemt == null || departemt == "" || departemt == 0) {
+                    jAlert("Please Select Department.", "Error");
+                    return false;
+                }
+
+                if (budget == null || budget == "" || budget == 0) {
+                    //jAlert("Please Select Budgejrct", "Error");
+                    //return false;
+                    budget = "Y";
+                }
+                if (description == null || description == "") {
+                    jAlert("Please Enter Description.", "Error");
+                    return false;
+                }
+                if (yearfrom == null || yearfrom == "" || yearfrom == 0) {
+                    jAlert("Please Enter Qty.", "Error");
+                    return false;
+                }
+                if (yearto == null || yearto == "" || yearto == 0) {
+                    jAlert("Please Enter Unit Amount.", "Error");
+                    return false;
+                }
+
+                if (amount == null || amount == "" || amount == 0) {
+                    jAlert("Total Amount Should Not Be Null", "Error");
+                    return false;
+                }
+                //if (remarks == null || remarks == "") {
+                //    jAlert("Please Any Remarks.", "Error");
+                //    return false;
+                //}
+
+
+                $('.edit').hide();
+                var UserModel =
+                {
+                    //"prdetails_gid": pargid,
+                    "ParDetails_Gid": row[2].trim(),
+                    "ParGid": row[1].trim(),
+                    "Expense": expense,
+                    "Department": departemt,
+                    "Budgeted": budget,
+                    "Description": description,
+                    "FromYear": yearfrom,
+                    "ToYear": yearto,
+                    "ParAmount": amount,
+                    "Remarks": remarks,
+
+
+
+                };
+                if (row[1] != "" && row[1] != "0") {
+                    $.ajax({
+
+                        url: "../ParRaiserEdit/editparupdate/",
+                        type: 'POST',
+                        data: UserModel,
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#pardetailsid").empty().append(data);
+                                jAlert("Updated Successfully", "Message");
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+
+                    });
+                }
+                else {
+                    $.ajax({
+
+                        url: "../ParRaiserEdit/ParSave/",
+                        type: 'POST',
+                        data: UserModel,
+                        success: function (data) {
+                            if (data == 0) {
+                                jAlert("Error Occured", "Error", function () {
+                                    return false;
+                                });
+                                return false;
+                            }
+                            else {
+                                $("#pardetailsid").empty().append(data);
+                                jAlert("Inserted Successfully", "Message");
+                            }
+                        },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+
+
+                    });
+                }
+            });
+        });
+    }
+</script>

@@ -1,0 +1,41 @@
+﻿@model IEM.Areas.IFAMS.Models.AssetSplitModel
+@using IEM.Areas.IFAMS.Models
+@using IEM.Common
+@{
+    AssetSplitModel objaudit = new AssetSplitModel();
+    IfamsSplitDataModel_M suditmodel = new IfamsSplitDataModel_M();
+    objaudit.assetdetId = Convert.ToInt32(Session["AssetId"].ToString());
+    if (objaudit.assetdetId != 0)
+    {
+        Model.auditTrailLst = suditmodel.spPopulateAuditTrail(objaudit);
+    }
+    objaudit.auditTrailLst = Model.auditTrailLst;
+    var auditGrid = new WebGrid(source: Model.auditTrailLst, canSort: false, canPage: false, ajaxUpdateContainerId: "saauditTrail", ajaxUpdateCallback: "saauditTrailLst()");
+    CmnFunctions objcmnFunctions = new CmnFunctions();
+}
+<div>
+    <div>
+        @auditGrid.GetHtml(
+                          htmlAttributes: new { id = "sawgridDashboard" },
+                                   tableStyle: "tableSmall table-bordered aligncenter",
+                                   columns:
+                                   auditGrid.Columns(
+                                   auditGrid.Column(header: "S.No", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(
+                                   auditGrid.TotalRowCount / auditGrid.PageCount) / auditGrid.RowsPerPage) * auditGrid.RowsPerPage * auditGrid.PageIndex),
+                                   auditGrid.Column("employee_code", "Employee ID-Name"),
+                                   auditGrid.Column("action_date", "Action Date"),
+                                   auditGrid.Column("queue_to_type", "Approval Stage"),
+                                   auditGrid.Column("action_status", "Status"),
+                                   auditGrid.Column("action_remarks", "Remarks")
+                                   ))
+        <div class="table-bordered btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+        @*<span class="myTableStyleTabNew">  Total No Of Records:@Model.auditTrailLst.Count</span>*@
+    </div>
+</div>
+
+<script>
+    $('#spidtab2').text('@Model.auditTrailLst.Count')
+</script>
+

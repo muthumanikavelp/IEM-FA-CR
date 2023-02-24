@@ -1,0 +1,698 @@
+﻿@model IEM.Areas.MASTERS.Models.CustomerContactDetails
+@using IEM.Common
+@using IEM.Areas.MASTERS.Models
+<div id="c1">
+    @{
+        CustmerDetail_DataModel dm = new CustmerDetail_DataModel();
+        CustomerContactDetails cd = new CustomerContactDetails();
+
+        cd.lstAddressType = new SelectList(dm.GetAddressType(), "_AddressTypeID", "_AddressTypeName");
+        cd.lstPincode = new SelectList(dm.GetPincode(), "PincodeID", "Pincode");
+        cd.lstCountry = new SelectList(dm.GetCountry(), "_CountryID", "_CountryName");
+        //cd.lstState = new SelectList(dm.GetAllState(), "_StateID", "_StateName");
+        //cd.lstCity = new SelectList(dm.GetAllCity(), "_CityID", "_CityName");
+
+        //cd.lstState = new SelectList(Enumerable.Empty<SelectListItem>());
+        //cd.lstCity = new SelectList(Enumerable.Empty<SelectListItem>());
+        cd.lstState = new SelectList(dm.GetAllState(), "_StateID", "_StateName");
+        cd.lstCity = new SelectList(dm.GetAllCity(), "_CityID", "_CityName");
+        cd.lstDistrict = new SelectList(dm.GetAllDistrict(), "_DistrictID", "_DistrictName");
+
+    }
+
+    <div id="c2">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:20%;">
+                    <input type="hidden" id="SessionCustomerContactGid" name="SessionCustomerContactGid" />
+                    <span>Address Type</span><br />
+                    @Html.DropDownListFor(j => j.selectedAddressTypeID, cd.lstAddressType, "--select--", new { @class = "textboxStyle", @id = "selectedAddressTypeID" })
+                </td>
+                <td colspan="3" style="width:60%">
+                    <span>Address (Address Proof Should Match With Provided Address)</span><br />
+                    <input type="text" name="_Address1" id="_Address1" class="textboxStyle"  />
+                </td>
+                @*<td>
+                        <span>Address 2</span><br />
+                        <input type="text" name="_Address2" id="_Address2" class="textboxStyle" value="@cd._Address2" />
+                    </td>
+                    <td>
+                        <span>Address 3</span><br />
+                        <input type="text" name="_Address3" id="_Address3" class="textboxStyle" value="@cd._Address3" />
+                    </td>*@
+                <td style="width:20%;">
+                    <span>Pin Code</span><br />
+                    @*<input type="text" name="_PinCode" id="_PinCode" class="textboxStyle" />*@
+                    @Html.DropDownListFor(j => j.selectedPincodeID, cd.lstPincode, "--select--", new { @class = "fstextbox  chosen-select", @id = "_PinCode", @name = "_PinCode" })
+                </td>
+
+            </tr>
+            <tr>
+                <td style="width:20%;">
+                    <span>Country</span><br />
+                    @Html.DropDownListFor(j => j.selectedCountryID, cd.lstCountry, "--select--", new { @class = "textboxStyle", @id = "selectedCountryID" })
+                </td>
+                <td style="width:20%;">
+                    <span>State</span><br />
+                    @Html.DropDownListFor(j => j.selectedStateID, cd.lstState, "--select--", new { @class = "textboxStyle", @id = "selectedStateID" })
+                </td>
+                <td style="width:20%;">
+                    <span>City</span><br />
+                    @Html.DropDownListFor(j => j.selectedCityID, cd.lstCity, "--select--", new { @class = "textboxStyle", @id = "selectedCityID1" })
+                </td>
+                <td style="width:20%;">
+                    <span>Phone No</span><br />
+                    <input type="text" name="_PhoneNo" id="_PhoneNo" class="textboxStyle" />
+                </td>
+                <td style="width:20%;">
+                    <span>Fax</span><br />
+                    <input type="text" name="_Fax" id="_Fax" class="textboxStyle" />
+                </td>
+            </tr>
+            <tr>
+                <td style="width:20%;">
+                    <span>District</span><br />
+                    @Html.DropDownListFor(j => j.selectedDistrictID, cd.lstDistrict, "--select--", new { @class = "textboxStyle", @id = "selectedDistrictID1", @name = "selectedDistrictID1" })
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5" style="text-align:right; width:100%;">
+                    <button onclick="SaveContactDetails()" id="btnSaveContactDetails" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-floppy-disk"></span> Save</button>
+                    <button id="btnClearContactDetails" onclick="ClearContactDetails()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //debugger;
+        var viewfor = '@ViewBag.viewfor';
+        if (viewfor == "view")
+        {
+            $("#btnSaveContactDetails").hide();
+            $("#btnClearContactDetails").hide();
+        }
+        else
+        {
+            $("#btnSaveContactDetails").show();
+            $("#btnClearContactDetails").show();
+        }
+
+        $("#SessionCustomerContactGid").val("0");
+
+        $("#selectedAddressTypeID,#selectedCountryID,#selectedStateID,#selectedCityID1,#selectedDistrictID1").chosen({});
+        $("#selectedAddressTypeID_chosen,#selectedCountryID_chosen,#selectedStateID_chosen,#selectedCityID1_chosen,#selectedDistrictID1_chosen").css("width", "99%");
+
+        $("#_PinCode").chosen({});
+
+        $("#_PinCode_chosen").addClass("mychosen").css('width', '99%');
+
+        $("#_PhoneNo").keypress(function (event) {
+            return isPhoneNumber(event);
+        });
+        $("#_PinCode").keypress(function (event) {
+            return isNumber(event, this);
+        });
+        $("#_Address1").keypress(function (event) {
+            return isExceptTwoSplChars(event);
+        });
+        $("#_Fax").keypress(function (event) {
+            return isAlphaNumeric(event);
+        });
+        $("#_Address1").css('text-transform', 'uppercase');
+        $("#_Fax").css('text-transform', 'uppercase');
+
+
+        $("#selectedAddressTypeID_chosen").addClass('required');
+        $("#selectedCountryID_chosen").addClass('required');
+        $("#selectedStateID_chosen").addClass('required');
+        $("#selectedCityID1_chosen").addClass('required');
+        $("#selectedDistrictID1_chosen").addClass('required');
+        $("#_Address1").addClass('required');
+        $("#_PinCode").addClass('required');
+
+        $("#_Address1").attr("maxlength", "256");
+       // $("#_Address2").attr("maxlength", "128");
+       // $("#_Address3").attr("maxlength", "128");
+        $("#_PhoneNo").attr("maxlength", "12");
+        $("#_Fax").attr("maxlength", "16");
+        $("#_PinCode").attr("maxlength", "6");
+
+        if ($("#selectedAddressTypeID").val().trim() != "") {
+            $("#selectedAddressTypeID_chosen").removeClass('required');
+            $("#selectedAddressTypeID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedAddressTypeID_chosen").removeClass('valid');
+            $("#selectedAddressTypeID_chosen").addClass('required');
+        }
+        if ($("#selectedCountryID").val().trim() != "") {
+            $("#selectedCountryID_chosen").removeClass('required');
+            $("#selectedCountryID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedCountryID_chosen").removeClass('valid');
+            $("#selectedCountryID_chosen").addClass('required');
+        }
+        if ($("#selectedStateID").val().trim() != "") {
+            $("#selectedStateID_chosen").removeClass('required');
+            $("#selectedStateID_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedStateID_chosen").removeClass('valid');
+            $("#selectedStateID_chosen").addClass('required');
+        }
+        if ($("#selectedCityID1").val().trim() != "") {
+            $("#selectedCityID1_chosen").removeClass('required');
+            $("#selectedCityID1_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedCityID1_chosen").removeClass('valid');
+            $("#selectedCityID1_chosen").addClass('required');
+        }
+        //Pandiaraj District dropdown add
+        if ($("#selectedDistrictID1").val().trim() != "") {
+            $("#selectedDistrictID1_chosen").removeClass('required');
+            $("#selectedDistrictID1_chosen").addClass('valid');
+        }
+        else {
+            $("#selectedDistrictID1_chosen").removeClass('valid');
+            $("#selectedDistrictID1_chosen").addClass('required');
+        }
+        if ($("#_Address1").val().trim() != "") {
+            $("#_Address1").removeClass('required');
+            $("#_Address1").addClass('valid');
+        }
+        else {
+            $("#_Address1").removeClass('valid');
+            $("#_Address1").addClass('required');
+        }
+        if ($("#_PinCode").val().trim() != "") {
+            $("#_PinCode_chosen").removeClass('required');
+            $("#_PinCode_chosen").addClass('valid');
+        }
+        else {
+            $("#_PinCode_chosen").removeClass('valid');
+            $("#_PinCode_chosen").addClass('required');
+        }
+
+
+        $("#selectedAddressTypeID").change(function () {
+            var txtval = $("#selectedAddressTypeID").val();
+            if (txtval.trim() != "") {
+                $("#selectedAddressTypeID_chosen").removeClass('required');
+                $("#selectedAddressTypeID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedAddressTypeID_chosen").removeClass('valid');
+                $("#selectedAddressTypeID_chosen").addClass('required');
+            }
+            //IsMandatoryContactDetails(this);
+        });
+        $("#selectedCountryID").change(function () {
+            //IsMandatoryContactDetails(this);
+            var txtval = $("#selectedCountryID").val();
+            if (txtval.trim() != "") {
+                $("#selectedCountryID_chosen").removeClass('required');
+                $("#selectedCountryID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedCountryID_chosen").removeClass('valid');
+                $("#selectedCountryID_chosen").addClass('required');
+            }
+        });
+        $("#selectedStateID").change(function () {
+            //IsMandatoryContactDetails(this);
+            var txtval = $("#selectedStateID").val();
+            if (txtval.trim() != "") {
+                $("#selectedStateID_chosen").removeClass('required');
+                $("#selectedStateID_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedStateID_chosen").removeClass('valid');
+                $("#selectedStateID_chosen").addClass('required');
+            }
+        });
+        $("#selectedCityID1").change(function () {
+            //IsMandatoryContactDetails(this);
+            var txtval = $("#selectedCityID1").val();
+            if (txtval.trim() != "") {
+                $("#selectedCityID1_chosen").removeClass('required');
+                $("#selectedCityID1_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedCityID1_chosen").removeClass('valid');
+                $("#selectedCityID1_chosen").addClass('required');
+            }
+        });
+
+        //Pandiaraj District Add
+        $("#selectedDistrictID1").change(function () {
+            //IsMandatoryContactDetails(this);
+            var txtval = $("#selectedDistrictID1").val();
+            if (txtval.trim() != "") {
+                $("#selectedDistrictID1_chosen").removeClass('required');
+                $("#selectedDistrictID1_chosen").addClass('valid');
+            }
+            else {
+                $("#selectedDistrictID1_chosen").removeClass('valid');
+                $("#selectedDistrictID1_chosen").addClass('required');
+            }
+        });
+        $("#_PinCode").change(function () {
+            debugger;
+            //IsMandatoryContactDetails(this);
+            var txtval = $("#_PinCode").val();
+            if (txtval.trim() != "") {
+                $("#_PinCode_chosen").removeClass('required');
+                $("#_PinCode_chosen").addClass('valid');
+                $("#selectedCountryID_chosen").removeClass('required');
+                $("#selectedCountryID_chosen").addClass('valid');
+                $("#selectedStateID_chosen").removeClass('required');
+                $("#selectedStateID_chosen").addClass('valid');
+                $("#selectedDistrictID1_chosen").removeClass('required');
+                $("#selectedDistrictID1_chosen").addClass('valid');
+            }
+            else {
+                $("#_PinCode_chosen").removeClass('valid');
+                $("#_PinCode_chosen").addClass('required');
+                $("#selectedCountryID_chosen").removeClass('valid');
+                $("#selectedCountryID_chosen").addClass('required');
+                $("#selectedStateID_chosen").removeClass('valid');
+                $("#selectedStateID_chosen").addClass('required');
+                $("#selectedDistrictID1_chosen").removeClass('valid');
+                $("#selectedDistrictID1_chosen").addClass('required');
+            }
+        });
+        $("#_Address1").keyup(function () {
+            IsMandatoryContactDetails(this);
+        });
+        $("#_PinCode").keyup(function () {
+            IsMandatoryContactDetails(this);
+        });
+
+    });
+
+    function IsMandatoryContactDetails(element) {
+        var txtval = $(element).val();
+        if (txtval.trim() != "") {
+            $(element).removeClass('required');
+            $(element).addClass('valid');
+        }
+        else {
+            $(element).removeClass('valid');
+            $(element).addClass('required');
+        }
+    }
+    $("#selectedCountryID").change(function () {
+        var CountryID = $(this).val();
+        var objCustContact =
+       {
+           "selectedCountryID": CountryID
+       };
+        $.ajax({
+            url: '@Url.Action("GetState", "IEM_CUSTOMERDETAIL")',
+            data: JSON.stringify(objCustContact),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedStateID").empty();
+                if (data.length > 0) {
+                    $("#selectedStateID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+                        //$('#selectedStateID').attr('disabled', false);
+                        IsDiableState(false);
+                        $("#selectedStateID").append("<option value=" + data[i]._StateID + " >" + data[i]._StateName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                    $("#selectedStateID").empty();
+                    $("#selectedStateID").append("<option value='0' >--Select--</option>");
+                    //$('#selectedStateID').val('0');
+
+                    //$('#selectedStateID').attr('disabled', true);
+                    IsDiableState(true);
+                    //$('#selectedCityID1').val('0');
+                    //$('#selectedCityID1').attr('disabled', true);
+                    $("#selectedCityID1").empty();
+                    $("#selectedCityID1").append("<option value='0' >--Select--</option>");
+                    IsDiableCity(true);
+                    $('#selectedCityID1').trigger("chosen:updated");
+                }
+                $('#selectedStateID').trigger("chosen:updated");
+            },
+            error: function (result) {
+                jAlert("Something went wrong","Error");
+            }
+        });
+    });
+    $("#selectedStateID").change(function () {
+        var StateID = $(this).val();
+        var CountryID = $("#selectedCountryID").val();
+        var objCustContact =
+       {
+           "selectedStateID": StateID,
+           "selectedCountryID":CountryID
+       };
+      //  setTimeout(function () {
+            $.ajax({
+                url: '@Url.Action("GetCity", "IEM_CUSTOMERDETAIL")',
+                data: JSON.stringify(objCustContact),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $("#selectedCityID1").empty();
+                    if (data.length > 0) {
+                        $("#selectedCityID1").append("<option value='0' >--Select--</option>");
+                        for (var i = 0; i < data.length; i++) {
+                            //$('#selectedCityID1').attr('disabled', false);
+                            IsDiableCity(false);
+                            $("#selectedCityID1").append("<option value=" + data[i]._CityID + " >" + data[i]._CityName + "</option>");
+                        }
+                    }
+
+                    if (data.length == 0) {
+                        $("#selectedCityID1").empty();
+                        $("#selectedCityID1").append("<option value='0' >--Select--</option>");
+                        //$('#selectedCityID1').val('0');
+                        //$('#selectedCityID1').attr('disabled', true);
+                        IsDiableCity(true);
+                    }
+                    $('#selectedCityID1').trigger("chosen:updated");
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+       // },20);
+
+
+    });
+
+    function IsDiableCity(value) {
+        if (value == true) {
+            $('#selectedCityID1').data('chosen').search_field_disabled();
+            $('#selectedCityID1').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedCityID1').removeAttr('disabled');
+            $('#selectedCityID1').trigger("chosen:updated");
+        }
+    }
+
+    //Pandairaj district add
+    function IsDiableDistrict(value) {
+        if (value == true) {
+            $('#selectedDistrictID1').data('chosen').search_field_disabled();
+            $('#selectedDistrictID1').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedDistrictID1').removeAttr('disabled');
+            $('#selectedDistrictID1').trigger("chosen:updated");
+        }
+    }
+
+    function IsDiableState(value) {
+        if (value == true) {
+            $('#selectedStateID').data('chosen').search_field_disabled();
+            $('#selectedStateID').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#selectedStateID').removeAttr('disabled');
+            $('#selectedStateID').trigger("chosen:updated");
+        }
+    }
+    function SaveContactDetails() {
+        debugger;
+        var AddressType = $("#selectedAddressTypeID").val();
+        var Address1 = $("#_Address1").val();
+       // var Address2 = $("#_Address2").val();
+        // var Address3 = $("#_Address3").val();
+         var Address2 = "";
+        var Address3 = "";
+        var PinCodes = $("#_PinCode option:selected").text();
+        var txtpincodes = $("#_PinCode").val();
+        var CountryID = $("#selectedCountryID").val();
+        var StateID = $("#selectedStateID").val();
+        var CityID = $("#selectedCityID1").val();
+        var DIstrictID = $("#selectedDistrictID1").val();
+        var PhoneNo = $("#_PhoneNo").val();
+        var Fax = $("#_Fax").val();
+        var ids = parseInt($("#SessionCustomerContactGid").val());
+
+        //if ($("#SessionCustomerGid").val() == null || $("#SessionCustomerGid").val() == 0)
+        //{
+        //    jalert("Customer Header Details incomplete", "Error");
+        //        $('#tabs').tabs('select', 0);
+             
+        //    return false;
+        //}
+
+        if ($.trim(AddressType) == "0" || $.trim(AddressType) == "") {
+            jAlert("Please Select Address Type.", "Error", function () {
+                $("#selectedAddressTypeID").focus();
+            });
+            return false;
+        }
+        if ($.trim(txtpincodes) == null || $.trim(txtpincodes) == "") {
+            jAlert("Please Enter Pincode.", "Error", function () {
+                $("#_PinCode").focus();
+            });
+            return false;
+        }
+        else {
+            var pin_code = $.trim(PinCodes).toString();
+            // pin_code = parseInt(pin_code);
+
+            if ((pin_code.length) < 6) {
+                jAlert("Pin Code Length Should be 6 Digits.", "Error", function () {
+                    $("#_PinCode").focus();
+                });
+                return false;
+            }
+            else if (parseInt(pin_code) == 0) {
+                jAlert("Please Enter Valid Pin Code.", "Error", function () {
+                    $("#_PinCode").focus();
+                });
+                return false;
+            }
+        }
+        if ($.trim(CountryID) == "0" || $.trim(CountryID) == "") {
+            jAlert("Please Select Country.", "Error", function () {
+                $("#selectedCountryID").focus();
+            });
+            return false;
+        }
+        if ($.trim(StateID) == "0" || $.trim(StateID) == "") {
+            jAlert("Please Select State.", "Error", function () {
+                $("#selectedStateID").focus();
+            });
+            return false;
+        }
+        if ($.trim(CityID) == "0" || $.trim(CityID) == "") {
+            jAlert("Please Select City.", "Error", function () {
+                $("#selectedCityID1").focus();
+            });
+            return false;
+        }
+        if ($.trim(DIstrictID) == "0" || $.trim(DIstrictID) == "") {
+            jAlert("Please Select District.", "Error", function () {
+                $("#selectedDistrictID1").focus();
+            });
+            return false;
+        }
+        if ($.trim(Address1) == null || $.trim(Address1) == "") {
+            jAlert("Please Enter Address1.", "Error", function () {
+                $("#_Address1").focus();
+            });
+            return false;
+        }
+        else {
+            Address1 = Address1.toUpperCase();
+        }
+
+        if (Fax != "" && Fax != null) {
+            Fax = Fax.toUpperCase();
+        }
+        //bharathi 
+        var objContactDetails = {
+            "_CustContactDetailsID": ids,
+            "selectedAddressTypeID": AddressType,
+            "_Address1": Address1,
+            "_Address2": Address2,
+            "_Address3": Address3,
+            "_PinCode": PinCodes,
+            "selectedCountryID": CountryID,
+            "selectedStateID": StateID,
+            "selectedCityID": CityID,
+            "selectedDistrictID": DIstrictID,
+            "_PhoneNo": PhoneNo,
+            "_Fax": Fax
+        };
+
+        if (ids == 0) {
+            $.post("../IEM_CUSTOMERDETAIL/CreateContactDetails", objContactDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    ClearContactDetails();
+                    jAlert("Successfully Inserted", "success"); $("#SessionCustomerContactGid").val("0");
+                    $("#ForContactDetails").load("../IEM_CUSTOMERDETAIL/ContactDetailsIndex?" + new Date().getTime());
+                    $("#tabs").tabs("enable", 2);
+                    $("#btnClearHeader").prop("disabled", true);
+                }
+            },'json' );
+
+        }
+        else {
+            $.post("../IEM_CUSTOMERDETAIL/EditContactDetailsSave", objContactDetails, function (data) {
+                if (data == 0) { location = location.href; } else {
+                    ClearContactDetails();
+                    jAlert("Successfully Updated", "success"); $("#SessionCustomerContactGid").val("0");
+                    $("#ForContactDetails").load("../IEM_CUSTOMERDETAIL/ContactDetailsIndex?" + new Date().getTime());
+                    $("#tabs").tabs( "enable", 2 );
+                    $("#btnClearHeader").prop("disabled", true);
+                }
+            }, 'json');
+        }
+    }
+    function ClearContactDetails() {
+        $("#SessionCustomerContactGid").val("0");
+        $("#selectedAddressTypeID").val("").trigger('chosen:updated');
+        $("#_PinCode").val("").trigger('chosen:updated');
+        // $("#selectedCityID1").text = "";
+        $("#selectedCityID1").val("").trigger('chosen:updated');
+        $("#selectedCountryID").val("").trigger('chosen:updated');
+        $("#_Address1").val("");
+      //  $("#_Address2").val("");
+      //  $("#_Address3").val("");
+        $("#_PinCode").val("");
+        $("#_PhoneNo").val("");
+        $("#_Fax").val("");
+        $("select[id$=selectedStateID] > option").remove();
+        $("#selectedStateID").append("<option value='0' >--Select--</option>");
+        $("#selectedStateID").trigger("chosen:updated");
+
+        $("select[id$=selectedDistrictID1] > option").remove();
+        $("#selectedDistrictID1").append("<option value='0' >--Select--</option>");
+        $("#selectedDistrictID1").trigger("chosen:updated");
+        $("#selectedAddressTypeID").focus();
+
+        $("#selectedAddressTypeID_chosen").removeClass('valid');
+        $("#selectedCountryID_chosen").removeClass('valid');
+        $("#selectedStateID_chosen").removeClass('valid');
+        $("#selectedCityID1_chosen").removeClass('valid');
+        $("#selectedDistrictID1_chosen").removeClass('valid');
+        $("#_Address1").removeClass('valid');
+        $("#_PinCode_chosen").removeClass('valid');
+
+        $("#selectedAddressTypeID_chosen").addClass('required');
+        $("#selectedCountryID_chosen").addClass('required');
+        $("#selectedStateID_chosen").addClass('required');
+        $("#selectedCityID1_chosen").addClass('required');
+        $("#selectedDistrictID1_chosen").addClass('required');
+        $("#_Address1").addClass('required');
+        $("#_PinCode_chosen").addClass('required');
+    }
+    function SearchContactDetails() {
+        var AddressType = $("#selectedAddressTypeID").val();
+        var Address1 = $("#_Address1").val();
+      //  var Address2 = $("#_Address2").val();
+      //  var Address3 = $("#_Address3").val();
+        var PinCode = $("#_PinCode").val();
+        var CountryID = $("#selectedCountryID").val();
+        var StateID = $("#selectedStateID").val();
+        var CityID = $("#selectedCityID1").val();
+        var DistrictID = $("#selectedDistrictID1").val();
+        var PhoneNo = $("#_PhoneNo").val();
+        var Fax = $("#_Fax").val();
+        var ids = parseInt($("#SessionCustomerContactGid").val());
+
+        var objContactDetails = {
+            "_CustContactDetailsID": ids,
+            "selectedAddressTypeID": AddressType,
+            "_Address1": Address1,
+            "_PinCode": PinCode,
+            "selectedCountryID": CountryID,
+            "selectedStateID": StateID,
+            "selectedCityID1": CityID,
+            "selectedDistrictID1": DistrictID,
+            "_PhoneNo": PhoneNo,
+            "_Fax": Fax
+        };
+        $.post("../IEM_CUSTOMERDETAIL/SearchContactDetails", objContactDetails, function (data) {
+            if (data == 0) { location = location.href; } else {
+                $("#SessionCustomerContactGid").val("0");
+                $("#ForContactDetails").load("../IEM_CUSTOMERDETAIL/ContactDetailsIndex?" + new Date().getTime());
+            }
+            }, 'json');
+    }
+</script>
+<script type="text/javascript">
+    function checkpin() {
+        var element = document.getElementById("selectedCountryID");
+        //  var pinlist = (element.options[element.selectedIndex].text).split(',');
+        var pinlist = (document.getElementById("selectedCountryID").value).split(',');
+
+        document.getElementById("txtCity").value = "";
+        document.getElementById("txtState").value = "";
+        document.getElementById("txtCountry").value = "";
+
+
+        var district = pinlist[0];
+        var state = pinlist[1];
+        var gsttin = pinlist[2];
+        var pincode_code = element.value;
+
+        document.getElementById("txtCity").value = district;
+        document.getElementById("txtState").value = state;
+        document.getElementById("txtCountry").value = gsttin;
+
+    }
+
+
+    $("#_PinCode").change(function () {
+        debugger;
+        var CountryID = $(this).val();
+        var objCustContact =
+       {
+           "_PinCode": CountryID
+       };
+        $.ajax({
+            url: '@Url.Action("Getcitylists", "IEM_CUSTOMERDETAIL")',
+            data: JSON.stringify(objCustContact),
+            type: 'POST',
+            async: false,
+            cache: false,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#selectedCountryID").empty();
+                $("#selectedStateID").empty();
+                $("#selectedDistrictID1").empty();
+
+                if (data.length > 0) {
+                    //$("#selectedStateID").append("<option value='0' >--Select--</option>");
+                    for (var i = 0; i < data.length; i++) {
+
+                        //$('#selectedStateID').attr('disabled', false);
+                        IsDiableState(false);
+                        $("#selectedCountryID").append("<option value=" + data[i]._CountryID + " >" + data[i]._CountryName + "</option>");
+                        $("#selectedStateID").append("<option value=" + data[i]._StateID + " >" + data[i]._StateName + "</option>");
+                        $("#selectedDistrictID1").append("<option value=" + data[i]._DistrictID + " >" + data[i]._DistrictName + "</option>");
+                    }
+                }
+
+                if (data.length == 0) {
+                }
+                $('#selectedCountryID').trigger("chosen:updated");
+                $('#selectedStateID').trigger("chosen:updated");
+                $('#selectedDistrictID1').trigger("chosen:updated");
+            },
+            error: function (result) {
+                alert(result);
+                jAlert("Something went wrong", "Error");
+            }
+        });
+    });
+</script>

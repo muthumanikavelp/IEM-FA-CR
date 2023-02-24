@@ -1,0 +1,54 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_Payment>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<upcommingApprover> lstaHistory = new List<upcommingApprover>();
+    lstaHistory = (List<upcommingApprover>)TempData["SearchItems"];
+    if (lstaHistory == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstaHistory = objd.Getupcommingapp(Session["QueueGide"].ToString(), "login").ToList();
+    }
+    if (lstaHistory.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgaHistory">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridaHistory = new WebGrid(lstaHistory, canSort: false, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgaHistory", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+
+    <div>
+        <div class="overflowy">
+            <div style="max-height: 350px;">
+                @gridaHistory.GetHtml(
+                                          htmlAttributes: new { id = "wgaHistory" },
+                                          tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                       gridaHistory.Columns(gridaHistory.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                       gridaHistory.Column("empcode", objCmnFunctions.Sorter("empcode", " Code", gridaHistory), canSort: false),
+                       gridaHistory.Column("empname", objCmnFunctions.Sorter("empname", " Name", gridaHistory), canSort: false)))
+
+            </div>
+        </div>
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    @ViewBag.NoRecordsFoundPayment
+                </center>
+            </div>
+        }
+
+    </div>
+
+</div>

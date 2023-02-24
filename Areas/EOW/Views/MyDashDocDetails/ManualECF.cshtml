@@ -1,0 +1,192 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/angular.min.js"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#txtctprint").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: '-id',
+        });
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Manual ECF Details</span>
+</div>
+<div class="well" style="padding: 10px 10px 0px 5px;">
+    <div align="right" style="padding-bottom: 7px;">
+        <button type="button" id="btnInvoiceattmt" value="New Invoice Attachment" onclick="addnewmanualecf()" class="btn btn-primary">
+            <span style="color:white;font-size: 12px;" class="glyphicon glyphicon-plus"></span> New Manual ECF
+        </button>
+    </div>
+    <div ng-app="myApp">
+        <div ng-controller="PageCtrl">
+            <div ng-controller="PageCtrl">
+                <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;font-family:Tahoma;">
+                    <thead style="width:100%;">
+                        <tr>
+                            <th class="thfix" style="display:none;">
+                                ecf Gid
+                            </th>
+                            <th class="thfix" style="width:4%;">
+                                S.No
+                            </th>
+                            <th class="thfix" style="width:9.5%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'DocDate'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Date
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'DocDate' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'DocDate' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Select ECF Date " id="txtctprint" type="text" class="textboxStyle" ng-model="search.DocDate">
+                            </th>
+                            <th class="thfix" style="width:10%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'Docamount'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Amount
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'Docamount' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'Docamount' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter ECF Amount " type="text" class="textboxStyle" ng-model="search.Docamount">
+                            </th>
+                            <th class="thfix" style="width:15%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'raiserName'; sortReversemyreq = !sortReversemyreq">
+                                    ECF Raiser
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'raiserName' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'raiserName' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter ECF Raiser Name " type="text" class="textboxStyle" ng-model="search.raiserName">
+                            </th>
+                            <th class="thfix" style="width:25%;">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'emporsupp'; sortReversemyreq = !sortReversemyreq">
+                                    Supplier Name
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'emporsupp' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'emporsupp' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter Supplier Name " type="text" class="textboxStyle" ng-model="search.emporsupp">
+                            </th>
+
+                            <th class="thfix">
+                                <a style="text-decoration: none;" href="#" ng-click="sortTypemyreq = 'ecfdescription'; sortReversemyreq = !sortReversemyreq">
+                                    Description
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ecfdescription' && !sortReversemyreq" class="glyphicon glyphicon-chevron-down"></span>
+                                    <span style="font-size: 12px;color:white;" ng-show="sortTypemyreq == 'ecfdescription' && sortReversemyreq" class="glyphicon glyphicon-chevron-up"></span>
+                                </a>
+                                <br />
+                                <input title="Enter ECF Description " type="text" class="textboxStyle" ng-model="search.ecfdescription">
+                            </th>
+                            <th class="thfix" style="width:11.2%;">Action</th>
+                        </tr>
+                    </thead>
+                </table>
+                <div style="height: 540px;overflow-y: scroll;">
+                    <table class="tableSmall table-bordered table-hover table-responsive tablefix" style="width:100%;table-layout: fixed;font-family:Tahoma;">
+                        <tbody ng-show="filtered.length!=0" ng-repeat="item in filtered = items| orderBy:sortTypemyreq:sortReversemyreq | filter:search | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit" style="width:100%;">
+                            <tr>
+                                <td class="tdfix" style="display:none;">
+                                    {{item.Docnogid}}
+                                </td>
+                                <td class="tdfix" style=" width:4%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td title="{{item.DocDate}}" class="tdfix" style=" width:9.63%;overflow: hidden;">
+                                    <span> {{item.DocDate}}</span>
+                                </td>
+                                <td title="{{item.Docamount}}" class="tdfix" style=" width:10.2%;overflow: hidden;">
+                                    <span> {{item.Docamount}}</span>
+                                </td>
+                                <td title="{{item.raiserName}}" class="tdfix" style=" width:15.25%;overflow: hidden;">
+                                    <span> {{item.raiserName}}</span>
+                                </td>
+                                <td title="{{item.emporsupp}}" class="tdfix" style=" width:25.4%;overflow: hidden;">
+                                    <span> {{item.emporsupp}}</span>
+                                </td>
+                                <td title="{{item.ecfdescription}}" class="tdfix" style="overflow: hidden;">
+                                    <span> {{item.ecfdescription}}</span>
+                                </td>
+                                <td class="tdfix" style="width:10%;" align="center">
+                                    <a id="idselect" onclick="SelectDoc(this)" title="Select">
+                                        <span class="glyphicon glyphicon-new-window"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot ng-show="filtered.length==0">
+                            <tr>
+                                <td colspan="8" style="text-align:left;"><div class="gridMessage" style="width:100%; border:none;"><center>No Records Found</center></div></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div ng-show="filtered.length>0">
+                    <table style="width:100%;">
+                        <tr>
+                            <td style="padding-left:10px" align="left"> <div class="gridCount" style="text-align:left; font-size:14px;">Total Records : {{totalItems}}  of {{filtered.length}}</div></td>
+                            <td align="right">
+                                <pagination total-items="totalItems"
+                                            ng-model="currentPage"
+                                            page="currentPage"
+                                            max-size="noofsetpages"
+                                            boundary-links="true"
+                                            items-per-page="entryLimit" class="pagination-sm" style="cursor:pointer;">
+                                </pagination>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var app = angular.module('myApp', ['ui.bootstrap']);
+    app.filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
+        };
+    });
+
+    app.controller('PageCtrl', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+        $http.get("../MyDashDocDetails/ToGetmanualecfquery?" + new Date().getTime())
+     .then(function (response) {
+         $scope.items = response.data.qrylist;
+         $scope.search = {};
+         $scope.resetFilters = function () {
+             $scope.search = {};
+         };
+         $scope.currentPage = 1;
+         $scope.totalItems = $scope.items.length;
+         $scope.entryLimit = 50;
+         $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+         $scope.noofsetpages = 5;
+         $scope.$watch('search', function (newVal, oldVal) {
+             $scope.filtered = filterFilter($scope.items, newVal);
+             $scope.totalItems = $scope.filtered.length;
+             $scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+             $scope.currentPage = 1;
+             $scope.noofsetpages = 5;
+         }, true);
+     });
+    }]);
+    function addnewmanualecf() {
+        window.location.href = '@Url.Action("index", "SupplierInvoiceNewmanual")?' + new Date().getTime();
+    }
+    function SelectDoc(element) {
+        var row = $(element).closest('tr');
+        var ecfnum = row.find('td:eq(0)').text();
+        ecfnum = ecfnum.toString().trim();
+        location.href = '@Url.Action("selectdatadraft", "DashBoard")?id=' + ecfnum + '&' + new Date().getTime();
+    }
+</script>

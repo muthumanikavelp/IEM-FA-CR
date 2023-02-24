@@ -1,0 +1,211 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.cbfselection
+@using IEM.Common;
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.cbfsummary, canSort: true, canPage: true, rowsPerPage: 5,
+        ajaxUpdateContainerId: "grid");
+    // int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+}
+<input type="hidden" id="hid_groupit" value="@Model.result" />
+<style>
+    .forsearch {
+        border: none;
+        box-shadow: none;
+        font-size: 1.7em;
+        background-color: rgb(245, 245, 245);
+    }
+</style>
+<h2>@*CBF Selection*@</h2>
+
+   <b> <span style="color: rgb(52, 108, 196);">CBF Selection</span></b>
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="myTableStyleTabNew" style="margin-left:15px;">
+                    <tr>
+                        <td>
+                            <span>CBF Number</span>
+                            <br />
+                            <input type="text"
+                                   name="cbfno"
+                                   id="cbfno"
+                                   value="@ViewBag.cbfno"
+                                   class="textboxStyle"
+                                   @*placeholder="Enter CBF Number"*@ />
+
+                        </td>
+                        <td>
+                            <span>CBF Date</span>
+                            <br />
+                            <input type="text"
+                                   name="cbfdate"
+                                   id="cbfdate"
+                                   value="@ViewBag.cbfdate"
+                                   class="textboxStyle"
+                                   @*placeholder="Enter CBF Date"*@ />
+                        </td>
+                        <td>
+                            <span>CBF End Date</span>
+                            <br />
+                            <input type="text"
+                                   name="cbfenddate"
+                                   id="cbfenddate"
+                                   value="@ViewBag.cbfenddate"
+                                   class="textboxStyle"
+                                   @*placeholder="Enter CBF End Date"*@ />
+                        </td>
+                        <td>
+                            <span>Department</span>
+                            <br />
+                            <select name="ddldepartment" id="statusgid" style="width: 150px;" class="textboxStyle">
+                                <option value="0">Select</option>
+                                @foreach (var pitem in Model.requestlist)
+                                {
+                                    var childitemfilter = Model.requestlist.Where(m => m.Value == pitem.Value);
+                                    if (childitemfilter != null)
+                                    {
+                                        foreach (var citem in childitemfilter)
+                                        {
+                                            string selectedValue = "";
+                                            if (Model.requestforgid == Convert.ToInt32(citem.Value))
+                                            {
+                                                selectedValue = "selected='selected'";
+                                            }
+
+                                            <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            @*@Html.DropDownList("requestforgid", Model.requestlist, "--Select--", new { @class = "textboxStyleSearch", @style = "width:180px" })*@
+                        </td>
+                        <td>
+                            @*<span class="glyphicon glyphicon-search" onclick="searchpo()"></span>*@
+                            @*<button class="glyphicon glyphicon-search forsearch" name="command" type="submit"></button>*@
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <span> </span>
+                            <br />
+                            <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                                <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                            </button>
+                            @*<a id="btnrefresh" onclick="refresh()"><span class="glyphicon glyphicon-refresh cursorpointer" style="font-size:1.9em;margin-top:10px;" title="Refresh"></span></a>*@
+                        </td>
+                    </tr>
+                </table>
+                <input type="hidden" style="display:none" id="department" />
+            </div>
+        </div>
+        <div style="margin-top:17px" id="pogrid1" class="container-fluid overflowx overflowy">
+            <div>
+
+                @grid.GetHtml(
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "cbfselection" },
+        columns: grid.Columns
+            (
+                    grid.Column("slno", obj.Sorter("slno", "Sl", grid)),
+                    grid.Column("cbfmode", obj.Sorter("cbfmode", "CBF Mode", grid), style: "MidColumn20"),
+                    grid.Column("regularlater", obj.Sorter("regularlater", "CBF Type", grid), style: "MidColumn20"),
+                    grid.Column("cbfno", obj.Sorter("cbfno", "CBF No", grid)),
+                    grid.Column("cbfdate", obj.Sorter("cbfdate", "CBF Date", grid), style: "MidColumn20"),
+                    grid.Column("cbfEnddate", obj.Sorter("cbfEnddate", "CBF End Date", grid), style: "MidColumn20"),
+                    grid.Column("department", obj.Sorter("department", "Department", grid)),
+                    grid.Column("finconBudget", obj.Sorter("finconBudget", "Fincon Budgeted", grid)),
+                    grid.Column("projectowner", obj.Sorter("projectowner", "Project Owner", grid), style: "MidColumn30"),
+                    grid.Column("cbfamount", obj.Sorter("cbfamount", "CBF Amount", grid), style: "amountright"),
+                    grid.Column("deviationamount", obj.Sorter("deviationamount", "Deviation Amount", grid), style: "amountright"),
+                    grid.Column("status", obj.Sorter("status", "Status", grid), style: "MidColumn20"),
+                    grid.Column("description", obj.Sorter("description", "Description", grid), style: "MidColumn50"),
+                    grid.Column(header: "Action", canSort: false, style: "action MidColumn5",
+                     format: @<text>
+                        @*<input type="checkbox" href="@item.cbfheadgid" style="color:rgb(94, 177, 246)" value="@item.cbfheadgid"
+                            class="btn btn-link" name="ids"  onchange="samplefunction(value)"
+                            id="chk_id_@item.cbfheadgid" title="@item.department" />*@
+                        <input type="button" value="Select" class="btn btn-link" onclick="samplefunction(@item.cbfheadgid,@item.cbfamount)" id="btn" title="Select" />
+                    </text>)))
+            </div>
+
+            @if (@ViewBag.records != null || @ViewBag.records == "")
+            {
+                <div class="borderStyle btnCenter">
+                    @ViewBag.records
+                </div>
+            }
+        </div>
+        <div>
+            <div id="grid_cbfdetails">
+                <div id="cbfdetailsgrid">
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <div id="ForBoqAttach"></div>
+    <input type="hidden" id="hid_boq" />
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".btn-link").removeProp('checked');
+        $("#cbfdate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+        $("#cbfenddate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy'
+        });
+
+        var tr = $("#cbfselection").find('tr');
+        $("#cbfselection tr #btn").click(function () {
+            $('#cbfselection').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+        $("#hid_boq").val("");
+    });
+    function samplefunction(value, cbfamount) {
+        var objcbf =
+         {
+             "cbfheadgid": value,
+             "cbfamount": cbfamount
+         };
+        $.ajax({
+            url: '../cbfselection/cbfdetails/?' + new Date().getTime(),
+            type: 'POST',
+            cache: false,
+            data: objcbf,
+            success: function (data) {
+                if (data == 0)
+                {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+
+                    //$("#cbfdetailsgrid").empty().append(data);
+                    $("#cbfdetailsgrid").load('../cbfselection/cbfdetails/?' + new Date().getTime());
+                }
+
+            },
+            error: function () {
+                alert("something seems wrong");
+            }
+        });
+    }
+</script>

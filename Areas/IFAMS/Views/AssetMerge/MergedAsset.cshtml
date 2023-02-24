@@ -1,0 +1,160 @@
+﻿@using IEM.Areas.IFAMS.Models;
+@using IEM.Common;
+@model IEM.Areas.IFAMS.Models.AssetParentModel
+
+@{
+    ViewBag.Title = "MergeSearch";
+    CmnFunctions obj = new CmnFunctions();
+
+
+    List<AssetParentModel> OldMergedAssets = new List<AssetParentModel>();
+    IfamsAssetMergeDataModel objmodel = new IfamsAssetMergeDataModel();
+    string[] Assetgid = (string[])Session["CheckedIds"];
+    OldMergedAssets = objmodel.OldMergedAsset(Assetgid);
+    var grid = new WebGrid(
+                        source: OldMergedAssets,
+                          canPage: false,
+                          canSort: false,
+                          ajaxUpdateContainerId: "grid"
+                        );
+    int id = @grid.PageIndex;
+
+    int rowVal = 0;
+}
+
+
+
+<div id="Mergeddata">
+
+    @grid.GetHtml(
+                        fillEmptyRows: false,
+                        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        htmlAttributes: new { id = "merge" },
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns(
+                                 grid.Column(header: "", format: item => rowVal = rowVal + 1),
+                                 grid.Column("AssetId", obj.Sorter("AssetId", "Asset ID", grid), style: "MidColumns10"),
+                                 grid.Column("AssetCatName", obj.Sorter("AssetCatName", "Asset Category Name", grid), style: "MidColumns10"),
+                                 grid.Column("AssetSubCode", obj.Sorter("AssetSubCode", "Asset Sub-Category Code", grid), style: "MidColumns10"),
+                                 grid.Column("AssetDes", obj.Sorter("AssetDes", "Asset Sub-Category Name", grid), style: "MidColumns10"),
+                                 grid.Column("Location", obj.Sorter("Location", "Location", grid), style: "MidColumns10"),
+                                 grid.Column("MAssetValue", obj.Sorter("MAssetValue", "Original Value", grid), style: "MidColumns10")
+                                 ))
+
+    <br />
+    <b> <span class="myTableStyleTabNew">  Total No Of Records:@OldMergedAssets.Count</span></b>
+
+</div>
+
+
+@{
+
+
+    IfamsAssetMergeDataModel obj1 = new IfamsAssetMergeDataModel();
+    string AssetId = (string)HttpContext.Current.Session["NewAssetId"];
+    List<AssetParentModel> NewMergedAssets = new List<AssetParentModel>();
+    NewMergedAssets = obj1.NewAsset(AssetId);
+    var grid1 = new WebGrid(
+                       source: NewMergedAssets,
+                         canSort: false, canPage: false, ajaxUpdateContainerId: "auditTrail", ajaxUpdateCallback: "auditTrailLst()"
+                       );
+    int id1 = @grid1.PageIndex;
+
+    int rowVal1 = 0;
+}
+<div>
+    <div>
+        @grid1.GetHtml(
+fillEmptyRows: false,
+   tableStyle: "tableSmall table-bordered aligncenter",
+mode: WebGridPagerModes.All,
+columns: grid1.Columns(
+         grid1.Column(header: "S.No", format: item => rowVal1 = rowVal1 + 1),
+         grid1.Column("AssetId", "New AssetID", style: "MidColumns10"),
+         grid1.Column("AssetCatName", "Asset Category Name", style: "MidColumns10"),
+         grid1.Column("AssetSubCode", "AAsset Sub-Category Code", style: "MidColumns10"),
+         grid1.Column("AssetDes", "Asset Sub-Category Name", style: "MidColumns10"),
+         grid1.Column("Location", "Location", style: "MidColumns10"),
+         grid1.Column("MAssetValue", "Original Value", style: "MidColumns10")
+                           ))
+
+
+        <br />
+        <b> <span class="myTableStyleTabNew">  Total No Of Records:@NewMergedAssets.Count</span></b>
+
+    </div>
+
+</div>
+
+<table align="center">
+    <tr>
+        <td align="center">
+            
+                    <button type="button" name="command" id="CloseMerged" class="btn backbtn btn-warning"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"> Back</span></button>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    var NewAssetID = '@HttpContext.Current.Session["NewAssetId"]';
+    $(document).ready(function () {
+
+
+
+
+        // var command = $("#SEARCH").val();
+        //var AssetId = $("#txtgroupid").val();
+
+        var command = $("#SEARCH").val();
+        var AssetId = $("#txtgroupid").val();
+
+        var objownersearch =
+            {
+                "AssetId": AssetId,
+                "command": command
+            };
+
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("MergeSearchGroupId", "AssetMerge")?'+new Date().getTime(),
+            data: objownersearch,
+            success: function (data) {
+
+                $("#MergeSearch").empty().append(data);
+
+                $('#btnMerging').prop('disabled', false);
+
+                $("#checkableGrid th").each(function () {
+
+                    if ($.trim($(this).text().toString().toLowerCase()) == "{checkall}") {
+                        $(this).text('');
+                        $("<input/>", { type: "checkbox", id: "cbSelectAll", value: "" }).appendTo($(this));
+                        $(this).append("Select All");
+                    }
+
+                });
+
+            },
+            error: function () {
+            }
+
+        });
+
+
+
+
+    });
+
+    $("#CloseMerged").on('click', function () {
+
+        window.parent.jQuery('#MergedAssetPartial').dialog('close');
+        //location = '../AssetMerge/AssetMerging';
+    });
+
+
+
+</script>
+
+
+
+

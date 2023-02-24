@@ -1,0 +1,151 @@
+﻿@model IEM.Areas.MASTERS.Models.BudgetOwner
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lListBudgOwner, canSort: false, canPage: false);
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Budget Owner</span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div id="budgetownergrid" class="well">
+        <table class="myTableStyleTabNew" width="100%">
+            <tr>
+                <td style="width:20%">
+                    <span>Budget Owner Name</span>
+                    <br />
+                    <input type="text"
+                           name="budgetownername"
+                           value="@ViewBag.budgetownername"
+                           class="fstextbox" />
+                </td>
+                <td style="width:60%">
+                    <button class="btn btn-primary" id="btnsearch" value="search" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                    <button class="btn btn-primary" id="btnClear" value="Clear" onclick="BudgetOwnerRefresh()" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Clear</button>
+                    <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                    </button>
+                </td>
+                <td style="width:20%; text-align:right;">
+                    <button type="button" value="New Budget Owner" onclick="NewbudgetOwner()" class="btn btn-primary cursorpointer" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-plus cursorpointer"></span> New Budget Owner</button>
+                </td>
+            </tr>
+        </table>
+
+        <div class="table-responsive" id="gridload" style="margin-top:10px;">
+            @grid.GetHtml(
+        tableStyle: "tableSmall table-bordered table-hover",
+        htmlAttributes: new { id = "budgetgrid" },
+        columns: grid.Columns
+            (
+             grid.Column("SlNo", "SNo", style: "slno"),
+             grid.Column("BudgOwner", "Budget Owner"),
+             grid.Column(header: "Action", style: "slno",
+             format: @<text>
+                <a><span id="Color" class="glyphicon glyphicon-trash" title="Delete" onclick="DeleteBudgOwner(@item.BudgetOwnergid)"></span></a>
+             </text>)))
+        </div>
+    </div>
+}
+<div id="budgetownerPartial"></div>
+
+<script type="text/javascript">
+    var objDialog1;
+    $(document).ready(function () {
+        objDialogbudget = $("[id$='budgetownerPartial']");
+        objDialogbudget.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 455,
+            height: 220
+        });
+
+        $('#budgetgrid tr th:nth-child(3)').addClass("nosort");
+        $('#budgetgrid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+    });
+    function NewbudgetOwner() {
+        objDialogbudget.load('../FbBudgetOwner/Create');
+        objDialogbudget.dialog({ title: 'Add Budget Owner ' });
+        objDialogbudget.dialog("open");
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "FbBudgetOwner")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=BudgetOwner&' + new Date().getTime());
+    }
+    function DeleteBudgOwner(id) {
+            jConfirm("Do you want to Delete Budget Owner?", "Message", function (e) {
+                if(e==true)
+                {
+                    var objDeleteID =
+                    {
+                        "BudgetOwnergid": id
+                    }
+                    $.post('../FbBudgetOwner/Delete', objDeleteID,
+                         function (data) {
+                             if (data == 0)
+                             {
+                                 location = location.href;
+                             }
+                             else
+                             {if(data.BudgetOwnergid !=0){
+                                 jAlert("Already Used this Budget Owner,You cannot able to delete!.", "Message")
+                             }
+                             else {
+                                 jAlert("Record Deleted Successfully", "Message", function (e) {
+                                     if (e == true) {
+                                         location = '../FbBudgetOwner/Index';
+                                     }
+                                 });
+                             }
+                             }
+                             }, 'json');
+                         
+                }
+            });
+    }
+
+    //var tr = $("#budgetgrid").find('tr');
+    //$("#budgetgrid tr #Color").click(function () {
+    //    $('#budgetgrid').find('tr').css('background', 'none');
+    //    $(this).closest('tr').css('background', '#CEECF5');
+    //});
+    //function DeleteBudgOwner(id) {
+    //    jConfirm("Do you want to Delete Budget Owner?", "Confirm", function (e) {
+    //        if(e==true)
+    //        {
+    //            var objDeleteID =
+    //            {
+    //                "BudgetOwnergid": id
+    //            }
+    //            $.post('../FbBudgetOwner/Delete', objDeleteID,
+    //                 function (data) {
+    //                     if (data == 0)
+    //                     {
+    //                         location = location.href;
+    //                     }
+    //                     else
+    //                     {
+    //                         jAlert("Record Deleted Successfully","Message",function(e){
+    //                             if (e == true)
+    //                             {
+    //                                 location = '../FbBudgetOwner/Index';
+    //                             }
+    //                         });
+    //                     }
+    //                 }, 'json');
+    //        }
+    //    });
+    //}
+    function BudgetOwnerRefresh() {
+        location = '../FbBudgetOwner/Index';
+    }
+</script>

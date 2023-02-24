@@ -1,0 +1,413 @@
+﻿@using System.Configuration
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IEM</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+    <link href="~/Content/jQuery.alert.css" rel="stylesheet" />
+    <link href="~/Content/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Content/timeout-dialog.css" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/jqsimplemenu.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+    <script src="@Url.Content("~/Scripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>
+    <script src="~/Scripts/asms/commonvalidation.js"></script>
+    <script src="~/Scripts/asms/jQuery.alert.js"></script>
+    <script src="~/Scripts/asms/ErrorMessages.js"></script>
+    <script src="~/Scripts/asms/timeout-dialog.js"></script>
+    <script src="~/Scripts/RMScript/knockout-3.3.0.js"></script>
+    <script src="~/Scripts/RMScript/knockout-3.3.0.debug.js"></script>
+    <script src="~/Scripts/RMScript/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" language="javascript">
+           @{
+               string Newpath = HttpContext.Current.Request.Url.AbsolutePath;
+               Uri urlreferrer = HttpContext.Current.Request.UrlReferrer;
+
+               ViewBag.Path = Newpath;
+               ViewBag.urlreferrer = urlreferrer;
+
+           }
+
+        function CheckingURLReferrer() {
+            //alert(2);
+            debugger;
+            @*  //uncomment in production
+             var CurrentURL = "@ViewBag.Path";
+            var URLRefferrer = "@ViewBag.urlreferrer";
+            if (CurrentURL.toString().toLowerCase().includes('/eow/') == true && URLRefferrer == "") {
+                window.stop();
+
+                alert('Browser URL modification/Editing are restricted!!!');
+                location = '@Url.Action("Index", "Dashboard", new { area = "Dashboard" })';
+
+                }   *@
+        }
+
+        CheckingURLReferrer();
+
+        function Timer() {
+            var _displayTimeInMiliSec = (@Session.Timeout -1) * 600000;
+            setTimeout(TimeOut, _displayTimeInMiliSec);
+        }
+        function TimeOut() {
+            $.timeoutDialog({
+                timeout: 1,
+                countdown: 60,
+                keep_alive_url: window.location.pathname,
+                logout_redirect_url: '/SessionTimeOut/Index',
+                restart_on_yes: true
+            });
+        }
+        function noBack() { window.history.forward() }
+        noBack();
+        window.onload = noBack;
+        window.onpageshow = function (evt) { if (evt.persisted) noBack() }
+        window.onunload = function () { void (0) }
+
+        function UpdateEmpFlag() {
+
+            var empcode = "";
+            var objEmprelease = {
+                "_EmployeeCode": empcode
+            };
+
+            $.ajax({
+                url: '/IEM/Masters/ReleaseEmp/UpdateEmpRelease',
+                data: JSON.stringify(objEmprelease),
+                type: 'POST',
+                async: false,
+                cache: false,
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    jAlert("Successfully Logged Out", "Success");
+                },
+                error: function (result) {
+                    jAlert("Something went wrong", "Error");
+                }
+            });
+
+        }
+
+        //session
+        var clicked = false;
+        function CheckBrowser() {
+            if (clicked == false) {
+                //Browser closed
+            } else {
+                //redirected
+                clicked = false;
+            }
+        }
+        function bodyUnload() {
+            if (clicked == false)//browser is closed
+            {
+                window.localStorage.previousurlflag = "-1";
+                var request = GetRequest();
+                request.open("POST", '/SessionTimeOut/BrowserClose', false);
+                request.send();
+            }
+        }
+
+        function GetRequest() {
+            var xmlhttp;
+            if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp = new XMLHttpRequest();
+            }
+            else {// code for IE6, IE5
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            return xmlhttp;
+        }
+        var spinnerVisible = false;
+
+        function showProgress() {
+            if (!spinnerVisible) {
+                $("div#spinner").fadeIn("fast");
+                spinnerVisible = true;
+            }
+        }
+        function hideProgress() {
+            if (spinnerVisible) {
+                var spinner = $("div#spinner");
+                spinner.stop();
+                spinner.fadeOut("fast");
+                spinnerVisible = false;
+            }
+        }
+
+    </script>
+
+    <style type="text/css">
+        div#spinner {
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+            position: fixed;
+            display: block;
+            opacity: 0.6;
+            background: #aaaaaa url('~/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png');
+            z-index: 1006;
+            text-align: center;
+            display: none;
+            filter: Alpha(Opacity=30); /*{opacityOverlay}*/
+        }
+
+            div#spinner img {
+                position: absolute;
+                /*width:100px;
+           height:100px;*/
+                top: 40%;
+                left: 42%;
+                opacity: 4.5;
+                z-index: 1007;
+            }
+
+            div#spinner span {
+                font-family: Arial Tahoma;
+                font-size: large;
+                font-weight: bold;
+                opacity: 4.5;
+                margin-top: 100px;
+                color: white;
+            }
+    </style>
+
+
+</head>
+<body onunload="bodyUnload();" onclick="clicked=true;" style="background-color:#EEF0F2">
+    @*Pandiaraj 01/01/2018 Anti Forgery TOken*@
+    @*@functions{*@
+    @*public string GetAntiForgeryToken()
+            {
+                string cookieToken, formToken;
+                AntiForgery.GetTokens(null, out cookieToken, out formToken);
+                string token = cookieToken + ":" + formToken;
+                //HttpContext.Current.Session["token"] = token;
+                // Response.Cookies["RequestVerificationToken"].Value = token;
+                return token;
+            }
+        }*@
+    @*<input type="hidden" id="Request" style="display:none" value="@GetAntiForgeryToken()" />*@
+
+    @*onload="Timer()"*@
+    <header>
+        <div id="spinner">
+            <img src="~/Content/images/spinner.gif" /> <br /><span>Please Wait...</span>
+        </div>
+        <div class="HeaderTop">
+            <table style="width:100%;background-color:#EEF0F2;">
+                <tr>
+                    @*<td style="width:30%;">
+                            <div class="HeaderImgLeft">
+                                <img src="~/Content/images/flexicode_logo.jpg" />
+
+                            </div>
+                        </td>*@
+                    <td style="width:30%;">
+                        <div class="HeaderImgLeft">
+                            <img src="~/Content/images/Fullerton.png" style="margin-top:-9px;margin-left:10px; height:45px;" />
+                        </div>
+                    </td>
+                    @*<td style="width:30%;">
+                            <div class="HeaderModule">
+                                IEM
+                            </div>
+                        </td>*@
+                    <td style="width:30%;">
+                        <div class="HeaderImgRight">
+
+                            <img src="~/Content/images/IEM-LOGO.png" width="150" height="60" style="margin-top:-14px;text-align:right;" />
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            @*@if (Session["login"] == "No")
+                {
+
+                }*@
+
+
+        </div>
+        @*<div class="HeaderLine"></div>*@
+        @*<nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+
+                </div>
+                <div class="collapse navbar-collapse" id="myNavbar">*@
+        @if (Session["login"] == "No")
+        {
+            ViewBag.loginmode = "1";
+            <div class="HeaderMenu">
+                <div style="float:left;width:100%;background-color:#7C6A55;color:white;">
+                    @Html.Partial("MenuNew")
+
+                </div>
+
+                @*<br />*@
+            </div>
+        }
+        @*<br />*@
+
+            @*</div>
+                    </div>
+                </nav>*@
+            <div class="HeaderLineBottom">
+
+            </div>
+
+        </header>
+        @Scripts.Render("~/bundles/jqueryval", "~/Scripts/bootstrap-datepicker.js", "~/Scripts/jqsimplemenu.js")
+        <div id="body" onkeydown="return (event.keyCode != 116)" class="container-fluid">
+            <div>
+                @RenderSection("featured", required: false)
+                @*<div>
+                       @Html.MvcSiteMap().SiteMapPath()
+                    </div>*@
+                <div style="margin-bottom:40px;">
+                    <section class="content-wrapper main-content clear-fix">
+                        @RenderBody()
+                    </section>
+                </div>
+            </div>
+            <footer>
+                <div class="footerstyle">
+                    <center>
+                        <p>
+                            &copy; @DateTime.Now.Year -
+                            <img src="~/Content/images/flexicode_logo.jpg" style="height:25px;" />
+                        </p>
+
+                    </center>
+                    <div style="width:20px;">
+                        <marquee onmouseover="this.stop();" onmouseout="this.start();" direction="left" scrolldelay="4" scrollamount="2" behavior="scroll">
+                            <a href="#">Contact EPU For Support</a>
+                        </marquee>
+                    </div>
+                </div>
+
+            </footer>
+
+            @RenderSection("scripts", required: false)
+        </div>
+        <div id="divLayoutPopup"></div>
+
+        <form id="antiForgeryForm">
+            @Html.AntiForgeryToken()
+        </form>
+    </body>
+
+</html>
+<script type="text/javascript">
+    //$(document).ready(function () {
+    //
+    //var antiForgeryToken = $('#Request').val();//document.getElementById('Request').childNodes[1].value;
+    //alert(antiForgeryToken);
+    //$http.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+    //});
+    $(document).ready(function () {
+
+
+        var md = '@ViewBag.loginmode';
+        if ($.trim(md) != "1") {
+            location = "/IEM/LoginPage/empLoginPage";
+        }
+        else {
+            $('.menu').jqsimplemenu();
+        }
+
+        //debugger
+        var token = document.getElementById('antiForgeryForm').childNodes[1].value;
+        //debugger
+        $.ajaxSetup({
+            cache: false,
+            headers: { "__RequestVerificationToken": token }
+        });
+    });
+
+    $(document).ready(function () {
+        document.onkeypress = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+
+            else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I
+                return false;
+            }
+        }
+        document.onmousedown = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+            else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I
+                return false;
+            }
+        }
+        document.onkeydown = function (event) {
+            event = (event || window.event);
+            if (event.keyCode == 123) {
+                return false;
+            }
+            else if (event.ctrlKey && event.shiftKey && event.keyCode == 73) { // Prevent Ctrl+Shift+I
+                return false;
+            }
+        }
+
+
+        //Disable cut copy paste
+        //$('body').bind('cut copy paste', function (e) {
+        //    e.preventDefault();
+        //});
+
+        //Disable mouse right click
+        $("body").on("contextmenu", function (e) {
+            return false;
+        });
+
+    });
+
+</script>
+
+@*// For text Input selva*@
+<script>
+    //$(document).ready(function () {
+    //    $("input[type='text']").keyup(function (evt) {
+    //        var charCode = (evt.which) ? evt.which : event.keyCode;
+    //        $(this).val($(this).val().replace(/[^a-z0-9.&$#% ]/gi, ''));
+    //    });
+
+    //});
+</script>
+
+@*// For textarea Input selva*@
+<script>
+    $(document).ready(function () {
+        $(document).on('keyup', ':text,textarea', function () {
+            debugger;
+            //if (this.value.match(/[^a-zA-Z0-9.&$#%]/g)) {
+            if (this.value.match(/([<>|*])/g)) {
+                this.value = this.value.replace(/([<>|*])/g, '');
+            }           
+        });
+    });
+</script>

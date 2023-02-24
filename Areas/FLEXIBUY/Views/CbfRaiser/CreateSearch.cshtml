@@ -1,0 +1,170 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CbfSumEntity
+
+@{
+    if (Session["des"] != null)
+    {
+        ViewBag.des = (string)Session["des"];
+    }
+    WebGrid grid = new WebGrid(source: Model.searchFccc, canPage: true, canSort: true, selectionFieldName: "custom", ajaxUpdateContainerId: "gridfccserach", ajaxUpdateCallback: "grid()");
+}
+
+<style>
+
+</style>
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+    <div id="gridfccserach12">
+        <div style="margin-top:17px;" class="borderStyle panel panel-default">
+            <div>
+                <table class="myTableStyleTabNew" >
+                    <tr>
+                        <td>
+                            <span>FCCC code</span>
+                            <br />
+                            <input type="text" id="txtsearch" placeholder="Enter FCCC code" style="padding:0;" class="textboxStyle " />
+                        </td>
+                        <td>
+                            <span>FCCC Name</span>
+                            <br />
+                            <input type="text" id="txtsearchname" placeholder="Enter FCCC Name" style="padding:0;" class="textboxStyle " />
+                           
+                        </td>
+                       <td>
+                           <br />
+                           <a id="ficcsearch" class="InlineIconStyleA" title="search"><span class="glyphicon glyphicon-search"></span></a>
+                           <a id="ficcrefersh" class="InlineIconStyleA" title="refresh"><span class="glyphicon glyphicon-refresh"></span></a>
+                       </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+     tableStyle: "tableSmall table-bordered table-hover table-responsive overflowx",
+        htmlAttributes: new { id = "gridfccserach" },
+        selectedRowStyle: ".selected{ background-color:red }",
+            mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+
+     grid.Column("fcccGid", Sorter("fcccGid", "Fccc Code", grid)),
+      grid.Column("fcccName", Sorter("fcccName", "Fccc Name", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @*@Html.Raw("<input type='button'  title='Search' onclick='ficc(" + item.fcccGid + ")' ,  new {selectedRow = grid.SelectedRow }, class='btn btn-primary btnserach' value='Submit' /> ")*@
+            <a title='Search' onclick='ficc(id)' id="@item.fcccGid" class='btnserach' style="cursor:pointer;text-decoration:underline;color:blue;">Submit</a>
+                </text>)))
+            <div class="borderStyle btnCenter">
+                @ViewBag.NoRecordsFound
+            </div>
+            <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.searchFccc.Count</label>
+        </div>
+    </div>
+
+}
+<script>
+    function ficc(gid) {
+        //alert(gid);
+        @*alert(@Model.des);
+        $("#infcccgetpoup_@Model.des").val(gid);
+        $("#@Model.des").val(gid);*@
+        @*alert(@ViewBag.des);*@      
+        $("#infcccgetpoup_@ViewBag.des").val(gid);
+        $("#inbudgetline_@ViewBag.des").focus();
+        $("#@ViewBag.des").val(gid);
+        //var rowindex = parseInt($("#grid2 tbody tr").length);
+        //if (parseInt($("#grid2 tr").length) < 2)
+        //{
+
+        //}
+        // $('#inbudgetline').focus();
+        GotoIndex();
+
+    }
+    $(".ui-icon-closethick").click(function () {
+        //objDialogforficc.remove();
+        objDialogforficc.dialog('close');
+    });
+    $(".btnserach").click(function () {
+        objDialogforficc.dialog('close');
+    })
+    function GotoIndex() {
+        window.parent.jQuery('#forficcnew').dialog('close');
+
+    }
+    $("#ficcrefersh").click(function () {
+        $('#txtsearch').val('');
+        $('#txtsearchname').val('');
+        var fcccno = $('#txtsearch').val();
+        var fcccdate = $('#txtsearchname').val();
+        var fcccheader = {
+            "fcccGid": fcccno,
+            "fcccName": fcccdate
+        };
+        $.ajax({
+            url: "../CbfRaiser/FcccSearch/",
+            type: 'POST',
+            cache: false,
+            async: false,
+            data: fcccheader,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#gridfccserach12").empty().append(data);
+                }
+
+            },
+            error: function () {
+                alert('Error');
+            }
+        });
+
+        // $("#gridfccserach").load('../CbfRaiser/CreateSearch');
+    });
+    $("#ficcsearch").click(function () {
+        var fcccno = $('#txtsearch').val();
+        var fcccdate = $('#txtsearchname').val();
+
+        var fcccheader = {
+            "fcccGid": fcccno,
+            "fcccName": fcccdate
+        };
+        $.ajax({
+            url: "../CbfRaiser/FcccSearch/",
+            type: 'POST',
+            cache: false,
+            async: false,
+            data: fcccheader,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error", function () {
+                        return false;
+                    });
+                    return false;
+                }
+                else {
+                    $("#gridfccserach12").empty().append(data);
+                }
+            },
+            error: function () {
+                alert('Error');
+            }
+        });
+
+
+    });
+</script>

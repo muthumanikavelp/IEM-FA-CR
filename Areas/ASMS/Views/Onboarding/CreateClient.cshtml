@@ -1,0 +1,99 @@
+﻿@model IEM.Areas.ASMS.Models.ClientDetails
+
+<div id="createclient">
+
+
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:100%;">
+                <span>Customer Name</span><br />
+                <input name="_ClientName" class="textboxStyle100 required" id="_ClientName" title="Client Name" type="text" value="@Model._ClientName" />
+            </td>
+
+        </tr>
+        <tr>
+            <td style="width:100%;">
+                <span>Address</span> <br />
+                <textarea name="_ClientAddress" cols="3" class="textareaStyle" id="_ClientAddress" title="Address">@Model._ClientAddress</textarea>
+            </td>
+
+        </tr>
+        <tr>
+            <td style="text-align:right; padding-top:10px;">
+                <a name="btnSaveClient" id="btnSaveClient" class="btn btn-primary" onclick="SaveClient()" style="color:white;"><span style="color:white !important;" class="glyphicon glyphicon-floppy-disk"></span> Save</a>
+                <a id="btnCloseClient" name="btnCloseClient" class="btn btn-warning" style="color:white;"><span style="color:white!important;" class="glyphicon glyphicon-remove-sign"></span> Cancel</a>
+            </td>
+        </tr>
+    </table>
+
+    }
+
+    @*<div>
+            @Html.ActionLink("Close","Index")
+        </div>*@
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            
+            $("#_ClientName").keyup(function () {
+                var ClientName = $("#_ClientName").val();
+                if (ClientName.trim() != "") {
+                    $("#_ClientName").removeClass('required');
+                    $("#_ClientName").addClass('valid');
+                }
+                else {
+                    $("#_ClientName").removeClass('valid');
+                    $("#_ClientName").addClass('required');
+                }
+            });
+            $("#_ClientName").keypress(function (event) {
+                return isAlphaNumeric(event);
+            });
+           
+            $("#_ClientAddress").keypress(function (event) {
+                return isExceptTwoSplChars(event);
+            });
+           
+            $("#_ClientName").attr("maxlength", "128");
+            $("#_ClientAddress").attr("maxlength", "256");
+          
+        });
+
+        function SaveClient() {
+            var ClientName = $("#_ClientName").val();
+            if (ClientName == null || ClientName.trim() == "") {
+                jAlert("Please Enter Client Name.", "Error", function () {
+                    $("#_ClientName").focus();
+                });
+              
+                return false;
+            }
+          
+            var ClientAddress = $("#_ClientAddress").val();
+                        
+            var objClientDetails = {
+                "_ClientName": ClientName,
+                "_ClientAddress": ClientAddress
+            };
+            $.post('../Onboarding/CreateClient', objClientDetails,
+            function (data) {
+                if (data == 0) { location = location.href; } else {
+                    $("#wgClient").load("../onboarding/ClientDetails?" + new Date().getTime());
+                    window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+                }
+            }, 'json');
+            window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+        }
+
+    </script>
+
+</div>
+<script type="text/javascript">
+    $("#btnCloseClient").live('click',function () {
+        window.parent.jQuery('#ForPartialViewCustomer').dialog('close');
+    });
+</script>

@@ -1,0 +1,40 @@
+﻿@model IEM.Areas.IFAMS.Models.TransferMakerModel
+@using IEM.Areas.IFAMS.Models
+@using IEM.Common
+@{
+    TransferMakerModel obj = new TransferMakerModel();
+    DataModel model = new DataModel();
+    string toanumber = Convert.ToString(Session["toanumber"].ToString());
+    if (toanumber != "")
+    {
+        Model.gstlist = model.GetGstDetails(toanumber);
+    }
+    obj.gstlist = Model.gstlist;
+    var gstGrid = new WebGrid(source: Model.gstlist, canSort: false, canPage: false, ajaxUpdateContainerId: "wgridDashboard", ajaxUpdateCallback: "wgridDashboard");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+<div>
+    <div>
+
+        @gstGrid.GetHtml(
+                            htmlAttributes: new { id = "wgridDashboard" },
+                            tableStyle: "tableSmall table-bordered aligncenter",
+
+    columns:
+             gstGrid.Columns(
+                         gstGrid.Column(header: "S.No.", format: item => item.WebGrid.Rows.IndexOf(item) + 1 + Math.Round(Convert.ToDouble(
+                                                             gstGrid.TotalRowCount / gstGrid.PageCount) / gstGrid.RowsPerPage) * gstGrid.RowsPerPage * gstGrid.PageIndex)
+                                  , gstGrid.Column("hsn_code", "HSN Code")
+                                  , gstGrid.Column("hsn_description", "HSN Description")
+                                           , gstGrid.Column("taxsubtype", "Tax Type")
+                                           , gstGrid.Column("taxrate", "Tax Rate"),
+                                    gstGrid.Column("amount", "Tax Amount")
+    ))
+
+        <div class=" btnCenter">
+            @ViewBag.NoRecordsFound
+        </div>
+        <br />
+        @*<label>Page: @(auidtGrid.PageIndex + 1) of @auidtGrid.PageCount</label> <span class="myTableStyleTabNew">  Total No Of Records:@Model.auditTrailLst.Count</span>*@
+    </div>
+</div>

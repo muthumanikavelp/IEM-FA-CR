@@ -1,0 +1,99 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SupplierHeader>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgSupplierNameList", ajaxUpdateCallback: "DummyFunction43()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgSupplierNameList">
+
+
+    <table style="width:97.5%;" class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <span>Supplier Name</span>
+                <input type="text" name="txtSupplierNameSearch" id="txtSupplierNameSearch" class="textboxStyle" value=@ViewBag.SearchEmpName />
+            </td>
+            <td style="vertical-align:bottom;">
+                <button onclick="SearchSupplierName()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                <button onclick="RefreshSupplierName()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+            </td>
+        </tr>
+    </table>
+    <div class="table-responsive" style="margin-top:10px; width:100%;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridSupplierNameList" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_SupplierName", objCmnFunctions.Sorter("_SupplierName", "Supplier Name", grid))
+            @*grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a onclick="SelectEmployee(this,id)" id="@ViewBag.formname"><span class="btn btn-link">Select</span></a>
+                </text>)*@
+))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage" style="width:100%">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+    <div>
+            <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+            <div style="text-align:right">Total Records :  <label id="lblDirectorsCount"><b>@grid.TotalRowCount</b></label></div>
+        </div>*@
+</div>
+
+<script type="text/javascript">
+    var sup_name;
+    function SearchSupplierName() {
+        var SupplierName = $("#txtSupplierNameSearch").val();
+        sup_name = SupplierName;
+        var objSearchSupplierName = {
+            "_SupplierName": SupplierName
+        };
+        $.post('../Onboarding/SearchSupplierName', objSearchSupplierName,
+        function (data) {
+            $("#wgSupplierNameList").load('../Onboarding/SearchSupplierName?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtSupplierNameSearch").val(sup_name);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshSupplierName() {
+        $("#txtSupplierNameSearch").val("");
+        var SupplierName = $("#txtSupplierNameSearch").val();
+        var objSearchSupplierName = {
+            "_SupplierName": SupplierName
+        };
+        $.post('../Onboarding/SearchSupplierName', objSearchSupplierName,
+        function (data) {
+            $("#wgSupplierNameList").load('../onboarding/SearchSupplierName?listfor=refresh&' + new Date().getTime());
+
+        }, 'json');
+    }
+    function DummyFunction43() {
+        $("#wgridSupplierNameList td:nth-last-child(1)").show();
+    }
+
+</script>

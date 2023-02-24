@@ -1,0 +1,71 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.EOW.Models.EOW_File>
+@{
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    EOW_DataModel objd = new EOW_DataModel();
+    List<EOW_File> lstAttachment = new List<EOW_File>();
+
+    lstAttachment = (List<EOW_File>)TempData["SearchItems"];
+    if (lstAttachment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstAttachment = objd.GetinvoiceAttachment(Session["EcfGid"].ToString(), Session["invoiceGid"].ToString()).ToList();
+    }
+    if (lstAttachment.Count == 0)
+    {
+        ViewBag.NoRecordsAttachment = "NoRecords";
+        ViewBag.NoRecordsFoundAttachment = "No Records Found";
+    }
+
+}
+
+<div id="wgAttachmentsupplierinv">
+    @{
+        var gridAttachment = new WebGrid(lstAttachment, canSort: true, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgAttachmentsupplierinv", ajaxUpdateCallback: "DummyFunction()");
+    }
+
+    <div class="overflowy">
+        <div style="max-height: 350px;">
+            @gridAttachment.GetHtml(
+                                       htmlAttributes: new { id = "wgAttachmentsupplierinv" },
+                     tableStyle: "tableSmall table-bordered table-hover table-responsive",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                gridAttachment.Columns(
+                                  gridAttachment.Column("AttachmentFilename", objCmnFunctions.Sorter("AttachmentFilename", "Attachment", gridAttachment), canSort: false),
+                                  gridAttachment.Column("AttachmentTypeName", objCmnFunctions.Sorter("AttachmentTypeName", "Attachment Type", gridAttachment), canSort: false),
+                                  gridAttachment.Column("AttachmentDescription", objCmnFunctions.Sorter("AttachmentDescription", "Description", gridAttachment), canSort: false),
+                                  gridAttachment.Column("AttachmentDate", objCmnFunctions.Sorter("AttachmentDate", "Attached Date", gridAttachment), canSort: false),
+                                  gridAttachment.Column("AttachmentBy", objCmnFunctions.Sorter("AttachmentBy", "Attached By", gridAttachment), canSort: false),
+                                  gridAttachment.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                                    @Html.Raw("<a data-modal='' href='../CentralMaker/Download/" + item.AttachmentFilenameId + "' id='" + item.AttachmentFilenameId + "'  title='Detail'> <span id='id' class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    @if (item.attachment_by == objCmnFunctions.GetLoginUserGid())
+                                    {
+                                        @Html.Raw("<a title='Delete' onclick='DeleteAttachmentINV(" + item.AttachmentFilenameId + ")' > <span id='id' class='glyphicon glyphicon-trash'> </span> </a>")
+                                    }
+                </text>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ))
+
+
+            @if (@ViewBag.NoRecordsAttachment == "NoRecords")
+            {
+                <div class="borderStyle">
+                    <center>
+                        <b> @ViewBag.NoRecordsFoundAttachment </b>
+                    </center>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#wgAttachmentsupplier tr #id").click(function () {
+            $('#wgAttachmentsupplier').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        })
+    });
+</script>

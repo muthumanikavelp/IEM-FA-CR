@@ -1,0 +1,1273 @@
+﻿@{
+    ViewBag.Title = "RaisePO";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string raiser = Session["employee_code"].ToString() + " - " + Session["employee_name"].ToString();
+}
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/commonvalidation.js"></script>
+<style type="text/css">
+.block2 {
+  display: inline-block; 
+  vertical-align: top; 
+  overflow: hidden; 
+  border-right: 1px solid #a4a4a4;
+}
+</style>
+
+<div style="padding-top:10px;">
+
+</div>
+<span class="pageHeading">Raise PO</span>
+ 
+    
+<div class="well" style="padding:10px;">
+
+    <div style="min-height :500px;font-size:12px;">
+        <div style="width:100%; margin-bottom:15px;">
+            <span class="pageHeading" style="font-size:13px;">PO Header</span> 
+            <span class="pageHeading" style="font-size:13px; float:right; height:20px; margin:0px !important;">PO Version: <span id="txtVersion">0</span></span>
+            <table class="myTableStyleTab" style="width:100%; margin-bottom:20px; border-top: 1px solid #ccc;">
+                <tr>
+                    <td style="padding:10px 5px 10px 0px; width:20%;">
+                        <span>PO Ref No</span>
+                        <br />
+                        <input type="text" disabled="disabled" class="fstextbox required" id="txtPORefNo" />
+                    </td>
+                    <td style="padding:10px 5px; width:20%;">
+                        <span>PO Date</span>
+                        <br />
+
+                         @*length fixed by selva*@
+                        <input type="text" class="fstextbox required" disabled="disabled" maxlength="10"  id="txtPODate" />
+                    </td>
+
+                    <td style="padding:10px 5px; width:20%;">
+                        <span>PO End Date</span>
+                        <br />
+                        @*length fixed by selva*@
+                        <input type="text" class="fstextbox disableView required" maxlength="10" id="txtPOEndDate" />
+                    </td>
+
+                    <td style="padding:10px 5px; width:20%;">
+                        <span>Raised By</span>
+                        <br />
+                        <input class="fstextbox valid" id="txtRaisedBy" disabled="disabled" type="text" value="@raiser" />
+                    </td>
+
+                    <td style="padding:10px 0px 10px 5px; width:20%;">
+                        <span>Product Owner</span>
+                        <br />
+                        <select class="fstextbox disableView required" data-bind="foreach: {data: ProjectOwnerArray}" id="ddlProductOwner">
+                            <option data-bind="attr: {value: Id}, text: Combo"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 5px 10px 0px;">
+                        <span>Department</span>
+                        <br />
+                        <input type="text" disabled="disabled" class="fstextbox required" id="txtDepartment" />
+                    </td>
+                    <td style="padding:10px 5px;">
+                        <span>Vendor Name</span>
+                        <br />
+                        <input type="text" class="fstextbox disableView required" id="txtVendorName" />
+                        <input type="hidden" value="0" id="hfVendorName" />
+                    </td>
+                    <td style="padding:10px 5px;">
+                        <span>Type</span>
+                        <br />
+                        <div style="margin-top:5px;">
+                            <input type="radio" class="disableView" id="rdoApplication"  readonly="readonly" name="rdoType" value="A" />
+                            Application
+                            <input type="radio" class="disableView" id="rdoInfrastructure"   readonly="readonly" name="rdoType" value="I" />
+                            Infrastructure
+                        </div>
+                    </td>
+                    <td style="padding:10px 5px;">
+                        <span>Vendor Note</span>
+                        <br />
+
+                        @*length fixed by selva*@
+
+                        <input class="fstextbox disableView required" maxlength="5000" id="txtVendorNote" type="text" />
+                    </td>
+                    <td style="padding:10px 0px 10px 5px; position:relative;">
+                        <span>PO Template</span>
+                        <br />
+                        <input type="text" class="fstextbox required" id="txtPOTemplate" disabled="disabled" />
+                        <a onclick="return SelectPOTemplate();" style="position:absolute; right:7px; bottom:13px; z-index:0;" class="InlineIconStyle"><span class="glyphicon glyphicon-search cursorpointer"></span></a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:10px 5px 10px 0px;">
+                        <span>PAN No</span>
+                        <br />
+                        <input type="text" disabled="disabled" class="fstextbox required" id="txtPanno" />
+                    </td>
+                    <td style="padding:10px 5px;">
+                        <span>Vendor Code</span>
+                        <br />
+                        <input type="text" disabled="disabled" class="fstextbox required" id="txtVendorCode" />
+                    </td>
+                    <td style="padding:10px 5px;" colspan="2">
+                        <span>Vendor Address</span>
+                        <br />
+                        <select id="txtvendoraddress" class="fstextbox disableView required">
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <div class="well" id="tabs" style="padding-bottom:50px;">
+                <ul>
+                    <li><a href="#divPoDetails">PO Details</a></li>
+                    <li><a href="#divAttachmentMain">Attachments</a></li>
+                    <li><a href="#divAuditTrail">Audit Trial</a></li>
+                </ul>
+                <div id="divPoDetails">
+                    <span class="pageHeading" style="font-size:13px;">PO Details</span>
+                    <div class="table-responsive" style="overflow: auto; max-height:250px; margin-bottom:15px;">
+                        <table id="CBFDetailsGrid" class="tableSmall table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:2%; min-width:30px;">
+                                        #
+                                    </th>
+                                    <th style="width:12%; min-width:150px;">
+                                        Product Group
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Product Code
+                                    </th>
+                                    <th style="width:12%; min-width:150px;">
+                                        Product Name
+                                    </th>
+                                    <th style="width:17%; min-width:200px;">
+                                        Description
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        UOM
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        Qty
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Percentage
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        Rate
+                                    </th>
+                                    <th style="width:6%; min-width:100px;">
+                                        Base Amount
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        Discount
+                                    </th>
+                                    <th style="width:5%; min-width:85px;">
+                                        Tax Percent
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        Taxes
+                                    </th>
+                                    <th style="width:5%; min-width:100px;">
+                                        Other Charges
+                                    </th>
+                                    <th style="width:7%; min-width:100px;">
+                                        Gross Amount
+                                    </th>
+                                    <th style="width:5%; min-width:80px;">
+                                        Shippment
+                                    </th>
+                                    <th style="width:5%; min-width:120px;">
+                                        Add Gst
+                                    </th>
+                                    <th style="width:4%; min-width:120px;" class="hideStatus">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: {data: PODetailsArray, afterRender: TableViewBind}">
+                                <tr>
+                                    <td align="center">
+                                        <span data-bind="text: $index() + 1"></span>
+                                    </td> 
+                                    <td>
+                                        <span data-bind="text: ProductGroup"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductCode"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ProductDesc"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: UOM"></span>
+                                    </td>
+                                    <td align="center">
+                                        <span data-bind="text: Qty"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: POPercentage"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: UnitPrice"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: BaseAmount"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: Discount"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: TaxPercent"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: Taxes"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: OtherCharges"></span>
+                                    </td>
+                                    <td align="right">
+                                        <span data-bind="text: Total"></span>
+                                    </td>
+                                    <td align="center">
+                                        <a style="cursor:pointer; color: #116BAC;" data-bind="click: function() { $root.AddShipmentDetails(PODetailsGId, Qty); }">Shipment</a>
+                                    </td>
+                                    <td align="center">
+                                        <input type="radio" data-bind="event:{ change:$root.CheckedNotOk },attr:{name:'rbt'+PODetailsGId,id:PODetailsGId},checked:ChkLstId, checkedValue: 1" />Yes 
+                                        <input type="radio" data-bind="event:{ change:$root.CheckedNotOk },attr:{name:'rbt'+PODetailsGId,id:PODetailsGId},checked:ChkLstId, checkedValue: 0" />No
+                                        <input type="hidden" id="htgstchk" />
+                                        <a style="cursor:pointer; color: #116BAC;" data-bind="click:function(){$root.AddGstDetails(PODetailsGId,ChkLstId)}">View</a>
+                                    </td>
+                                    <td align="center" class="hideStatus" style="min-width:50px;">
+                                        <span title="Split" data-bind="click: $root.SharePODetails" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-resize-full"> </span> </span>
+                                        <span data-bind="click: $root.EditPODetails" title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                        <span data-bind="click: function() { $root.DeletePODetails(PODetailsGId); }" title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="18" style="text-align:left; background-color: #fff;">
+                                        <span style="font-weight:bold;">
+                                            Total Amount: <span id="lblTotalAmount" style="margin-left:5px; color:#1C4ACB;"></span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                @*bharathi*@
+                <div style="width:100%;" id="divAttachmentMain">
+                    <div style="width:100%" ng-hide="@ViewBag.viewtype !='0'">
+                        <table class="myTableStyleTabpopup">
+                            <tr>
+                                <td style="vertical-align:bottom;max-width:300px;min-width:100px;">
+                                    <span>Select File</span><br />
+                                    <form id="theuploadform1">
+
+                                        @Html.AntiForgeryToken()
+                                        <input type="file" name="UploadFile" id="txtPoAttachmentFile" class="txtPoAttachmentFile" />
+                                    </form>
+                                </td>
+                                <td>
+                                    <span>File Name</span> <br />
+                                    <input type="text" class="textboxStyle100" id="AttachedActualFileName" readonly="readonly" />
+                                </td>
+                                <td>
+                                    <span>Description</span> <br />
+                                    @*length fixed by selva*@ 
+                                    <input type="text" id="AttachDescription"  maxlength="255" class="textboxStyle100" />
+                                </td>
+                                <td style="text-align:right;padding-right:3%;vertical-align:bottom;">
+                                    <button type="button" class="btn btn-sm btn-primary" data-bind="click: $root.SavePoAttachment">
+                                        <span class="glyphicon glyphicon-briefcase" style="color:white;"></span>
+                                        Save
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br />
+                    <table style="overflow-x:auto;" class="tableSmall table-bordered table-hover table-responsive">
+                        <thead style="width:100%;">
+                            <tr>
+                                <th style="width:3%;">
+                                    S.No
+                                </th>
+                                <th style="width:28%;cursor:pointer;">
+                                    File Name
+                                </th>
+                                <th style="width:22%;cursor:pointer">
+                                    Attachment Date
+                                </th>
+                                <th style="width:27%;cursor:pointer">
+                                    Description
+                                </th>
+                                <th style="width:20%;cursor:pointer" class="action attdelete">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: {data: POAttachment}">
+                            <tr>
+                                <td style="width:3%;" align="center">
+                                    <span data-bind="text: $index() + 1"></span>
+                                </td>
+                                <td style="width:28%;">
+                                    <a style="color:blue;cursor:pointer;" title="Click Here to Download" data-bind="click: function(){$root.DownloadAttachment(TempFileName,AttachedActualFileName)}">
+                                        <span data-bind="text: AttachedActualFileName"></span>
+                                    </a>
+                                </td>
+                                <td style="width:22%;">
+                                    <span data-bind="text: AttachDate"></span>
+                                    <span style="visibility:hidden" data-bind="text: TempFileName"></span>
+                                </td>
+                                <td style="width:27%;">
+                                    <span data-bind="text: AttachDescription"></span>
+                                </td>
+                                <td style="width:20%;" class="action attdelete">
+                                    <a title="Delete" data-bind="click: function(){$root.DeleteAttachment(AttachmentID)}">
+                                        <span class="glyphicon glyphicon-trash"></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        @*<tfoot>
+                    <tr>
+                        <td colspan="5"  style="text-align:center">
+                            No Records Found
+                        </td>
+                    </tr>
+                </tfoot>*@
+                    </table>
+                </div>
+
+                <div id="divAuditTrail">
+                    <span class="pageHeading viewStatus viewResubmit" style="font-size:13px; display:none;">Audit Trail</span>
+                    <div style="max-height:200px; overflow-y:auto; display:none;" class="viewStatus viewResubmit">
+                        <table class="tableSmall table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%; min-width:40px;">
+                                        #
+                                    </th>
+                                    <th style="width:20%; min-width:150px;">
+                                        Employee Name
+                                    </th>
+                                    <th style="width:15%; min-width:120px;">
+                                        Action Date
+                                    </th>
+                                    <th style="width:20%; min-width:150px;">
+                                        Approval Stage
+                                    </th>
+                                    <th style="width:10%; min-width:150px;">
+                                        Status
+                                    </th>
+                                    <th style="width:30%; min-width:200px;">
+                                        Remarks
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: {data: POAuditTrailArray}">
+                                <tr>
+                                    <td align="center">
+                                        <span data-bind="text: $index() + 1"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: EmployeeName"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: ActionDate"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: Approval"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: Status"></span>
+                                    </td>
+                                    <td>
+                                        <span data-bind="text: Remarks"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
+                
+            </div>
+
+    </div>
+    <div style="width:100%; text-align:center; margin-top:15px;">
+        <button id="btnPODelete" onclick="DeletePO();" class="btn btn-danger" style="font-size:13px; display:none;" type="button" title="Delete">
+            <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Delete
+        </button>
+        <button data-bind="click: function() { $root.SubmitPO(); }" class="btn btn-success hideStatus" style="font-size:13px;" type="button" title="Save">
+            <span class="glyphicon glyphicon-floppy-saved" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Submit
+        </button>
+       @{ string path = HttpContext.Current.Request.Url.AbsolutePath; 
+        if ( path.ToLower().Contains("/grninward_viewpodetails")) //Pandiaraj 10-05-2019
+        {
+        @*<button class="btn btn-warning" onclick="CancelProcess();" style="font-size:12px;" type="button" title="Clear">
+            <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Close
+        </button>*@
+       }
+      
+        else
+        {
+        <button class="btn btn-warning" onclick="CancelProcess();" style="font-size:12px;" type="button" title="Clear">
+            <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+        </button>}
+                 }
+    </div>
+</div>
+
+@using (Html.BeginForm())
+{ 
+    @Html.AntiForgeryToken()
+
+<div style="width:100%; display:none;" id="POTemplateDialog">
+    <table class="myTableStyleTab" style="width:100%;">
+        <tr>
+            <td style="padding:5px 5px 5px 0px; width:20%;">
+                <span>Select Template</span>
+                <br />
+                <select class="fstextbox disableView required" data-bind="foreach: {data: POTemplateArray}, event:{ change: $root.ChangePOTemplate }" id="ddlTemplate">
+                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                </select>
+            </td>
+            <td style="padding:5px 5px; width:20%; vertical-align:bottom;">
+                <a class="hideStatus" onclick="return AddPOTemplate();" style="cursor:pointer; color: #116BAC;">Create Template</a>
+            </td>
+            <td style="padding:5px 5px; width:60%;"></td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:5px;">
+                <span>Terms and Condtions</span>
+                <br />
+                <textarea rows="7" disabled="disabled" cols="5" style="height:250px;" id="txtTemrms" class="fstextbox"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:5px;">
+                <span>Additional Terms and Condtions</span>
+                <br />
+                <textarea rows="7" cols="5" style="height:170px;" id="txtConditions" class="fstextbox disableView"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:5px; text-align:center;">
+                <button class="btn btn-warning" onclick="return CloaseDialog(0);" style="font-size:12px;" type="button" title="Clear">
+                    <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>OK
+                </button>
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+<div style="width:100%; display:none;" id="CreateTemplateDialog">
+    <table class="myTableStyleTab" style="width:100%;">
+        <tr>
+            <td style="padding:5px; width:40%;">
+                <span>Select Template</span>
+                <br />
+                <input type="text" class="fstextbox required" id="txtTemplateName" />
+            </td>
+            <td style="padding:5px; width:60%; vertical-align:bottom;"></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding:5px;">
+                <span>Terms and Condtions</span>
+                <br />
+                <textarea rows="7" cols="5" style="height:250px;" id="txtTermsCoditions" class="fstextbox"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:5px; text-align:center;">
+                <button class="btn btn-primary"  style="font-size:12px;" data-bind="click: function() { $root.SetPOTemplate(); }" type="button" title="Save">
+                    <span class="glyphicon glyphicon-floppy-save" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Save
+                </button>
+                <button class="btn btn-warning" onclick="return CloaseDialog(1);" style="font-size:12px;" type="button" title="Clear">
+                    <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+                </button>
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+<div style="width:100%; display:none;" id="ShipmentDialog">
+    <div class="hideStatus" style="width:100%; text-align:right;">
+        <button onclick="return AddShipment();" class="btn btn-primary" style="font-size:12px;" type="button" title="Add Shipment">
+            <span class="glyphicon glyphicon-plus" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Add Shipment
+        </button>
+    </div>
+    @*<div style="max-height:200px; overflow-y:auto; display:none;" class="viewStatus viewResubmit">
+        <table class="tableSmall table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="width:5%; min-width:40px;">
+                        #
+                    </th>
+                    <th style="width:20%; min-width:150px;">
+                        Employee Name
+                    </th>
+                    <th style="width:15%; min-width:120px;">
+                        Action Date
+                    </th>
+                    <th style="width:20%; min-width:150px;">
+                        Approval Stage
+                    </th>
+                    <th style="width:10%; min-width:150px;">
+                        Status
+                    </th>
+                    <th style="width:30%; min-width:200px;">
+                        Remarks
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: {data: POAuditTrailArray}">
+                <tr>
+                    <td align="center">
+                        <span data-bind="text: $index() + 1"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: EmployeeName"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: ActionDate"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Approval"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Status"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: Remarks"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>*@
+    <div style="height : 280px; overflow:hidden;">
+        <div class="table-responsive" style="max-height : 270px; overflow: auto;">
+            <table class="tableSmall table-bordered table-hover" id="poShipmentGrid">
+                <thead>
+                    <tr>
+                        <th style="width:5%; min-width:40px;">
+                            #
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Shipment Type
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Branch Code
+                        </th>
+                        <th style="width:5%; min-width:100px;">
+                            Branch Name
+                        </th>
+                        <th style="width:30%; min-width:150px;">
+                            Address
+                        </th>
+                        <th style="width:10%; min-width:100px;">
+                            Location
+                        </th>
+                        <th style="width:12%; min-width:150px;">
+                            Incharge ID
+                        </th>
+                        <th style="width:8%; min-width:100px;">
+                            Shipment Qty
+                        </th>
+                        <th style="width:10%; min-width:100px;" class="hideStatus">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: {data: POShipmentArray, afterRender: TableViewBind}">
+                    <tr>
+                        <td align="center">
+                            <span data-bind="text: $index() + 1"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: ShipmentType"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: BranchCode"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: BranchName"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: BranchAddress"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: LocationName"></span>
+                        </td>
+                        <td>
+                            <span data-bind="text: InchargeName"></span>
+                        </td>
+                        <td align="center">
+                            <span data-bind="text: Qty"></span>
+                        </td>
+                        <td align="center" class="hideStatus">
+                            <span data-bind="click: $root.EditShipment" title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                            <span data-bind="click: function() { $root.DeleteShipment(ShipmentGId); }" title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+        <div style="width:100%; text-align:center;">
+            <button type="button" onclick="return CloaseDialog(2);" style="color:white; margin-top:10px; font-size:12px;" title="Cancel" name="Cancel" class="btn btn-warning">
+                <span style="color:white; font-size:13px;" class="glyphicon glyphicon-remove-sign"></span>
+                Back
+            </button>
+        </div>
+    </div>
+<div style="display:none" id="Dialogaddgst">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="padding:10px 5px 10px 0px; width:20%;">
+                <span>PO No</span>
+                <br />
+                <input type="text" disabled="disabled" class="fstextbox required" id="txtgstPORefNo" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>PO Date</span>
+                <br />
+                <input type="text" class="fstextbox required" disabled="disabled" id="txtgstPODate" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>PO Amount</span>
+                <br />
+                <input type="text" class="fstextbox disableView required" disabled="disabled" id="txtgstPOAmt" />
+            </td>
+            <td style="padding:10px 5px 10px 0px; width:20%;">
+                <span>Base Amount</span>
+                <br />
+                <input type="text" disabled="disabled" class="fstextbox required" id="txtgstbtamt" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px 5px 10px 0px; width:20%;">
+                <span>Vendor Code</span>
+
+                <br />
+                <input type="text" disabled="disabled" class="fstextbox required" id="txtgstvencode" />
+            </td>
+            <td style="padding:10px 5px; width:20%;"colspan="2"  >
+                <span>Vendor Name</span>
+                <br />
+                <input type="text" class="fstextbox required" disabled="disabled" id="txtgstvename" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Net Amount</span>
+                <br />
+                <input type="text" class="fstextbox disableView required" id="txtgstnetamt" disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px 5px 10px 0px; width:20%;">
+                <span>Product Group</span>
+                <br />
+                <input type="text" disabled="disabled" class="fstextbox required" id="txtgstprogrp" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Product Code</span>
+                <br />
+                <input type="text" class="fstextbox required" disabled="disabled" id="txtgstprocode" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Product Name</span>
+                <br />
+                <input type="text" class="fstextbox disableView required" id="txtgstProname" disabled="disabled" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Taxes</span>
+                <br />
+                <input type="text" class="fstextbox" disabled="disabled" id="txtgsttaxes" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px 5px 10px 0px; width:20%;">
+                <span>UOM</span>
+                <br />
+                <input type="text" disabled="disabled" class="fstextbox required" id="txtgstuom" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Qty</span>
+                <br />
+                <input type="text" class="fstextbox required" disabled="disabled" id="txtgstqty" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span>Rate</span>
+                <br />
+                <input type="text" class="fstextbox disableView required" id="txtgstrate" disabled="disabled" />
+            </td>
+            <td style="padding:10px 5px; width:20%;">
+                <span></span>
+                @*<button class="btn btn-primary" style="font-size:10px; margin-top:15px; margin-left: 35px; width: 50%;"
+                        data-bind="click: function() { $root.AddTaxdet();}" type="button" title="Add GST Details">
+                    <span class="glyphicon glyphicon-plus" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Add Gst
+                </button>*@
+            </td>
+        </tr>
+    </table>
+    <div class="well" id="tabs" style="padding-bottom:50px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="padding:10px 5px 10px 0px; width:17%;">
+                    <span>Provider Location</span>
+                    <br />
+                    <select class="fstextbox disableView required" data-bind="foreach: {data: PoproviderArray},event:{change:$root.changeprovider}" id="txtgstproloc">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option> 
+                    </select>
+                </td>
+                <td style="padding:10px 5px; width:17%;">
+                    <span>Receiver Location</span>
+                    <br />
+                    @*<select class="fstextbox disableView required" data-bind="foreach: {data: PoReciverArray},event:{change:$root.changeReveiver}" id="txtgsrecloc">
+                        <option data-bind="attr: {value: Id}, text: Combo"></option> 
+                    </select>*@
+                    <input type="text" class="fstextbox disableView required" readonly="readonly" id="txtgsrecloc" />
+                    <input type="hidden" id="TxtGstReciverLocionId" />
+                </td>
+                <td style="padding:10px 5px; width:17%;">
+                    <span>GSTIN Vendor</span>
+                    <br />
+                    <input type="text" class="fstextbox disableView required" readonly="readonly" id="txtgstinvendor" />
+                </td>
+                <td style="padding:10px 5px; width:17%;">
+                    <span>GSTIN FICCL</span>
+                    <br />
+                    <input type="text" class="fstextbox disableView required" readonly="readonly" id="txtgstficcl" />
+                </td>
+
+                <td style="padding:10px 5px 10px 0px; width:17%;">
+                    <span>HSN Code</span>
+                    <br />
+                    <select class="fstextbox disableView" data-bind="foreach: {data:HSNArray} " id="txthsncode">
+                        <option data-bind="attr: {value: hsn_gid}, text: hsn_code"></option>
+                    </select>
+                </td>
+
+                <td style="padding:10px 5px 10px 0px; width:17%;">
+                    <br />
+                    <button data-bind="click: function() { $root.SetAddGstDetails(); }" class="btn btn-success hideStatus" style="font-size:13px;" id="btnAddgst" type="button" title="AddGst">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white; font-size: 14px; margin-right: 5px;"> </span>ADD GST
+                    </button>
+                </td>
+
+            </tr>
+            </table>
+        <div style="height :80%; overflow:hidden;">
+            <div>
+
+            </div>
+            <div class="table-responsive" style="max-height : 270px; overflow: auto;">
+                <table class="tableSmall table-bordered table-hover" style="width:100%;" id="Taxgsttable">
+                    <thead>
+                        <tr>
+                            <th style="width:5%; min-width:40px;">
+                                #
+                            </th>
+                            <th style="width:10%; min-width:100px;">
+                                GSN Applicability
+                            </th>
+                            <th style="width:10%; min-width:100px;">
+                                HSN Code
+                            </th>
+                            <th style="width:5%; min-width:100px;">
+                                HSN Description
+                            </th>
+                            <th style="width:30%; min-width:150px;">
+                                TAX Sub Type
+                            </th>
+                            <th style="width:10%; min-width:100px;">
+                                Taxable Amount
+                            </th>
+                            <th style="width:12%; min-width:150px;">
+                                Taxable Rate(%)
+                            </th>
+                            <th style="width:8%; min-width:100px;">
+                                Tax Amount
+                            </th>
+                            @*<th style="width:10%; min-width:100px;" class="hideStatus">
+                                Action
+                            </th>*@
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: {data: PoGsttatArray, afterRender: TableViewBind}">
+                        <tr>
+                            <td align="center">
+                                <span data-bind="text: SlNo"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: GstApplicable"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: hsn_code"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: hsn_description"></span>
+                            </td>
+                            <td>
+                                <span data-bind="text: TaxsubtypeName"></span>
+                            </td>
+                            <td>
+                                <input type="text" data-bind=" event: { change: $root.TaxableChanged }, value: Taxableamt, attr: { id: 'id' + SlNo }" class="fstextbox" onkeypress="    return isNumber1(event, this)" />
+                                       @*<span data-bind="text: Taxableamt"></span>*@
+                            <td>
+                                <span data-bind="text: Rate"></span>
+                            </td>
+                            <td align="center">
+                                <span data-bind="text: Taxamt"></span>
+                            </td>
+                            @*<td align="center" class="hideStatus">
+                                <span data-bind="click: $root.EditShipment" title="Edit" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-edit"> </span> </span>
+                                <span data-bind="click: function() { $root.DeleteShipment(ShipmentGId); }" title="Delete" style="margin-left:3px; margin-right:3px; cursor:pointer;"> <span class="glyphicon glyphicon-trash"> </span> </span>
+                            </td>*@
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="width:100%; text-align:center; margin-top:15px;">
+                <button data-bind="click: function() { $root.SetPOGstDetails(); }" class="btn btn-success hideStatus" style="font-size:13px;" id="btnsavegst" type="button" title="Save">
+                    <span class="glyphicon glyphicon-floppy-saved" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Submit
+                </button>
+                <button class="btn btn-warning" onclick="return CloaseDialog(5);" style="font-size:12px;" type="button" title="Clear">
+                    <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+                </button>
+            </div>
+            <table>
+                <tr>
+                    <td style="padding:10px 300px 5px; margin-left:50%; text-align:center;"></td>
+                </tr>
+            </table>
+            @*<table>
+                <tr>
+                    <td style="padding:10px 300px 5px; margin-left:50%; text-align:center;" >
+                        <button data-bind="click: function() { $root.SetPOGstDetails(); }" type="button" style="color:white; margin-top:10px;" id="btnsavegst" class="btn btn-primary">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                            Submit
+                        </button>
+                        <button type="button" onclick="return CloaseDialog(5);" title="Cancel" style="color:white; height:30px;" name="Cancel" class="btn btn-warning">
+                            <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+                <div style="width:100%; text-align:center; margin-top:15px;">
+                    <button  class="btn btn-success hideStatus" style="font-size:13px;" type="button" title="Save">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white; font-size: 14px; margin-right: 5px;"> </span>Submit
+                    </button>
+                    <button class="btn btn-warning"  style="font-size:12px;" type="button" title="Clear">
+                        <span class="glyphicon glyphicon-remove-sign" style="color:white; font-size: 13px; margin-right: 5px;"> </span>Cancel
+                    </button>
+                </div>
+            </table>*@
+        </div>
+    </div>
+    </div>
+
+<div style="display:none" id="DialogShipmentCreate">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="width:50%; padding:5px 10px;">
+                <span>Shipment Type</span>
+                <br />
+                <select class="fstextbox required" data-bind="foreach: {data: ShipmentTypeArray}" id="ddlShipmentType">
+                    <option data-bind="attr: {value: Id}, text: Combo"></option>
+                </select>
+            </td>
+            <td style="width:50%; padding:5px 10px;">
+                <span>Branch Code & Name</span>
+                <br />
+                <input type="text"
+                       id="txtBranchName"
+                       class="fstextbox required" />    
+                <input type="hidden" value="0" id="hfBranchName" />
+            </td>
+
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <span>Address</span>
+                <br />
+                <input type="text"
+                       id="txtAddress"
+                       class="fstextbox required" disabled="disabled" />
+
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Location</span>
+                <br />
+                <input type="text"
+                       id="txtLocation"
+                       class="fstextbox required" disabled="disabled" />
+            </td>
+
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <span>Incharge ID</span>
+                <br />
+                <input type="text"
+                       id="txtInchargeID"
+                       class="fstextbox required" />
+                <input type="hidden" value="0" id="hfInchargeID" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Shipment Qty</span>
+                <br />
+                @*length fixed by selva*@
+                <input type="text"
+                       id="txtShipmentQty"  maxlength="18"
+                       class="fstextbox required" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:10px 10px 5px; text-align:center;" colspan="3">
+                <input type="hidden" value="0" id="hfShipmentId" />
+                <button data-bind="click: function() { $root.SetShipment(); }" type="button" style="color:white; margin-top:10px;" id="btnShipmentDetailsSubmit" class="btn btn-primary">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                    Submit
+                </button>
+                <button type="button" onclick="return CloaseDialog(3);" title="Cancel" style="color:white; margin-top:10px;" name="Cancel" class="btn btn-warning">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                    Cancel
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="display:none" id="PODetailsDialog">
+    <table class="myTableStyleTabNew" style="width:100%;">
+        <tr>
+            <td style="vertical-align:bottom;">
+                Split Using Percentage &nbsp;&nbsp;  <input type="checkbox" name="txtIsPercentage" id="txtIsPercentage">
+            </td>
+            <td id="isservicediv" style="display:none">
+                <input type="hidden" name="ProdServFlagNew" id="ProdServFlagNew" />
+                <input type="hidden" name="hidPerc" id="hidPerc" />
+                <input type="hidden" name="hidPercTotal" id="hidPercTotal" />
+                <span>Split Percentage</span>
+                <br />
+                <input type="text"
+                       id="txtPercentNew" maxlength="5"
+                       class="fstextbox NumberValidation" />
+            </td>
+            <td id="isservicediv1" style="display:none">
+                <span>Remainig Percentage</span>
+                <br />
+                <input type="text"
+                       id="txtPercentNewMax" maxlength="5" disabled="disabled"
+                       class="fstextbox NumberValidation" />
+            </td>
+        </tr>
+        <tr>
+            <td style="width:33%; padding:5px 10px;">
+                <span>Product Group</span>
+                <br />
+                <input type="text"
+                       id="txtProductGroup" disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="width:33%; padding:5px 10px;">
+                <span>Product Name</span>
+                <br />
+                <select id="ddlProductName" class="fstextbox disableStatus required" data-bind="options: ProductNameArray, optionsText: 'Combo', optionsValue:'Id', value:0, event:{ change: $root.ChangeProductName }"></select>
+                <input type="text" style="display:none;"
+                       id="txtProductName" disabled="disabled"
+                       class="fstextbox" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Product Description</span>
+                <br />
+                <input type="text"
+                       id="txtProductDesc"
+                       class="fstextbox required" />
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:5px 10px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:0px; padding-right:3px;">
+                            <span>UOM</span>
+                            <br />
+                            <input type="text" style="display:none;"
+                                   id="txtUOM" disabled="disabled"
+                                   class="fstextbox valid" />
+                            <select id="ddlUOM" class="fstextbox disableStatus required" data-bind="foreach: {data: UOMArray}">
+                                <option data-bind="attr: {value: Id}, text: Combo"></option>
+                            </select>
+                        </td>
+                        <td style="width:50%; padding:0px; padding-left:3px;">
+                            <span>Quantity</span> 
+
+                            @*length fixed by selva*@
+                            
+                            <br />
+                            <input type="text"
+                                   id="txtQty" maxlength="18"
+                                   class="fstextbox required" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Rate</span>
+                <br />
+                <input type="text"
+                       id="txtRate" maxlength="8"
+                       class="fstextbox NumberValidation required" />
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Base Amount</span>
+                <br />
+                <input type="text"
+                       id="txtBaseAmount" maxlength="12" disabled="disabled"
+                       class="fstextbox" />
+            </td>
+        </tr>
+        <tr>
+
+            <td style="padding:5px 10px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:0px; padding-right:3px;">
+                            <span>Discount</span>
+                            <br />
+                            <input type="text"
+                                   id="txtDiscount" maxlength="8"
+                                   class="fstextbox NumberValidation" />
+                        </td>
+                        <td style="width:50%; padding:0px; padding-left:3px;">
+                            <span>Tax Percent</span>
+                            <br />
+                            <input type="text"
+                                   id="txtTaxPercent" maxlength="2"
+                                   class="fstextbox NumberValidation" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="padding:5px 10px;">
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width:50%; padding:0px; padding-right:3px;">
+                            <span>Taxes</span>
+                            <br />
+                            <input type="text"
+                                   id="txtTaxes" disabled="disabled" maxlength="8"
+                                   class="fstextbox NumberValidation" />
+                        </td>
+                        <td style="width:50%; padding:0px; padding-left:3px;">
+                            <span>Other Charges</span>
+                            <br />
+                            <input type="text"
+                                   id="txtOtherCharges" maxlength="8"
+                                   class="fstextbox NumberValidation" />
+                        </td>
+                    </tr>
+                </table>
+                
+            </td>
+            <td style="padding:5px 10px;">
+                <span>Net Amount</span>
+                <br />
+                <input type="text" maxlength="12"
+                       id="txtNetAmount" disabled="disabled"
+                       class="fstextbox" />
+                <input type="hidden" name="hidNetParent" id="hidNetParent" />
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:10px 10px 5px; text-align:center;" colspan="3">
+                <input type="hidden" value="0" id="hfPODetailsFlag" />
+                <input type="hidden" value="0" id="hfPODetailsId" />
+                <button data-bind="click: function() { $root.SetPODetails(); }" type="button" style="color:white; margin-top:10px;" id="btnCBFDetailsSubmit" class="btn btn-primary">
+                    <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                    Submit
+                </button>
+                <button onclick="return CloaseDialog(4);" type="button" title="Cancel" style="color:white; margin-top:10px;" name="Cancel" class="btn btn-warning">
+                    <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                    Cancel
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+<div style="display:none" id="pogsttaxdel">
+    <div class="well" style="padding-bottom:50px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="padding:10px 5px 10px 0px; width:20%;">
+                    <span>HSN Code</span>
+                    <br />
+                    <select class="fstextbox disableView required"  id="Txthsnid"> @*data-bind="foreach: {data: HsncodeArray},event:{ change: $root.ChangeHsndesc} "*@
+                        <option ></option> @*data-bind="attr: {value: Id}, text: Combo"*@
+                    </select>
+                </td>
+                <td style="padding:10px 5px; width:20%;">
+                    <span>HSN Description</span>
+                    <br />
+                    @*<input type="text" class="fstextbox disableView required" id="Txthsndesc" />*@
+                    <textarea id="Txthsndesc" data-val="true" class="fstextbox disableView required" readonly="readonly" style="display: block; width:100%; height:25%"> </textarea>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:10px 5px; width:20%;">
+                    <span>Tax Sub Type</span>
+                    <br />
+                    <select class="fstextbox disableView required" id="Txtsubtype"> @*data-bind="foreach: {data: TaxsubtypeArray},event:{change: $root.ChangeTaxtype}"*@ 
+                        <option ></option> @*data-bind="attr: {value: Id}, text: Combo"*@
+                    </select>
+                </td>
+                <td style="padding:10px 5px; width:20%;">
+                    <span>Taxable Amount</span>
+                    <br />
+                    <input type="text" class="fstextbox disableView required" id="TxtTaxableamt" />
+                </td>
+               
+            </tr>
+            <tr>
+                <td style="padding:10px 5px; width:20%;">
+                    <span>Tax Amount</span>
+                    <br />
+                    <input type="text" class="fstextbox disableView required" id="Txttaxamt" />
+                </td>
+                <td style="padding:10px 5px; width:20%;">
+                    <span>Taxable Rate</span>
+                    <br />
+                    <input type="text" class="fstextbox disableView required" id="TxttaxableRate" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:10px 10px 5px; text-align:center;" colspan="3">
+                    <button data-bind="click: function() { $root.SaveGsttax(); }" type="button" style="color:white; margin-top:10px;" id="btnaddgsttax" class="btn btn-primary">
+                        <span style="color:white; font-size:12px;" class="glyphicon glyphicon-download-alt"></span>
+                        Submit
+                    </button>
+                    <button type="button" onclick="return CloaseDialog(6);" title="Cancel" style="color:white; margin-top:10px;" name="Cancel" class="btn btn-warning">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span>
+                        Cancel
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+}
+<input type="hidden" value="@ViewBag.POId" id="hfPO" />
+<input type="hidden" value="0" id="hfStatus" />
+<input type="hidden" value="0" id="hfPODetailsGId" />
+<input type="hidden" value="0" id="hfQty" />
+<input type="hidden" value="@ViewBag.Access" id="hfViewMode" />
+
+<script>
+    var UrlDet = "@Url.Action("CBFSelection", "PO")"
+    var UrlHelper = "@Url.Action("GetProjectOwner", "FBHelper")"
+    var UrlReturn = "@Url.Action("Index", "poheader")"
+    function CancelProcess()
+    {
+        location = "@Url.Action("index", "poheader")";
+    }
+    function DeletePO() {
+        jConfirm("Are you sure? Want to delete this PO!", "Confirm", function (callback) {
+            if (callback == true) {
+                var POHeaderGId = $("#hfPO").val();
+                var PARParentDetailsInsert = {
+                    PARDetailGid: POHeaderGId,
+                    DeleteFor: "po"
+                };
+                $.ajax({
+                    url: '@Url.Action("DeletePARParentDetails", "PARNew")?' + new Date().getTime(),
+                    data: JSON.stringify(PARParentDetailsInsert),
+                    dataType: "json",
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        var Data0 = "", Data1 = "", Data2 = "";
+                        var ErrorMsg1 = data.ErrorMsg;
+                        if (ErrorMsg1 == "1") {
+                            jAlert("Error While Delete PO", "Error", function () {
+                                return false;
+                            });
+                        }
+                        else {
+                            jAlert("PO Deleted Successfully", "Success", function () {
+                                   location = '@Url.Action("index", "poheader")?' + new Date().getTime();
+                                   return false;
+                            });
+                        }
+                    },
+                    error: function (data) {
+                        jAlert("Error While Delete PO", "Error", function () {
+                            return false;
+                        });
+                    },
+                    failure: function (data) {
+                        jAlert("Error While Delete PO", "Error", function () {
+                            return false;
+                        });
+                    }
+                });
+            } else {
+                return false;
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        var currentTab = 0;
+        $("#tabs").tabs({
+            select: function (e, i) {
+                currentTab = i.index;
+            }
+        });
+        $("#tabs").css("display", "block");
+
+        $(".txtPoAttachmentFile").on('change', function (e) {
+            var iframe1 = $('<iframe name="postiframe1" id="postiframe1" style="display: none"></iframe>');
+            $("body").append(iframe1);
+            var form1 = $('#theuploadform1');
+            var Attach_list = Attachment_list();
+            var Attachment_fomat = Attached_fileformat();
+            debugger;
+            form1.attr("action", "@Url.Action("UploadedFiles", "PO")?uploadfor=PO&attach=" + Attach_list + "&attaching_format=" + Attachment_fomat);
+            //form1.attr("action", 'Url.Action("UploadedFiles", "PO")?uploadfor=PO');
+            form1.attr("method", "post");
+
+            form1.attr("encoding", "multipart/form-data");
+            form1.attr("enctype", "multipart/form-data");
+
+            form1.attr("target", "postiframe1");
+            form1.attr("file", $('#txtPoAttachmentFile').val());
+
+            var fname = $('#txtPoAttachmentFile').val();
+            fname = fname.replace(/^.*[\\\/]/, '');
+            $("#AttachedActualFileName").val(fname);
+            form1.submit();
+            return false;
+        });
+
+    });
+
+</script>
+<script src="@Url.Content("~/Areas/FLEXIBUY/FS_UserScript/jsRaisePO.js")" type="text/javascript"></script>
+

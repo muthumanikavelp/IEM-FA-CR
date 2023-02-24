@@ -1,0 +1,852 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.shipment
+@using System.Web.Mvc;
+@using IEM.Common;
+@{
+    var grid = new WebGrid(source: Model.shiplist, rowsPerPage: 1, canPage: false, canSort: false, ajaxUpdateContainerId: "shipmentgrid", ajaxUpdateCallback: "dummyship()");
+    ViewBag.Title = "Shipment";
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+}
+
+<div id="shipment">
+    <table align="right">
+        <tr>
+            <td>
+                <input class="btn btn-primary"
+                       id="btn_add"
+                       type="button"
+                       name="command"
+                       value="Add Shipment Details" />
+            </td>
+        </tr>
+    </table>
+    <br />
+    @grid.GetHtml(
+    tableStyle: "tableSmall table-bordered table-hover table-responsive",
+         htmlAttributes: new { id = "shipmentgrid" },
+    columns:
+    grid.Columns(
+
+                grid.Column("Sl", format: a => rowNum = rowNum + 1),
+                grid.Column("SrNo", obj.Sorter("SrNo", "SlNo", grid)),
+                grid.Column("shipmenttype", obj.Sorter("shipmenttype", "Shipment Type", grid), format: @<text>
+                    <select name="shipment" id="ddltype" disabled="disabled" class="displayshipment">
+                        <option value="0">--Select--</option>
+                        @{
+                            var shipmentgid = Model.shipmentlist.Where(m => m.Value == @item.shipmentgid);
+                            if (shipmentgid != null)
+                            {
+                                foreach (var citem in Model.shipmentlist)
+                                {
+                                    string selectedValue = "";
+                                    if (@item.shipmentgid == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                    <select name="shipment" id="ddltype" disabled="disabled" onchange="CallBranchDetails(value)" class="editshipment">
+                        <option value="0">--Select--</option>
+                        @{
+                            var shipmentgid1 = Model.shipmentlist.Where(m => m.Value == @item.shipmentgid);
+                            if (shipmentgid1 != null)
+                            {
+                                foreach (var citem in Model.shipmentlist)
+                                {
+                                    string selectedValue = "";
+                                    if (@item.shipmentgid == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+                </text>),
+                                     grid.Column("branchgid",obj.Sorter("branchgid","Branch ID",grid)),
+                                     grid.Column("branchCode", obj.Sorter("branchCode", "Branch Code", grid)),
+                                     grid.Column("branchName", obj.Sorter("branchName", "Branch Name", grid)),
+                                     grid.Column("address", obj.Sorter("address", "Address", grid)),
+                                     grid.Column("location", obj.Sorter("location", "Location", grid)),
+                                     grid.Column("inchargeID", obj.Sorter("inchargeID", "Incharge ID", grid),
+                                     format:@<text><span class="displayshipment">@item.inchargeID</span>
+                                    <input type="text" id="incharge_@rowNum" name="incharge" disabled="disabled" onkeypress="return isNumber1(event, this);"
+                                           value="@item.inchargeID" class="editshipment textboxStyleMedium50" />
+                                    <span class="glyphicon glyphicon-search editshipment searchpop pntrStyle cursorpointer" id="@rowNum" onclick="empsearch(id)"></span>
+                                    <input type="text" id="inchargeno_@rowNum" onkeypress="return isNumber1(event, this);"
+                                           value="@item.inchargeID" style="display:none;" />
+
+                                    </text>),
+
+                                     grid.Column("shippedqty", obj.Sorter("shippedqty", "Shipped Qty", grid),
+                                     format:@<text><span class="displayshipment">@item.shippedqty</span>
+                                    <input type="text" id="txtshipment_@rowNum" name="txtshipment" value="@item.shippedqty" onkeyup="ShipmentQty(value,id,alt)"
+                                           alt="@item.shippedqty" onkeypress="return isNumber1(event,this);" style="width:100px" class="editshipment" /> </text> ), @*grid.Column("product_qty", obj.Sorter("product_qty", "Quantity", grid), format: @<text>
+                                                <span class="display"><label id="lblqty">@item.product_qty</label></span>
+                                                <input type="text" id="txtqty" value="@item.product_qty" style="width:20px" class="edit " />
+                                            </text>),*@    grid.Column(header: "Action", canSort: false, style: "action .excel", format: @<text>
+                                                                                                                                                                            <span class='glyphicon glyphicon-floppy-save editshipment save-btn' id=" ' + index + '" style="cursor:pointer;" title="Edit"><label id="sdf34" hidden="hidden">@item.cbfdetgid,@item.SrNo,@rowNum</label></span>
+                                                                                                                                                                            <span class='glyphicon glyphicon-edit displayshipment edit-btn cursor' style="cursor:pointer;" title="Edit"><label id="sdf67" hidden="hidden">@rowNum</label> </span>
+                                                                                                                                                                            <span class='glyphicon glyphicon-trash displayshipment deleteship-btn cursor' style="cursor:pointer;" title="Delete"><label id="sdf8989" hidden="hidden">@item.cbfdetgid,@item.SrNo,@rowNum</label> </span>
+                                                                                                                                                                            <span class='glyphicon glyphicon-remove editshipment cancel-btn cursor' style="cursor:pointer;" title="Cancel"> <label id="sdf000-" hidden="hidden">@rowNum</label></span>
+                                            </text>)))
+    <br />
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div style="margin-left:515px;">
+                    @*<input type="button" class="btn btn-warning" value="Close" onclick="shipmentClose()" />*@
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="shipmentClose()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span>Close
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <br />
+    <br />
+
+    <table class="myTableStyleTabNew" style="margin-top: 200px;margin-left: 495px;">
+        <tr>
+            <td>
+                <input type="button" value="Bulk Upload" id="bulk_upload" onclick="BulkUpload()" class="btn btn-primary" />
+            </td>
+
+        </tr>
+    </table>
+    <br />
+    <div class="row">
+        <div id="fileuploadprocess" class="borderStyle" style="margin-left:15px;margin-right:15px;">
+            <table class="myTableStyleTabNew" style="margin-left:200px;margin-bottom:15px;margin-top:15px;">
+                <tr>
+                    <td>
+                        <span><b>Select Shipment file</b></span>
+                        <form id="uploadforshipment">
+                            <input class="fileuploadlocal form-control" id="fileupldExcel" name="fileupldExcel" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                            @* <input id="fileupldExcel" style="margin-top:7px;margin-right:44px" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />*@
+                        </form>
+                    </td>
+                    <td>
+                        <span><b>Select Sheet</b></span>
+                        <br />
+                        <div style="width:185px;">
+                            @Html.DropDownList("sheetId", Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle", @id = "ddlSelSheet", @name = "ddlSelSheet" })
+                        </div>
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    @*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*@
+                    <td>
+                        <span>&nbsp;</span><br />
+                        <input type="button" id="btnfrstsubmit" style="margin-right:22px;" class="btn btn-primary" value="Upload" onclick="BulkUploadProcess()" />&nbsp;&nbsp;&nbsp;
+                        <input type="button" class="btn btn-primary" value="Template" onclick="DownloadTempl()" style="margin-right: 25px;" id="DownloadTemplate" />&nbsp;
+                        &nbsp;<input type="button" id="btntableClear" class="btn btn-warning" onclick="ExcelDataClear()" value="Clear" />
+                        &nbsp;
+                        <button type="button" class="btn btn-warning" value="Cancel" onclick="ExcelClose()">
+                            <span style="color:white;" class="glyphicon glyphicon-eye-close"></span>Close
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<div style="padding:0;margin:0;">
+    <div id="excelTable">
+    </div>
+</div>
+<div id="branchdetails"></div>
+<input type="hidden" id="rowid" />
+<input type="hidden" id="cbfid" />
+
+
+<script>
+    function ExcelClose() {
+        $('#fileuploadprocess').hide();
+    }
+    var objempsearch;
+    function empsearch(id) {
+
+        if ($("#emp_id").val() == "") {
+            $("#emp_id").val("employee");
+            objempsearch = $("[id$='empsearch']");
+            objempsearch.dialog({
+                autoOpen: false,
+                modal: true,
+                show: 'fade-in',
+                close: 'fade-out',
+                cache: false,
+            });
+        }
+        objempsearch.load('@Url.Action("searchEmploy","poraiser")?listfor=' + id + '&' + new Date().getTime());
+        objempsearch.dialog({ title: 'Employee Details', width: '890', height: '460' });
+        objempsearch.dialog("open");
+    }
+
+    $(document).ready(function () {
+
+        $("#shipmentgrid td:nth-child(4),#shipmentgrid th:nth-child(4)").hide();
+        $("#shipmentgrid td:nth-child(2),#shipmentgrid th:nth-child(2)").hide();
+        $('#DownloadTemplate').hide();
+        $('#fileuploadprocess').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.editshipment, .displayshipment').toggle();
+
+            $('#shipmentgrid').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#ccc');
+        });
+
+        $('.editshipment').hide();
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        var actQty = $("#shippedqty").val();
+        if (parseInt(qty) == parseInt(actQty)) {
+            $("#bulk_upload").attr("disabled", true);
+            $("#btn_add").attr("disabled", true);
+            $(".qty").attr("disabled", true);
+        }
+        $("#btn_add").click(function () {
+            //$("#bulk_upload").attr("disabled", true);
+            var existrow = $('.save-btn1').length;
+
+            if (existrow == 0) {
+                var index = $("#shipmentgrid tbody tr").length + 1;
+                @*// var ID = '@Model.cbfdetGid';*@
+                var cbfgid = $("#cbfdetGid") + index;
+                var shipmenttype = "shipmenttype" + index;
+                var branchgid = "branchgid" + index;
+                var branchname = "branchName" + index;
+                var address1 = "address" + index;
+                var location1 = "location" + index;
+                var inchargeId1 = "inchargeID" + index;
+                var branchCode1 = "branchCode" + index;
+                var shippedqty1 = "shippedqty" + index;
+                var Save = "Save_" + index;
+                var Cancel = "Cancel_" + index;
+                var newRow = '<tr class="alternate-row"><td></td>' +
+                              '<td><span> <select id="' + shipmenttype + '" name="' + index + '" onchange="getbranchdetails(this,name,value)" class="textboxStyle" style="width: 165px;">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                               //'<td><span> <input id="' + branchgid + '" class="textboxStyle" style="display:none" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + branchCode1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + branchname + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + address1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + location1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + inchargeId1 + '" class="textboxStyle" disabled="disabled" type="text" /></span> <span class="glyphicon glyphicon-search edit searchpop cursorpointer" id="' + inchargeId1 + '" onclick="empsearch(id)"></span></td>' +
+                               '<td><span> <input id="' + shippedqty1 + '" name="' + index + '" class="textboxStyle" onkeyup="ShipmentQty1(value,name)" onkeypress="return isNumber1(event,this);" type="text" /> </span></td>' +
+                               //'<td><span> <input id="' + product_qty + '" type="text" class="textboxStyle" /> </span></td>' +
+                               '<td style="width:95px"><a class="edit save-btn1" id=" ' + index + '" onclick="ShipmentSave(id)" ><span class="glyphicon glyphicon-floppy-save" title="Save"></span> </a> <a style="width:60px;"  class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn" title="Cancel"></a></td>' +
+                               '</tr>';
+                $("#shipmentgrid tbody").append(newRow);
+                $.ajax({
+                    url: '@Url.Action("getshipmentlist", "poraiser")',
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.length == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#" + shipmenttype + "").empty();
+                            $("#" + shipmenttype + "").append("<option value='Select'>Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + shipmenttype + "").append("<option value=" + data[i].shipmentgid + " >" + data[i].shipmentName + "</option>");
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        alert("Error");
+                    }
+                });
+                //$('#btnSave').removeAttr('disabled');
+            }
+            else {
+                jAlert("First Save Your Previous record", "Error");
+                return false;
+            }
+        });
+
+        $('.deleteship-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var row1 = row.split(',');
+
+            var objShipmentdetails =
+           {
+               "SrNo": row1[1],
+               "cbfdetgid": row1[0]
+           };
+            $.ajax({
+                url: '@Url.Action("DeleteShipment","poraiser")',
+                type: 'POST',
+                data: objShipmentdetails,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#shipment").load('@Url.Action("saveshipment","poraiser")?' + new Date().getTime())
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        });
+
+    });
+    function dummyship() {
+        $('#DownloadTemplate').hide();
+        $('#fileuploadprocess').hide();
+        $('.edit-btn, .cancel-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            tr.find('.editshipment, .displayshipment').toggle();
+
+        });
+
+        $('.editshipment').hide();
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        var actQty = $("#shippedqty").val();
+        if (parseInt(qty) == parseInt(actQty)) {
+            $("#bulk_upload").attr("disabled", true);
+            $("#btn_add").attr("disabled", true);
+            $(".qty").attr("disabled", true);
+        }
+        $("#btn_add").click(function () {
+            //$("#bulk_upload").attr("disabled", true);
+            var existrow = $('.save-btn1').length;
+
+            if (existrow == 0) {
+                var index = $("#shipmentgrid tbody tr").length + 1;
+                @*// var ID = '@Model.cbfdetGid';*@
+                var cbfgid = $("#cbfdetGid") + index;
+                var shipmenttype = "shipmenttype" + index;
+                var branchgid = "branchgid" + index;
+                var branchname = "branchName" + index;
+                var address1 = "address" + index;
+                var location1 = "location" + index;
+                var inchargeId1 = "inchargeID" + index;
+                var branchCode1 = "branchCode" + index;
+                var shippedqty1 = "shippedqty" + index;
+                var Save = "Save_" + index;
+                var Cancel = "Cancel_" + index;
+                var newRow = '<tr class="alternate-row"><td></td>' +
+                              '<td><span> <select id="' + shipmenttype + '" name="' + index + '" onchange="getbranchdetails(this,name,value)" class="textboxStyle" style="width: 165px;">' + '<option value="Select">Select</option>' + '</select></span></td>' +
+                              '<td><span> <input id="' + branchgid + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + branchname + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + address1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + location1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + inchargeId1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + branchCode1 + '" class="textboxStyle" disabled="disabled" type="text" /> </span></td>' +
+                               '<td><span> <input id="' + shippedqty1 + '" name="' + index + '" class="textboxStyle" onkeyup="ShipmentQty1(value,name)" onkeypress="return isNumber1(event,this);" type="text" /> </span></td>' +
+                               //'<td><span> <input id="' + product_qty + '" type="text" class="textboxStyle" /> </span></td>' +
+                               '<td style="width:95px"><a class="edit save-btn1" id=" ' + index + '" onclick="ShipmentSave(id)" ><span class="glyphicon glyphicon-floppy-save" title="Save"></span> </a> <a style="width:60px;"  class="edit cancel-btn" id="' + index + '" onclick="cancel(this)" > <span class="glyphicon glyphicon-remove edit cancel-btn" title="Cancel"></a></td>' +
+                               '</tr>';
+                $("#shipmentgrid tbody").append(newRow);
+                $.ajax({
+                    url: '@Url.Action("getshipmentlist", "poraiser")',
+                    data: '{}',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.length == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#" + shipmenttype + "").empty();
+                            $("#" + shipmenttype + "").append("<option value='Select'>Select</option>");
+                            for (var i = 0; i < data.length; i++) {
+                                $("#" + shipmenttype + "").append("<option value=" + data[i].shipmentgid + " >" + data[i].shipmentName + "</option>");
+                            }
+                        }
+                    },
+                    error: function (result) {
+                        alert("Error");
+                    }
+                });
+                //$('#btnSave').removeAttr('disabled');
+            }
+            else {
+                jAlert("First Save Your Previous record", "Error");
+                return false;
+            }
+        });
+
+        $('.deleteship-btn').on('click', function () {
+
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var objShipmentdetails =
+           {
+               "SrNo": row
+           };
+            $.ajax({
+                url: '@Url.Action("DeleteShipment","poraiser")',
+                type: 'POST',
+                data: objShipmentdetails,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#shipment").load("@Url.Action("saveshipment","poraiser")");
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        });
+    }
+    var objdialogbranch;
+    function getbranchdetails(id, name, value) {
+        if (value != "Select") {
+            $("#rowid").val(name);
+            if ($("#dd").val() == "") {
+                $("#dd").val("branch");
+                objdialogbranch = $("[id$='branchdetails']");
+                objdialogbranch.dialog({
+                    autoOpen: false,
+                    modal: true,
+                    show: 'fade-in',
+                    close: 'fade-out',
+                    cache: false,
+                    resizable: false
+                });
+            }
+            objdialogbranch.load('@Url.Action("branchdetails","poraiser")?' + new Date().getTime());
+            objdialogbranch.dialog({ title: 'Branch Details', width: '768', height: '400' });
+            objdialogbranch.dialog("open");
+        }
+    }
+    function ShipmentQty(value, id, alt) {
+
+        var qty = 0;
+        var cnt = 1;
+        $("#shipmentgrid tbody td").find("input[name=txtshipment]:text").each(function () {
+            var element = this;
+            if (value == parseInt(0)) {
+                jAlert("Shipped Quantity cannot be zero", "Error", function (e) {
+                    $(element).val("");
+                    return false;
+                });
+            }
+            if ((parseInt($("#shipmentgrid tr").length)) > parseInt(cnt)) {
+                qty += Number($(this).val());
+            }
+            var actualQty = $("#shippedqty").val();
+            if (parseInt(qty) > parseFloat(actualQty)) {
+                jAlert("Shipped Quantity is greater than Actual Quantity " + actualQty + "", "Error", function (e) {
+                    //$(id).val("");
+                    $(element).val("");
+                    //$("input[name=txtshipment]").val(alt);
+                    //alert($(id).val());
+                    return false;
+                });
+            }
+            cnt = cnt + 1;
+
+        });
+        // qty = parseInt(qty) + parseInt(value);
+
+    }
+    function ShipmentSave(id) {
+        var shippedQty = $("#shippedqty" + id.trim() + "").val();
+        var inchargeId = $("#inchargeID" + id.trim() + "").val();
+        var actQty = $("#shippedqty").val();
+        var cbfdetGid = $("#cbfid").val();
+        if (parseInt(shippedQty) == actQty) {
+            $("#bulk_upload").attr("disabled", true);
+        }
+        if (inchargeId.trim() == "" || inchargeId.trim() == null || inchargeId.trim() == 0) {
+            jAlert("Incharge Id Cannot be Empty", "Error");
+            return false;
+        }
+        if (shippedQty == "" || shippedQty == null) {
+            jAlert("Shipped Quantity Cannot be Empty", "Error");
+            return false;
+        }
+        else {
+            var tr = $(this).parents('tr:first');
+            var row = id;
+            var cbfdetslno = '@Model.cbfdetGid';
+            var shipmenttype = $("#shipmenttype" + row.trim() + "").val();
+            var branchgid = $("#branchgid" + row.trim() + "").val();
+            var branchName = $("#branchName" + row.trim() + "").val();
+            var address = $("#address" + row.trim() + "").val();
+            var location = $("#location" + row.trim() + "").val();
+            var inchargeID = $("#inchargeID" + row.trim() + "").val();
+            var branchCode = $("#branchCode" + row.trim() + "").val();
+            var shippedqty = $("#shippedqty" + row.trim() + "").val();
+            //var empid = $("#empgid" + row.trim() + "").val();
+            //alert(empid);
+
+            var objShipmentdetails =
+               {
+                   "shipmentgid": shipmenttype,
+                   "branchName": branchName,
+                   "address": address,
+                   "location": location,
+                   "inchargeID": inchargeID,
+                   "branchCode": branchCode,
+                   "shippedqty": shippedqty,
+                   "cbfdetGid": cbfdetslno,
+                   "branchgid": branchgid
+               }
+            $.ajax({
+                url: '@Url.Action("saveshipment","poraiser")?' + new Date().getTime(),
+                type: 'POST',
+                data: objShipmentdetails,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#shipment").load("@Url.Action("saveshipment","poraiser")?" + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+        }
+    }
+    function ShipmentQty1(value, id) {
+        if (value == parseInt(0)) {
+            jAlert("Shipped Quantity cannot be zero", "Error", function (e) {
+                $("#shippedqty" + id.trim() + "").val("");
+                return false;
+            });
+        }
+        var qty1 = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty1 += Number($(this).val());
+        });
+        var totalQty = parseInt(value) + parseInt(qty1);
+        var actQty = $("#shippedqty").val();
+        if (parseInt(totalQty) > parseInt(actQty)) {
+            jAlert("Shipped Quantity is greater than Actual Quantity '<span style='color:red'>" + actQty + "</span>'", "Error", function (e) {
+                $("#shippedqty" + id.trim() + "").val("");
+                return false;
+            });
+        }
+    }
+
+    function cancel(element) {
+
+        jConfirm("Are You Sure Want To Cancel", "Message", function (e) {
+            if (e == true) {
+                $(element).parents("tr").remove();
+            }
+        });
+    }
+    $('.save-btn').on('click', function () {
+        // var shippedQty = $("input[name=txtshipment]").val();
+        var row = $(this).closest('tr');
+        var shippedQty = row.find("input[name = txtshipment]").val();
+        var inchargecode = row.find("input[name = incharge]").val();
+        if (inchargecode == "" || inchargecode == null) {
+            jAlert("Incharge Person Cannot be Empty ", "Error");
+            return false;
+        }
+        if (shippedQty == "" || shippedQty == null) {
+            jAlert("Shipped Quantity Cannot be Empty", "Error");
+            return false;
+        }
+
+        else {
+            var tr = $(this).parents('tr:first');
+            var rows = $(this).text();
+            var row = rows.split(',');
+
+            // var qty = tr.find("#shippedqty1").val();
+            var shippedqty = $("#txtshipment_" + row[2].trim() + "").val();
+            var inchargeId = $("#incharge_" + row[2].trim() + "").val();
+            var empid = $("#inchargeno_" + row[2].trim() + "").val();
+            var objShipmentdetails =
+           {
+               "shippedqty": shippedqty,
+               "inchargeID": inchargeId,
+               "empgid": empid,
+               "SrNo": row[1],
+               "cbfdetgid": row[0]
+           };
+            $.ajax({
+                url: "@Url.Action("UpdateShipment","poraiser")",
+                type: 'POST',
+                data: objShipmentdetails,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#shipment").load('@Url.Action("saveshipment","poraiser")?' + new Date().getTime());
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+        }
+    });
+    $('#fileupldExcel').on('change', function (e) {
+        @*var files = e.target.files;
+        if (files.length > 0) {
+            if (window.FormData !== undefined) {
+                var data = new FormData();
+                for (var x = 0; x < files.length; x++) {
+                   // alert(files[x].name);
+                    //alert(files[x].files.name);
+                    $("#txtfile").val(files[x].name);
+                    var filename = files[x].name;
+                    var split = filename.split('.');
+                    var extension = split[1];
+                    //alert(extension);
+                    if(extension!="xlsx" && extension !="xls")
+                    {
+                        jAlert("Please Select Valid Excel File", "Error");
+                        $("#ddlSelSheet").attr("disabled", true);
+                        $("#fileupldExcel").val("");
+                        return false;
+                    }
+                    data.append("temp_" + x, files[x]);
+                }
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("FileUpload", "poraiser")',
+                    contentType: false,
+                    processData: false,
+                    data: data,
+                    success: function (result) {
+                        //alert(result);
+                        //alert(result.length);
+                        $("#ddlSelSheet").empty();
+                        if (result.length > 0) {
+                            $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+                            for (var i = 0; i < result.length; i++) {
+                                var stylesSelect = $('#ddlSelSheet');
+                                stylesSelect.attr('disabled', false);
+                                $("#ddlSelSheet").append("<option value=" + result[i].sheetId + ">" + result[i].sheetName + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+                            var stylesSelect = $('#ddlSelSheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    },
+                    error: function (xhr, status, p3, p4) {
+                        var err = "Error " + " " + status + " " + p3 + " " + p4;
+                        if (xhr.responseText && xhr.responseText[0] == "{")
+                            err = JSON.parse(xhr.responseText).Message;
+                        console.log(err);
+                    }
+                });
+            } else {
+                alert("This browser doesn't support HTML5 file uploads!");
+            }
+        }*@
+        var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+        $("body").append(iframe);
+        var form = $('#uploadforshipment');
+        form.attr("action", '@Url.Action("ExcelUplFiles", "poraiser")?' + new Date().getTime());
+        form.attr("method", "post");
+        form.attr("encoding", "multipart/form-data");
+        form.attr("enctype", "multipart/form-data");
+        form.attr("target", "postiframe");
+        form.attr("file", $('#fileupldExcel').val());
+        form.submit();
+        getshipsheets();
+    });
+    function getshipsheets() {
+        var data = "fff";
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("FileUpload", "poraiser")?' + new Date().getTime(),
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (result) {
+                if (result == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    $("#ddlSelSheet").empty();
+                    $("#ddlSelSheet").append("<option value='0' >--Select--</option>");
+                    var err = result[0].SheetName;
+                    //alert(err);
+                    if (err == "error") {
+                        jAlert("Please Upload Valid File", "Message");
+                        return false;
+                    }
+                    else {
+                        if (result.length > 0) {
+                            for (var i = 0; i < result.length; i++) {
+                                var stylesSelect = $('#ddlSelSheet');
+                                stylesSelect.attr('disabled', false);
+                                $("#ddlSelSheet").append("<option value=" + result[i].sheetId + " >" + result[i].sheetName + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            var stylesSelect = $('#ddlSelSheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    }
+                }
+            },
+            //error: function (xhr, status, p3, p4) {
+            //    var err = "Error " + " " + status + " " + p3 + " " + p4;
+            //    if (xhr.responseText && xhr.responseText[0] == "{")
+            //        err = JSON.parse(xhr.responseText).Message;
+            //    console.log(err);
+            //}
+        });
+    }
+    var objstatusdialog;
+    function BulkUpload() {
+        var actQty = $("#shippedqty").val();
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        if (parseInt(qty) == parseInt(actQty)) {
+            jAlert("Shipped Quantity equals to the Actual Quantity", "Error");
+            return false;
+        }
+        else {
+            $('#DownloadTemplate').show();
+            $('#fileuploadprocess').show();
+            //$("#btn_add").attr("disabled", true);
+            //$(".excel").attr("disabled", true);
+        }
+    }
+
+    //var objdialogexcel;
+
+    function BulkUploadProcess() {
+        if ($("#fileupldExcel").val() == null || $("#fileupldExcel").val() == "") {
+            jAlert("Please Select a valid file", "Message");
+            $("#ddlSelSheet").focus();
+            return false;
+        }
+        var sheet = $("#ddlSelSheet option:selected").text();
+        var actQty = $("#shippedqty").val();
+        var cbfdetSlno = '@Model.cbfdetGid';
+
+        var objValid =
+           {
+               "sheetName": sheet,
+               "quantity": actQty,
+               "cbfSlNo": cbfdetSlno
+           };
+        if (sheet == null || sheet == "0" || sheet == "--Select--") {
+            jAlert("Please Select Sheet", "Error");
+            return false;
+        }
+        $.ajax({
+            url: '@Url.Action("ColumnValidation", "poraiser")?' + new Date().getTime(),
+            type: 'POST',
+            cache: false,
+            data: objValid,
+            success: function (data) {
+                if (data == 0) {
+                    jAlert("Error Occured", "Error");
+                    return false;
+                }
+                else {
+                    if (data == "Success") {
+                        if ($("#hid_excel").val() == "") {
+                            objdialogsummary = $("[id$='ForExcelValidation']");
+                            $("#hid_excel").val("excelvalid");
+                            objdialogsummary.dialog({
+                                autoOpen: false,
+                                cache: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+
+                            });
+                        }
+                        objdialogsummary.load('@Url.Action("BulkUploadStatus","poraiser")?' + new Date().getTime());
+                        objdialogsummary.dialog({ title: 'Upload Summary', width: '600', height: '300' });
+                        objdialogsummary.dialog("open");
+                    }
+
+                    else {
+                        jAlert("Column Mismatches in Template", "Error");
+                        $("#ddlSelSheet").val("--Select--");
+                        $("#fileupldExcel").val("");
+                        return false;
+                    }
+                }
+            },
+            error: function () {
+                alert("something seems wrong");
+                return false;
+            }
+        });
+    }
+    function ExcelDataClear() {
+        //$("#ddlSelSheet").empty();
+        $("#ddlSelSheet").val(0);
+        $("#fileupldExcel").val("");
+    }
+    function shipmentClose() {
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        var actQty = $("#shippedqty").val();
+        if (parseInt(qty) == parseInt(actQty)) {
+            window.parent.jQuery('#Forshipment').dialog('close');
+            $('#podetailgrid').find('tr').css('background', 'none');
+        }
+        else {
+            jAlert("Shipped Quantity Mismatches with Podetails Quantity '" + actQty + "'", "Error");
+            return false;
+        }
+    }
+    function DownloadTempl() {
+        location = '@Url.Action("DownloadExcel", "poraiser")';
+    }
+    $(".ui-icon-closethick").click(function () {
+
+        var qty = 0;
+        $("#shipmentgrid td").find("input[name=txtshipment]:text").each(function () {
+            qty += Number($(this).val());
+        });
+        var actQty = $("#shippedqty").val();
+        if (parseInt(qty) == parseInt(actQty)) {
+            window.parent.jQuery('#Forshipment').dialog('close');
+            $('#podetailgrid').find('tr').css('background', 'none');
+        }
+        else {
+            jAlert("Shipped Quantity Mismatches with Podetails Quantity '" + actQty + "'", "Error");
+            return false;
+        }
+    });
+</script>

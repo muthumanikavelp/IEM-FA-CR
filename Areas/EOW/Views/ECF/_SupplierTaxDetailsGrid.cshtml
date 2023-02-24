@@ -1,0 +1,85 @@
+﻿@using IEM.Areas.EOW.Models;
+@using IEM.Common
+@*@model IEM.Areas.EOW.Models.EOW_EmployeeeExpense*@
+@model IEnumerable<IEM.Areas.EOW.Models.sinvotax>
+@{
+    EOW_DataModel objd = new EOW_DataModel();
+    List<sinvotax> lstPayment = new List<sinvotax>();
+    lstPayment = (List<sinvotax>)TempData["SearchItems"];
+    decimal remamount = 0;
+    if (lstPayment == null)
+    {
+        ViewBag.IsSearched = "no";
+        lstPayment = objd.GetSupplierTax(Session["QinvoiceGid"].ToString()).ToList();
+        for (int tr = 0; lstPayment.Count > tr; tr++)
+        {
+            if (remamount == 0)
+            {
+                remamount = Convert.ToDecimal(lstPayment[tr].Intax_Taxamt.ToString());
+            }
+            else
+            {
+                remamount = remamount + Convert.ToDecimal(lstPayment[tr].Intax_Taxamt.ToString());
+            }
+        }
+        ViewBag.NoRecordstolp = "total";
+    }
+    if (lstPayment.Count == 0)
+    {
+        ViewBag.NoRecordsPayment = "NoRecords";
+        ViewBag.NoRecordsFoundPayment = "No Records Found";
+    }
+}
+
+<div id="wgempTaxsupplier">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var gridPayment = new WebGrid(lstPayment, canSort: false, canPage: false, rowsPerPage: 3, ajaxUpdateContainerId: "wgempTaxsupplier", ajaxUpdateCallback: "DummyFunction()");
+        int rowValPayment = 0;
+    }
+
+    <div class="table-responsive" style="max-height: 350px;">
+        @gridPayment.GetHtml(
+                       htmlAttributes: new { id = "wgempTaxsupplier" },
+                       tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                         gridPayment.Columns(gridPayment.Column("#", canSort: false, format: item => rowValPayment = rowValPayment + 1),
+                                  gridPayment.Column("Intax_Tax", objCmnFunctions.Sorter("Intax_Tax", "Tax", gridPayment), canSort: false, style: "collargeBreak"),
+                                  gridPayment.Column("Intax_Rate", objCmnFunctions.Sorter("Intax_Rate", "Rate ( % )", gridPayment), canSort: false, style: "collargeBreak"),
+                //gridPayment.Column("Intax_Taxableamt", objCmnFunctions.Sorter("Intax_Taxableamt", "Taxable Amount", gridPayment), canSort: false, style: "collargeBreak"),
+                //gridPayment.Column("Intax_Taxamt", objCmnFunctions.Sorter("Intax_Taxamt", "Tax Amount", gridPayment), canSort: false, style: "collargeBreak")
+                                   gridPayment.Column(header: "Intax_Taxableamt",
+                        format: @<text>
+                                    @Html.Raw(String.Format("{0:#,##}",
+                                                                   objCmnFunctions.GetINRAmount(Convert.ToString(@item.Intax_Taxableamt)
+                        ))) </text>, style: "colamountlarge"),
+                                                                                   gridPayment.Column(header: "Intax_Taxamt",
+                        format: @<text>
+                                                                                    @Html.Raw(String.Format("{0:#,##}",
+                                                                   objCmnFunctions.GetINRAmount(Convert.ToString(@item.Intax_Taxamt)
+                        ))) </text>, style: "colamountlarge")))
+
+        @if (@ViewBag.NoRecordsPayment == "NoRecords")
+        {
+            <div class="borderStyle">
+                <center>
+                    <b> @ViewBag.NoRecordsFoundPayment </b>
+                </center>
+            </div>
+        }
+    </div>
+    @if (@ViewBag.NoRecordstolp == "total")
+    {
+        <div>
+            <table style="width:100%">
+                <tr>
+                    <td align="right">
+                        <span id="supplierpaymentdfr"> Total Tax Amount : <b><label id="supplierpaymentd">@objCmnFunctions.GetINRAmount(remamount.ToString())</label></b></span>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    }
+</div>

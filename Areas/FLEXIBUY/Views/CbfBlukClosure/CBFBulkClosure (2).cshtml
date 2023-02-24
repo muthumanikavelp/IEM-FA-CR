@@ -1,0 +1,354 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.CBFBulkClosure
+@using IEM.Common
+@{
+    ViewBag.Title = "CBFClosure";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.lListBulkUpload, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridload");
+    CmnFunctions obj = new CmnFunctions();
+}
+
+<div id="bulk_closure">
+    @*<h3>CBF Bulk Closure</h3>*@
+    <b>
+        <span style="color: rgb(52, 108, 196);">CBF Bulk Closure</span>
+    </b>
+    <br /><br />
+
+    <div class="well">
+        <div id="fileuploadprocess" class="panel panel-default"  >
+            <table class="myTableStyleTabNew" align="center" >
+                <tr>
+                    <td style="padding:10px;">
+                        <span><b>Select file</b></span>
+                        <input id="fileupld"  type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                    </td>
+                    <td style="padding:10px;">
+                        <span><b>Select Sheet</b></span>
+                        <br />
+                        <div style="width:185px;">
+                            @Html.DropDownList("sheetId", Enumerable.Empty<SelectListItem>(), "--Select--", new { @class = "textboxStyle", @id = "ddlSelSheet", @name = "ddlSelSheet" })
+                        </div>
+                    </td>
+                  
+                    <td style="padding:10px;">
+                        <span>&nbsp;</span><br />
+                        <input type="button" id="btnfrstsubmit"  class="btn btn-primary" value="Upload" onclick="PoBulkUploadProcess()" />
+                        <input type="button" class="btn btn-primary" value="Template" onclick="DownloadClosureTempl()" id="DownloadTemplate" />
+                       <input type="button" id="btntableClear" class="btn btn-warning" onclick="ExcelClear()" value="Clear" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+        <br />
+        <br />
+
+        <div id="ForCBFExcel">
+            <input type="hidden" value="" id="hid_excelpo" />
+            <div>
+                @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered",
+        htmlAttributes: new { id = "Cbfbulkclosure" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+                    grid.Column("Sl", obj.Sorter("Sl", "Sl", grid)),
+                    grid.Column("CBFNo", obj.Sorter("CBFNo", "PoNo", grid), style: "col-sm-2"),
+                    grid.Column("CBFDate", obj.Sorter("CBFDate", "PoDate", grid), style: "col-sm-2"),
+                    grid.Column("Remarks", obj.Sorter("Remarks", "Remarks", grid), style: "col-sm-2")))
+
+            </div>
+        </div>
+    </div>
+    <br /><br /><br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div @*style="margin-left:380px;"*@>
+                    <button type="button" id="btncancel" name="command" class="btn btn-success" onclick="BulkClosureInsert()" value="Submit">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Submit
+                    </button>
+                    &nbsp;
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Back" onclick="CancelBulkClosure()">
+                        <span style="color:white;" class="glyphicon glyphicon-eye-close"></span> Cancel
+                    </button>
+                    
+                </div>
+            </td>
+        </tr>
+    </table>
+    @*<table class="myTableStyleTabNew" >
+        <tr>
+            <td>
+                <div align="center">
+                    <button type="button" id="btncancel" class="btn btn-primary" value="Submit" onclick="BulkClosureInsert()">
+                            <span style="color:white;" class="glyphicon glyphicon"></span> Submit
+                        </button>
+                    
+                    &nbsp;
+                    <button type="button" id="btncancel" class="btn btn-warning" value="Cancel" onclick="CancelBulkClosure()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Cancel
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>*@
+
+    <script>
+        var objexcelPo;
+        function PoBulkUploadProcess() {
+            var sheet = $("#ddlSelSheet option:selected").text();
+
+            var objValid =
+               {
+                   "sheetName": sheet,
+               };
+            if (sheet == null || sheet == "0" || sheet == "--Select--") {
+                jAlert("Please Select Sheet", "Error");
+                return false;
+            }
+            $.ajax({
+                url: '../CbfBlukClosure/ColumnValidation',
+                type: 'POST',
+                cache: false,
+                data: objValid,
+                success: function (data) {
+                    if (data == "Success") {
+                        if ($("#hid_excelpo").val() == "") {
+                            objexcelPo = $("[id$='ForCBFExcel']");
+                            $("#hid_excelpo").val("excelvalid");
+                            objexcelPo.dialog({
+                                autoOpen: false,
+                                cache: false,
+                                modal: true,
+                                show: 'fade-in',
+                                close: 'fade-out',
+
+                            });
+                        }
+                        objexcelPo.load('../CbfBlukClosure/BulkUploadStatusForCBF');
+                        objexcelPo.dialog({ title: 'Upload Summary', width: '600', height: '300' });
+                        objexcelPo.dialog("open");
+                    }
+                    else {
+                        jAlert("Column Mismatches in Template", "Error");
+                        $("#ddlSelSheet").val("--Select--");
+                        $("#fileupldExcel").val("");
+                        return false;
+                    }
+                },
+                error: function () {
+                    alert("something seems wrong");
+                    return false;
+                }
+            });
+        }
+        $('#fileupld').on('change', function (e) {
+            var iframe = $('<iframe name="postiframe" id="postiframe" style="display: none"></iframe>');
+            $("body").append(iframe);
+            var form = $('#uploadforclosure');
+            form.attr("action", "@Url.Action("ExcelUplFiles", "PoBulkClosure")");
+            form.attr("method", "post");
+            form.attr("encoding", "multipart/form-data");
+            form.attr("enctype", "multipart/form-data");
+            form.attr("target", "postiframe");
+            form.attr("file", $('#fileupld').val());
+            form.submit();
+            getbulksheets();
+            //    var files = e.target.files;
+            //    if (files.length > 0) {
+            //        if (window.FormData !== undefined) {
+            //            var data = new FormData();
+            //            for (var x = 0; x < files.length; x++) {
+            //                // alert(files[x].name);
+            //                //alert(files[x].files.name);
+            //                // $("#txtfile").val(files[x].name);
+            //                var filename = files[x].name;
+            //                var split = filename.split('.');
+            //                var extension = split[1];
+            //                //alert(extension);
+            //                if (extension != "xlsx" && extension != "xls") {
+            //                    jAlert("Please Select Valid Excel File", "Error");
+            //                    $("#ddlSelSheet").attr("disabled", true);
+            //                    $("#fileupld").val("");
+            //                    return false;
+            //                }
+            //                data.append("temp_" + x, files[x]);
+            //            }
+            //            $.ajax({
+            //                type: "POST",
+            //                url: '../CbfBulkReopen/FileUpload',
+            //                contentType: false,
+            //                processData: false,
+            //                data: data,
+            //                success: function (result) {
+            //                    //alert(result);
+            //                    //alert(result.length);
+            //                    $("#ddlSelSheet").empty();
+            //                    if (result.length > 0) {
+            //                        $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+            //                        for (var i = 0; i < result.length; i++) {
+            //                            var stylesSelect = $('#ddlSelSheet');
+            //                            stylesSelect.attr('disabled', false);
+            //                            $("#ddlSelSheet").append("<option value=" + result[i].sheetId + ">" + result[i].sheetName + "</option>");
+            //                        }
+            //                    }
+            //                    if (result.length == 0) {
+            //                        $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+            //                        var stylesSelect = $('#ddlSelSheet');
+            //                        stylesSelect.attr('disabled', true);
+            //                    }
+            //                },
+            //                error: function (xhr, status, p3, p4) {
+            //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+            //                    if (xhr.responseText && xhr.responseText[0] == "{")
+            //                        err = JSON.parse(xhr.responseText).Message;
+            //                    console.log(err);
+            //                }
+            //            });
+            //        } else {
+            //            alert("This browser doesn't support HTML5 file uploads!");
+            //        }
+            //    }
+        });
+        //$('#fileupld').on('change', function (e) {
+        //    var files = e.target.files;
+        //    if (files.length > 0) {
+        //        if (window.FormData !== undefined) {
+        //            var data = new FormData();
+        //            for (var x = 0; x < files.length; x++) {
+        //                // alert(files[x].name);
+        //                //alert(files[x].files.name);
+        //                // $("#txtfile").val(files[x].name);
+        //                var filename = files[x].name;
+        //                var split = filename.split('.');
+        //                var extension = split[1];
+        //                //alert(extension);
+        //                if (extension != "xlsx" && extension != "xls") {
+        //                    jAlert("Please Select Valid Excel File", "Error");
+        //                    $("#ddlSelSheet").attr("disabled", true);
+        //                    $("#fileupld").val("");
+        //                    return false;
+        //                }
+        //                data.append("temp_" + x, files[x]);
+        //            }
+        //            $.ajax({
+        //                type: "POST",
+        //                url: '../CbfBlukClosure/FileUpload',
+        //                contentType: false,
+        //                processData: false,
+        //                data: data,
+        //                success: function (result) {
+        //                    //alert(result);
+        //                    //alert(result.length);
+        //                    $("#ddlSelSheet").empty();
+        //                    if (result.length > 0) {
+        //                        $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+        //                        for (var i = 0; i < result.length; i++) {
+        //                            var stylesSelect = $('#ddlSelSheet');
+        //                            stylesSelect.attr('disabled', false);
+        //                            $("#ddlSelSheet").append("<option value=" + result[i].sheetId + ">" + result[i].sheetName + "</option>");
+        //                        }
+        //                    }
+        //                    if (result.length == 0) {
+        //                        $("#ddlSelSheet").append("<option value='0'>--Select--</option>");
+        //                        var stylesSelect = $('#ddlSelSheet');
+        //                        stylesSelect.attr('disabled', true);
+        //                    }
+        //                },
+        //                error: function (xhr, status, p3, p4) {
+        //                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+        //                    if (xhr.responseText && xhr.responseText[0] == "{")
+        //                        err = JSON.parse(xhr.responseText).Message;
+        //                    console.log(err);
+        //                }
+        //            });
+        //        } else {
+        //            alert("This browser doesn't support HTML5 file uploads!");
+        //        }
+        //    }
+        //});
+        function getbulksheets() {
+            var data = "fff";
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("FileUpload", "CbfBlukClosure")',
+                contentType: false,
+                processData: false,
+                data: data,
+                success: function (result) {
+                    $("#ddlSelSheet").empty();
+                    $("#ddlSelSheet").append("<option value='0' >--Select--</option>");
+                    var err = result[0].SheetName;
+                    if (err == "Error") {
+                        jAlert("Please Upload Valid File", "Message");
+                        return false;
+                    }
+                    else {
+                        if (result.length > 0) {
+                            for (var i = 0; i < result.length; i++) {
+                                var stylesSelect = $('#ddlSelSheet');
+                                stylesSelect.attr('disabled', false);
+                                $("#ddlSelSheet").append("<option value=" + result[i].sheetId + " >" + result[i].sheetName + "</option>");
+                            }
+                        }
+                        if (result.length == 0) {
+                            var stylesSelect = $('#ddlSelSheet');
+                            stylesSelect.attr('disabled', true);
+                        }
+                    }
+                },
+                error: function (xhr, status, p3, p4) {
+                    var err = "Error " + " " + status + " " + p3 + " " + p4;
+                    if (xhr.responseText && xhr.responseText[0] == "{")
+                        err = JSON.parse(xhr.responseText).Message;
+                    console.log(err);
+                }
+            });
+        }
+        function DownloadClosureTempl() {
+            location = '../CbfBlukClosure/DownloadExcel';
+        }
+        function ExcelClear() {
+            $("#ddlSelSheet").empty();
+            $("#ddlSelSheet").val("--Select--");
+            $("#fileupld").val("");
+        }
+        function BulkClosureInsert() {
+            @*location = '@Url.Action("InsertBulkClosure", "PoBulkClosure")';*@
+            $.ajax({
+                url: '../CbfBlukClosure/InsertBulkClosure',
+                type: 'POST',
+                success: function (data) {
+                    location = '../CbfBlukClosure/CBFBlukClosure';
+                    //$("#poEditgrid1").empty().append(data);
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+            });
+            @*var filename = $("#fileupld").val();
+                //  var expenseCategory = $("#ddlSelSheet option:selected").text();
+                var objClosure =
+                          {
+                              "filename": filename
+                          };
+                $.post('@Url.Action("InsertBulkClosure", "PoBulkClosure")', objClosure,
+                                 function (data) {
+                                     if (data !=null) {
+                                         jAlert("Record Inserted Successfully", "Success", function (e) {
+                                             if (e == true) {
+                                                 location = '@Url.Action("PoBulkClosure", "PoBulkClosure")';
+                                             }
+                                         });
+                                     }
+                                 }, 'json');*@
+        }
+        function CancelBulkClosure() {
+            var viewfor = "cancel";
+            location = '../CbfBlukClosure/CBFBulkClosure?viewfor=' + viewfor;
+        }
+
+    </script>
+</div>

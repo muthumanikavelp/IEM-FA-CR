@@ -1,0 +1,131 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.shipment
+@using IEM.Common
+
+@{
+    //var grid = new WebGrid(source: Model.shiplist, canSort: true, canPage: false, rowsPerPage: 2, ajaxUpdateContainerId: "searchgrid");
+    var grid = new WebGrid(source: Model.shiplist, canSort: false, canPage: false);
+    CmnFunctions obj = new CmnFunctions();
+    int rowNum = 0;
+}
+
+<div id="branchgrid">
+    
+        <span style="color: rgb(52, 108, 196);">Branch Details</span>
+    
+    @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "branchdetgrid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+            grid.Column("SrNo","Sl"),
+            grid.Column("Slno", format: a => rowNum = rowNum + 1),
+            grid.Column("grndetGid", "grndetGid"),
+            grid.Column("branchName", "Branch Name"),
+            grid.Column("address", "Branch Address"),
+            grid.Column("location", "Location"),
+            grid.Column("inchargeID",  "In-Charge ID"),
+            grid.Column("releasedqty", "Released Quantity"),
+            @*format:@<text><span class="display" id="lblrelqty">@item.releasedqty</span><input type="text" name="inrelease"
+            value="@item.releasedqty" class="textboxStyle edit" href="@item.grndetGid"
+            id="inrelease_@item.grndetGid"
+            onchange="ReleasedQuant(value,this)" onkeypress="return isNumber1(event);" /></text>,style:"MidColumn10"),*@
+
+            grid.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+    <input type="hidden" name="txtinchargefinal" id="txtinchargefinal" value="@item.empgid" />
+            <span class='glyphicon glyphicon-trash displayshipment deletebranch-btn cursor' style="cursor:pointer;" title="Delete"><label id="sdf8989" hidden="hidden">@item.grndetGid</label> </span>
+   
+            </text>)))
+    @if (@ViewBag.records != null || @ViewBag.records == "")
+    {
+        <div class="borderStyle btnCenter">
+            @ViewBag.records
+        </div>
+    }
+  
+    <script>
+        $("#branchdetgrid td:nth-child(2),#branchdetgrid th:nth-child(2)").hide();
+        $("#branchdetgrid td:nth-child(3),#branchdetgrid th:nth-child(3)").hide();
+
+      
+        $(document).ready(function () {
+            //$('.edit').hide();
+            //var flag = 0;
+            //$('.edit-btn').on('click', function () {
+            //    flag = 0;
+            //    if (flag == 0) {
+            //        flag = 1;
+            //        var tr = $(this).parents('tr:first');
+            //        tr.find('.edit, .display').toggle();
+            //    }
+            //});
+            //$('.cancel-btn').on('click', function () {
+            //    flag = 0;
+            //    var tr = $(this).parents('tr:first');
+            //    tr.find('.edit, .display').toggle();
+            //});
+
+            $('#branchdetgrid').dataTable({
+                "bSort": false
+            }).css("width", "99%");
+
+            $(".deletebranch-btn").on('click', function () {
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text().trim();
+                var objdelete =
+             {
+                 "grndetGid": row
+             };
+                $.ajax({
+                    url: '@Url.Action("DeleteBranch", "GrnReleaseForCWIP")',
+                    type: 'POST',
+                    data: objdelete,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#branchgrid").empty().append(data);
+                        }
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+
+                });
+
+            });
+            @*$('.savebranch-btn').on('click', function () {
+                var tr = $(this).parents('tr:first');
+                var row = $(this).text();
+                var releasedqty = tr.find("#inrelease_" + row.trim() + "").val();
+                var shipmentgid = tr.find("td:eq(1)").text();
+                if (releasedqty == null || releasedqty == "") {
+                    jAlert("Released Quantity should not be Empty", "Error");
+                    return false;
+                }
+                else {
+                    $('.edit').hide();
+                    var objshipment =
+                        {
+                            "releasedqty": releasedqty,
+                            "shipmentgid": shipmentgid
+                        };
+                    $.ajax({
+                        url: '@Url.Action("releasedQtyTempSave", "GRNReleaseForPODetails")?' + new Date().getTime(),
+                        type: 'POST',
+                        data: objshipment,
+                        success: function (data) {
+                            $("#grnreleasedforpo").empty().append(data);
+                            },
+                        error: function () {
+                            jAlert("something seems wrong", "Error");
+                        }
+                    });
+                }
+            });*@
+        });
+    </script>
+</div>

@@ -1,0 +1,226 @@
+﻿@model  IEnumerable<IEM.Areas.EOW.Models.EOW_DeclarationNote>  
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    WebGrid grid = new WebGrid(source: Model, canPage: true, rowsPerPage: 15, canSort: true);
+    int id = @grid.PageIndex;
+    CmnFunctions cmn = new CmnFunctions();
+    int rowVal = 0;
+ }
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+<b>
+    <span style="color: rgb(52, 108, 196);">Declaration Note</span>
+</b>
+<br />
+<br />
+
+@using (Html.BeginForm())
+{
+    <div class="well">
+        <div class="row">
+            <div class="col-sm-9">
+                <table class="myTableStyleTabNew" style="margin-left:-3px;">
+                    <tr>
+                        <td>
+                            <div class="input-append ">
+                                <span> Declartion Note Name  </span>
+                                <br />
+                                <input type="text"
+                                       name="declnotename"
+                                       id="txtdeclnotename"
+                                       maxlength="32"
+                                       value="@ViewBag.declnotename"
+                                       class="form-control"
+                                       style="display: block;"
+                                       autocomplete="off" />
+                            </div>
+                        </td>                       
+                        <td>
+                            <span>Doc Type</span>
+                            <br />
+                            @Html.DropDownList("cnm", (IEnumerable<SelectListItem>)ViewBag.DocType, "-----Select-----", new { @class = "form-control ", @style = "display: block;width:200px;height:30px;margin-top: 3px;", @id = "TravelModeId", @Name = "DocType" })
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span> Period From </span>
+                                <br />
+                                <input type="text"
+                                       name="periodfrom"
+                                       id="txtperiodfrom"
+                                       value="@ViewBag.periodfrom"
+                                       class="form-control"
+                                       style="display: block;"
+                                       autocomplete="off" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-append ">
+                                <span> Period To </span>
+                                <br />
+                                <input type="text"
+                                       name="periodto"
+                                       id="txtperiodto"
+                                       value="@ViewBag.periodto"
+                                       class="form-control"
+                                       style="display: block;"
+                                       autocomplete="off" />
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                                <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit" style="margin-top:20px;color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnrefresh" value="Refresh" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" id="btnclear" onclick="refresh()" value="Clear" name="command" type="submit" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="myTableStyleTabNew" style="float:right;margin-right :3px;margin-top:20px;">
+                <tr>
+                    <td>
+                        <div style="float:right;padding-right:10px;" class="myTableStyle">
+                            <button type="button" value="New City" onclick="NewType()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-plus"></span> New Declartion Note</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top:9px;overflow-x:scroll">
+            @functions {
+                public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+                {
+                    return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                        grid.SortDirection == SortDirection.Ascending ? "▲" :
+                        "▼" : string.Empty);
+                }
+            }
+            @grid.GetHtml(
+            htmlAttributes: new { id = "griddecnote" },
+            tableStyle: "tableSmall table-bordered table-hover table-responsive",
+            columns: grid.Columns
+            (
+                //Here I am going to add checkbox column
+                // grid.Column("city_gid", Sorter("city_gid", "ID", grid), canSort: false),
+                grid.Columns(grid.Column("SNo", format: item => rowVal = rowVal + 1),
+                grid.Column("declnote_name", Sorter("declnote_name", "Declaration Note Name", grid)),
+                grid.Column("doctype_name", Sorter("doctype_name", "DocType", grid)),
+                grid.Column("docsubtype_name", Sorter("docsubtype_name", "DocSub Type", grid)),
+                //grid.Column("declnote_at", Sorter("declnote_at", "DeclartionNote At", grid)),
+                grid.Column("declnote_periodfrom", Sorter("declnote_periodfrom", "Period From", grid)),
+                grid.Column("declnote_periodto", Sorter("declnote_periodto", "Period To", grid)),
+                //grid.Column("declnote_desc", Sorter("declnote_desc", "Description", grid)),
+                grid.Column("declnote_active", Sorter("declnote_active", "Active", grid)),
+
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='View' onclick='ViewType(" + item.declnote_gid + ")'> <span class='glyphicon glyphicon-eye-open' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Edit' onclick='EditType(" + item.declnote_gid + ")'> <span class='glyphicon glyphicon-edit' id='Color'> </span> </a>")
+                    @Html.Raw("<a title='Delete' onclick='Deletedeclnote(" + item.declnote_gid + ")'> <span class='glyphicon glyphicon-trash' id='Color'> </span> </a> ")
+                </text>))))
+
+            @if (ViewBag.Message != null)
+            {  <div align="center" class="borderStyle">
+                <h6 class="row" style="font-weight:bold ;">
+                    @ViewBag.Message
+                </h6>
+            </div>
+            }
+
+        </div>
+        <br/>
+        @if (@ViewBag.Message == null)
+        {
+            <div style="margin-left:-8px;">
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span class="myTableStyleTabNew"> - Total No Of Records:@grid.TotalRowCount</span>
+            </div>
+        }
+    </div>
+}
+<div id="ForPartialViewfordeclartionnote"></div>
+
+<script type="text/javascript">
+    var objDialog;
+    $(document).ready(function () {
+        $(function () {
+            $("#txtdeclnotename").focus();
+        });
+        var tr = $("#griddecnote").find('tr');
+        $("#griddecnote tr #Color").click(function () {
+            $('#griddecnote').find('tr').css('background', 'none');
+            $(this).closest('tr').css('background', '#CEECF5');
+        });
+        $("#txtdeclnotename").focus();
+        $("#txtdeclnotename").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });        
+
+   
+        $("#txtperiodfrom").datepicker({
+            changeMonth: true,
+            changeYear: true,        
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {           
+                $("#txtperiodto").datepicker("option", "minDate", selected)
+            }
+        });
+        $("#txtperiodto").datepicker({
+            changeMonth: true,
+            changeYear: true,          
+            dateFormat: 'dd-mm-yy',
+            onSelect: function (selected) {
+            }
+        });
+
+    });
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialViewfordeclartionnote']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            show: 'fade-in',
+            close: 'fade-out',
+            width: 550,
+            height: 550,
+            resizable: false
+        });
+    });
+    function NewType() {
+        objDialog.load('../DeclarationNote/Create');
+        objDialog.dialog({ title: 'Add  Declartion Note' });
+        objDialog.dialog("open");
+    }
+    function EditType(id)
+    {
+        objDialog.load('../DeclarationNote/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Declartion Note ' });
+        objDialog.dialog("open");
+    }
+    function ViewType(id) {
+        objDialog.load('../DeclarationNote/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Declartion Note ' });
+        objDialog.dialog("open");
+    }
+    function Deletedeclnote(id) {
+        objDialog.load('../DeclarationNote/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Declartion Note ' });
+        objDialog.dialog("open");
+    }
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "DeclarationNote")"
+        ko.utils.postJson(UrlDet + '?ViewType=9&FileName=DeclarationNote&' + new Date().getTime());
+    }
+    function refresh()
+    {
+        location = '../DeclarationNote/Index';
+    }
+</script>

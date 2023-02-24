@@ -1,0 +1,197 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+@{
+    IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+    var gridillcheck = new WebGrid(Model.GetApproveList, canSort: true, canPage: true, rowsPerPage: 15, ajaxUpdateContainerId: "wgpillcheckapp", ajaxUpdateCallback: "DummyFunctionFA1()");
+    int sl = 0; ;
+}
+@*<b>
+        <span style="color: rgb(52, 108, 196);">Approval Status</span>
+    </b>*@
+@*@using (Html.BeginForm())
+    {*@
+
+<div  id="dvapplistcap">
+
+    <table class="myTableStyleTabNew ">
+        <tr>
+            <td style="padding:10px;">
+                <span>Ecf No</span><br />
+                @Html.TextBoxFor(a => a.EcfNo, new { @id = "txtEcfNoapp", @class = "textboxStyleSearch" })
+            </td>
+            <td style="padding:10px;">
+                <span>Invoice No</span><br />
+                @Html.TextBoxFor(a => a.invoiceno, new { @id = "txtinvoicenoapp", @class = "textboxStyleSearch" })
+            </td>
+
+            <td style="padding:10px;">
+                <span>VendorName</span><br />
+                @Html.TextBoxFor(a => a.Vendor, new { @id = "txtvendorapp", @class = "textboxStyleSearch" })
+            </td>
+
+            <td style="padding:10px;">
+                <span>
+                    Status
+                </span><br />
+                <select class="textboxStyleSearch" id="ddlapprolist">
+                    <option value="SELECT">SELECT</option>
+                    <option value="WAITING FOR APPROVAL">WAITING FOR APPROVAL</option>
+                    <option value="REJECTED">REJECTED</option>
+                    <option value="APPROVED">APPROVED</option>
+                </select>
+            </td>
+            <td style="padding:30px;">
+                <button type="button" id="btnSearchList" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                <button type="button" id="btnRefreshList" name="Refersh" title="Refersh" value="Refersh" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Refersh</button>
+                <button type="button" id="btnclearList" value="Clear" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span>Clear</button>
+            </td>
+        </tr>
+    </table>
+
+    @gridillcheck.GetHtml(htmlAttributes: new { id = "wgpillcheckapp" },
+            tableStyle: "tableSmall table-bordered",
+            columns:
+            gridillcheck.Columns(
+            gridillcheck.Column("invoicegid", "SlNo"),
+            gridillcheck.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+            gridillcheck.Column("EcfNo", commfa.Sorter("EcfNo", "Ecf No", gridillcheck)),
+            gridillcheck.Column("Ecfdate", commfa.Sorter("Ecfdate", "Ecf Date", gridillcheck)),
+            gridillcheck.Column("EcfAmount", commfa.Sorter("EcfAmount", "Ecf Amount", gridillcheck)),
+            gridillcheck.Column("invoiceno", commfa.Sorter("invoiceno", "Invoice No", gridillcheck)),
+            gridillcheck.Column("invoiceamount", commfa.Sorter("invoiceamount", "Invoice Amount", gridillcheck)),
+            gridillcheck.Column("Vendor", commfa.Sorter("Vendor", "Vendor Name", gridillcheck)),
+            gridillcheck.Column("Status", "Status",canSort:false),
+            gridillcheck.Column(header: "Action", canSort: false, style: "action",
+            format: @<text>
+                @*@if (item.Status == "WAITING FOR APPROVAL")
+                    {
+                    <a><span class="glyphicon glyphicon-eye-open" onclick="capitalizatiomakerwt(@item.invoicegid,sl)"></span></a>
+                    }*@
+                @if (item.Status == "WAITING FOR APPROVAL")
+                {
+                    <a><span class="glyphicon glyphicon-eye-open" onclick="capitalizatiomakerwt(@item.invoicegid)"></span></a>
+                }
+                @if (item.Status == "APPROVED")
+                {
+                    <a><span class="glyphicon glyphicon-eye-open" onclick="capitalizatiomakerApp(@item.invoicegid)"></span></a>
+                }
+                @if (item.Status == "REJECTED")
+                {
+                    <a><span class="glyphicon glyphicon-eye-open" onclick="capitalizatiomakerRej(@item.invoicegid)"></span></a>
+                }
+            </text>)))
+    @if (Model.GetApproveList.Count == 0)
+    {
+        <div class="borderStyle" align="center">
+            <b><span>No records found</span></b>
+        </div>
+    }
+</div>
+
+
+
+
+@*}*@
+<script>
+    $('#idtab2cap').text('@Model.GetApproveList.Count');
+    $('#txtEcfNoapp').val('');
+    $('#txtinvoicenoapp').val('');
+    $('#txtvendorapp').val('');
+    function DummyFunctionFA1() {
+        $("#wgpillcheckapp td:nth-child(1),#wgpillcheckapp th:nth-child(1)").hide();
+        $("#wgpillcheckapp td:nth-last-child(1)").show();
+    }
+    
+    function capitalizatiomakerwt(id) {
+
+        location = '@Url.Action("Assetcap_mak_details", "AssetCapitalizationMakerDetails")?id=' + id + '&' + 'view=waitt' + '&' + new Date().getTime();
+    }
+
+    function capitalizatiomakerApp(id) {
+
+        location = '@Url.Action("Assetcap_mak_details", "AssetCapitalizationMakerDetails")?id=' + id + '&' + 'view=approval' + '&' + new Date().getTime();
+    }
+
+    function capitalizatiomakerRej(id) {
+
+        location = '@Url.Action("Assetcap_mak_details", "AssetCapitalizationMakerDetails")?id=' + id + '&' + 'view=reject' + '&' + new Date().getTime();
+    }
+
+    $(document).ready(function () {
+        $("#wgpillcheckapp td:nth-child(1),#wgpillcheckapp th:nth-child(1)").hide();
+        $("#wgpillcheckapp td:nth-last-child(1)").show();
+
+        $('#btnSearchList').on("click", function () {
+            //  alert('hai');
+
+            var ecfno = $("#txtEcfNoapp").val();
+            var invoiceno = $("#txtinvoicenoapp").val();
+            var vendor = $("#txtvendorapp").val();
+            var appr = $("#ddlapprolist").val();
+            //alert(appr);
+            //return false;
+            var Search =
+            {
+                "EcfNo": ecfno,
+                "invoiceno": invoiceno,
+                "Vendor": vendor,
+                "ddlstatus": appr
+            };
+            $.ajax({
+                url: "@Url.Action("SearchApplist", "AssetCapitalizationMaker")",
+                type: 'POST',
+                data: Search,
+                success: function (data) {
+
+                    //   alert(data);
+                    $('#dvapplistcap').empty().append(data);
+
+                },
+                error: function (data) {
+
+                    jAlert("Error. Please, check the data", "Message");
+                }
+            })
+
+        });
+
+        $('#btnRefreshList').on("click", function () {
+            //  alert('hai');
+
+            var ecfno = $("#txtEcfNoapp").val();
+            var invoiceno = $("#txtinvoicenoapp").val();
+            var vendor = $("#txtvendorapp").val();
+
+            var Search =
+            {
+                "EcfNo": ecfno,
+                "invoiceno": invoiceno,
+                "Vendor": vendor
+            };
+            $.ajax({
+                url: "@Url.Action("SearchApplist", "AssetCapitalizationMaker")",
+                type: 'POST',
+                data: Search,
+                success: function (data) {
+
+                    // alert(data);
+                    $('#dvapplistcap').empty().append(data);
+
+                },
+                error: function (data) {
+
+                    jAlert("Error. Please, check the data", "Message");
+                }
+            })
+
+        });
+
+        $('#btnclearList').on("click", function () {
+            $("#txtEcfNoapp").val('');
+            $("#txtinvoicenoapp").val('');
+            $("#txtvendorapp").val('');
+        });
+    });
+
+
+
+</script>

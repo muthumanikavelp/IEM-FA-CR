@@ -1,0 +1,82 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.PrSumEntity
+@{
+    ViewBag.Title = "viewprattachment";
+    int rowcount = 0;
+    var grid = new WebGrid(source: Model.attachment, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid");
+    grid.Pager(WebGridPagerModes.All);
+
+}
+<div class="overflowx" id="gridattachment">
+
+    @functions {
+        public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+        {
+            return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                grid.SortDirection == SortDirection.Ascending ? "▲" :
+                "▼" : string.Empty);
+        }
+    }
+    @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridattachment" },
+                columns: grid.Columns
+                (
+                        grid.Column("Sl", format: a => rowcount = rowcount + 1, style: "col-sm-1"),
+                                        grid.Column("attachedDate", Sorter("attachedDate", "Attachment Date", grid), style: "col-sm-1"),
+                                grid.Column("fileName", Sorter("fileName", "File name", grid),
+                                format: @<text>
+                                    <a title='click here to download' onclick='DownloadPRsuper("@item.filename")'>
+                                        @item.filename
+                                    </a></text>,style: "col-sm-2"),
+                    grid.Column("description", Sorter("description", "Description", grid), style: "col-sm-2")
+                    @*grid.Column(header: "Action", canSort: false, style: "action",
+                        format: @<text>
+                            <input type="button" value="View" class="btn btn-link" title="View" />
+                        </text>)*@
+))
+    <label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>
+
+
+</div>
+<div style="padding:10px 10px 0px 0px;text-align:right;">
+    @*<input type="button" class="btn btn-primary" id="btnback1" onclick="back1()" name="command" value="Back" />*@
+    @*<button class="glyphicon glyphicon-search" onclick="back1()" style="margin-top:17px;border:none;box-shadow: none;font-size: 1.9em;background-color:rgb(245, 245, 245);;" name="command" type="submit" value="SEARCH" id='btnsearch'></button>*@
+    <input type="button" class="btn btn-primary" id="btnback" onclick="back1()" name="command" value="Back" />
+</div>
+<script>
+    function back1() {
+       
+        objDialog5.dialog('close');
+
+    }
+
+    function parrejected() {
+        var cbfremarks = $('#description_checker').val();
+
+
+        if (cbfremarks == null || cbfremarks == "") {
+            jAlert("Please enter Remarkd", "Error");
+            return false;
+        }
+      
+    }
+    function DownloadPRsuper(filename) {
+        //alert(filename);
+        var prattachmentmodel =
+                {
+                    "attachment1": filename
+                };
+
+        $.post('@Url.Action("Downloaded", "PRSummary")', prattachmentmodel,
+        function (data) {
+            if (data == 0) {
+                //location = location.href;
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            } else { window.location = '@Url.Action("Download", "PRSummary")?' + new Date().getTime() }
+        }, 'json');
+
+    }
+</script>

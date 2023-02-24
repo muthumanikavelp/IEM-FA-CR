@@ -1,0 +1,116 @@
+﻿@{  
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">CBF Summary For Printing</span>
+</div>
+<div ng-app="CBFapp">
+    <div class="well">
+        <div class="table-responsive" ng-controller="cbfController">
+            <table class="tableSmall table-bordered table-hover">
+                <thead style="width:100%;">
+                    <tr>
+                        <th style="width:5%;">
+                            S.No
+                        </th>
+                        <th style="width:10%;">
+                            CBF Mode<br />
+                            <input type="text" class="textboxStyle" ng-model="search.CBfMode">
+                        </th>
+                        <th style="width:20%;">
+                            CBF Number<br />
+                            <input type="text" class="textboxStyle" ng-model="search.CBfNumber">
+                        </th>
+                        <th style="width:20%;">
+                            CBF Date<br />
+                            <input type="text" class="textboxStyle" ng-model="search.CBfDate">
+                        </th>
+                        <th style="width:20%;">
+                            CBF Amount<br />
+                            <input type="text" class="textboxStyle" ng-model="search.CBFHeaderAmount">
+                        </th>
+                        <th style="width:10%;">
+                            Fincon Budgeted<br />
+                            <input type="text" class="textboxStyle" ng-model="search.BudgetedFlag">
+                        </th>
+
+                        <th style="width:15%;">Action</th>
+                    </tr>
+                </thead>
+                <tbody ng-repeat="cbfdetail in cbfdetails | filter:search:strict | orderBy:predicate:reverse">
+                    <tr>
+                        <td style="width:5%;" align="center">
+                            {{$index+1}}
+                        </td>
+                        <td style="width:10%;">
+                            {{cbfdetail.CBfMode}}
+                        </td>
+                        <td style="width:20%;">
+                            {{cbfdetail.CBfNumber}}
+                        </td>
+                        <td style="width:20%;">
+                            {{cbfdetail.CBfDate}}
+                        </td>
+                        <td style="width:20%;">
+                            {{cbfdetail.CBFHeaderAmount}}
+                        </td>
+                        <td style="width:10%;">
+                            {{cbfdetail.BudgetedFlag}}
+                        </td>
+                        <td style="width:15%;" align="center">
+                            <a onclick="ExportDoc(this)" title="Print">
+                                <span class="glyphicon glyphicon-print"></span>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="divApprovalpopup"></div>
+</div>
+    <script type="text/javascript">
+        var myApp = angular.module('CBFapp', []);
+
+        myApp.config(['$httpProvider', function ($httpProvider) {
+
+            $httpProvider.defaults.headers.common["X-Requested-With"] = 'XMLHttpRequest';
+
+
+            var antiForgeryToken = document.getElementById('antiForgeryForm').childNodes[1].value;
+
+            $httpProvider.defaults.headers.post['__RequestVerificationToken'] = antiForgeryToken;
+        }]);
+
+
+
+        myApp.service("cbfService", function ($http) {
+            this.getCBFDetailsList = function () {
+                return $http.get("../Print/GetCBFDetails?" + new Date().getTime());
+            };
+
+        });
+        myApp.controller('cbfController', function ($scope, cbfService) {            
+            GetCBFDetails();
+            function GetCBFDetails() {
+                var getData = cbfService.getCBFDetailsList();
+                getData.then(function (emp) {                    
+                    $scope.cbfdetails = emp.data;
+                }, function () {
+                    alert('Error');
+                });
+            }
+
+        });
+        
+        function ExportDoc(element) {
+            var row = $(element).closest('tr');
+            var cbfnum = row.find('td:eq(2)').text();
+            cbfnum = cbfnum.toString().trim();
+            //window.open("../Print/PrintCbfIndex?CBFNumber=" + cbfnum, "_blank");
+            window.open("../Print/PrintPDFForCBF?CBFNumber=" + cbfnum + "&" + new Date().getTime(), "_blank");
+        }
+    </script>

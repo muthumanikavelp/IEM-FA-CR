@@ -1,0 +1,111 @@
+﻿@model  IEM.Areas.EOW.Models.ModeOfTravelEntity
+@{
+    ViewBag.Title = "Index";
+
+}
+@using (Html.BeginForm())
+{
+        <table class="myTableStyleTabNew">
+            <tr>
+                <td>
+                    <span>Mode Of Travel </span>
+                    <br />
+                    <input type="text"
+                            name="ModeOfTravel"
+                            id="ModeOfTravelIdEdit"
+                            value="@Session["TravelName"]"
+                            class="textboxStyle valid"
+                            style="display: block;width:306px"
+                            maxlength="16" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                @if (@ViewBag.Modeflag == 'Y'.ToString())
+                {
+                    <input type="checkbox" id="chkid" class="chkclass" value="Distance/Rate" checked="checked" title="Distance/Rate" /><span style="padding-left:15px">Distance/Rate</span>
+                }
+                else
+                {
+                    <input type="checkbox" id="chkid" class="chkclass" value="Distance/Rate" title="Distance/Rate" /><span style="padding-left:15px">Distance/Rate</span>
+                }
+                </td>
+            </tr>
+         </table>
+            <br />
+    <table class="myTableStyleTabNew" align="center">
+        <tr>
+            <td>
+                <div>
+                    <button type="button" id="btnsave" class="btn btn-primary" value="Save" onclick="EditMode()"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                </div>
+            </td>
+            <td>
+                <div>
+                    <button type="button" class="btn btn-warning" value="Cancel" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    function EditMode() {
+        var ModeOfTravel = $("#ModeOfTravelIdEdit").val();
+        if (ModeOfTravel == "" || ModeOfTravel == null)
+        {
+            jAlert("You Can't Add Empty Values", "Information");
+            return false;
+        }
+        if ($('#chkid').attr('checked')) {
+            travelflag = 'Y';
+        }
+        else {
+            travelflag = 'N';
+        }
+        var Student = {
+            "ModeOfTravel": ModeOfTravel,
+            "ModeFlag": travelflag
+        };
+        $.ajax({
+            url: '../ModeOfTravel/ModeEditSubmit',
+            data: JSON.stringify(Student),
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                isSuccess = result;
+                jAlert(result, "Information", function (r) {
+                    if (r == true) {
+                        location = '../ModeOfTravel/ModeIndex';
+                    }
+                });
+            },
+        })
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#ForPartialViewMode').dialog('close');
+        $('#gridModeOfTravelid').find('tr').css('background', 'none');
+    }
+    $(".ui-icon-closethick").click(function () {
+        $('#gridModeOfTravelid').find('tr').css('background', 'none');
+    });
+    $(document).ready(function () {
+
+        $("#ModeOfTravelIdEdit").keypress(function (event) {
+            return isAlphabet(event);
+        });
+        $("#ModeOfTravelIdEdit").keyup(function () {
+            var txtContractTo = $("#ModeOfTravelIdEdit").val();
+            if (txtContractTo.trim() != "") {
+                $("#btnsave").removeAttr('disabled');
+                $("#ModeOfTravelIdEdit").removeClass('required');
+                $("#ModeOfTravelIdEdit").addClass('valid');
+            }
+            else {
+                $("#btnsave").attr("disabled", true);
+                $("#ModeOfTravelIdEdit").removeClass('valid');
+                $("#ModeOfTravelIdEdit").addClass('required');
+            }
+        });
+        });
+   
+</script>

@@ -1,0 +1,328 @@
+﻿@model IEM.Areas.MASTERS.Models.DocNameModel
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:50%;">
+                <span> Document Name </span>
+                <br />
+                <div id="txtDocNameName">
+                    <input name="DocNameName" id="DocNameName" maxlength="100" type="text" data-val="true" value="" class="textboxStyle required " style="display: block;width:250px" />
+                </div>
+            </td>
+            <td style="width:50%;">
+                <span>Document Group</span>
+                <br />
+                <div id="txtDocGrpName">
+                    @Html.DropDownListFor(m => m.docGrpID, Model.docGrpModel, new { @class = "textboxStyle chosen-select", @style = "display: block;", @id = "DocGrpIDNew", @onchange = "change()" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <span>Document Frequency</span>
+                <br />
+                <div id="txtDocFrqName">
+                    @*<select id="ddldocFrqID" class="textboxStyle required" name="ddldocFrqID" onchange="docfrqChange()" style="display: block;width:250px;">
+                            <option selected="selected">--Select Frequency--</option>
+                            <option value="OneTime">OneTime</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Frequency">Frequency</option>
+                        </select>*@
+                    @Html.DropDownListFor(m => m.frqID, Model.FrqModel, new { @class = "textboxStyle chosen-select", @id = "ddldocFrqID", @style = "display: block;" })
+                </div>
+            </td>
+            <td style="width:50%;">
+                <span> Frequency </span>
+                <br />
+                <div id="divFrequency">
+                    @Html.DropDownListFor(m => m.docFrqID, Model.docFrqModel, Model.docFrqName, new { @class = "textboxStyle chosen-select", @style = "display: block;", @id = "DocFrqIDNew", @onchange = "changee()" })
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%;">
+                <div id="txtDocNameName">
+                    <br />
+                    <input type="radio" id="radioDocMan" value="Mandatory" name="Radio" /> Mandatory
+                    &nbsp;
+                    <input type="radio" id="radioDocOpt" value="Optional" name="Radio" checked="" /> Optional
+                </div>
+            </td>
+            <td style="width:50%;">
+                <div id="checkDocName">
+                    <br />
+                    <input name="DocNameManCheck" id="DocNameManCheck" onchange="chk()" type="checkbox" /> Mandatory with Lead Time
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:50%">
+                <div id="txtManDays">
+                    <span>Lead Time (Days)</span>
+                    <br />
+                    <input name="DocManDays" id="DocNameManDays" maxlength="5" placeholder="Number, Greater than Zero(0)" type="text" class="textboxStyle required " style="display: block;" /> 
+                </div>
+            </td>
+            <td style="width:50%; text-align:right;">
+                <button id="btnsave" type="button" disabled="disabled" class="btn btn-primary" value="Save" onclick="SAVE()" style="margin-top:20px;"><span class="glyphicon glyphicon-floppy-disk" style="color:white;"></span> Save</button>
+                <button type="button" class="btn btn-warning" value="Cancel" onclick="goToIndex()" style="margin-top:20px;"><span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel</button>
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#DocGrpIDNew").chosen({});
+        $("#ddldocFrqID").chosen({});
+        $("#DocFrqIDNew").chosen({});
+
+        $("#DocGrpIDNew_chosen,#DocFrqIDNew_chosen,#ddldocFrqID_chosen").addClass("mychosen");
+
+
+        IsDiableFrequency(true);
+        //document.getElementById("DocFrqIDNew").disabled = true;
+
+        $("#DocGrpIDNew_chosen,#DocFrqIDNew_chosen,#ddldocFrqID_chosen").addClass('required').css('width', '100%');
+
+        $("#DocNameName").focus();
+        $("#DocNameName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#DocNameManDays").keypress(function (event) {
+            return isNumber(event, this);
+        });
+    });
+    var mandays;
+    $("#txtManDays").hide();
+    $('#DocNameManCheck').prop('disabled', true);
+    $('input:radio[name=Radio]').change(function () {
+        if ($(this).val() != "Mandatory") {
+            CheckFields();
+            $('#DocNameManCheck').prop('disabled', true);
+            CheckFields();
+            $("#txtManDays").hide();
+            $("#txtManDays").val(0);
+        }
+        else {
+            $('#DocNameManCheck').prop('disabled', false);
+            CheckFields();
+            $('input:checkbox[name=DocNameManCheck]').attr('checked', false);
+            CheckFields();
+        }
+        if ($(this).val() == "Optional") {
+            CheckFields();
+            $('input:checkbox[name=DocNameManCheck]').attr('checked', false);
+            CheckFields();
+            $("#txtManDays").hide();
+            $("#txtManDays").val(0);
+        }
+    });
+
+    $("#ddldocFrqID").change(function () {
+        if ($("#ddldocFrqID").val() == 0) {
+            CheckFields();
+            $("#DocFrqIDNew").val(0);
+            $("#DocFrqIDNew_chosen").removeClass('required');
+            $("#ddldocFrqID_chosen").removeClass('valid');
+            $("#ddldocFrqID_chosen").addClass('required');
+            IsDiableFrequency(true);
+            //document.getElementById("DocFrqIDNew").disabled = true;
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            if ($("#ddldocFrqID").val() == "1") {
+                IsDiableFrequency(false);
+                //document.getElementById("DocFrqIDNew").disabled = false;
+                $("#DocFrqIDNew_chosen").addClass('required');
+            }
+            else {
+                $("#DocFrqIDNew").val(0);
+                $("#DocFrqIDNew_chosen").removeClass('valid');
+                $("#DocFrqIDNew_chosen").removeClass('required');
+                IsDiableFrequency(true);
+                //document.getElementById("DocFrqIDNew").disabled = true;
+            }
+            $("#ddldocFrqID_chosen").removeClass('required');
+            $("#ddldocFrqID_chosen").addClass('valid');
+            CheckFields();
+        }
+    });
+    function changee() {
+        if ($("#DocFrqIDNew").val() == 0) {
+            CheckFields();
+            $("#DocFrqIDNew_chosen").removeClass('valid');
+            $("#DocFrqIDNew_chosen").addClass('required');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#DocFrqIDNew_chosen").removeClass('required');
+            $("#DocFrqIDNew_chosen").addClass('valid');
+            CheckFields();
+        }
+    }
+    function change() {
+        if ($("#DocGrpIDNew").val() == 0) {
+            CheckFields();
+            $("#DocGrpIDNew_chosen").removeClass('valid');
+            $("#DocGrpIDNew_chosen").addClass('required');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#DocGrpIDNew_chosen").removeClass('required');
+            $("#DocGrpIDNew_chosen").addClass('valid');
+            CheckFields();
+        }
+    }
+    $("#DocNameName").keyup(function () {
+        var Name = $("#DocNameName").val();
+        if (Name.trim() != "") {
+            CheckFields();
+            $("#DocNameName").removeClass('required');
+            $("#DocNameName").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#DocNameName").removeClass('valid');
+            $("#DocNameName").addClass('required');
+            CheckFields();
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    });
+    $("#DocNameManDays").keyup(function () {
+        var Name = $("#DocNameManDays").val();
+        if (Name.trim() != "") {
+            CheckFields();
+            $("#DocNameManDays").removeClass('required');
+            $("#DocNameManDays").addClass('valid');
+            CheckFields();
+        }
+        else {
+            CheckFields();
+            $("#DocNameManDays").removeClass('valid');
+            $("#DocNameManDays").addClass('required');
+            CheckFields();
+        }
+    });
+
+    function chk() {
+        if ($("#DocNameManCheck").is(':checked')) {
+            $("#txtManDays").show();
+            CheckFields();
+        }
+        else {
+            $("#txtManDays").hide();
+            $("#DocNameManDays").val("");
+            CheckFields();
+        }
+    }
+    function SAVE() {
+        var DocNameName = $("#DocNameName").val();
+        var DocFrqID = $("#DocFrqIDNew").val();
+        var DocGrpID = $("#DocGrpIDNew").val();
+        var frqID = $("#ddldocFrqID").val();
+        var man;
+        if ($("input[name=Radio]:checked").val() == "Mandatory") {
+            man = "M"
+        }
+        else {
+            man = "O"
+            mandays = 0;
+        }
+        if ($("#DocNameManCheck").is(':checked')) {
+            if ($("#DocNameManDays").val() > 0) {
+                mandays = $("#DocNameManDays").val();
+            }
+        }
+        if ($("#ddldocFrqID").val() == "1") {
+            DocFrqID = $("#DocFrqIDNew").val();
+        }
+        else {
+            DocFrqID = 0;
+        }
+        var DocNameModel =
+               {
+                   "docNameName": DocNameName.trim()
+                   , "docFrqID": DocFrqID
+                   , "docGrpID": DocGrpID
+                   , "frqID": frqID
+                   , "manOpt": man
+                   , "manDays": mandays
+               };
+        $.post('../AsmsDocumentName/create', DocNameModel,
+        function (data) {
+            if (data == null) {
+                jAlert("Record Inserted Successfully!", "Information", function (r) {
+                    if (r == true) { location = '../AsmsDocumentName/Index'; }
+                });
+            }
+            else {
+                jAlert("Duplicate Record!", "Error", function (r) {
+                    if (r == true) { return false; }
+                });
+                return false;
+            }
+        }, 'json');
+    }
+
+    function goToIndex() {
+        window.parent.jQuery('#ForPartialView').dialog('close');
+    }
+
+    function CheckFields() {
+
+        var ErrCount = 0;
+
+        if ($("#DocNameName").val().trim() == "" || $("#DocNameName").val() == null) {
+            ErrCount = 1;
+        }
+        else if ($("#DocGrpIDNew").val() == "--Select Group--" || $("#DocGrpIDNew").val() == 0) {
+            ErrCount = 3;
+        }
+        else if (!$('input:radio[name=Radio]').val()) {
+            $('input:radio[name=Radio]').focus();
+            ErrCount = 4;
+        }
+        else if ($("#DocNameManCheck").is(':checked')) {
+            if ($("#DocNameManDays").val() == "" || $("#DocNameManDays").val() == null || $("#DocNameManDays").val() == 0) {
+                ErrCount = 5;
+            }
+        }
+        else if ($("#ddldocFrqID").val() == "--Select Frequency--" || $("#ddldocFrqID").val() == 0) { ErrCount = 2; }
+        else if ($("#ddldocFrqID").val() == "1") {
+            if ($("#DocFrqIDNew").val() == "--Select Frequency-Month--" || $("#DocFrqIDNew").val() == 0) {
+                ErrCount = 2;
+            }
+        }
+        else {
+            ErrCount = 0;
+        }
+
+        if (ErrCount == 0) {
+            $("#btnsave").removeAttr('disabled');
+        }
+        else {
+            $("#btnsave").attr('disabled', true);
+            $("#btnsave").attr('disabled', 'disabled');
+        }
+    }
+
+    function IsDiableFrequency(value) {
+        if (value == true) {
+            $('#DocFrqIDNew').data('chosen').search_field_disabled();
+            $('#DocFrqIDNew').prop('disabled', true).trigger("chosen:updated");
+        } else {
+            $('#DocFrqIDNew').removeAttr('disabled');
+            $('#DocFrqIDNew').trigger("chosen:updated");
+        }
+    }
+</script>

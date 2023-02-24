@@ -1,0 +1,111 @@
+﻿@using IEM.Areas.FLEXIBUY.Models;
+@using IEM.Common
+@model IEM.Areas.FLEXIBUY.Models.grnconfirmation
+
+
+@{
+    ViewBag.Title = "grnconfirmationsummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //prsummodel objrep = new prsummodel();
+    ////List<grnconfirmation> pr = new List<grnconfirmation>();
+    //pr = objrep.getgrnconfirmation();
+
+
+    var grid = new WebGrid(source: Model.grnconfirmations, canSort: true, canPage: true, rowsPerPage: 10);
+    grid.Pager(WebGridPagerModes.All);
+    int rowNum = 0;
+
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+}
+@using (Html.BeginForm())
+{
+    <h2>@*grnconfirmationsummary*@</h2>
+    <b>
+        <span style="color: rgb(52, 108, 196);">GRN Confirmation</span>
+    </b>
+    <div class="well">
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <span>GRN Ref No</span>
+                    <br />
+                    <input type="text"
+                           name="grnrefno"
+                           id="txtgrnrefno"
+                           value="@ViewBag.grnrefno"
+                           class="textboxStyle"
+                           maxlength="8" />
+                </td>
+                <td>
+                    <span></span>
+                    <br />
+                    <button class="btn btn-primary" id="btnsearch" @*onclick="searchfun()"*@ value="search" name="command"
+                            type="submit">
+                        <span style="color:white;" class="glyphicon glyphicon-search"></span> Search
+                    </button>
+                </td>
+                <td>
+                    <span> </span>
+                    <br />
+                    <button class="btn btn-primary" id="btnrefresh" value="Clear" name="command" type="submit">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                    </button>
+                </td>
+                <td>
+                    <span> </span>
+                    <br />
+                    @if (@grid.TotalRowCount != 0)
+                    {
+                        <button class="btn btn-primary" id="reportDownloadExcel" value="Excel Download" name="command" onclick="Download()" type="button" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-export"></span> Excel</button>
+                    }
+                </td>
+
+            </tr>
+        </table>
+        <div class="" style="margin-top:17px">
+
+            @grid.GetHtml(
+
+        tableStyle: "tableSmall table-bordered table-hover table-responsive",
+        htmlAttributes: new { id = "grid" },
+        columns: grid.Columns
+            (
+                             grid.Column("slno", objCmnFunctions.Sorter("slno", "Sl", grid)),
+                             grid.Column("grndate", objCmnFunctions.Sorter("grndate", "GRN Date", grid)),
+                             grid.Column("grnrefno", objCmnFunctions.Sorter("grnrefno", "GRN RefNo", grid)),
+                             grid.Column("poworefno", objCmnFunctions.Sorter("poworefno", "PO RefNo", grid)),
+                             grid.Column("poVersion", objCmnFunctions.Sorter("poVersion", "PO Version", grid), style: "centerAlign"),
+                             grid.Column("vendorname", objCmnFunctions.Sorter("vendorname", "Vendor Name", grid)),
+                             grid.Column("grnQuantity", objCmnFunctions.Sorter("grnQuantity", "Received Qty", grid)),
+                             grid.Column(header: "Action", canSort: false, style: "col-sm-2",
+                     format: @<text>
+                                <input type="button" value="Review" class="btn btn-link"
+                                       onclick="ReleaseConfirmation(id)" id="@item.grnheadgid" title="Review" />
+                    </text>)))
+            @if (@ViewBag.records != null || @ViewBag.records == "")
+            {
+                <div class="borderStyle btnCenter">
+                    @ViewBag.records
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<script>
+
+    function ReleaseConfirmation(id) {
+        location = '@Url.Action("grnconfirmation", "GRN")?grnheadgid=' + id;
+    }
+    function searchfun() {
+        var grnrefno = $("#txtgrnrefno").val();
+        $.post('@Url.Action("grnconfirmationsummary", "GRN")?grnrefno=' + grnrefno)
+    }
+    function refresh() {
+        location = '@Url.Action("grnconfirmationsummary","GRN")';
+    }
+    function Download() {
+        location = "../GRN/downloadsexcel";
+    }
+</script>

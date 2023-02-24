@@ -1,0 +1,138 @@
+﻿@using IEM.Areas.ASMS.Models;
+@using IEM.Common
+@model IEnumerable<IEM.Areas.ASMS.Models.SupOtherDetails>
+
+@{
+    SupDataModel objd = new SupDataModel();
+    List<SupOtherDetails> lst = new List<SupOtherDetails>();
+
+    lst = (List<SupOtherDetails>)Session["RelationshipSearchItems"];
+    if (lst == null)
+    {
+        lst = objd.GetEmpRelationship().ToList();
+    }
+    if (lst.Count == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    if (Session["PageMode"] != null)
+    {
+        ViewBag.PageMode = (string)Session["PageMode"];
+        if (ViewBag.PageMode == "3")
+        {
+            ViewBag.IsAllowApproverToEdit = (string)Session["IsAllowApproverToEdit"];
+            if (ViewBag.IsAllowApproverToEdit == "1")
+            {
+                ViewBag.PageMode = "2";
+            }
+        }
+    }
+
+}
+<div id="wgRelationship">
+    @{
+        CmnFunctions objCmnFunctions = new CmnFunctions();
+        var grid = new WebGrid(lst, canSort: true, canPage: true, rowsPerPage: 5, ajaxUpdateContainerId: "wgRelationship", ajaxUpdateCallback: "DummyFunction17()");
+        int rowcount = 0;
+    }
+
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridRelationship" },
+                        tableStyle: "tableSmall table-bordered",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_RelationshipID", objCmnFunctions.Sorter("_RelationshipID", "ID", grid), canSort: false),
+                grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+                grid.Column("_RelationName", objCmnFunctions.Sorter("_RelationName", "Relation Name", grid)),
+                grid.Column("_RelationshipName", objCmnFunctions.Sorter("_RelationshipName", "Relationship", grid)),
+                grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    @Html.Raw("<a title='Edit' style='text-decoration:none' onclick='EditRelationship(this)' > <span class='glyphicon glyphicon-edit'> </span> </a>")
+                    @Html.Raw("<a title='Delete' style='text-decoration:none' onclick='DeleteRelationship(" + item._RelationshipID + ")' > <span class='glyphicon glyphicon-trash'> </span> </a>")
+
+                </text>)))
+    </div>
+    @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+    {
+        <div class="gridMessage">
+            @ViewBag.NoRecordsFound
+        </div>
+    }
+    else
+    {
+        <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+    }
+    @*<div class="borderStyle">
+            @ViewBag.NoRecordsFound
+        </div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b></div>*@
+</div>
+<script type="text/javascript">
+    var curpagemode;
+    $(document).ready(function () {
+        curpagemode = '@ViewBag.PageMode';
+        $("#wgridRelationship td:nth-child(1),#wgridRelationship th:nth-child(1)").hide();
+        $("#wgridRelationship td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridRelationship td:nth-child(5),#wgridRelationship th:nth-child(5)").hide();
+        }
+
+    });
+    function DummyFunction17() {
+        $("#wgridRelationship td:nth-child(1),#wgridRelationship th:nth-child(1)").hide();
+        $("#wgridRelationship td:nth-last-child(1)").show();
+        if (curpagemode == "3" || curpagemode == "5") {
+            $("#wgridRelationship td:nth-child(5),#wgridRelationship th:nth-child(5)").hide();
+        }
+
+    }
+    function EditRelationship(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var ids = tds.eq(0).text();
+        $("#_RelationshipID").val(ids);
+        var relation = tds.eq(2).text();
+        var relationship = tds.eq(3).text();
+
+        $("#_RelationName").val(relation);
+        $("#_RelationshipName").val(relationship);
+
+        if ($("#_RelationName").val() != "" && $("#_RelationName").val() != null) {
+            $("#_RelationName").addClass('valid');
+            $("#_RelationName").removeClass('required');
+        }
+        else {
+            $("#_RelationName").addClass('required');
+            $("#_RelationName").removeClass('valid');
+        }
+        if ($("#_RelationshipName").val() != "" && $("#_RelationshipName").val() != null) {
+            $("#_RelationshipName").addClass('valid');
+            $("#_RelationshipName").removeClass('required');
+        }
+        else {
+            $("#_RelationshipName").addClass('required');
+            $("#_RelationshipName").removeClass('valid');
+        }
+    }
+    function DeleteRelationship(id) {
+        $("#_RelationshipID").val("0");
+        jConfirm("Do you want to this delete Relationship details: ", Title_3, function (e) {
+            if (e == true) {
+                var objSupOthers = { "_RelationshipID": id }
+                $.post('../Onboarding/Deleterelationship', objSupOthers,
+                     function (data) {
+                         if (data == 0) { location = location.href; } else {
+                             jAlert("Deleted Successfully", "Error");
+                             $("#wgRelationship").load("../onboarding/RelationshipDetails?" + new Date().getTime());
+                         }
+                     }, 'json');
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+</script>

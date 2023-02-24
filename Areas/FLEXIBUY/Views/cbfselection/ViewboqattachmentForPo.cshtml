@@ -1,0 +1,52 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.ViewBOQ
+@using IEM.Common;
+<div class="well">
+    <div class=" panel panel-default" id="gridattachment1">
+        @{
+            var grid = new WebGrid(source: Model.boqlist, canPage: true, canSort: true, rowsPerPage: 5, ajaxUpdateContainerId: "gridAttachment");
+            int rowcount = 0;
+            CmnFunctions obj = new CmnFunctions();
+        }
+        @grid.GetHtml(
+                tableStyle: "tableSmall table-bordered ",
+                htmlAttributes: new { id = "gridAttachment" },
+                          mode: WebGridPagerModes.All,
+                columns: grid.Columns
+                (
+                grid.Column("Sl", format: a => rowcount = rowcount + 1),
+                grid.Column("attachmentDate", obj.Sorter("attachmentDate", "Attachment Date", grid)),
+                grid.Column("poFileName", obj.Sorter("filename", "File name", grid), 
+                format: @<text> <a title='click here to download' onclick='DownloadPOAttachment("@item.poFileName")'> @item.poFileName </a></text>),
+                                 grid.Column("poDescription", obj.Sorter("description", "Description", grid), style: "MidColumn50")
+              ))
+    </div>
+</div>
+<span>Page: @(grid.PageIndex + 1) of @grid.PageCount</span>  <span> - Total No Of Records:@grid.TotalRowCount</span>
+    <input type="button" align="center" id="btn_close" value="Close" class="btn btn-warning" onclick="attachClose()" />
+<script>
+    function DownloadPOAttachment(filename) {
+        var objBoq =
+                {
+                    "poFileName": filename
+                };
+
+        $.post('@Url.Action("DownloadDocument", "cbfselection")', objBoq,
+        function (data) {
+            if (data == 0)
+            {
+                jAlert("Error Occured", "Error", function () {
+                    return false;
+                });
+                return false;
+            }
+            else {
+
+                location='@Url.Action("Download", "cbfselection")'
+            }
+        }, 'json');
+    }
+    function attachClose()
+    {
+        objdialogBoq.dialog("close");
+    }
+</script>

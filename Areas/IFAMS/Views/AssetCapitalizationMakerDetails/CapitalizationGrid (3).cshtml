@@ -1,0 +1,209 @@
+﻿@model IEM.Areas.IFAMS.Models.capitalizationMaker
+           @{
+               IEM.Common.CmnFunctions commfa = new IEM.Common.CmnFunctions();
+           }
+@*@using(Html.BeginForm())
+{*@
+    <div id="dvgrid">
+        @{
+            var gridCG = new WebGrid(Model.Capitalizationgridlist, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgCG");
+    gridCG.Pager(WebGridPagerModes.All);
+    @gridCG.GetHtml(
+    htmlAttributes: new { id = "wgCG" },
+    tableStyle: "tableSmall table-bordered",
+    mode: WebGridPagerModes.All,
+    columns:
+        @*gridCG.Columns(
+        gridCG.Column("pohgid", "SlNo"),
+        gridCG.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+        gridCG.Column("AssetCode", commfa.Sorter("AssetCode", "Asset Code", gridCG)),
+              gridCG.Column("glcode", commfa.Sorter("glcode", "Asset GLCode", gridCG)),
+        gridCG.Column("Amount", commfa.Sorter("Amount", "Value", gridCG)),
+      //  gridCG.Column("AssetName", commfa.Sorter("AssetName", "Asset Name", gridCG)),
+            gridCG.Column("Quantity", commfa.Sorter("Quantity", "Qty", gridCG)),
+                  gridCG.Column("Discount", commfa.Sorter("Discount", "Discount", gridCG)),
+        gridCG.Column("LocationCode", commfa.Sorter("LocationCode", "Location", gridCG)),
+              gridCG.Column("Tax1", commfa.Sorter("Tax1", "Tax1", gridCG)),
+        gridCG.Column("Tax2", commfa.Sorter("Tax2", "Tax2", gridCG)),
+        gridCG.Column("othres", commfa.Sorter("othres", "Othres", gridCG)),
+        gridCG.Column("TotalAmount", commfa.Sorter("TotalAmount", "Total", gridCG)),
+
+
+            gridCG.Column(header: "Action", canSort: false, style: "action",
+              format: @<text>
+       <span class="glyphicon glyphicon-remove" onclick="deletecapitalization(@item.pohgid)"></span>
+
+            </text>)
+
+))*@
+ gridCG.Columns(
+         gridCG.Column("pohgid", format: @<text><span class="display-mode">@item.pohgid</span><label id="pohgid" class="edit-mode">@item.pohgid</label></text>,
+                    style: "col1Width" ),
+          gridCG.Column("SlNo", format: item => item.WebGrid.Rows.IndexOf(item) + 1),
+                                       gridCG.Column("AssetCode", "Asset Code", format: @<text><span class="display-mode"><label id="lblAssetCode">@item.AssetCode</label></span>
+        <input type="text" id="AssetCode" value="@item.AssetCode" class="edit-mode" /></text>, style: "col2Width"),
+                                                             gridCG.Column("glcode", "Asset GLCode", format: @<text><span class="display-mode"><label id="lblglcode">@item.glcode</label></span>
+        <input type="text" id="glcode" value="@item.glcode" class="edit-mode" /></text>, style: "col2Width"),
+    
+                                gridCG.Column("Amount", "Price", format: @<text> <span class="display-mode"><label id="lblAmount">@item.Amount</label></span>
+        <input type="text" id="Amount" value="@item.Amount" class="edit-mode" /></text>, style: "col2Width"),
+
+
+                                            gridCG.Column("Quantity", "Qty", format: @<text> <span class="display-mode"><label id="lblQuantity">@item.Quantity</label></span>
+        <input type="text" id="Quantity" value="@item.Quantity" class="edit-mode" /></text>, style: "col2Width"),
+
+
+                                                        gridCG.Column("Discount", "Discount", format: @<text> <span class="display-mode"><label id="lblDiscountt">@item.Discount</label></span>
+        <input type="text" id="Discount" value="@item.Discount" class="edit-mode" /></text>, style: "col2Width"),
+
+
+                                                        gridCG.Column("LocationCode", "LocationCode", format: @<text> <span class="display-mode"><label id="lblLocationCode">@item.LocationCode</label></span>
+        <input type="text" id="LocationCode" value="@item.LocationCode" class="edit-mode" /></text>, style: "col2Width"),
+
+
+                                                        gridCG.Column("Tax1", "Tax1", format: @<text> <span class="display-mode"><label id="lblTax1">@item.Tax1</label></span>
+        <input type="text" id="Tax1" value="@item.Tax1" class="edit-mode" /></text>, style: "col2Width"),
+
+
+                                                        gridCG.Column("Tax2", "Tax2", format: @<text> <span class="display-mode"><label id="lblTax2">@item.Tax2</label></span>
+        <input type="text" id="Tax2" value="@item.Tax2" class="edit-mode" /></text>, style: "col2Width"),
+
+                             gridCG.Column("othres", "othres", format: @<text> <span class="display-mode"><label id="lblothres">@item.othres</label></span>
+        <input type="text" id="othres" value="@item.othres" class="edit-mode" /></text>, style: "col2Width"),
+
+                             gridCG.Column("TotalAmount", "TotalAmount", format: @<text> <span class="display-mode"><label id="lblTotalAmount">@item.TotalAmount</label></span>
+        <input type="text" id="TotalAmount" value="@item.TotalAmount" class="edit-mode" /></text>, style: "col2Width"),
+
+                    gridCG.Column("Action", format: @<text>
+            @*<button class="edit-user display-mode">Edit</button>
+            <button class="save-user edit-mode">Save</button>
+            <button class="cancel-user edit-mode">Cancel</button>*@
+        <span class="glyphicon glyphicon-trash" onclick="deletecapitalization(@item.pohgid)"></span>
+        </text>, style: "col3Width", canSort: false)
+        ))
+    if (Model.Capitalizationgridlist.Count == 0)
+    {
+        <div class="panel panel-default"><span>No Recards found</span></div>
+    }                       @*<label style="padding:10px;">Page: @(gridCG.PageIndex + 1) of @gridCG.PageCount - Total No of Records :@gridCG.TotalRowCount</label>*@
+        }
+    </div>
+@*}*@
+<script>
+    $('.edit-mode').hide();
+    $('.edit-user, .cancel-user').on('click', function () {
+        var tr = $(this).parents('tr:first');
+        tr.find('.edit-mode, .display-mode').toggle();
+    });
+    $("#wgCG td:nth-child(1),#wgCG th:nth-child(1)").hide();
+    $("#wgCG td:nth-last-child(1)").show();
+
+    function deletecapitalization(id)
+    {
+        @*$.post('@Url.Action("RemoveCapitalization", "AssetCapitalizationMakerDetails")?id=' + id + '&' + new Date().getTime()),
+        function(data)
+        {
+            $('#wgCG').empty().append(data);
+        }
+        alert(id);
+        var tr = $(this).parents('tr:first');
+        var FirstName = tr.find("#glcode").val();
+        var LastName = tr.find("#Amount").val();
+        alert(LastName);
+        return false;
+        var rvalue = "0";*@
+        var obj =
+             {
+                 "pohgid": id
+             }
+        $.ajax({
+            url: "@Url.Action("RemoveCapitalization", "AssetCapitalizationMakerDetails")",
+            type: 'POST',
+            data: obj,
+            success: function (data) {
+                // $("#dvgrid").load('../AssetCapitalizationMakerDetails/CapitalizationGrid/?id=' + id);
+               // alert(data);
+                $("#dvgrid").empty().append(data);
+            },
+            error: function () {
+                jAlert("something seems wrong", "Error");
+            }
+
+        });
+            @*.done(function () {
+            if (rvalue == "1") {           // Successfully Deleted
+                alert("Successfully Deleted");
+            location.reload();      // refresh the page
+
+                $("#wgCG").load('@Url.Action("CapitalizationGrid", "AssetCapitalizationMakerDetails")?' + new Date().getTime())
+            }
+            else {                      // Data Error
+                alert("Error. Please, check the data");
+            }
+
+        });*@
+    }
+
+    $('.glyphicon-remove').on("click", function () {
+
+        @*var tr = $(this).parents('tr:first');
+        var AssetCode = tr.find("#AssetCode").val();
+        var glcode = tr.find("#glcode").val();
+        var Amount = tr.find("#Amount").val();
+        var Quantity = tr.find("#Quantity").val();
+        var Discount = tr.find("#Discount").val();
+        var LocationCode = tr.find("#LocationCode").val();
+        var Tax1 = tr.find("#Tax1").val();
+        var Tax2 = tr.find("#Tax2").val();
+        var othres = tr.find("#othres").val();
+        var TotalAmount = tr.find("#TotalAmount").val();
+
+        return false;
+        var isSuccess = -1;
+
+        var Student =
+        {
+            "AssetCode": AssetCode,
+            "glcode": glcode,
+            "Amount": Amount,
+            "Quantity": Quantity,
+            "Discount": Discount,
+            "LocationCode": LocationCode,
+            "Tax1": Tax1,
+            "Tax2": Tax2,
+            "othres": othres,
+            "TotalAmount": TotalAmount
+
+        };
+
+        $.ajax({
+
+            url: "@Url.Action("RemoveCapitalization", "AssetCapitalizationMakerDetails")",
+
+            data: JSON.stringify(Student),
+
+            type: 'POST',
+
+            contentType: 'application/json; charset=utf-8',
+
+            success: function (result) {
+                isSuccess = result;
+
+            },
+            error: function (result) {
+                isSuccess = result;
+            }
+
+        }).done(function () {
+            if (isSuccess == "1") {           // Successfully Deleted
+                alert("Successfully Deleted");
+                //location.reload();      // refresh the page
+            }
+            else {                      // Data Error
+                alert("Error. Please, check the data");
+            }
+
+        });*@
+
+    });
+</script>
+

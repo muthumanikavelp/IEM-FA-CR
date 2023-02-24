@@ -1,0 +1,310 @@
+﻿@using IEM.Areas.MASTERS.Models;
+@using IEM.Common
+@model  IEnumerable<IEM.Areas.MASTERS.Models.Entity_taxgst>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+@*<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />*@
+
+@*<link href="@Url.Content("~/Content/RMchosen/chosen.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/RMScript/chosen.jquery.js")" type="text/javascript"></script>*@
+<script type="text/javascript">
+    var _currDTTab = 0;
+    $(function () {
+        $("#DTtabs").tabs({
+            select: function (e, i) {
+                _currDTTab = i.index;
+            }
+        });
+    });
+</script>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Gst Tax Master</span>
+</div>
+<div class="well">
+    <div id="DTtabs" style="height:600px;font-size:12px;">
+        <ul>
+            <li><a href="#tabs-1">Single Update</a></li>
+            <li><a href="#tabs-2">Bulk Update</a></li>
+            <li><a href="#tabs-3">Approval History</a></li>
+        </ul>
+        <div>
+            <div id="tabs-1">
+                @using (Html.BeginForm())
+                {
+                    <div class="well" style="padding:10px;">
+                        <table class="myTableStyleTabNew" style="width:100%;">
+                            <tr>
+                                <td style="width:5%; padding:0px 10px 0px 3px;"></td>
+
+                                <td style="width:8%; padding:0px 10px 0px 3px;">
+                                    <div class="input-append ">
+                                        HSN Code
+                                    </div>
+                                </td>
+                                <td style="width:15%; padding:0px 10px 0px 3px;">
+                                    <div class="input-append ">
+
+                                        <input type="text"
+                                               name="hsncode"
+                                               id="txtHsncode"
+                                               value="@ViewBag.filter"
+                                               class="fstextbox"
+                                               maxlength="10" />
+                                    </div>
+                                </td>
+
+                                <td style="width:15%; padding:0px 10px 0px 3px;">
+                                    <div class="input-append ">
+                                        <button class="btn btn-primary" id="btnsearch" value="Search" name="command" type="submit"
+                                                style="margin-top:0px;color:white;">
+                                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                                        </button>
+                                    </div>
+                                </td>
+                                <td style="width:40%; padding:0px 10px 0px 3px;">
+                                    <div class="input-append ">
+                                        <input type="hidden" id="hid_role" value="@ViewBag.Rolegrop" />
+                                    </div>
+                                </td>
+                                <td style="width:5%; padding:0px 10px 0px 3px;">
+                                    <button type="button" id="addgst" value="Add New GST Tax" onclick="AddNew()" class="btn btn-primary" style="margin-top:10px;">
+                                        <span style="color:white;" class="glyphicon glyphicon-plus"></span> Add New GST Tax
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <div class="table-responsive" style="margin-top:10px;">
+                            @grid.GetHtml(
+            htmlAttributes: new { id = "taxgstid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                            grid.Columns(grid.Column("SNo", style: "slno", format: item => rowVal = rowVal + 1),
+                         grid.Column(header: "Tax Sub Type", columnName: "Taxsubtypecode"),
+                         grid.Column(header: "HSN Code", columnName: "Taxhsncode"),
+                         grid.Column(header: "State", columnName: "Statename"),
+                         grid.Column(header: "Rate", columnName: "Rate"),
+                         grid.Column(header: "Tax GL", columnName: "Taxglno"),
+                         grid.Column(header: "Input Credit GL", columnName: "IpcdGLno"),
+                         grid.Column(header: "Reverse Charge GL", columnName: "RcGLno"),
+                         grid.Column(header: "Status", columnName: "Vwstatus"),
+                         grid.Column(header: "Remarks", columnName: "Remarks", style: "colmedium"),
+                            grid.Column(header: "Action", style: "action",
+                            format: @<text>
+                                @if (@ViewBag.Rolegrop == "TXGSTMKR")
+                                {
+                                    if (@item.Vwstatus == "Inprocess")
+                                    {
+                                        @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    }
+                                    else if (@item.Vwstatus == "Rejected")
+                                    {
+                                        @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='RejectEditType(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                    }
+                                    else if (@item.Vwstatus == "Approved")
+                                    {
+                                        @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                        @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteExpsub(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-trash' > </span> </a> ")
+                                    }
+                                }
+                                else if (@ViewBag.Rolegrop == "TXGSTCHK")
+                                {
+                                    if (@item.Vwstatus == "Inprocess")
+                                    {
+                                        @Html.Raw("<a style='text-decoration:none;' title='chkedit' onclick='EditChkType(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-edit' ></span> </a>")
+                                    }
+                                    else
+                                    {
+                                        @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.Taxgst_gid + ")'> <span class='glyphicon glyphicon-eye-open'> </span> </a>")
+                                    }
+                                }
+                            </text>))))
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+            <div id="tabs-2">
+                @Html.Partial("ErrorPage")
+            </div>
+            <div id="tabs-3">
+                @Html.Partial("Historypage")
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ForPartialView"></div>
+<script type="text/javascript">
+    var objDialog;
+    var objdialogforedit;
+    $(document).ready(function () {
+        $(function () {
+            $("#txtFilter").focus();
+        });
+        //$('#taxgstid tr th:nth-child(7)').addClass("nosort");
+        $('#taxgstid').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+
+        $("#txtFilter").focus();
+        $("#txtFilter").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        $("#txtFilter1").focus();
+        $("#txtFilter1").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+        var group = $("#hid_role").val();
+        if (group != "TXGSTMKR") {
+            $("#addgst").attr("disabled", true);
+        }
+    });
+    $(document).ready(function () {
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 950,
+            height: 400
+        });
+    });
+    function AddNew() {
+        objDialog.load('../IEM_GST_TAX/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Gst Tax' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_GST_TAX/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Gst Tax Details' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_GST_TAX/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Gst Tax Details' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function EditChkType(id) {
+        debugger;
+        objDialog.load('../IEM_GST_TAX/Edit?id=' + id + '&viewfor=chkedit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Approve Gst Tax Details' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DeleteExpsub(id) {
+        objDialog.load('../IEM_GST_TAX/Edit?id=' + id + '&viewfor=delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Gst Tax Details' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function RejectEditType(id) {
+        objDialog.load('../IEM_GST_TAX/Edit?id=' + id + '&viewfor=reject&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Gst Tax Details' });
+        objDialog.dialog("open");
+        return false;
+    }
+</script>
+@* bulk update modal *@
+
+<div id="ForPartialViewbulk"></div>
+<div id="forerror"></div>
+<script type="text/javascript">
+    var objDialog1;
+    function addnewuploadss() {
+       // alert("enter");
+        if (window.FormData !== undefined) {
+
+            var fileUpload = $("#UploadFile").get(0);
+
+            var files = fileUpload.files;
+           // alert(files);
+            // Create FormData object
+            var fileData = new FormData();
+            // Looping over all files and add it to FormData object
+            for (var i = 0; i < files.length; i++) {
+                fileData.append(files[i].name, files[i]);
+            }
+           // alert(fileData);
+            // Adding one more key to FormData object
+            //  fileData.append('username', 'Manas');
+
+            $.ajax({
+                url: '../IEM_GST_TAX/bulkcreate',
+                type: "POST",
+                contentType: false, // Not to set any content header
+                processData: false, // Not to process data
+                data: fileData,
+                dataType: 'json',
+                success: function (data) {
+                  //  alert("sucesing");
+                    if (data != null || data != '')
+                       // alert(data.length);
+                },
+                error: function (err) {
+                   // alert("errorsss");
+                    alert(err.statusText);
+                }
+            });
+        } else {
+            alert("Form Data is not supported.");
+        }
+
+    }
+
+    $(document).ready(function () {
+        objDialog1 = $("[id$='ForPartialViewbulk']");
+        objDialog1.dialog({
+
+            autoOpen: false,
+            modal: true,
+            width: 1120,
+            height: 700
+
+        });
+    });
+
+
+
+    //pandiaraj
+    var objDialog2;
+    $(document).ready(function () {
+        //$('#taxgstida tr th:nth-child(7)').addClass("nosort");
+        //$('#taxgstida').dataTable({
+        //    "aoColumnDefs": [{
+        //        "aTargets": ["nosort"],
+        //        "bSortable": false
+        //    }]
+        //}).css("width", "99%");
+
+        objDialog2 = $("[id$='forerror']");
+        objDialog2.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 1120,
+            height: 700
+        });
+    });
+
+    function clearall() {
+        $("#UploadFile").val('');
+    }
+
+
+
+    //pandiaraj
+</script>
+@*www.c-sharpcorner.com/UploadFile/ff2f08/multiple-models-in-single-view-in-mvc/*@

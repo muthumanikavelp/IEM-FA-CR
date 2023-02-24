@@ -1,0 +1,142 @@
+﻿@model IEM.Areas.MASTERS.Models.BudgetOwner
+@using IEM.Common;
+@{
+    ViewBag.Title = "Index";
+    var grid = new WebGrid(source: Model.lListBudgOwner, canSort: true, canPage: true, rowsPerPage: 2, ajaxUpdateContainerId: "searchgrid");
+    CmnFunctions obj = new CmnFunctions();
+}
+@using (Html.BeginForm())
+{
+@Html.AntiForgeryToken()
+<div id="searchgrid">
+
+    <table class="myTableStyleTabNew" width="100%">
+        <tr>
+            <td style="width:25%;">
+                <span>Employee Code</span>
+                <br />
+                <input type="text"
+                       name="empcode"
+                       id="txtempcode"
+                       value="@TempData["empcode"]"
+                       class="fstextbox"
+                       @*placeholder="Enter Employee Code"*@ />
+            </td>
+            <td style="width:25%;">
+                <span>Employee Code</span>
+                <br />
+                <input type="text"
+                       name="empname"
+                       id="txtempname"
+                       value="@TempData["empname"]"
+                       class="fstextbox"
+                       @*placeholder="Enter Employee Name"*@ />
+            </td>
+            <td style="width:50%">
+                <span> </span>
+                <br />
+                <button class="btn btn-primary" id="btnsearch" value="search" onclick="searchempl()" name="command" type="button" style="margin-top:5px;"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</button>
+                @*<a id="btnsearch" onclick="searchemployee()"><span class="glyphicon glyphicon-search cursorpointer" title="Search" style="margin-top: 20px;font-size:1.9em;"></span></a>*@
+                @*<button class="btn btn-primary" id="btnrefresh" onclick="searchempl()" value="search" name="command" type="button"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>*@
+                <button class="btn btn-primary" id="btnClear" value="Clear" onclick="GridRefresh()" name="command" type="submit" style="margin-top:5px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Clear</button>
+            </td>
+            @*<td>
+                    <a onclick="searchempl()" style="cursor:pointer"> <span class="glyphicon glyphicon-search" title="Search" style="margin-top:20px;"></span> </a>
+                </td>
+                <td>
+                        <span class="input-append">
+                            <a id="btnrefresh"><span onclick="GridRefresh()" class="glyphicon glyphicon-refresh cursorpointer" title="Refresh" style="margin-top:20px;"></span></a>
+                        </span>
+                </td>*@
+        </tr>
+    </table>
+
+    <div class="table-responsive" style="margin-top:10px;" id="emplgrid">
+        @grid.GetHtml(
+         tableStyle: "tableSmall table-bordered table-hover",
+        htmlAttributes: new { id = "grid" },
+        mode: WebGridPagerModes.All,
+        columns: grid.Columns
+            (
+            grid.Column("SlNo", obj.Sorter("SlNo", "SNo", grid)),
+            grid.Column("SlNo", obj.Sorter("employeeGid", "ID", grid), format: @<text><span id="lblempgid">@item.employeeGid</span></text> ),
+            grid.Column("empCode", obj.Sorter("empCode", "Employee Code", grid), format: @<text><span id="lblempcode">@item.empCode</span></text>),
+            grid.Column("empName", obj.Sorter("empName", "Employee Name", grid), format: @<text><span id="lblempname">@item.empName</span></text>),
+            grid.Column(header: "Action", canSort: false, style: "action",
+                     format: @<text>
+                <a><span onclick="selectemploy(this)" title="Select" class="btn btn-link btnselect">Select</span></a>
+                    </text>)))
+        @if (@TempData["records"] != null || @TempData["records"] == "")
+        {
+            @*<div class="borderStyle">
+                    @TempData["records"]
+                </div>*@
+            <div class="gridMessage">
+                @TempData["records"]
+            </div>
+        }
+        <div class="gridCount">
+            Page: @(grid.PageIndex + 1) of @grid.PageCount   - Total No Of Records:@Model.lListBudgOwner.Count
+        </div>
+        @*<label>Page: @(grid.PageIndex + 1) of @grid.PageCount</label>  <label> - Total No Of Records:@Model.lListBudgOwner.Count</label>*@
+    </div>
+
+    <table class="myTableStyleTabNew">
+        <tr>
+            <td>
+                <div style="padding: 25px;margin-left: 350px;">
+                    <button type="button" class="btn btn-warning" value="Close" onclick="GotoIndex()"><span style="color:white;" class="glyphicon glyphicon-remove"></span> Close</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    function searchempl() {
+        var empcode = $('#txtempcode').val();
+        var empname = $('#txtempname').val();
+        var objbudgetsearch = {
+            "empName": empname,
+            "empCode": empcode
+        };
+        $.post('../FbBudgetOwner/searchEmployee', objbudgetsearch,
+                function (data) {
+                    $("#searchgrid").load('../FbBudgetOwner/searchEmployee?listfor=search' + '&' + new Date().getTime());
+                }
+           , 'json');
+    }
+    function GridRefresh() {
+        $("#txtempcode").val("");
+        $("#txtempname").val("");
+        var EmployeeCode = $("#txtempcode").val();
+        var EmployeeName = $("#txtempname").val();
+        var objSearchEmployee = {
+            "empCode": EmployeeCode,
+            "empName": EmployeeName
+        };
+        $.post('../FbBudgetOwner/searchEmployee', objSearchEmployee,
+        function (data) {
+            if (data == 0) {
+                location = location.href;
+            }
+            else {
+                $("#searchgrid").load('../FbBudgetOwner/searchEmployee?listfor=refresh');
+            }
+        }, 'json');
+    }
+    function selectemploy(element) {
+
+        var tr = $(element).parents('tr:first');
+        var empid = tr.find("#lblempgid").text();
+        var empcode = tr.find("#lblempcode").text();
+        var empname = tr.find('#lblempname').text();
+        $('#txtEmpCode').val(empcode);
+        $('#employeeGid').val(empid);
+        $('#empName').val(empname);
+        GotoIndex();
+    }
+    function GotoIndex() {
+        window.parent.jQuery('#Forempsearch').dialog('close');
+    }
+</script>
+}

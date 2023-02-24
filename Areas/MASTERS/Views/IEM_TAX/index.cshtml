@@ -1,0 +1,189 @@
+﻿@model  IEnumerable<IEM.Areas.MASTERS.Models.iem_mst_tax>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style>
+    /*table, th, td {
+        white-space: nowrap;
+    }*/
+
+    /*.dataTables_scrollBody{
+        height:100% !important;
+    }*/
+</style>
+<div class="pageHeadingLayout">
+    <span class="pageHeading">Tax </span>
+</div>
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="well" style="padding:10px;">
+        <table class="myTableStyleTabNew" style="width:100%;">
+            <tr>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span> Tax Code  </span>
+                    <br />
+                    <input type="text"
+                           name="filter_name"
+                           id="txtFilterName"
+                           value="@ViewBag.filter_name"
+                           class="fstextbox"
+                           style="display: block; "
+                           maxlength="30" />
+                </td>
+                <td style="width:25%; padding:0px 10px 0px 3px;">
+                    <span> Tax </span>
+                    <br />
+                    <input type="text"
+                           name="filter_name1"
+                           id="txtFilterName1"
+                           value="@ViewBag.filter_name1"
+                           class="fstextbox"
+                           style="display: block; "
+                           maxlength="70" />
+
+                </td>
+                <td style="width:50%; padding:0px 10px 0px 3px;">
+                    <button class="btn btn-primary" value="Search" name="command" type="submit" style="margin-top:20px;color:white;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon-search"></span> Search
+                    </button>
+
+                    <button class="btn btn-primary" value="Clear" onclick="refresh()" name="command" type="button" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px;" class="glyphicon glyphicon-remove-circle"></span> Clear
+                    </button>
+
+                    <button type="button" value="New Tax" onclick="NewType()" class="btn btn-primary" style="margin-top:20px;">
+                        <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> New Tax
+                    </button>
+                    
+                        <button type="button" formaction="" value="Export Excel" onclick="DownloadExcel()" class="btn btn-warning" style="margin-top:20px;">
+                            <span style="color:white;font-size:12px; " class="glyphicon glyphicon-plus"></span> Export Excel
+                        </button>
+                    
+
+                </td>
+            </tr>
+        </table>
+
+
+        <div class="table-responsive" style="margin-top:10px; width:100%;">
+            @grid.GetHtml(
+    htmlAttributes: new { id = "grid" },
+                tableStyle: "tableSmall table-bordered table-hover",
+                columns: grid.Columns
+                        (
+
+                            grid.Columns(
+                            grid.Column("SlNo", style: "slno", format: item => rowVal = rowVal + 1),
+                             grid.Column("tax_code", "Tax Code", style: "colmedium"),
+                             grid.Column("tax_name", "Tax", style: "collargeBreak"),
+                             grid.Column("tax_parent_flag", "Parent Flag", style: "action"),
+                             grid.Column("tax_parent_name", "Parent Tax", style: "collargeBreak"),
+                             grid.Column("tax_withhold_flag", "With Hold", style: "action"),
+                             grid.Column("tax_payable_flag", "Payable", style: "action"),
+                             grid.Column("tax_receivable_flag", "Receivable", style: "action"),
+                             grid.Column("tax_inputcredit_flag", "Input Credit", style: "action"),
+                             grid.Column("tax_reverse_flag", "Reverse", style: "action"),
+                             grid.Column("tax_active", "Active Status", style: "action"),
+                            grid.Column("Action", style: "action",
+                            format: @<text>
+                                @Html.Raw("<a style='text-decoration:none;' title='View' onclick='ViewType(" + item.tax_gid + ")'> <span class='glyphicon glyphicon-eye-open'></span></a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Edit' onclick='EditType(" + item.tax_gid + ")'> <span class='glyphicon glyphicon-edit'></span></a>")
+                                @Html.Raw("<a style='text-decoration:none;' title='Delete' onclick='DeleteType(" + item.tax_gid + ")'><span class='glyphicon glyphicon-trash'></span></a> ")
+                            </text>))))
+        </div>
+
+    </div>
+}
+<div id="ForPartialView"></div>
+<script type="text/javascript">
+
+    var objDialog;
+    $(document).ready(function () {
+
+        $("#txtFilterName").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+        $("#txtFilterName1").keypress(function (event) {
+            return isSplAlphaNumeric(event, this);
+        });
+
+
+        $('#grid tr th:nth-child(12)').addClass("nosort");
+        $('#grid').dataTable({
+            //"scrollX": true,
+            //responsive : true,
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+
+
+        objDialog = $("[id$='ForPartialView']");
+        objDialog.dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            height: 450
+        });
+    });
+    function NewType() {
+        objDialog.load('../IEM_TAX/Create?' + new Date().getTime());
+        objDialog.dialog({ title: 'Add Tax' });
+        objDialog.dialog("open");
+        return false;
+    }
+
+    function DownloadExcel() {
+        var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+        ko.utils.postJson(UrlDet + '?ViewType=1&FileName=Tax&' + new Date().getTime());
+    }
+    function EditType(id) {
+        objDialog.load('../IEM_TAX/Edit?id=' + id + '&viewfor=edit&' + new Date().getTime());
+        objDialog.dialog({ title: 'Edit Tax' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function ViewType(id) {
+        objDialog.load('../IEM_TAX/Edit?id=' + id + '&viewfor=view&' + new Date().getTime());
+        objDialog.dialog({ title: 'View Tax ' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function DeleteType(id) {
+        //if (confirm("Do you want to delete Tax ? ")) {
+        //    var taxModel = { "tax_gid": id }
+        //    $.post('../IEM_TAX/Delettax', taxModel,
+        //            function (data) {
+        //                if (data != "success") {
+        //                    alert(data);
+        //                    return false;
+        //                }
+        //                else {
+
+        //                    location = '../IEM_TAX/Index';
+        //                }
+
+        //            }
+
+        //    , 'json');
+
+        //}
+        objDialog.load('../IEM_TAX/Edit?id=' + id + '&viewfor=Delete&' + new Date().getTime());
+        objDialog.dialog({ title: 'Delete Tax ' });
+        objDialog.dialog("open");
+        return false;
+    }
+    function refresh() {
+        location = '../IEM_TAX/Index';
+    }
+</script>

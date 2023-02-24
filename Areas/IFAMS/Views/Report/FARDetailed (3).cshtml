@@ -1,0 +1,582 @@
+﻿@using IEM.Areas.IFAMS.Models
+@model IEM.Areas.IFAMS.Models.AssetReportModel
+@{
+    ViewBag.Title = "FARDetailed";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(source: Model.ReportModel, canPage: true, canSort: false, rowsPerPage: 10, ajaxUpdateContainerId: "salrepgridid", ajaxUpdateCallback: "salrepgridid", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.All);
+    int rowval = 0;
+
+}
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"> </script>
+<b>
+    <span style="color: rgb(52,108,196);">
+        Detailed Fixed Asset Register
+    </span>
+</b>
+@using (Html.BeginForm())
+{
+    <div id="_gridfullre">
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table class="myTableStyleTabNew" style="margin-left:-03px;">
+                        <tr>
+                            <td>
+                                <div>
+                                    <span>Inward From Date </span>
+                                    <br />
+                                    <input type="text" name="inwfd" id="txtinwfd" maxlength="25" value="@ViewBag.inwfd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span>Inward To Date </span>
+                                    <br />
+                                    <input type="text" name="inwtd" id="txtinwtd" maxlength="25" value="@ViewBag.inwtd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span>Depreciation From Date </span>
+                                    <br />
+                                    <input type="text" name="depfd" id="txtdepfd" maxlength="25" onchange="Fromdatechange(), checkRequiredfields()" value="@ViewBag.depfd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span>Depreciation To Date </span>
+                                    <br />
+                                    <input type="text" name="deptd" id="txtdeptd" maxlength="25" onchange="Todatechange(), checkRequiredfields()" value="@ViewBag.deptd" readonly="readonly" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+
+                            <td>
+                                <div>
+                                    <span>Branch</span>
+                                    <br />
+                                    <input type="text" name="bcode" id="txtbcode" maxlength="25" value="@ViewBag.bcode" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span> Group Id </span>
+                                    <br />
+                                    <input type="text" name="history" id="txthistory" maxlength="25" value="@ViewBag.history" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span> GL Code </span>
+                                    <br />
+                                    <input type="text" name="glcode" id="txtglcode" maxlength="25" value="@ViewBag.glcode" class="textboxStyleSearch" />
+                                </div>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" id="btnsearchreport" type="submit" name="command" value="SEARCH"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                <button class="btn btn-primary" type="submit" id="btnclear" value="Clear" name="command" onclick="FAclear()"><span style="color:white;" class="glyphicon glyphicon-remove-circle"></span> Clear</button>
+                            </td>
+                            <td>
+                                <span></span>
+                                <br />
+                                @if (ViewBag.Message == null)
+                                {
+                                    <button class="btn btn-primary" type="button" id="btnexport" value="Export" name="command" onclick="FAExport()"><span style="color:white;" class="glyphicon glyphicon-export"></span> Export</button>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="fagridid" style="overflow-y:scroll;  margin-top:17px; " class=" ">
+                @grid.GetHtml(htmlAttributes: new { id = "salrepgridid" },
+                        fillEmptyRows: false,
+                        tableStyle: "tableSmall table-bordered ",
+                        mode: WebGridPagerModes.All,
+                        columns: grid.Columns(
+                        grid.Column(header: "S.No", format: item => rowval = rowval + 1),
+
+                        grid.Column("inwarddate", "INWARD DATE", style: "col-lg-3 MidColumn20Center", format: @<text>
+                            <span class="editsmv">
+                                <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.inwarddate</label>
+                            </span>
+                        </text>),
+                        grid.Column("acfnumber", "ACF Number", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.acfnumber</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetgroupid", "Group ID", style: "col-lg-2 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetgroupid</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetDetid", "Asset ID", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetDetid</label>
+                    </span>
+                        </text>),
+                        grid.Column("barCode", "Barcode", style: "col-lg-2 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.barCode</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetSerialNo", "Asset Serial No", style: "col-lg-2 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetSerialNo</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetqty", "Quantity", style: "col-lg-1 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetqty</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetCode", "Asset Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetCode</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetDescription", "Description", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetDescription</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetglcode", "GLcode", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetglcode</label>
+                    </span>
+                        </text>),
+                        grid.Column("deptype", "Depreciation Type", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.deptype</label>
+                    </span>
+                        </text>),
+                        grid.Column("deprate", "Depreciation Rate", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.deprate</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("depgl", "Depr_GL", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depgl</label>
+                    </span>
+                        </text>),
+                        grid.Column("deppvgl", "Depr_PV_GL", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.deppvgl</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetLocationcode", "Branch Code", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetLocationcode</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("branchlaunchdat", "Branch Launch Date", style: "col-lg-3 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.branchlaunchdat</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetleasedat", "Lease Start Date", style: "col-lg-1 MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetleasedat</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetleaseenddat", "Lease End Date", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetleaseenddat</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetcapdate", "Captialisation Date", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetcapdate</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("assetdetAssetvalue", "Asset Value", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetAssetvalue</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("depapr", "Apr", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depapr</label>
+                    </span>
+                        </text>),
+                        grid.Column("depmay", "May", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depmay</label>
+                    </span>
+                        </text>),
+                        grid.Column("depjun", "Jun", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depjun</label>
+                    </span>
+                        </text>),
+                        grid.Column("depjul", "Jul", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depjul</label>
+                    </span>
+                        </text>),
+                        grid.Column("depaug", "Aug", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depaug</label>
+                    </span>
+                        </text>),
+                        grid.Column("depsep", "Sep", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depsep</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("depoct", "Oct", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depoct</label>
+                    </span>
+                        </text>),
+                        grid.Column("depnov", "Nov", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depnov</label>
+                    </span>
+                        </text>),
+                        grid.Column("depdec", "Dec", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depdec</label>
+                    </span>
+                        </text>),
+                        grid.Column("depjan", "Jan", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depjan</label>
+                    </span>
+                        </text>),
+                        grid.Column("depfeb", "Feb", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depfeb</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("depmar", "Mar", style: "rig col=olg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.depmar</label>
+                    </span>
+                        </text>),
+                        grid.Column("ACCUMULATED_DEP", "Accumulated Depreciation", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ACCUMULATED_DEP</label>
+                    </span>
+                        </text>),
+                        grid.Column("CUMMULATIVE_DEP", "Cummulative Depreciation", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.CUMMULATIVE_DEP</label>
+                    </span>
+                        </text>),
+                        grid.Column("deptot", "Total Depreciation", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.deptot</label>
+                    </span>
+                        </text>),
+                        grid.Column("wdv", "WD Value", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.wdv</label>
+                    </span>
+                        </text>),
+                        grid.Column("assettrffrm", "Transfer From", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assettrffrm</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("assetdettrfval", "Transfer Value", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdettrfval</label>
+                    </span>
+                        </text>),
+
+
+                        grid.Column("assetdettrfdat", "Transfer Date", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdettrfdat</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("assetdetsaledat", "Sale Date", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetsaledat</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("department", "Department", style: "rig col-lg-3", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.department</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetspoke", "Spoke", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetspoke</label>
+                    </span>
+                        </text>),
+                        grid.Column("bscc", "Asset BSCC", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.bscc</label>
+                    </span>
+                        </text>),
+
+
+                        grid.Column("ponumb", "PO Number", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.ponumb</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("cbfnumb", "CBF Number", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.cbfnumb</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("vendornam", "Vendor Name", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.vendornam</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("Naration", "Description", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv  ">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.Naration</label>
+                    </span>                                                                            </text>),
+
+                        grid.Column("BRAddress", "OFFICE", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.BRAddress</label>
+                    </span>
+                        </text>),
+                        grid.Column("Branch_Status", "BRANCH_STATUS", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.Branch_Status</label>
+                    </span>
+                        </text>),
+                        grid.Column("BRName", "BRANCH_NAME", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.BRName</label>
+                    </span>
+                        </text>),
+                        grid.Column("VERIFIABLE_STATUS", "VERIFIABLE_STATUS", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.VERIFIABLE_STATUS</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetstaus", "ASSET_STATUS", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetstaus</label>
+                    </span>
+                        </text>),
+                        grid.Column("assetdetstatus1", "STATUS", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.assetdetstatus1</label>
+                    </span>
+                        </text>),
+                        grid.Column("SALE_VALUE", "SALE_VALUE", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.SALE_VALUE</label>
+                    </span>
+                        </text>),
+
+                        grid.Column("VAT_VALUE", "VAT_VALUE", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.VAT_VALUE</label>
+                    </span>
+                        </text>),
+                        grid.Column("NET_LOSS", "NET_LOSS", style: "MidColumn20Center", format: @<text>
+                    <span class="editsmv">
+                        <label style="word-wrap: break-word;font-size:small; width:150px; font-weight:normal" id="lblsnonew2">@item.NET_LOSS</label>
+                    </span>
+                        </text>)))
+                @if (ViewBag.Message != null)
+                {
+                    <div class="borderStyle" style="width:2095px" align="center">
+                        <b> @ViewBag.Message</b>
+                    </div>
+                }
+                <span class="myTableStyleTabNew">Page: @(grid.PageIndex + 1) of @grid.PageCount</span> <span class="myTableStyleTabNew"> - Total No of Records: @grid.TotalRowCount</span>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .rig {
+        text-align: right;
+        width: 550px;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function checkRequiredfields() {
+
+        var frmdat = $("#txtdepfd").val();
+        var tdat = $("#txtdeptd").val();
+        if (frmdat != "") {
+            $("#txtdepfd").removeClass('required');
+            $("#txtdepfd").addClass('valid');
+            // CheckFieldcount();
+        }
+        else {
+            $("#txtdepfd").removeClass('valid');
+            $("#txtdepfd").addClass('required');
+            //CheckFieldcount();
+        }
+
+
+        if (tdat != "") {
+            $("#txtdeptd").removeClass('required');
+            $("#txtdeptd").addClass('valid');
+            // CheckFieldcount();
+        }
+        else {
+            $("#txtdeptd").removeClass('valid');
+            $("#txtdeptd").addClass('required');
+            //CheckFieldcount();
+        }
+    }
+
+
+
+
+
+    $(document).ready(function () {
+
+        checkRequiredfields();
+
+        $('#btnsearchreport').click(function () {
+            showProgress();
+        });
+
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+        if ('@Model.ReportModel.Count' != 0)
+        { hideProgress(); }
+    });
+    function FAclear() {
+        $("#txtinwfd").val("");
+        $("#txtinwtd").val("");
+        $("#txtdepfd").val("1");
+        $("#txtdeptd").val("1");
+        $("#txthistory").val("");
+        $("#txtbcode").val("");
+
+
+    }
+
+    function FAExport() {
+        //$("#btnexport").disabled();
+        showProgress();
+        location = '@Url.Action("FARDetailedExport", "Report")?' + new Date().getTime();
+        hideProgress();
+    }
+
+    function Todatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+    function Fromdatechange() {
+        var todate = $("#txtdeptd").val();
+        var fromdate = $("#txtdepfd").val();
+        if (todate != "" && fromdate != "") {
+            $("#btnsearchreport").removeAttr('disabled');
+        }
+        else {
+            $("#btnsearchreport").attr("disabled", true);
+        }
+    }
+
+
+    $("#txtinwfd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwtd").datepicker("option", "minDate", selected)
+        }
+    });
+    $("#txtinwtd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+
+        onSelect: function (selected) {
+            $("#txtinwfd").datepicker("option", "maxDate", selected)
+        }
+    });
+
+    var tdate = new Date();
+    $("#txtdepfd, #txtdeptd").datepicker({
+        changeMonth: true,
+        changeYear: true,
+        showButtonPanel: false,
+        dateFormat: 'MM yy',
+        minDate: '',
+        maxDate: new Date(),
+        onClose: function (dateText, inst) {
+            var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
+            var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+            $(this).datepicker('setDate', new Date(year, month, 1));
+        },
+        beforeShow: function (input, inst) {
+            if ((datestr = $(this).val()).length > 0) {
+                year = datestr.substring(datestr.length - 4, datestr.length);
+                month = jQuery.inArray(datestr.substring(0, datestr.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker('option', 'defaultDate', 'maxDate', new Date(year, month, 1));
+                // $(this).datepicker('setDate', new Date(year, month, 1));
+            }
+            var other = this.id == "from" ? "#txtdeptd" : "#txtdepfd";
+            var option = this.id == "from" ? "maxDate" : "minDate";
+
+            if ((selectedDate = $(other).val()).length > 0) {
+                year = selectedDate.substring(selectedDate.length - 4, selectedDate.length);
+                month = jQuery.inArray(selectedDate.substring(0, selectedDate.length - 5), $(this).datepicker('option', 'monthNames'));
+                $(this).datepicker("option", option, new Date(year, month, 1));
+            }
+        }
+    });
+
+
+
+    $(window).load(function () {
+        $.ajax({
+            url: '@Url.Action("FinancialYearDrop", "Report")?' + new Date().getTime(),
+            type: "GET",
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    var opt = new Option(data[i].FinancialYear, data[i].FinancialYear);
+                    $('#FinancialYear').append(opt);
+
+                }
+            }
+        });
+    });
+
+</script>
+

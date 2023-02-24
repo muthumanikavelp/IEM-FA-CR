@@ -1,0 +1,170 @@
+﻿@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@model  IEM.Areas.ASMS.Models.EntityGstvendor 
+                      
+
+ 
+
+@*@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var grid = new WebGrid(canPage: false, canSort: false);
+    grid.Bind(Model);
+    int rowVal = 0;
+}*@
+@{
+    string IsChecker = @ViewBag.IsChecker;
+   // string IsChecker ="Y";
+    //string EnableData = (IsChecker == "X" ? "disabled" : "");
+    string AddData = (IsChecker == "Y" ? "visible" : "visible");
+    string EnableData = IsChecker == "Y" ? "visible" : (IsChecker == "N" ? "visible" : "hidden");
+}
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<div class="pageHeadingLayout">
+    <span class="pageHeading">GST TAB - Vendor Management </span>
+</div>
+
+
+<div id="c1">
+    @{
+        GSTSupDataModel dm = new GSTSupDataModel();
+       
+    }
+
+
+</div>
+
+    @using (Html.BeginForm())
+    {
+
+        <div class="well" style="padding:10px;">
+            <table class="myTableStyleTabNew" style="width:50%;">
+                <tr>
+                    <td style="width:50%; padding:0px 10px 0px 3px;">
+                        <span> Threshold  </span>
+                        <br />
+                        <input type="text"
+                               name="threshold"
+                               id="txtThreshold"
+                               value="@ViewBag.filter"
+                               class="fstextbox"
+                               maxlength="10" />
+
+                    </td>
+                    <td style="width:50%; padding:0px 10px 0px 3px;">
+                        <span> Actuals  </span>
+                        <br />
+                        <input type="text"
+                               name="actuals"
+                               id="txtActuals"
+                               value="@ViewBag.filter1"
+                               class="fstextbox"
+                               maxlength="10" />
+
+                    </td>
+                    <td style="width:30%; padding:0px 10px 0px 3px;"> 
+                    </td>
+                    <td style="width:30%; padding:0px 10px 0px 3px;"></td>
+                  
+                   
+
+                
+                    <td style="padding:0px 10px 0px 3px;">
+                        <button type="button" value="New Country" onclick="NewType()" class="btn btn-primary" style="visibility:@AddData; margin-top:20px;color:white;">
+                            <span style="color:white; font-size:12px;" class="glyphicon glyphicon-plus"></span> Add GST
+                        </button>
+                    </td>
+                </tr>
+
+            </table>
+          
+
+        </div>
+    }
+   
+    <script type="text/javascript">
+        var objDialog;
+        $(document).ready(function () {
+             
+            $(function () {
+                $("#txtFilter").focus();
+            });
+
+
+            $('#gridcountry tr th:nth-child(5)').addClass("nosort");
+            $('#gridcountry').dataTable({
+                "aoColumnDefs": [{
+                    "aTargets": ["nosort"],
+                    "bSortable": false
+                }]
+            }).css("width", "99%");
+
+            $("#txtFilter").focus();
+            $("#txtFilter").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $("#txtFilter1").focus();
+            $("#txtFilter1").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+            $("#txtFilter2").focus();
+            $("#txtFilter2").keypress(function (event) {
+                return isSplAlphaNumeric(event, this);
+            });
+
+            objDialog = $("[id$='ForPartialView']");
+            objDialog.dialog({
+                autoOpen: false,
+                modal: true,
+                width: 800,// 20-02-18 gstin split
+                height: 370,
+                async: false,
+                cache: false
+                
+            });
+
+        });
+        
+        function NewType() { 
+            objDialog.load('../GSTOnboarding/GST_Create_Vendor?' + new Date().getTime());
+            objDialog.dialog({ title: 'Add GST' });
+            objDialog.dialog("open");
+
+           
+            return false;
+        }
+        function EditType(id) {
+            objDialog.load('../GSTOnboarding/GST_Edit_Vendor?id=' + id + '&viewfor=edit&' + new Date().getTime());
+            objDialog.dialog({ title: 'Edit GST' });
+            objDialog.dialog("open"); 
+            return false;
+        }
+        function ViewType(id) {
+
+            objDialog.load('../GSTOnboarding/GST_Edit_Vendor?id=' + id + '&viewfor=view&' + new Date().getTime());
+            objDialog.dialog({ title: 'View GST' });
+            objDialog.dialog("open");
+            return false;
+        }
+        function DeleteCountry(id) {
+            objDialog.load('../GSTOnboarding/GST_Edit_Vendor?id=' + id + '&viewfor=delete&' + new Date().getTime());
+            objDialog.dialog({ title: 'View GST' });
+            objDialog.dialog("open");
+            return false; 
+        }
+        function DownloadExcel() {
+            var UrlDet = "@Url.Action("DownloadExcel", "IEM_TAX")"
+            ko.utils.postJson(UrlDet + '?ViewType=20&FileName=Country&' + new Date().getTime());
+        }
+
+        function GotoIndexCustomer() {
+            window.parent.jQuery('#ForPartialView').dialog('close');
+        }
+
+        function refresh() {
+            location = '../GSTOnboarding/GSTDetailsIndex';
+        }
+        function isEvent(evt) {
+            return false;
+        }
+    </script>

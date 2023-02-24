@@ -1,0 +1,130 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SupplierHeader>
+@*@using IEM.Common*@
+@{
+    //if (Model.Count() == 0)
+    //{
+    //    ViewBag.NoRecordsFound = "No Records Found";
+    //}
+    //else
+    //{
+    //    ViewBag.formname = (string)Session["formname"];
+    //    ViewBag.NoRecordsFound = null;
+    //}
+    //var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgSupplierLst", ajaxUpdateCallback: "SelectInGrid()");
+    var grid = new WebGrid(Model, canSort: false, canPage: false);
+    //CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<style>
+    table, th, td {
+        white-space: nowrap;
+    }
+</style>
+<div id="wgSupplierLst">
+    <table width="100%" class="myTableStyleTabNew">
+        <tr>
+            <td style="width:60%;">
+                <span>Supplier Name</span><br />
+                <input type="text" name="txtSupplierNameSearch" id="txtSupplierNameSearch" class="fstextbox" value=@ViewBag.SearchEmpName />
+            </td>
+            <td style="width:40%; vertical-align:bottom;">
+                <button id="btnSearch" class="btn btn-primary" value="Search" onclick="SearchSupplier()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                <button id="btnClear" class="btn btn-primary" value="Refresh" onclick="RefreshSupplier()" style="margin-top:15px;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+                @*<a onclick="SearchSupplier()" class="btn btn-primary" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-search"></span>Search</a>
+                <a onclick="RefreshSupplier()" class="btn btn-primary" style="color:white;"><span style="color:white;" class="glyphicon glyphicon-refresh"></span>Refresh</a>*@
+            </td>
+        </tr>
+    </table>
+    <div class="table-responsive" style="margin-top:10px;">
+        @grid.GetHtml(
+                    htmlAttributes: new { id = "wgSupLst" },
+                    tableStyle: "tableSmall table-bordered table-hover",
+                    columns: grid.Columns
+                    (
+                    grid.Column("_HeaderID", "ID"),
+                    grid.Column("_OwnerCode", "Employee Code"),
+                    grid.Column("_OwnerName", "Employee Name"),
+                    grid.Column("_OwnerId", "Employee ID"),
+                    grid.Column("SlNo", style: "slno", format: item => rowcount = rowcount + 1),
+                    grid.Column("_SupplierCode", "Supplier Code"),
+                    grid.Column("_SupplierName", "Supplier Name"),
+                    grid.Column(header: "Action", style: "action",
+                        format: @<text>
+                        <a onclick="SelectSupplier(this, id)" id="@item._HeaderID"><span class="btn btn-link">Select</span></a>
+                        </text>)))
+    </div>
+    @*@if (@ViewBag.NoRecordsFound != null || @ViewBag.NoRecordsFound != "")
+        {
+            <div class="borderStyle">
+                @ViewBag.NoRecordsFound
+            </div>
+        }*@
+    @*<div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>*@
+    @*<div style="text-align:right">Total Records :  <label id="lblDirectorsCount"><b>@grid.TotalRowCount</b></label></div>*@
+</div>
+
+<script type="text/javascript">
+    var sup_name;
+
+    function SearchSupplier() {
+        var SupplierName = $("#txtSupplierNameSearch").val();
+        sup_name = SupplierName;
+        var objSearchSupplierName = {
+            "_SupplierName": SupplierName
+        };
+        $.post('../OnwerUpdation/SearchSupplier', objSearchSupplierName,
+        function (data) {
+            $("#wgSupplierLst").load('../OnwerUpdation/SearchSupplier?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtSupplierNameSearch").val(sup_name);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshSupplier() {
+        $("#txtSupplierNameSearch").val("");
+        var SupplierName = $("#txtSupplierNameSearch").val();
+        var objSearchSupplierName = {
+            "_SupplierName": SupplierName
+        };
+        $.post('../OnwerUpdation/SearchSupplier', objSearchSupplierName,
+        function (data) {
+            $("#wgSupplierLst").load('../OnwerUpdation/SearchSupplier?listfor=refresh&' + new Date().getTime());
+
+        }, 'json');
+    }
+
+    $(document).ready(function () {
+        $("#wgSupLst td:nth-child(1),#wgSupLst th:nth-child(1)").hide();
+        $("#wgSupLst td:nth-child(2),#wgSupLst th:nth-child(2)").hide();
+        $("#wgSupLst td:nth-child(3),#wgSupLst th:nth-child(3)").hide();
+        $("#wgSupLst td:nth-child(4),#wgSupLst th:nth-child(4)").hide();
+        $("#wgSupLst td:nth-last-child(1)").show();
+
+        $('#wgSupLst tr th:nth-child(8)').addClass("nosort");
+        $('#wgSupLst').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    });
+
+    function SelectInGrid() {
+        $("#wgSupLst td:nth-child(1),#wgSupLst th:nth-child(1)").hide();
+        $("#wgSupLst td:nth-child(2),#wgSupLst th:nth-child(2)").hide();
+        $("#wgSupLst td:nth-child(3),#wgSupLst th:nth-child(3)").hide();
+        $("#wgSupLst td:nth-child(4),#wgSupLst th:nth-child(4)").hide();
+        $("#wgSupLst td:nth-last-child(1)").show();
+
+        $('#wgSupLst tr th:nth-child(8)').addClass("nosort");
+        $('#wgSupLst').dataTable({
+            "aoColumnDefs": [{
+                "aTargets": ["nosort"],
+                "bSortable": false
+            }]
+        }).css("width", "99%");
+    }
+</script>

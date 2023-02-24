@@ -1,0 +1,204 @@
+﻿@{
+    ViewBag.Title = "CreateGroup";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .SortText span {
+        color: white;
+        font-size: x-small;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/angular.min.js")" type="text/javascript"></script>
+<script src="~/Scripts/asms/ui-bootstrap-tpls-0.11.0.js"></script>
+<script src="~/Scripts/asms/infinite-scroll.js"></script>
+<style type="text/css">
+    .scroll-loader {
+        background: #f7f7f7;
+        height: 300px;
+        border: 3px solid #d2d2d2;
+        margin-bottom: 20px;
+        overflow: auto;
+        padding: 10px 0;
+        border-radius: .5rem 0 0 .5rem;
+    }
+
+        .scroll-loader li {
+            list-style: none;
+            border-bottom: 1px solid #aaa;
+            padding: 5px;
+            margin-bottom: 3px;
+        }
+</style>
+
+
+<span class="pageHeading">New Asset Group</span>
+<div ng-app="AssetGroupApp">
+    <div class="well" ng-controller="AssetGroupController" style="padding-bottom:50px;">
+        <div style="width:100%">
+            <br />
+            <div style="width:100%;">
+                <div style="width:100%;" >
+                    <table class="tableSmall table-bordered table-hover table-responsive" id="checkableGrid">
+                        <thead>
+                            <tr class="SortText">
+                                <th style="width:5%;">
+                                    S.No
+                                </th>
+                                <th style="width:20%;">
+                                    Asset ID
+                                </th>
+                                <th style="width:20%;">
+                                    Asset Description
+                                </th>
+                                <th style="width:20%;">
+                                    Asset Category
+                                </th>
+                                <th style="width:10%;">
+                                    Branch Code
+                                </th>
+                                <th style="width:10%;">
+                                    Asset Code
+                                </th>
+                                <th style="width:10%;">
+                                    Cap Date
+                                </th>
+                                <th style="width:5%;">
+                                    <input type="checkbox"
+                                           id="cbSelectAll">
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody infinite-scroll="addItems()" class="scroll-loader" can-load="canLoad" threshold="100">
+                            <tr ng-repeat="assetgroup in items">
+                                <td style="width:5%;" align="center">
+                                    {{$index+1}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{assetgroup.assetdetails_assetdet_id}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{assetgroup.asset_description}}
+                                </td>
+                                <td style="width:20%;">
+                                    {{assetgroup.assetcategory_name}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{assetgroup.branch_code}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{assetgroup.asset_code}}
+                                </td>
+                                <td style="width:10%;">
+                                    {{assetgroup.assetdetails_cap_date}}
+                                </td>
+                                <td style="width:5%;" align="center">
+                                    <input type="checkbox"
+                                           name="ids"
+                                           class="chk"
+                                           id="{{assetgroup.assetdetails_gid}}"
+                                           value="{{assetgroup.assetdetails_gid}}" />
+                                </td>
+                            </tr>
+                        </tbody>
+                       
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+     
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var objDate = new Date();
+        var Presentyear = objDate.getFullYear();
+        var MinYear = parseInt(Presentyear) - 50;
+        var MaxYear = parseInt(Presentyear) + 50;
+
+        $(".monthpicker").datepicker({
+            yearRange: MinYear + ':' + MaxYear,
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'M-yy'
+        });
+
+        $("#cbSelectAll").live("click", function () {
+            var ischecked = this.checked;
+            $('#checkableGrid').find("input:checkbox").each(function () {
+                this.checked = ischecked;
+            });
+        });
+        $("[name=ids]").live("click", function () {
+            var totalRows = $("#checkableGrid td :checkbox").length;
+            var checked = $("#checkableGrid td :checkbox:checked").length;
+            if (checked == totalRows) {
+                $("#checkableGrid").find("input:checkbox").each(function () {
+                    this.checked = true;
+                });
+            }
+            else {
+                $("[id=cbSelectAll]").prop("checked", false);
+                // $("#cbSelectAll").removeAttr("checked");
+            }
+        });
+    });
+    var myAppAG = angular.module('AssetGroupApp', ['infiniteScroll']);
+    myAppAG.service("AGservice", function ($http) {
+        this.GetAssetDetails = function () {
+            var response = $http({
+                method: "get",
+                url: '@Url.Action("GetAssetDetails", "SplitReport")?' + new Date().getTime(),
+                dataType: "json"
+            });
+            return response;
+        }
+    });
+    myAppAG.controller('AssetGroupController', function ($scope, AGservice) {
+        $scope.items = [];
+        $scope.canLoad = true;
+        $scope.maxItems = 50;
+       
+        $scope.addItems = function () {
+            var getData = AGservice.GetAssetDetails();
+            getData.then(function (response) {
+                var Data0 = "";
+                Data0 = JSON.parse(response.data.data0);
+                $scope.cbfdetails = Data0;
+            }, function () {
+                alert('Error');
+            });
+            alert($scope.Data0.length);
+            for (var i = 0; i < 10; i++) {
+                var stock;
+                //stock = {
+                //    assetdetails_assetdet_id: $scope.cbfdetails[i].assetdetails_assetdet_id,
+                //    asset_description: $scope.cbfdetails[i].asset_description,
+                //    assetcategory_name: $scope.cbfdetails[i].assetcategory_name,
+                //    branch_code: $scope.cbfdetails[i].branch_code,
+                //    asset_code: $scope.cbfdetails[i].asset_code,
+                //    assetdetails_cap_date: $scope.cbfdetails[i].assetdetails_cap_date,
+                //    assetdetails_gid: $scope.cbfdetails[i].assetdetails_gid
+                //};
+                alert($scope.cbfdetails.length);
+                $scope.items = $scope.cbfdetails.slice(0, 10);
+
+                if ($scope.items.length >= $scope.maxItems) {
+                    $scope.canLoad = false;
+                    return;
+                }
+            }
+        };
+
+        $scope.reset = function () {
+            $scope.items = [];
+            $scope.canLoad = true;
+            $scope.addItems();
+        };
+
+        $scope.reset();
+      
+    });
+  
+</script>

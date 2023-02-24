@@ -1,0 +1,94 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.DashBoard>
+@using IEM.Areas.ASMS.Models
+@using IEM.Common
+@{
+    ViewBag.Title = "Dashboard";
+  
+}
+<style type="text/css">
+.aligncenter td a, .aligncenter td span, .aligncenter td {
+    text-align: center;
+    font-size: 16px;
+}
+
+.aligncenter td {
+    text-align: center;
+}
+
+.aligncenter td:nth-child(1) {
+    text-align: left;
+}
+</style>
+<div>
+        <div id="wgDashboardStatus">
+            <center>
+
+                @{
+                    SupDataModel dm = new SupDataModel();
+                    List<DashBoard> objStatusGrid = new List<DashBoard>();
+                    objStatusGrid = dm.GetDashboardForSecondGrid().ToList(); 
+                    CmnFunctions objCmnFunctions = new CmnFunctions();
+                    var grid = new WebGrid(objStatusGrid, canSort: false, canPage: false, ajaxUpdateContainerId: "wgDashboard", ajaxUpdateCallback: "DummyFunction32()");
+
+                }
+
+                <div class="overflowx">
+                    <div>
+
+                        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridDashboardStatus" },
+                        tableStyle: "tableSmall table-bordered aligncenter",
+                        mode: WebGridPagerModes.All,
+                        columns:
+                grid.Columns(
+                grid.Column("_StatusName", objCmnFunctions.Sorter("_StatusName", "Status", grid)),
+                grid.Column("_StatusCount", objCmnFunctions.Sorter("_StatusCount", "Count", grid),style:"MidColumn20Center",
+                format: @<text>
+                    @if (item._StatusCount == 0)
+                    {
+                        <span>@item._StatusCount</span>
+                    }
+                    else
+                    {
+                        <a title='view' onclick='ViewStatusGridDetails(this)'> @item._StatusCount </a>
+                    }
+
+                </text>
+                )
+                       ))
+                    </div>
+                </div>
+                
+            </center>
+
+        </div>
+
+</div>
+<script type="text/javascript">
+
+    function ViewStatusGridDetails(element) {
+        var row = $(element).closest('tr');
+        var tds = row.find('td');
+        var statusname = tds.eq(0).text();
+     
+        if ($.trim(statusname) == "TOTAL SUPPLIERS") {
+            location = "../Modification/Index?queuefor=totalsuppliers&" + new Date().getTime();
+        }
+        else if ($.trim(statusname) == "ACTIVE") {
+            location = "../Modification/Index?queuefor=active&" + new Date().getTime();
+        }
+        else if ($.trim(statusname) == "INACTIVE") {
+            location = "../Modification/Index?queuefor=inactive&" + new Date().getTime();
+        }
+        else if ($.trim(statusname) == "EXPIRED") {
+            location = "../Modification/Index?queuefor=expired&" + new Date().getTime();
+        }
+        else if ($.trim(statusname) == "PENDING FOR FINANCE REVIEW") {
+            location = "../AsmsMain/FinancialReviewIndex?" + new Date().getTime();
+        }
+          
+       
+    }
+  
+</script>
+

@@ -1,0 +1,80 @@
+﻿@model IEM.Areas.IFAMS.Models.SaleMakerModel
+@using IEM.Common
+@{
+    ViewBag.Title = "Index";
+    int sarowcount = 0;
+    int saGID = Model.soaGid;
+    var grid = new WebGrid(source: Model.attach_list, canSort: false, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "grid");
+    CmnFunctions objCm = new CmnFunctions();
+}
+
+<div>
+    <div id="soaattachmentgrid">
+        <div class="borderStyleNew" style="overflow-y:scroll;height:200px">
+            @grid.GetHtml(tableStyle: "tableSmall table-bordered", htmlAttributes: new { id = "soaattachgridaddview" },
+
+            columns: grid.Columns(
+            grid.Column("S.No", format: a => sarowcount = sarowcount + 1),
+             grid.Column("attacheddate", "Attachement Date"),
+            grid.Column("filename", "File Name",
+            format: @<text>
+                <a title="Click here to download" href='../AssetSale/SADownloadDocument?id=@item.filename'>
+                    @item.filename
+                </a>
+            </text>),
+            grid.Column("description", "Description"),
+            grid.Column(header: "Action", canSort: false, style: "action",
+            format:@<text>
+                @*<input type="button" value="Delete" class="btn btn-link" onclick="deleteAttofSOA(id)" id="@item.attachGid" title="Delete" />*@
+                <a onclick="deleteAttofSOA(id)" id="@item.attachGid" title="Delete"> <span class="glyphicon glyphicon-trash"></span> </a>
+            </text>)))
+            <div class=" btnCenter" align="center">
+                @if (ViewBag.Message != null)
+                {
+                    <b> @ViewBag.Message </b>
+                }
+            </div>
+        </div>
+        @*<label>page: @(grid.PageIndex + 1 ) of @grid.PageCount</label>*@ <label> Total No of Records:@Model.attach_list.Count</label>
+
+        <table class="myTableStyleTabNew" align="center">
+            <tr>
+                <td>
+                    <div>
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning" id="btntoabackView" onclick="backtosmsummary()" type="submit" name="command" value="Back"><span style="color:white" class="glyphicon glyphicon-circle-arrow-left"></span> Back</button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    if ('@ViewBag.viewmode' == "diabled") {
+        $("#addviewattachment").hide(0);
+        $("#soaattachgridaddview td:nth-child(5),#soaattachgridaddview th:nth-child(5)").hide(0);
+    }
+
+    function deleteAttofSOA(id) {
+       // alert(id);
+        $.post('@Url.Action("Deleteattachsub", "AssetSale")?id=' + id + '&' + new Date().getTime(),
+        function (data) {
+            if (data == 0) {
+                location = location.href;
+            }
+            else {
+                id = '@Model.soaGid';
+               // alert(id);
+                $("#soaattachmentgrid").load('@Url.Action("soaAttachgrid", "AssetSale")?id=' + id + '&' + new Date().getTime());
+            }
+        }, 'json');
+    }
+
+    function backtosmsummary() {
+        window.parent.jQuery('#ForPartialViews').dialog('close');
+        $('#gridId').find('tr').css('background', 'none');
+    }
+</script>

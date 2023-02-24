@@ -1,0 +1,135 @@
+﻿@model IEnumerable<IEM.Areas.FLEXIBUY.Models.CbfCheckerSummary>
+@using IEM.Common;
+
+<link href="@Url.Content("~/Content/themes/base/jquery-ui.css")" rel="stylesheet" type="text/css" />
+<link href="@Url.Content("~/Content/Rmax_Site.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/jquery-ui-1.8.24.min.js")" type="text/javascript"></script>
+
+@{
+    CmnFunctions obj = new CmnFunctions();
+    var grid = new WebGrid(source: Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "gridclosure", ajaxUpdateCallback: "grid()", selectionFieldName: "SelectedRow");
+    grid.Pager(WebGridPagerModes.Numeric);
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowNum = 0;
+}
+
+<div class="pageHeadingLayout">
+    <span class="pageHeading">CBF Closure Summary</span>
+</div>
+
+<div class="well">
+    @using (Html.BeginForm())
+    {
+        
+           @Html.AntiForgeryToken()
+        <table class="myTableStyleTabNew " width="100%">
+            <tr>
+                <td style="width:15%;">
+                    <span>CBF Number</span>
+                    <br />
+                    <input type="text"
+                           name="txtcbfnochecker"
+                           value="@ViewBag.txtcbfno"
+                           class="textboxStyle" />
+                </td>
+                <td style="width:15%;">
+                    <span>CBF Date</span>
+                    <br />
+
+                    <input type="text"
+                           id="dtecbfdatechecker"
+                           value="@ViewBag.txtcbfdate"
+                           class="textboxStyle" />
+                </td>
+                <td style="width:15%;">
+                    <span>Select Cbf Mode</span>
+                    <br />
+                    <select id="txtcbfmodechechker"
+                            class="textboxStyle"
+                            name="txtcbfmode"
+                            style="display:block">
+                        <option value="0">--Select Cbf Mode--</option>
+                        <option value="PR">PR</option>
+                        <option value="PAR">PAR</option>
+                    </select>
+                </td>
+                <td style="width:55%; vertical-align:bottom;">
+                    <button id="searchid" class="btn btn-primary" type="submit" name="command" title="Search" value="SEARCH">
+                        <span class="glyphicon glyphicon-search" style="color:white;"> </span>Search
+                    </button>
+                    @*<button class="glyphicon glyphicon-search" style="border:none;box-shadow: none;font-size: 1.7em;background-color: rgb(255, 255, 255);" type="submit" name="command" title="Search" value="SEARCH"></button>*@
+                    <button type="button" id="btncancel" class="btn btn-primary" value="Cancel" onclick="refresh()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Clear
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+        if (ViewBag.Message != null)
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.Message
+            </div>
+        }
+        if (@ViewBag.Error != null)
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.Error
+            </div>
+        }
+
+        <div class="pageHeadingLayout">
+            <span class="pageHeading">CBF Details</span>
+        </div>
+        @functions {
+            public static string Sorter(string columnName, string columnHeader, WebGrid grid)
+            {
+                return string.Format("{0} {1}", columnHeader, grid.SortColumn == columnName ?
+                    grid.SortDirection == SortDirection.Ascending ? "▲" :
+                    "▼" : string.Empty);
+            }
+        }
+        <div class="table-responsive">
+            @*<div class="overflowx" >*@
+            @grid.GetHtml(
+        tableStyle: "tableSmall table-bordered table-hover",
+        htmlAttributes: new { id = "gridclosure" },
+        columns: grid.Columns
+            (
+            grid.Column("Slno", format: a => rowNum = rowNum + 1, style:"slno"),
+                   grid.Column("cbfModeChecker", Sorter("cbfmode", "CBF Mode", grid), style: "numcolumn"),
+                    grid.Column("cbfNoChecker", Sorter("cbfno", "CBF No", grid), style: "numcolumn"),
+                      grid.Column("cbfDateChecker", Sorter("cbfdate", "CBF Date", grid), style: "numcolumn"),
+                     grid.Column("cbfEndDateChecker", Sorter("cbfenddate", "CBF End Date", grid), style: "numcolumn"),
+                     grid.Column("cbfrequestForChecker", Sorter("cbfrequestfor", "Department", grid), style: "collargeBreak"),
+                      grid.Column("fincon_Bugchecker", Sorter("fincon_bug", "Fincon Budgeted", grid), style: "colmediumBreak"),
+                   //grid.Column("cbfAmoChecker", Sorter("cbfamo", "CBF Amount", grid)),
+                     grid.Column("cbfAmoChecker", obj.Sorter("cbfamo", "CBF Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", obj.GetINRAmount(Convert.ToString(@item.cbfAmoChecker)))) </text>, canSort: true, style: "colamountlarge"),
+                      grid.Column("cbfProjectOwnerChecker", Sorter("cbfprojectowner", "CBF Project Owner", grid), style: "collargeBreak"),
+                     //grid.Column("cbfDevi_AmoChecker", Sorter("cbfdevi_amo", "Deviation Amount", grid)),
+                        grid.Column("cbfDevi_AmoChecker", obj.Sorter("cbfdevi_amo", "Deviation Amount", grid), format: @<text>  @Html.Raw(String.Format("{0:#,##}", obj.GetINRAmount(Convert.ToString(@item.cbfDevi_AmoChecker)))) </text>, canSort: true, style: "colamountlarge"),
+                      grid.Column("cbfDescriptionChecker", Sorter("cbfdescription", "Description", grid), style: "collargeBreak"),
+                  grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                    <input class="btn btn-link" name="command" onclick="cbfChecker(id)" id="@item.cbFGidChecker" value="Close" title="Close" type="button" />
+                </text>)))
+            @if (@ViewBag.records != null && @ViewBag.records != "")
+            {
+                <div class="gridMessage" style="width:100%">
+                    @ViewBag.records
+                </div>
+            }
+            else
+            {
+                <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function cbfChecker(id) {
+        location = ('@Url.Action("CBFChecker", "CBF")/' + id + '/7');
+        //location = '../CbfCheckerraiser/CbfChck?lnid=' + id + '&lsviewfor=closermaker' + '&process=';
+    }
+</script>

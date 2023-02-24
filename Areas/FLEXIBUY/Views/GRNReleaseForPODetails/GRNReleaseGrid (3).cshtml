@@ -1,0 +1,266 @@
+﻿@model IEM.Areas.FLEXIBUY.Models.shipment
+@using System.Web.Mvc;
+@using IEM.Common;
+@{
+    var grid = new WebGrid(source: Model.shiplist, rowsPerPage: 10, canPage: false, canSort: true, ajaxUpdateContainerId: "Released", ajaxUpdateCallback: "dummy()");
+    ViewBag.Title = "Po Release For GRN";
+    int rowNum = 0;
+    CmnFunctions obj = new CmnFunctions();
+
+}
+<input type="hidden" id="hid_balancedQty" value="@Model.balancedqty"
+@*<h4>PO Release For GRN</h4>*@
+
+<div id="released" class="panel panel-default">
+   
+        <span style="color: rgb(52, 108, 196);">PO Release For GRN</span>
+   
+    <div class=" container-fluid overflowx overflowy">
+        <br />
+        @grid.GetHtml(
+    tableStyle: "tableSmall table-bordered",
+         htmlAttributes: new { id = "Released" },
+    columns:
+    grid.Columns(
+
+                      grid.Column("SrNo", obj.Sorter("SrNo", "Sl", grid), canSort: false),
+                //grid.Column("SrNo", obj.Sorter("SrNo", "SlNo", grid)),
+                      grid.Column("shipmentgid", obj.Sorter("shipmentgid", "shipmentgid", grid), canSort: false),
+                      grid.Column("shipmenttype", obj.Sorter("shipmenttype", "Shipment Type", grid), canSort: false, format: @<text>
+                         <select name="shipment" id="ddltype" disabled="disabled" class="editshipment">
+                        <option value="0">--Select--</option>
+                        @{
+                            var shipmentgid1 = Model.shipmentlist.Where(m => m.Value == @item.branchedtype);
+                            if (shipmentgid1 != null)
+                            {
+                                foreach (var citem in Model.shipmentlist)
+                                {
+                                    string selectedValue = "";
+                                    if (@item.branchedtype == citem.Value)
+                                    {
+                                        selectedValue = "selected='selected'";
+                                    }
+
+                                    <option value="@citem.Value" @selectedValue>@citem.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+        </text>),
+                                                              grid.Column("branchName", obj.Sorter("branchName", "Branch Name", grid), canSort: false),
+                                                              grid.Column("address", obj.Sorter("address", "Address", grid), canSort: false),
+                                                              grid.Column("location", obj.Sorter("location", "Location", grid), canSort: false),
+                                                              grid.Column("inchargeID", obj.Sorter("inchargeID", "Incharge ID", grid), canSort: false),
+                                                              grid.Column("balancedqty", obj.Sorter("balancedqty", "balancedqty", grid), canSort: false),
+                                    // grid.Column("releasedqty", obj.Sorter("releasedqty", "Released Qty", grid),
+                                    grid.Column("releasedqty", obj.Sorter("releasedqty", "Released Qty", grid),
+                                     format:@<text><span class="display" id="lblrelqty">@item.releasedqty</span><input type="text" name="inrelease" value="@item.releasedqty" class="textboxStyle edit" href="@item.shipmentgid"
+                                                                                                 id="inrelease_@item.shipmentgid"
+       onchange="ReleasedQuant(value,this)" onkeypress="return isNumber1(event);" /></text>,style:"MidColumn10",canSort:false),
+        grid.Column(header: "Action", canSort: false, style: "action", format: @<text>
+            @*<span class='glyphicon glyphicon-floppy-save edit saverelease-btn' style="cursor:pointer;" title="Save"> <label id="sdf34" hidden="hidden">@item.shipmentgid</label></span>
+            &nbsp;
+            <span class='glyphicon glyphicon-edit display edit-btn cursor' style="cursor:pointer;" title="Edit"><label id="sdf67" hidden="hidden"> @item.shipmentgid</label> </span>
+            &nbsp;*@
+            <span class='glyphicon glyphicon-remove edit cancel-btn cursor' style="cursor:pointer;" title="Cancel"> <label id="sdf000-" hidden="hidden">@item.shipmentgid</label></span>
+            &nbsp;
+            <span class='glyphicon glyphicon-trash display deleterel-btn cursorpointer'><label id="sdf67" hidden="hidden"> @item.shipmentgid</label> </span>
+        </text>)))
+
+        @if (@ViewBag.records != null || @ViewBag.records == "")
+        {
+            <div class="borderStyle btnCenter">
+                @ViewBag.records;
+
+            </div>
+        }
+    </div>
+
+    <input type="hidden" id="rowid" />
+    <input type="hidden" id="cbfid" />
+   
+</div>
+<br />
+<div>
+    <table class="myTableStyleTabNew" align="center">
+
+        <tr>
+            <td>
+                <div style="margin-left: 8px;">
+                    <button type="button" id="btnapprove" name="command" class="btn btn-success" onclick="ReleasePo()" value="Release">
+                        <span class="glyphicon glyphicon-floppy-saved" style="color:white;"></span> Release
+                    </button>
+                    &nbsp;
+                    <button type="button" id="btnreject" class="btn btn-warning" value="Cancel" onclick="BackToReleaseSummary()">
+                        <span style="color:white;" class="glyphicon glyphicon-remove-sign"></span> Cancel
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script>
+    var tr = $("#Released").find('tr');
+    $("#Released td:nth-child(2),#Released th:nth-child(2)").hide();
+    $("#Released td:nth-child(8),#Released th:nth-child(8)").hide();
+    $("#Released tr .Color").click(function () {
+        $('#Released').find('tr').css('background', 'none');
+        $(this).closest('tr').css('background', '#ccc');
+    });
+    $(document).ready(function () {
+        var cnt = 0;
+        $('.edit').hide();
+        var flag = 0;
+        $('.edit-btn').on('click', function () {
+            flag = 0;
+            if (flag == 0) {
+                flag = 1;
+                var tr = $(this).parents('tr:first');
+                tr.find('.edit, .display').toggle();
+            }
+        });
+        $('.cancel-btn').on('click', function () {
+            flag = 0;
+            var tr = $(this).parents('tr:first');
+            tr.find('.edit, .display').toggle();
+        });
+        $(".deleterel-btn").on('click', function () {
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text().trim();
+            var objdelete =
+         {
+             "shipmentgid": row
+         };
+            
+            $.ajax({
+                url: '@Url.Action("DeleteRelease", "GRNReleaseForPODetails")?' + new Date().getTime(),
+                type: 'POST',
+                data: objdelete,
+                success: function (data) {
+                    if (data == 0) {
+                        jAlert("Error Occured", "Error");
+                        return false;
+                    }
+                    else {
+                        $("#grnreleasedforpo").empty().append(data);
+                    }
+                },
+                error: function () {
+                    jAlert("something seems wrong", "Error");
+                }
+
+            });
+
+        });
+        $('.saverelease-btn').on('click', function () {
+            var tr = $(this).parents('tr:first');
+            var row = $(this).text();
+            var releasedqty = tr.find("#inrelease_" + row.trim() + "").val();
+            var shipmentgid = tr.find("td:eq(1)").text();
+            if (releasedqty == null || releasedqty == "") {
+                jAlert("Released Quantity should not be Empty", "Error");
+                return false;
+            }
+            else {
+                $('.edit').hide();
+            var objshipment =
+                {
+                    "releasedqty": releasedqty,
+                    "shipmentgid": shipmentgid
+                };
+                $.ajax({
+                    url: '@Url.Action("releasedQtyTempSave", "GRNReleaseForPODetails")?' + new Date().getTime(),
+                    type: 'POST',
+                    data: objshipment,
+                    success: function (data) {
+                        if (data == 0) {
+                            jAlert("Error Occured", "Error");
+                            return false;
+                        }
+                        else {
+                            $("#grnreleasedforpo").empty().append(data);
+                        }
+                        @*$("#grnreleasedforpo").load('@Url.Action("releasedQtyTempSave", "GRNReleaseForPODetails")');*@
+                    },
+                    error: function () {
+                        jAlert("something seems wrong", "Error");
+                    }
+                });
+            }
+        });
+    });
+    function ReleasedQuant(value,element)
+    {
+        var id1 = $(element).attr('href');
+        var tr = $(element).parents('tr:first');
+        var row = $(element).text();
+        var balancedqty = tr.find("td:eq(7)").text();
+        if (parseInt(value) > parseInt(balancedqty))
+        {
+            jAlert("Released Quantity Cannot be greater than Balanced Quantity '"+ balancedqty +"'", "Error");
+            $('#inrelease_' + id1 + '').val("");
+            $('#inrelease_' + id1 + '').val(balancedqty);
+            return false;
+        }
+        if (parseInt(value) == parseInt(0))
+        {
+            jAlert("Released Quantity Cannot be Zero", "Error");
+            $('#inrelease_' + id1 + '').val(balancedqty);
+        }
+    }
+    function ReleasePo() {
+        var cnttemp = 0;
+        //var releasedQty = $("#Released td:nth-child(9)").text();
+     
+        $("#Released tr").each(function () {
+            cnttemp = cnttemp + 1;
+            var tds = $(this).find('td:eq(8)').text();
+            if (tds != "") {
+             
+                if (tds.toString() == "0") {
+                
+                    //return false;
+                    //jAlert("Released Quantity Cannot be Empty or Zero", "Error", function () {
+                    //    return false;
+                    //});
+                    return false;
+                }
+            }
+            if (cnttemp == $("#Released tr").length) {
+                var balancedQty = $("#hid_balancedQty").val();
+                var objrelease =
+                    {
+                        "balancedqty": balancedQty
+                    };
+                $.post('@Url.Action("SaveReleaseDetails", "GRNReleaseForPODetails")', objrelease,
+                     function (data) {
+                         if (data == 0) {
+                             jAlert("Error Occured", "Error");
+                             return false;
+                         }
+                         else {
+                             if (data == "success") {
+                                 jAlert("Inserted Successfully", "Success", function (e) {
+                                     if (e == true) {
+                                         var viewfor = "refresh";
+                                         location = '@Url.Action("GRNRelease", "GRNReleaseForPO")?viewfor=' + viewfor;
+                                     }
+                                 });
+                             }
+                             else {
+                                 jAlert(data, "Error");
+                                 return false;
+                             }
+                         }
+                     }, 'json');
+            }
+          
+        });
+        //if (parseInt(releasedQty) == parseInt(0))
+        //{
+        //    jAlert("Released Quantity Cannot be Empty or Zero", "Error");
+        //    return false;
+        //}
+       
+    }
+</script>

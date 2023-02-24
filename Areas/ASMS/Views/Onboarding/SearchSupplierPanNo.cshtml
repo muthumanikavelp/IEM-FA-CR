@@ -1,0 +1,97 @@
+﻿@model IEnumerable<IEM.Areas.ASMS.Models.SupplierHeader>
+@using IEM.Common
+@{
+    if (Model.Count() == 0)
+    {
+        ViewBag.NoRecordsFound = "No Records Found";
+    }
+    else
+    {
+        ViewBag.NoRecordsFound = null;
+    }
+    var grid = new WebGrid(Model, canSort: true, canPage: true, rowsPerPage: 10, ajaxUpdateContainerId: "wgSupplierPanNoList", ajaxUpdateCallback: "DummyFunction91()");
+    CmnFunctions objCmnFunctions = new CmnFunctions();
+    int rowcount = 0;
+}
+<div id="wgSupplierPanNoList">
+    <table style="width:97.5%;" class="myTableStyleTabpopup">
+        <tr>
+            <td>
+                <span>Pan Number</span>
+                <input type="text" name="txtSupplierPanNoSearch" id="txtSupplierPanNoSearch" class="textboxStyle" value=@ViewBag.SearchPanNo />
+            </td>
+            <td style="vertical-align:bottom;">
+                <button onclick="SearchSupplierPanNo()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-search"></span> Search</button>
+                <button onclick="RefreshSupplierPanNo()" class="btn btn-primary"><span style="color:white;" class="glyphicon glyphicon-refresh"></span> Refresh</button>
+            </td>
+        </tr>
+    </table>
+    <div class="table-responsive" style="margin-top:10px; width:100%;">
+        @grid.GetHtml(
+                        htmlAttributes: new { id = "wgridSupplierPanNoList" },
+                                 tableStyle: "tableSmall table-bordered table-hover",
+                        mode: WebGridPagerModes.All,
+            columns: grid.Columns
+            (
+            grid.Column("S.No", style: "IdColumn", format: item => rowcount = rowcount + 1, canSort: false),
+            grid.Column("_PanNo", objCmnFunctions.Sorter("_PanNo", "Supplier Pan Number", grid))
+            @*grid.Column(header: "Action", canSort: false, style: "action",
+                format: @<text>
+                <a onclick="SelectEmployee(this,id)" id="@ViewBag.formname"><span class="btn btn-link">Select</span></a>
+                </text>)*@
+))
+    </div>
+
+        @if (@ViewBag.NoRecordsFound != null && @ViewBag.NoRecordsFound != "")
+        {
+            <div class="gridMessage" style="width:100%">
+                @ViewBag.NoRecordsFound
+            </div>
+        }
+        else
+        {
+            <div class="gridCount" style="text-align:left;">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> - Total No Of Records: <b>@grid.TotalRowCount</b></div>
+        }
+      @*<div class="borderStyle">
+                @ViewBag.NoRecordsFound
+        </div>
+        <div>
+        <div style="text-align:left">Page <b>@(grid.PageIndex + 1)</b> of <b>@grid.PageCount</b> &nbsp;&nbsp; Total Records : <label id="lblDirectorCount">@grid.TotalRowCount</label></div>
+            <div style="text-align:right">Total Records :  <label id="lblDirectorsCount"><b>@grid.TotalRowCount</b></label></div>
+        </div>*@
+</div>
+
+<script type="text/javascript">
+    var sup_panno;
+    function SearchSupplierPanNo() {
+        var SupplierPanNo = $("#txtSupplierPanNoSearch").val();
+        sup_panno = SupplierPanNo;
+        var objSearchSupplierPanNo = {
+            "_PanNo": SupplierPanNo
+        };
+        $.post('../Onboarding/SearchSupplierPanNo', objSearchSupplierPanNo,
+        function (data) {
+            $("#wgSupplierPanNoList").load('../Onboarding/SearchSupplierPanNo?listfor=search&' + new Date().getTime());
+            setTimeout(function () {
+                $("#txtSupplierPanNoSearch").val(sup_panno);
+            }, 50);
+
+        }, 'json');
+    }
+    function RefreshSupplierPanNo() {
+        $("#txtSupplierPanNoSearch").val("");
+        var SupplierPanNo = $("#txtSupplierPanNoSearch").val();
+        var objSearchSupplierPanNo = {
+            "_PanNo": SupplierPanNo
+        };
+        $.post('../Onboarding/SearchSupplierPanNo', objSearchSupplierPanNo,
+        function (data) {
+            $("#wgSupplierPanNoList").load('../onboarding/SearchSupplierPanNo?listfor=refresh&' + new Date().getTime());
+
+        }, 'json');
+    }
+    function DummyFunction91() {
+        $("#wgridSupplierPanNoList td:nth-last-child(1)").show();
+    }
+
+</script>
